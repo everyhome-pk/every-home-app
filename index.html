@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B4F4A">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+<style>
+:root{
+  --bg:#F5F6F8;--card:#FFFFFF;--text:#0F172A;--muted:#64748B;--faint:#94A3B8;--line:#E8ECF1;
+  --shadow:0 1px 2px rgba(15,23,42,.04),0 6px 20px rgba(15,23,42,.05);
+  --green:#15803D;--green-bg:#ECFDF3;--red:#C2410C;--red-bg:#FFF4ED;--amber:#B45309;--amber-bg:#FFFBEB;--blue:#1D4ED8;--blue-bg:#EFF4FF;
+  --brand:#0F766E;--brand-ink:#FFFFFF;--hero:#0B3D3A;--hero-2:#12524D;--accent:#5EEAD4;
+}
+[data-mode="dark"]{
+  --bg:#0A0F1A;--card:#121A2A;--text:#E6EAF0;--muted:#94A3B8;--faint:#64748B;--line:#1F2A3C;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+  --green:#4ADE80;--green-bg:#0F2A1C;--red:#FB923C;--red-bg:#2A170D;--amber:#FBBF24;--amber-bg:#2A2108;--blue:#93B4FF;--blue-bg:#13203D;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;font-size:14px;line-height:1.45;transition:background .3s,color .3s}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.wrap{max-width:460px;margin:0 auto;padding:16px 16px 96px}
+.top{display:flex;align-items:center;gap:12px;margin:4px 0 14px}
+.logo{width:40px;height:40px;border-radius:12px;background:var(--brand);color:var(--brand-ink);display:grid;place-items:center;font-weight:700;letter-spacing:.5px}
+.hello{flex:1;min-width:0}.hello b{display:block;font-size:17px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hello span{display:block;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .icon-btn{width:36px;height:36px;font-size:17px}
+.top{gap:8px}
+#brief{cursor:pointer}#brief span{flex:1}
+.pbar{display:flex;gap:8px;margin-bottom:14px}
+.pbtn{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:12px;padding:9px 12px;font:600 13px Inter,sans-serif;cursor:pointer;box-shadow:var(--shadow);min-width:0}
+.pbtn:first-child{flex:1.3}.pbtn:last-child{flex:1}
+.pbtn span{flex:1;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pbtn i{font-size:16px;color:var(--muted)}
+.fbar{display:flex;gap:8px;margin-bottom:10px}
+.fbar .pbtn{flex:1;box-shadow:none}.fbar .pbtn b{font-size:12px;color:var(--muted)}
+.fbar .pbtn.ctx{flex:0 1 auto;max-width:55%;background:var(--brand);color:#fff;border-color:var(--brand)}.fbar .pbtn.ctx i{color:#fff}
+.sheet-list .sl b{font-weight:600;color:var(--muted);margin-left:auto;padding-left:10px}.sheet-list .sl.on b{color:var(--brand)}
+.sheet-list .sl{display:flex;justify-content:space-between;align-items:center;padding:12px 4px;border-top:1px solid var(--line);font-size:14px;cursor:pointer}
+.sheet-list .sl small{display:block;font-size:11.5px;color:var(--muted);font-weight:400}
+.sheet-list .sl.on{color:var(--brand);font-weight:600}.sheet-list .sl i{font-size:18px}
+.sheet-list .sl-h{font-size:10.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.7px;margin:12px 0 2px}
+.flag{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:99px;background:var(--amber-bg);color:var(--amber);margin:6px 4px 0 0}
+.jr-cancel{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:9px 10px;border-radius:12px;background:var(--bg);font-size:12.5px;color:var(--muted);cursor:pointer}
+.jr-cancel b{color:var(--text)}
+.jr-sum{font-size:12.5px;color:var(--muted);margin:-4px 0 8px}.jr-sum b{color:var(--text);font-size:15px}
+.jr-list{position:relative}
+.jr-row{display:grid;grid-template-columns:26px 1fr 64px 30px 14px;align-items:center;gap:8px;padding:6px 0;position:relative;cursor:pointer}
+.jr-row:before{content:"";position:absolute;left:12px;top:0;bottom:0;width:2px;background:var(--line)}
+.jr-list .jr-row:first-child:before{top:50%}
+.jr-list .jr-row:last-child:before{bottom:50%}
+.jr-dot{width:26px;height:26px;border-radius:50%;background:var(--card);border:2px solid var(--c);color:var(--c);display:grid;place-items:center;font-size:13px;position:relative;z-index:1}
+.jr-name{font-size:13px;font-weight:600;min-width:0}.jr-name small{display:block;font-weight:400;color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jr-bar{height:6px;background:var(--line);border-radius:9px;overflow:hidden}.jr-bar i{display:block;height:100%;border-radius:9px;transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.jr-n{text-align:right;font-size:15px}
+.jr-row.zero{opacity:.4}
+.jr-sep{font-size:10.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.7px;margin:6px 0 0 36px}
+.st{color:var(--c,var(--muted));background:var(--bg)}
+.pctx{background:var(--brand)!important;color:#fff!important;border-color:var(--brand)!important}
+.icon-btn{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);display:grid;place-items:center;font-size:18px;cursor:pointer}
+.icon-btn:active{transform:scale(.95)}
+.brief{background:var(--card);border-radius:14px;padding:10px 12px;font-size:12.5px;color:var(--muted);display:flex;gap:8px;align-items:center;box-shadow:var(--shadow);margin-bottom:14px}
+.brief i{color:var(--brand);font-size:16px}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -16px 10px;padding:0 16px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:500;cursor:pointer;font-family:inherit}
+.chip.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+.seg{display:flex;background:var(--card);border-radius:12px;padding:3px;box-shadow:var(--shadow);margin-bottom:14px}
+.seg button{flex:1;border:0;background:none;color:var(--muted);padding:8px;border-radius:9px;font:500 12.5px Inter,sans-serif;cursor:pointer}
+.seg button.on{background:var(--brand);color:var(--brand-ink)}
+.hero{background:var(--hero);color:#fff;border-radius:22px;padding:18px;position:relative;overflow:hidden;margin-bottom:12px}
+.hero:after{content:"";position:absolute;right:-60px;top:-60px;width:180px;height:180px;border-radius:50%;background:var(--hero-2);opacity:.9}
+.hero>*{position:relative;z-index:1}
+.hero small{color:rgba(255,255,255,.7);font-size:12px}
+.hero .big{font-size:34px;font-weight:700;letter-spacing:-.5px;margin:4px 0 2px}
+.hero .delta{font-size:12px;color:var(--accent)}
+.hero-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.hero-row div{background:rgba(255,255,255,.08);border-radius:14px;padding:10px 12px}
+.hero-row span{display:block;font-size:11.5px;color:rgba(255,255,255,.65)}
+.hero-row b{font-size:17px;font-weight:600}
+.hero-row b{display:block;margin:2px 0}.hero-row em{display:block;font-style:normal;font-size:11px;color:rgba(255,255,255,.65)}.hero-row .late{font-style:normal;color:#F7A8A8;font-weight:600}
+.hero-later{display:flex;align-items:center;gap:6px;margin-top:12px;font-size:12px;color:rgba(255,255,255,.75)}.hero-later i{font-size:15px}
+.oc-kp{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:4px 0 10px;text-align:center}
+.oc-kp div{background:var(--bg);border-radius:12px;padding:10px 4px;cursor:pointer}.oc-kp b{display:block;font-size:18px}.oc-kp small{font-size:11px;color:var(--muted)}
+.oc-warn{display:flex;align-items:center;gap:8px;margin-top:8px;padding:9px 10px;border-radius:12px;background:var(--amber-bg);color:var(--amber);font-size:12.5px;font-weight:600;cursor:pointer}.oc-warn span{flex:1}
+.hero-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.hero-bar{height:8px;border-radius:9px;background:rgba(255,255,255,.15);overflow:hidden;margin:10px 0 6px}.hero-bar i{display:block;height:100%;border-radius:9px;background:var(--accent);transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.card{background:var(--card);border-radius:18px;padding:14px;box-shadow:var(--shadow);margin-bottom:12px}
+.tile{background:var(--card);border-radius:18px;padding:13px 14px;box-shadow:var(--shadow)}
+.tile .lbl{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.tile .lbl i{font-size:15px}
+.tile .v{font-size:24px;font-weight:700;margin:4px 0 0;letter-spacing:-.3px}
+.tile .s{font-size:11.5px;color:var(--faint)}
+.up{color:var(--green)}.down{color:var(--red)}
+.h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.h b{font-size:14px;font-weight:600}.h span{font-size:12px;color:var(--muted)}
+.bar{height:10px;border-radius:99px;background:var(--line);overflow:hidden;display:flex}
+.bar>i{display:block;height:100%;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:12px;color:var(--muted)}
+.legend span:before{content:"";display:inline-block;width:8px;height:8px;border-radius:3px;margin-right:6px;background:var(--c)}
+.legend b{color:var(--text);font-weight:600;margin-left:3px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-top:1px solid var(--line);font-size:13.5px}
+.row:first-of-type{border-top:0}
+.row span{color:var(--muted)}.row b{font-weight:600}
+.act{display:flex;gap:12px;align-items:center;padding:11px 0;border-top:1px solid var(--line)}
+.act:first-of-type{border-top:0}
+.act .ic{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;font-size:18px;flex:none}
+.t-danger{background:var(--red-bg);color:var(--red)}.t-warning{background:var(--amber-bg);color:var(--amber)}.t-info{background:var(--blue-bg);color:var(--blue)}
+.act b{display:block;font-size:13.5px;font-weight:600}.act small{color:var(--muted);font-size:12px}
+.act .go{margin-left:auto;color:var(--faint)}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cmp>div{border:1px solid var(--line);border-radius:14px;padding:12px}
+.cmp b{font-size:13px}.cmp .k{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px}.cmp .k em{font-style:normal;color:var(--text);font-weight:600}
+.chart{display:flex;align-items:flex-end;gap:10px;height:130px;padding-top:16px}
+.col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
+.stack{width:100%;max-width:34px;display:flex;flex-direction:column-reverse;border-radius:8px;overflow:hidden;background:var(--line);transition:opacity .2s}
+.stack i{display:block;transition:height .9s cubic-bezier(.2,.8,.2,1)}
+.col small{font-size:11px;color:var(--muted)}.col .tot{font-size:11px;font-weight:600;color:var(--text)}
+.col.dim .stack{opacity:.35}
+.days{display:flex;align-items:flex-end;gap:4px;height:70px}
+.days i{flex:1;background:var(--brand);border-radius:4px 4px 2px 2px;opacity:.85;min-height:3px;transition:height .9s cubic-bezier(.2,.8,.2,1)}
+.days-l{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);margin-top:6px}
+.pay{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+.pay:first-of-type{border-top:0}
+.pay .d{flex:1}.pay .d b{font-size:13px;font-weight:600;display:block}.pay .d small{font-size:12px;color:var(--muted)}
+.pill{font-size:11px;font-weight:600;padding:3px 8px;border-radius:99px}
+.p-ok{background:var(--green-bg);color:var(--green)}.p-no{background:var(--red-bg);color:var(--red)}
+.nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:10}
+.nav div{max-width:460px;margin:0 auto;display:flex}
+.nav button{flex:1;border:0;background:none;color:var(--faint);font:500 11px Inter,sans-serif;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;position:relative}
+.nav button i{font-size:22px}
+.nav button.on{color:var(--brand)}
+[data-mode="dark"] .nav button.on,[data-mode="dark"] .brief i{color:var(--accent)}
+.badge{position:absolute;top:-4px;left:calc(50% + 6px);background:var(--red);color:#fff;font-size:10px;font-weight:700;border-radius:99px;padding:1px 6px}
+.sk{background:linear-gradient(90deg,var(--line) 25%,var(--card) 50%,var(--line) 75%);background-size:200% 100%;animation:sk 1.2s infinite;border-radius:18px}
+@keyframes sk{to{background-position:-200% 0}}
+.toast{position:fixed;left:50%;bottom:86px;transform:translate(-50%,20px);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:20}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.fade{animation:fade .45s ease both}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.empty{text-align:center;color:var(--muted);font-size:13px;padding:14px 0}
+.empty i{display:block;font-size:26px;color:var(--green);margin-bottom:4px}
+.title{font-size:22px;font-weight:700;letter-spacing:-.3px;margin:2px 0 12px}
+.search{display:flex;align-items:center;gap:8px;background:var(--card);border-radius:14px;padding:0 12px;box-shadow:var(--shadow);margin-bottom:10px}
+.search i{color:var(--faint);font-size:18px}
+.search input{flex:1;border:0;background:none;color:var(--text);font:400 14px Inter,sans-serif;padding:12px 0;outline:none}
+.chip b{font-weight:600;margin-left:4px;opacity:.7}
+.pc{background:var(--card);border-radius:18px;padding:14px;box-shadow:var(--shadow);margin-bottom:10px;border-left:4px solid var(--c,var(--line))}
+.pc-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pc-cn{font-weight:600;font-size:14px;font-variant-numeric:tabular-nums}
+.pc-who{color:var(--muted);font-size:13px;margin-top:2px}
+.pc-meta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:8px}
+.pc-meta b{color:var(--text);font-weight:600}
+.pc-note{font-size:12.5px;margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--bg);color:var(--muted)}
+.btns{display:flex;gap:8px;margin-top:10px}
+.btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:12px;padding:9px 6px;font:600 12.5px Inter,sans-serif;text-decoration:none;cursor:pointer}
+.btn i{font-size:17px}
+.btn.wa{background:#16A34A;border-color:#16A34A;color:#fff}
+.btn.pri{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.sq{flex:none;width:42px}
+.st{font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;white-space:nowrap}
+.s-moving{background:var(--blue-bg);color:var(--blue)}.s-delivered{background:var(--green-bg);color:var(--green)}
+.s-returned,.s-ndr{background:var(--red-bg);color:var(--red)}.s-notbooked,.s-cancelled{background:var(--bg);color:var(--muted)}
+.tl{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+.tl-i{display:flex;gap:10px;padding-bottom:10px;position:relative}
+.tl-i:before{content:"";position:absolute;left:5px;top:14px;bottom:0;width:2px;background:var(--line)}
+.tl-i:last-child:before{display:none}
+.tl-d{width:12px;height:12px;border-radius:50%;background:var(--line);margin-top:3px;flex:none;position:relative;z-index:1}
+.tl-i:first-child .tl-d{background:var(--brand)}
+.tl-i b{font-size:12.5px;font-weight:600;display:block}.tl-i small{font-size:11.5px;color:var(--muted)}
+.more{display:block;width:100%;margin:6px 0 10px}
+.prio{font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px}
+.pr-1{background:var(--red-bg);color:var(--red)}.pr-2{background:var(--amber-bg);color:var(--amber)}.pr-3{background:var(--blue-bg);color:var(--blue)}
+.new-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-right:6px;animation:pulse 1.4s infinite}
+@keyframes pulse{50%{opacity:.3}}
+.done-line{font-size:12px;color:var(--green);margin-top:8px;display:flex;gap:6px;align-items:center}
+.overlay{position:fixed;inset:0;background:rgba(2,6,23,.45);display:none;align-items:flex-end;justify-content:center;z-index:30}
+.overlay.show{display:flex}
+.panel{background:var(--card);width:100%;max-width:460px;border-radius:22px 22px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto;animation:up .25s ease}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+.panel h3{margin:0 0 2px;font-size:16px}.panel p{margin:0 0 12px;color:var(--muted);font-size:12.5px}
+.fld{margin-bottom:10px}.fld label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+.fld select,.fld input,.fld textarea{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--text);border-radius:12px;padding:10px 12px;font:400 14px Inter,sans-serif}
+.opts{display:flex;flex-direction:column;gap:6px}
+.opt{border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px;cursor:pointer;background:var(--bg)}
+.opt.on{border-color:var(--brand);background:var(--card);box-shadow:0 0 0 1px var(--brand)}
+.err{color:var(--red);font-size:12px;margin-top:4px}
+.login{position:fixed;inset:0;background:var(--bg);z-index:40;display:flex;align-items:center;justify-content:center;padding:20px}
+.login[hidden]{display:none}
+.login-box{width:100%;max-width:340px;text-align:center}
+.login-box h2{margin:0;font-size:22px}.login-box p{color:var(--muted);font-size:13px;margin:4px 0 18px}
+.login-box select,.login-box input{width:100%;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:14px;padding:13px 14px;font:400 15px Inter,sans-serif;margin-bottom:10px;text-align:center}
+.tk{font-size:12px;margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--amber-bg);color:var(--amber)}
+.tk.ok{background:var(--green-bg);color:var(--green)}.tk.bad{background:var(--red-bg);color:var(--red)}
+.cs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0 4px;text-align:center}
+.cs div{background:var(--bg);border-radius:10px;padding:8px 2px}.cs b{display:block;font-size:16px}.cs small{font-size:10.5px;color:var(--muted)}
+.cs-h{font-size:10.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.7px;margin-top:8px}.cs-h+.cs{margin-top:4px}
+.cs-done{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);padding:8px 2px 2px;border-top:1px solid var(--line);margin-top:8px}
+.cs-done i{font-size:16px;color:var(--faint)}.cs-done span{flex:1}.cs-done b{font-weight:600}.cs-done small{font-size:11px;color:var(--faint)}
+.scan{display:flex;gap:8px;background:var(--card);border-radius:16px;padding:6px;box-shadow:var(--shadow);margin-bottom:10px}
+.li{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.li:first-of-type{border-top:0}
+.li .d{flex:1;min-width:0}.li .d b{display:block;font-size:13px;font-weight:600}.li .d small{display:block;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .r{text-align:right}.li .r b{display:block;font-size:13.5px}
+.mini{font-size:11.5px;color:var(--brand);background:none;border:0;padding:4px 0;font-weight:600;cursor:pointer;font-family:inherit}
+.found{border:2px solid var(--brand)}
+/* speed + touch */
+button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
+.btn:active,.chip:active,.tile[data-go]:active,.card[data-go]:active,.act:active,.opt:active,.seg button:active,.nav button:active{transform:scale(.97);transition:transform .08s}
+.sync{position:fixed;top:0;left:0;right:0;height:3px;z-index:50;overflow:hidden;opacity:0;transition:opacity .2s}
+.sync.on{opacity:1}
+.sync:before{content:"";position:absolute;inset:0;width:40%;background:var(--brand);animation:sync 1s ease-in-out infinite}
+@keyframes sync{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
+.chips.wrapc{flex-wrap:wrap;margin:0 0 6px;padding:0}
+.tl-sheet .tl{border-top:0;padding-top:4px;margin-top:0}
+</style>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Every Home</title>
+</head>
+<body>
+<div class="sync" id="sync"></div>
+<div class="wrap">
+  <div class="top">
+    <div class="logo">EH</div>
+    <div class="hello"><b id="greet">Welcome</b><span id="upd">Every Home</span></div>
+    <button class="icon-btn" id="btnMode" aria-label="Dark mode"><i class="ti ti-moon"></i></button>
+    <button class="icon-btn" id="btnOut" aria-label="Log out"><i class="ti ti-logout"></i></button>
+    <button class="icon-btn" id="btnRefresh" aria-label="Refresh"><i class="ti ti-refresh"></i></button>
+  </div>
+
+  <section id="tab-home">
+    <div class="brief" id="brief"><i class="ti ti-sparkles"></i><span>Loading…</span></div>
+    <div class="pbar"><button class="pbtn" id="hPeriod"><i class="ti ti-calendar"></i><span>This month</span><i class="ti ti-chevron-down"></i></button><button class="pbtn" id="hCourier"><i class="ti ti-truck"></i><span>All couriers</span><i class="ti ti-chevron-down"></i></button></div>
+    <div id="view">
+      <div class="sk" style="height:170px;margin-bottom:12px"></div>
+      <div class="grid"><div class="sk" style="height:92px"></div><div class="sk" style="height:92px"></div><div class="sk" style="height:92px"></div><div class="sk" style="height:92px"></div></div>
+      <div class="sk" style="height:120px;margin-bottom:12px"></div>
+      <div class="sk" style="height:200px"></div>
+    </div>
+  </section>
+
+  <section id="tab-parcels" hidden>
+    <h1 class="title">Parcels</h1>
+    <div class="search"><i class="ti ti-search"></i><input id="q" type="search" placeholder="CN, name, phone, city, order #" autocomplete="off"></div>
+    <div id="pchips"></div>
+    <div id="plist"><div class="sk" style="height:150px;margin-bottom:10px"></div><div class="sk" style="height:150px"></div></div>
+  </section>
+
+  <section id="tab-ndr" hidden>
+    <h1 class="title">NDR &amp; stuck parcels</h1>
+    <div class="brief" id="ndrBrief"><i class="ti ti-bell-ringing"></i><span>Loading…</span></div>
+    <div id="ncour"></div>
+    <div id="nchips"></div>
+    <div id="nlist"><div class="sk" style="height:170px;margin-bottom:10px"></div><div class="sk" style="height:170px"></div></div>
+  </section>
+
+  <section id="tab-cash" hidden>
+    <h1 class="title">Cash</h1>
+    <div class="pbar"><button class="pbtn" id="cPeriod"><i class="ti ti-calendar"></i><span>All time</span><i class="ti ti-chevron-down"></i></button><button class="pbtn" id="cCourier"><i class="ti ti-truck"></i><span>All couriers</span><i class="ti ti-chevron-down"></i></button></div>
+    <div id="cview"><div class="sk" style="height:170px;margin-bottom:12px"></div><div class="sk" style="height:220px"></div></div>
+  </section>
+
+  <section id="tab-returns" hidden>
+    <h1 class="title">Returns</h1>
+    <div class="scan">
+      <div class="search" style="margin:0;box-shadow:none"><i class="ti ti-barcode"></i><input id="rcode" placeholder="Scan or type CN / order #" autocomplete="off"></div>
+      <button class="btn pri" id="rgo" style="flex:none;padding:0 16px">Find</button>
+    </div>
+    <label class="btn" style="margin-bottom:12px;padding:12px"><i class="ti ti-camera"></i>Scan label with camera<input id="rcam" type="file" accept="image/*" capture="environment" hidden></label>
+    <div id="rfound"></div>
+    <div id="rview"><div class="sk" style="height:120px;margin-bottom:12px"></div><div class="sk" style="height:220px"></div></div>
+  </section>
+</div>
+
+<div class="nav"><div>
+  <button class="on" data-tab="home"><i class="ti ti-home"></i>Home</button>
+  <button data-tab="parcels"><i class="ti ti-package"></i>Parcels</button>
+  <button data-tab="ndr"><i class="ti ti-headset"></i>NDR<span class="badge" id="badge" style="display:none"></span></button>
+  <button data-tab="cash"><i class="ti ti-wallet"></i>Cash</button>
+  <button data-tab="returns"><i class="ti ti-scan"></i>Returns</button>
+</div></div>
+<div class="toast" id="toast"></div>
+<div class="overlay" id="overlay"><div class="panel" id="panel"></div></div>
+
+<div class="login" id="login" hidden>
+  <div class="login-box">
+    <div class="logo" style="width:56px;height:56px;border-radius:16px;font-size:20px;margin:0 auto 14px">EH</div>
+    <h2>Every Home</h2>
+    <p>Choose your name and enter your PIN</p>
+    <select id="lgName"><option value="">Name…</option></select>
+    <input id="lgPin" type="password" inputmode="numeric" maxlength="8" placeholder="PIN" autocomplete="current-password">
+    <div class="err" id="lgErr"></div>
+    <button class="btn pri" id="lgGo" style="width:100%;padding:12px;margin-top:6px">Log in</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  if (window.google && google.script) return;
+  var API = "https://script.google.com/macros/s/AKfycbyqtyrClenCG1_iqTSDK5KhtFItfX6rUsYdIexwQ3qPFbSv9d1n8jy06ItjvWXXtB-I/exec";
+  function call(fn, args, ok, fail) {
+    fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: fn, args: args }) })
+      .then(function (r) { return r.json(); })
+      .then(function (j) { if (j.ok) { if (ok) ok(j.data); } else if (fail) fail(new Error(j.error)); })
+      .catch(function () { if (fail) fail(new Error('No connection. Check the internet and try again.')); });
+  }
+  function runner(ok, fail) {
+    return new Proxy({}, { get: function (_, k) {
+      if (k === 'withSuccessHandler') return function (f) { return runner(f, fail); };
+      if (k === 'withFailureHandler') return function (f) { return runner(ok, f); };
+      return function () { call(k, Array.prototype.slice.call(arguments), ok, fail); };
+    } });
+  }
+  window.google = { script: {
+    run: runner(null, null),
+    history: {
+      push: function (state, _, hash) { history.pushState(state, '', '#' + hash); },
+      replace: function (state, _, hash) { history.replaceState(state, '', '#' + hash); },
+      setChangeHandler: function (h) { addEventListener('popstate', function (e) { h({ state: e.state }); }); }
+    }
+  } };
+})();
+</script>
+<script>
+// ---------- basics ----------
+var root = document.documentElement;
+function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+root.setAttribute('data-brand', 'teal');
+root.setAttribute('data-mode', store('eh_mode') || (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+function el(id) { return document.getElementById(id); }
+function rs(n) { return 'Rs ' + Math.round(n || 0).toLocaleString('en-IN'); }
+function n0(n) { return Math.round(n || 0).toLocaleString('en-IN'); }
+function pct(x) { return x == null ? '—' : (Math.round(x * 1000) / 10) + '%'; }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function toast(t) { var e = el('toast'); e.textContent = t; e.classList.add('show'); clearTimeout(e._t); e._t = setTimeout(function () { e.classList.remove('show'); }, 2200); }
+function waLink(wa, text) { return 'https://wa.me/' + wa + (text ? '?text=' + encodeURIComponent(text) : ''); }
+
+var TOKEN = store('eh_token') || '';
+var USER = store('eh_user') || '';
+
+// Last data kept on the phone: screens open instantly and refresh in the background.
+function snap(key, data) { if (data === undefined) { try { return JSON.parse(store('eh_s4_' + key) || 'null'); } catch (e) { return null; } } store('eh_s4_' + key, JSON.stringify(data)); }
+
+// Server calls: adds the token, shows the sync bar, sends to login on LOGIN_REQUIRED.
+var busy = 0;
+function syncBar(d) { busy = Math.max(0, busy + d); el('sync').classList.toggle('on', busy > 0); }
+function api(fn, args, ok, fail) {
+  syncBar(1);
+  var r = google.script.run.withSuccessHandler(function (d) { syncBar(-1); ok && ok(d); })
+    .withFailureHandler(function (e) { syncBar(-1); if (authFail(e)) return; fail ? fail(e) : toast((e && e.message) || 'Something went wrong'); });
+  r[fn].apply(r, args);
+}
+function authFail(e) {
+  if (!e || !/LOGIN_REQUIRED/.test(e.message || e)) return false;
+  TOKEN = ''; store('eh_token', ''); showLogin(); return true;
+}
+
+var animated = {};
+function countUp(node) {
+  var end = Number(node.getAttribute('data-n')), money = node.hasAttribute('data-rs');
+  var id = node.getAttribute('data-k');
+  if (id && animated[id] === end) { node.textContent = money ? rs(end) : n0(end); return; } // no re-animation on refresh
+  if (id) animated[id] = end;
+  var t0 = null, dur = 700;
+  function step(t) {
+    if (!t0) t0 = t;
+    var p = Math.min((t - t0) / dur, 1), v = end * (1 - Math.pow(1 - p, 3));
+    node.textContent = money ? rs(v) : n0(v);
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+function growBars(box) {
+  requestAnimationFrame(function () {
+    setTimeout(function () {
+      box.querySelectorAll('[data-w]').forEach(function (x) { x.style.width = x.getAttribute('data-w') + '%'; });
+      box.querySelectorAll('[data-h]').forEach(function (x) { x.style.height = x.getAttribute('data-h') + '%'; });
+    }, 30);
+  });
+}
+// Header: "Hi, Zuhaib" on top, "Good afternoon · 4:19 PM" below — each on one line.
+var lastUpdated = '';
+function greet() {
+  var h = new Date().getHours();
+  el('greet').textContent = 'Hi' + (USER ? ', ' + USER.split(' ')[0] : '');
+  el('upd').textContent = (h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening') + (lastUpdated ? ' · ' + lastUpdated : '');
+}
+
+// ---------- tabs ----------
+var curTab = 'home';
+var TABS = { home: 'tab-home', parcels: 'tab-parcels', ndr: 'tab-ndr', cash: 'tab-cash', returns: 'tab-returns' };
+function showTab(t, fromBack) {
+  if (!fromBack && t !== curTab) navPush(t);
+  curTab = t;
+  document.querySelectorAll('.nav button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-tab') === t); });
+  Object.keys(TABS).forEach(function (k) { el(TABS[k]).hidden = k !== t; });
+  window.scrollTo(0, 0);
+  if (t === 'parcels') { if (P.data) renderParcels(); loadParcels(false); }
+  if (t === 'ndr') { renderNdr(); markNdrSeen(); }
+  if (t === 'cash') { if (C.data) renderCash(); loadCash(false); }
+  if (t === 'returns') { if (R.data) renderReturns(); loadReturns(false); setTimeout(function () { el('rcode').focus(); }, 50); }
+}
+document.querySelectorAll('.nav button').forEach(function (b) {
+  b.onclick = function () {
+    var t = b.getAttribute('data-tab');
+    // Bottom bar = full lists; Home taps keep their filters.
+    if (t === 'parcels') { P.ctx = null; P.filter = 'all'; }
+    if (t === 'ndr') N.type = '';
+    if (t === 'returns') R.filter = '';
+    showTab(t);
+  };
+});
+
+// Track button (any parcel not delivered / not received back) -> timeline sheet.
+var TRACK_URL = {};
+function trackBtn(cn, url) {
+  if (!cn) return '';
+  if (url) TRACK_URL[cn] = url;
+  return '<button class="btn" data-track="' + esc(cn) + '"><i class="ti ti-route"></i>Track</button>';
+}
+document.addEventListener('click', function (e) {
+  var b = e.target.closest('[data-track]'); if (!b) return;
+  e.preventDefault(); openTrack(b.getAttribute('data-track'));
+});
+function openTrack(cn) {
+  el('panel').innerHTML = '<h3>Tracking</h3><p>' + esc(cn) + '</p><div class="tl-sheet" id="tlbox"><div class="sk" style="height:120px"></div></div>' +
+    '<div class="btns"><button class="btn" id="tlClose">Close</button>' + (TRACK_URL[cn] ? '<a class="btn" target="_blank" href="' + esc(TRACK_URL[cn]) + '"><i class="ti ti-external-link"></i>Courier site</a>' : '') + '</div>';
+  openPanel();
+  el('tlClose').onclick = closePanel;
+  api('getAppParcelTimeline', [cn, TOKEN], function (ev) {
+    if (!el('tlbox')) return;
+    el('tlbox').innerHTML = '<div class="tl">' + (ev.length ? ev.map(function (x) {
+      return '<div class="tl-i"><div class="tl-d"></div><div><b>' + esc(x.status) + '</b><small>' + esc(x.when) + (x.place ? ' · ' + esc(x.place) : '') + (x.note ? ' · ' + esc(x.note) : '') + '</small></div></div>';
+    }).join('') : '<small style="color:var(--muted)">No courier scans yet</small>') + '</div>';
+  });
+}
+// Opening a sheet is a history step too, so Back closes it (even on Home).
+function openPanel() {
+  if (!el('overlay').classList.contains('show')) { try { google.script.history.push({ tab: curTab, panel: 1 }, null, curTab); } catch (e) {} }
+  el('overlay').classList.add('show');
+}
+function closePanel() { el('overlay').classList.remove('show'); }
+
+// ---------- phone Back button ----------
+// Every tab change is a history step (google.script.history), so Back goes to the previous screen
+// instead of closing the app. Back with a sheet open (Track, Update, Custom period) closes the sheet.
+function navPush(t) { try { google.script.history.push({ tab: t }, null, t); } catch (e) {} }
+try {
+  google.script.history.replace({ tab: 'home' }, null, 'home');
+  google.script.history.setChangeHandler(function (e) {
+    if (el('overlay').classList.contains('show')) { closePanel(); return; } // Back with a sheet open: close the sheet
+    var t = (e && e.state && e.state.tab) || 'home';
+    if (TABS[t] && t !== curTab) showTab(t, true);
+  });
+} catch (e) {}
+el('overlay').onclick = function (e) { if (e.target === el('overlay')) closePanel(); };
+
+// ---------- Home ----------
+// ---------- period: a month, all time, or a day range (Home and Cash) ----------
+// sel = { month: '2026-10' | 'all' | '', range: null | { from, to, q } }   ('' month = latest)
+function pkDay(d) { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Karachi' }).format(d); } // yyyy-MM-dd
+function addDays(ymd, n) { var p = ymd.split('-').map(Number); return new Date(Date.UTC(p[0], p[1] - 1, p[2] + n, 12)).toISOString().slice(0, 10); }
+function quickRanges() { // same days as the server's appQuickRanges_
+  var t = pkDay(new Date());
+  return [['today', 'Today', t, t], ['yesterday', 'Yesterday', addDays(t, -1), addDays(t, -1)], ['d7', 'Last 7 days', addDays(t, -6), t], ['d30', 'Last 30 days', addDays(t, -29), t]];
+}
+function niceDay(ymd) { var p = ymd.split('-').map(Number); return new Date(Date.UTC(p[0], p[1] - 1, p[2], 12)).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' }); }
+function rangeKey(r) { return 'r' + r.from + '_' + r.to; }
+var COURIERS = [['all', 'All couriers'], ['trax', 'Trax'], ['leopards', 'Leopards']];
+
+// One button shows the chosen period; tapping it opens a list (best practice: Shopify / Analytics).
+function periodLabel(sel, months, latest) {
+  if (sel.range) {
+    if (sel.range.q === 'custom') return niceDay(sel.range.from) + ' – ' + niceDay(sel.range.to);
+    var q = quickRanges().filter(function (x) { return x[0] === sel.range.q; })[0];
+    return q ? q[1] : 'Custom';
+  }
+  var m = sel.month || latest;
+  if (m === 'all') return 'All time';
+  var hit = months.filter(function (x) { return x.key === m; })[0];
+  return hit ? hit.label : 'This month';
+}
+function setPbar(prefix, sel, months, latest) {
+  el(prefix + 'Period').querySelector('span').textContent = periodLabel(sel, months, latest);
+  el(prefix + 'Courier').querySelector('span').textContent = COURIERS.filter(function (c) { return c[0] === sel.courier; })[0][1];
+}
+function openPeriodSheet(sel, months, latest, done) {
+  var active = sel.range ? '' : (sel.month || latest);
+  var row = function (attr, label, on, sub) {
+    return '<div class="sl' + (on ? ' on' : '') + '" ' + attr + '><span>' + label + (sub ? '<small>' + sub + '</small>' : '') + '</span>' + (on ? '<i class="ti ti-check"></i>' : '') + '</div>';
+  };
+  el('panel').innerHTML = '<h3>Period</h3><p>Orders placed in…</p><div class="sheet-list" id="psheet">' +
+    '<div class="sl-h">Quick</div>' + quickRanges().map(function (q) {
+      return row('data-q="' + q[0] + '"', q[1], sel.range && sel.range.q === q[0], q[2] === q[3] ? niceDay(q[2]) : niceDay(q[2]) + ' – ' + niceDay(q[3]));
+    }).join('') +
+    '<div class="sl-h">Months</div>' + months.map(function (m, i) { return row('data-m="' + m.key + '"', m.label, active === m.key, i === 0 ? 'This month' : i === 1 ? 'Last month' : ''); }).join('') +
+    row('data-m="all"', 'All time', active === 'all') +
+    row('data-q="custom"', 'Custom range…', sel.range && sel.range.q === 'custom', sel.range && sel.range.q === 'custom' ? niceDay(sel.range.from) + ' – ' + niceDay(sel.range.to) : '') +
+    '</div>';
+  openPanel();
+  el('psheet').onclick = function (e) {
+    var b = e.target.closest('.sl'); if (!b) return;
+    if (b.hasAttribute('data-m')) { sel.month = b.getAttribute('data-m'); sel.range = null; closePanel(); return done(); }
+    var q = b.getAttribute('data-q');
+    if (q !== 'custom') {
+      var r = quickRanges().filter(function (x) { return x[0] === q; })[0];
+      sel.range = { from: r[2], to: r[3], q: q }; closePanel(); return done();
+    }
+    openCustom(sel, done);
+  };
+}
+function openCustom(sel, done) {
+  var today = pkDay(new Date()), cur = sel.range || { from: addDays(today, -6), to: today };
+  el('panel').innerHTML = '<h3>Custom range</h3><p>Choose the order dates to show</p>' +
+    '<div class="grid" style="margin-bottom:6px"><div class="fld"><label>From</label><input id="pFrom" type="date" max="' + today + '" value="' + cur.from + '"></div>' +
+    '<div class="fld"><label>To</label><input id="pTo" type="date" max="' + today + '" value="' + cur.to + '"></div></div>' +
+    '<div class="err" id="pErr"></div><div class="btns"><button class="btn" id="pCancel">Cancel</button><button class="btn pri" id="pApply">Apply</button></div>';
+  el('pCancel').onclick = closePanel;
+  el('pApply').onclick = function () {
+    var f = el('pFrom').value, t = el('pTo').value;
+    if (!f || !t) { el('pErr').textContent = 'Choose both dates'; return; }
+    if (f > t) { var x = f; f = t; t = x; }
+    sel.range = { from: f, to: t, q: 'custom' }; closePanel(); done();
+  };
+}
+// Filter button (one line instead of a row of chips) + optional context button with ✕ (e.g. "Premature returns").
+// kind goes back in data-fs / data-fx so each screen's click handler knows which list it is.
+function fbar(kind, label, count, ctxLabel) {
+  return '<div class="fbar">' + (ctxLabel ? '<button class="pbtn ctx" data-fx="' + kind + '"><span>' + esc(ctxLabel) + '</span><i class="ti ti-x"></i></button>' : '') +
+    '<button class="pbtn" data-fs="' + kind + '"><i class="ti ti-filter"></i><span>' + esc(label) + '</span><b class="num">' + count + '</b><i class="ti ti-chevron-down"></i></button></div>';
+}
+// opts: [[key, label, count]]; options with 0 are dimmed but still shown (except hidden ones the caller leaves out).
+function openFilterSheet(title, opts, cur, pick) {
+  el('panel').innerHTML = '<h3>' + esc(title) + '</h3><div class="sheet-list" id="fsheet">' + opts.map(function (o) {
+    var on = o[0] === cur;
+    return '<div class="sl' + (on ? ' on' : '') + '" data-k="' + esc(o[0]) + '"' + (o[2] ? '' : ' style="opacity:.45"') + '><span>' + esc(o[1]) + '</span><b class="num">' + o[2] + '</b>' + (on ? '<i class="ti ti-check" style="margin-left:8px"></i>' : '') + '</div>';
+  }).join('') + '</div>';
+  openPanel();
+  el('fsheet').onclick = function (e) { var b = e.target.closest('.sl'); if (!b) return; closePanel(); pick(b.getAttribute('data-k')); };
+}
+function openCourierSheet(sel, done) {
+  el('panel').innerHTML = '<h3>Courier</h3><p>Show parcels and money for…</p><div class="sheet-list" id="csheet">' +
+    COURIERS.map(function (c) { return '<div class="sl' + (sel.courier === c[0] ? ' on' : '') + '" data-c="' + c[0] + '"><span>' + c[1] + '</span>' + (sel.courier === c[0] ? '<i class="ti ti-check"></i>' : '') + '</div>'; }).join('') + '</div>';
+  openPanel();
+  el('csheet').onclick = function (e) { var b = e.target.closest('.sl'); if (!b) return; sel.courier = b.getAttribute('data-c'); closePanel(); done(); };
+}
+
+var H = { month: '', range: null, courier: 'all', data: null, mem: {} };
+function homeKey() { return H.range ? 'home_' + rangeKey(H.range) + '_' + H.courier : 'home_' + (H.month || 'latest') + '_' + H.courier; }
+function loadHome(fresh) {
+  var key = homeKey();
+  var cached = H.mem[key] || snap(key);
+  if (cached) { H.data = cached; renderHome(cached); }
+  else el('view').innerHTML = el('view').innerHTML.indexOf('sk') > -1 ? el('view').innerHTML : '<div class="sk" style="height:170px;margin-bottom:12px"></div><div class="sk" style="height:220px"></div>';
+  api('getAppHomeData', [{ month: H.range ? '' : H.month, range: H.range, courier: H.courier, fresh: !!fresh, token: TOKEN }], function (d) {
+    H.mem[key] = d; snap(key, d);
+    if (homeKey() !== key) return; // user switched meanwhile
+    H.data = d; renderHome(d);
+    if (fresh) toast('Updated');
+  }, function (e) { if (!cached) el('view').innerHTML = '<div class="card empty"><i class="ti ti-cloud-off" style="color:var(--red)"></i>Could not load. Tap refresh.<br><small>' + esc(e && e.message) + '</small></div>'; });
+}
+function delta(cur, prev) {
+  if (prev == null || !prev) return '';
+  var d = (cur - prev) / prev, up = d >= 0;
+  return '<span class="' + (up ? 'up' : 'down') + '">' + (up ? '↑ ' : '↓ ') + Math.abs(Math.round(d * 100)) + '%</span> vs ' + (H.data && H.data.prevLabel || 'last month');
+}
+// Money hero (Home and Cash): net after courier charges and tax on finished parcels, how much of it has arrived,
+// and what the couriers still hold. s = courierCashStats_ shape; k = prefix for the count-up keys.
+// Money hero (Home and Cash), for the orders of the chosen period. Only final parcels count: delivered,
+// returned to us, or returning but already settled. Received / Outstanding are amounts (return charges included);
+// the counts under them are delivered parcels. Parcels still moving or returning are listed apart (not counted yet).
+function cashHero(label, s, paidAttr, dueAttr, k) {
+  var got = s.net > 0 ? Math.max(0, Math.min(100, Math.round(100 * s.received / s.net))) : 0;
+  var later = s.moving ? s.moving + ' parcel' + (s.moving > 1 ? 's' : '') : '';
+  return '<div class="hero fade"><div class="hero-top"><small>' + esc(label) + '</small></div>' +
+    '<div class="big num" data-k="' + k + '_net" data-n="' + s.net + '" data-rs>' + rs(s.net) + '</div>' +
+    '<div class="hero-bar"><i style="width:0" data-w="' + got + '"></i></div>' +
+    '<div class="hero-top"><small>' + got + '% of the amount received</small></div>' +
+    '<div class="hero-row"><div ' + paidAttr + ' style="cursor:pointer"><span>Received ›</span><b class="num" data-k="' + k + '_rec" data-n="' + s.received + '" data-rs>' + rs(s.received) + '</b><em>' + (s.paidDelivered || 0) + ' delivered paid</em></div>' +
+    '<div ' + dueAttr + ' style="cursor:pointer"><span>Outstanding ›</span><b class="num" data-k="' + k + '_due" data-n="' + s.pending + '" data-rs>' + rs(s.pending) + '</b><em>' + (s.pendingDelivered || 0) + ' delivered unpaid' + (s.overdue ? ' · <i class="late">' + s.overdue + ' late</i>' : '') + '</em></div></div>' +
+    (later ? '<div class="hero-later"><i class="ti ti-clock"></i>On the way: ' + (s.movingCod ? '~' + rs(s.movingCod) + ' COD · ' : '') + later + ' with courier' + '</div>' : '') + '</div>';
+}
+function renderHome(d) {
+  lastUpdated = String(d.updatedAt).split(', ').pop(); greet();
+  homePbar();
+  var k = d.kpis, p = d.prev, c = d.cash, jr = d.journey || {};
+  var urgent = d.actions.filter(function (a) { return a.tone === 'danger'; }).length;
+  el('brief').innerHTML = '<i class="ti ti-sparkles"></i><span>' +
+    (d.actions.length ? d.actions.length + ' action items' + (urgent ? ' (' + urgent + ' urgent)' : '') : 'All clear · nothing pending') +
+    ' · ' + rs(c.pending) + ' outstanding</span><i class="ti ti-chevron-right" style="color:var(--faint)"></i>';
+
+  var h = cashHero('Net COD · ' + d.monthLabel, c, 'data-go="cash:paid"', 'data-go="cash:due"', 'h');
+  // Parcel journey: every parcel counted once, at the stage it is at now. Tap a stage to see those parcels.
+  var jmax = Math.max.apply(null, JOURNEY.map(function (s) { return jr[s[0]] || 0; }).concat([1]));
+  var cx = d.cancelled || { total: 0, reasons: {} };
+  var pfl = d.pendingFlags || {};
+  var pf = Object.keys(pfl).map(function (f) { return pfl[f] + ' ' + f.toLowerCase(); }).join(' · '); // e.g. "3 no whatsapp · 1 call back"
+  // Cohort: only the orders of the chosen period. A period that reaches today shows the full journey (live);
+  // a closed period shows its outcome, with anything still open as a warning line.
+  var cancelLine = cx.total ? '<div class="jr-cancel" data-go="parcels:cancelled"><span><b>' + cx.total + ' cancelled</b> · ' +
+    Object.keys(cx.reasons).sort(function (a, b) { return cx.reasons[b] - cx.reasons[a]; }).map(function (r) { return cx.reasons[r] + ' ' + r.toLowerCase(); }).join(' · ') +
+    '</span><i class="ti ti-chevron-right" style="color:var(--faint)"></i></div>' : '';
+  var jrow = function (s, hint) {
+    var n = jr[s[0]] || 0;
+    return '<div class="jr-row' + (n ? '' : ' zero') + '" data-go="parcels:' + s[0] + '" style="--c:' + s[4] + '">' +
+      '<span class="jr-dot"><i class="ti ti-' + s[3] + '"></i></span>' +
+      '<span class="jr-name">' + (hint && hint[0] || s[1]) + '<small>' + (hint && hint[1] || (s[0] === 'pending' && pf ? pf : s[2])) + '</small></span>' +
+      '<span class="jr-bar"><i style="width:0;background:' + s[4] + '" data-w="' + (100 * n / jmax) + '"></i></span>' +
+      '<b class="jr-n num">' + n + '</b><i class="ti ti-chevron-right" style="color:var(--faint)"></i></div>';
+  };
+  var stg = function (key) { return JOURNEY.filter(function (s) { return s[0] === key; })[0]; };
+  if (d.live !== false) {
+    h += '<div class="card fade"><div class="h"><b>Order journey</b><span>' + esc(d.monthLabel) + '</span></div>' +
+      '<div class="jr-sum"><b class="num">' + k.orders + '</b> orders · <b class="num">' + k.booked + '</b> booked · ' + rs(k.bookedValue) + (delta(k.booked, p && p.booked) ? ' · ' + delta(k.booked, p && p.booked) : '') + '</div><div class="jr-list">' +
+      JOURNEY.map(function (s) {
+        return (s[0] === 'pending' ? '<div class="jr-sep">In progress</div>' : '') + (s[0] === 'delivered' ? '<div class="jr-sep">Outcome</div>' : '') + jrow(s);
+      }).join('') + '</div>' + cancelLine + '</div>';
+  } else {
+    var still = d.stillMoving || 0, never = (jr.pending || 0) + (jr.confirmed || 0);
+    h += '<div class="card fade"><div class="h"><b>Order outcome</b><span>' + esc(d.monthLabel) + ' · closed</span></div>' +
+      '<div class="jr-sum"><b class="num">' + k.orders + '</b> orders · <b class="num">' + k.booked + '</b> booked · ' + rs(k.bookedValue) + '</div>' +
+      '<div class="oc-kp"><div data-go="parcels:delivered"><b class="num up">' + (jr.delivered || 0) + '</b><small>Delivered</small></div>' +
+      '<div data-go="parcels:returned"><b class="num down">' + ((jr.returned || 0) + (jr.returning || 0)) + '</b><small>Returned</small></div>' +
+      '<div><b class="num">' + pct(k.success) + '</b><small>Success</small></div></div>' +
+      '<div class="jr-sep" style="margin-left:0">Returns</div><div class="jr-list">' +
+      jrow(stg('returned'), ['Received back', 'Back with courier / us']) + jrow(stg('returning'), ['Still coming back', 'Return in progress']) + '</div>' +
+      (still ? '<div class="oc-warn" data-go="parcels:moving"><i class="ti ti-alert-triangle"></i><span>' + still + ' parcel' + (still > 1 ? 's' : '') + ' still with courier · check</span><i class="ti ti-chevron-right"></i></div>' : '') +
+      (never ? '<div class="oc-warn" data-go="parcels:' + (jr.pending ? 'pending' : 'confirmed') + '"><i class="ti ti-alert-triangle"></i><span>' + never + ' order' + (never > 1 ? 's' : '') + ' never booked</span><i class="ti ti-chevron-right"></i></div>' : '') +
+      cancelLine + '</div>';
+  }
+  var succ = k.success == null ? 0 : k.success;
+  h += '<div class="card fade"><div class="h"><b>Delivery success</b><b class="num" style="font-size:18px">' + pct(k.success) + '</b></div>' +
+    '<div class="bar"><i style="width:0;background:var(--green)" data-w="' + (succ * 100) + '"></i></div>' +
+    '<div class="legend" style="justify-content:space-between"><span style="--c:transparent;margin-left:-14px">Delivered ÷ (delivered + returned)</span>' +
+    (p && p.success != null && k.success != null ? '<span style="--c:transparent;margin-left:-14px" class="' + (k.success >= p.success ? 'up' : 'down') + '">' + (k.success >= p.success ? '↑ ' : '↓ ') + Math.abs(Math.round((k.success - p.success) * 1000) / 10) + ' pts</span>' : '') + '</div></div>';
+  h += '<div class="card fade" id="todo"><div class="h"><b>Action items</b><span>' + d.actions.length + '</span></div>' +
+    (d.actions.length ? d.actions.map(function (a) {
+      return '<div class="act" data-go="' + esc(a.go || 'ndr') + '" style="cursor:pointer"><div class="ic t-' + a.tone + '"><i class="ti ti-' + a.icon + '"></i></div><div><b>' + esc(a.title) + '</b><small>' + esc(a.sub) + '</small></div><i class="ti ti-chevron-right go"></i></div>';
+    }).join('') : '<div class="empty"><i class="ti ti-circle-check"></i>Nothing pending</div>') + '</div>';
+  h += '<div class="card fade" data-go="cash:due" style="cursor:pointer"><div class="h"><b>COD breakdown ›</b><span>' + c.paidParcels + ' settled · ' + c.pendingParcels + ' outstanding</span></div>' +
+    '<div class="row"><span>COD collected</span><b class="num">' + rs(c.cod) + '</b></div>' +
+    '<div class="row"><span>Courier charges</span><b class="num">− ' + rs(c.charges) + '</b></div>' +
+    '<div class="row"><span>Tax (2% WHT + 2% SST)</span><b class="num">− ' + rs(c.tax) + '</b></div>' +
+    (c.over >= 1 ? '<div class="row"><span>Overcharged vs rate card (FAF)</span><b class="num down">' + rs(c.over) + '</b></div>' : '') +
+    '<div class="row"><span>Received</span><b class="num up">' + rs(c.received) + '</b></div>' +
+    '<div class="row"><span>Outstanding</span><b class="num" style="color:var(--amber)">' + rs(c.pending) + '</b></div></div>';
+  if (d.couriers.length > 1) {
+    h += '<div class="card fade"><div class="h"><b>Courier comparison</b><span>' + d.monthLabel + '</span></div><div class="cmp">' +
+      d.couriers.map(function (x) {
+        return '<div><b>' + x.name + (x.estimate ? ' <small style="color:var(--faint);font-weight:400">(est.)</small>' : '') + '</b>' +
+          '<div class="k">Success<em>' + pct(x.success) + '</em></div><div class="k">Cost per parcel<em>' + rs(x.perParcel) + '</em></div>' +
+          '<div class="k">Delivered / RTO<em>' + x.delivered + ' / ' + x.returned + '</em></div><div class="k">Outstanding<em>' + rs(x.pending) + '</em></div></div>';
+      }).join('') + '</div></div>';
+  }
+  var maxT = Math.max.apply(null, d.trend.map(function (t) { return t.delivered + t.returned + t.open; }).concat([1]));
+  h += '<div class="card fade"><div class="h"><b>Last 6 months</b><span>Tap a month</span></div><div class="chart">' +
+    d.trend.map(function (t) {
+      var tot = t.delivered + t.returned + t.open;
+      return '<div class="col" data-m="' + t.key + '"><div class="tot num">' + (tot || '') + '</div><div class="stack" style="height:' + Math.max(4, 100 * tot / maxT) + 'px">' +
+        '<i style="height:0;background:var(--green)" data-h="' + (tot ? 100 * t.delivered / tot : 0) + '"></i>' +
+        '<i style="height:0;background:var(--red)" data-h="' + (tot ? 100 * t.returned / tot : 0) + '"></i>' +
+        '<i style="height:0;background:var(--blue)" data-h="' + (tot ? 100 * t.open / tot : 0) + '"></i></div><small>' + t.label + '</small></div>';
+    }).join('') + '</div><div class="legend"><span style="--c:var(--green)">Delivered</span><span style="--c:var(--red)">Returned</span><span style="--c:var(--blue)">In progress</span></div></div>';
+  var maxD = Math.max.apply(null, d.days.map(function (x) { return x.count; }).concat([1]));
+  h += '<div class="card fade"><div class="h"><b>Bookings · last 14 days</b><span>' + d.days.reduce(function (a, x) { return a + x.count; }, 0) + ' parcels</span></div><div class="days">' +
+    d.days.map(function (x) { return '<i title="' + x.weekday + ' ' + x.label + ': ' + x.count + '" style="height:0" data-h="' + (100 * x.count / maxD) + '"></i>'; }).join('') +
+    '</div><div class="days-l"><span>' + d.days[0].weekday + ' ' + d.days[0].label + '</span><span>Today</span></div></div>';
+  if (d.payments.length) {
+    h += '<div class="card fade" data-go="cash:pay" style="cursor:pointer"><div class="h"><b>Courier payments ›</b><span>Bank reconciliation</span></div>' +
+      d.payments.map(function (x) {
+        return '<div class="pay"><div class="d"><b>' + esc(x.courier) + ' · ' + esc(x.ref) + '</b><small>' + esc(x.date) + ' · ' + x.parcels + ' parcels</small></div><b class="num">' + rs(x.net) + '</b>' +
+          '<span class="pill ' + (x.ok ? 'p-ok' : 'p-no') + '">' + (x.ok ? 'Paid' : 'Unpaid') + '</span></div>';
+      }).join('') + '</div>';
+  }
+  el('view').innerHTML = h;
+  el('view').querySelectorAll('[data-n]').forEach(countUp);
+  growBars(el('view'));
+}
+function homePbar() { var ms = (H.data && H.data.months) || []; setPbar('h', H, ms, ms[0] && ms[0].key); }
+el('hPeriod').onclick = function () { var ms = (H.data && H.data.months) || []; openPeriodSheet(H, ms, ms[0] && ms[0].key, function () { homePbar(); loadHome(false); }); };
+el('hCourier').onclick = function () { openCourierSheet(H, function () { homePbar(); loadHome(false); }); };
+el('brief').onclick = function () { if (el('todo')) el('todo').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+function markChip(box, b) { box.querySelectorAll('.chip,button').forEach(function (x) { x.classList.toggle('on', x === b); }); }
+el('view').onclick = function (e) {
+  var col = e.target.closest('.col'); if (col) { H.month = col.getAttribute('data-m'); H.range = null; loadHome(false); window.scrollTo(0, 0); return; }
+  var n = e.target.closest('[data-go]'); if (!n || e.target.closest('a,button')) return;
+  go(n.getAttribute('data-go'));
+};
+function go(target) {
+  var g = target.split(':');
+  if (g[0] === 'parcels') {
+    // Keep Home's month + courier so the list matches the count that was tapped.
+    var mk = H.data && !H.range && H.data.month !== 'all' ? H.data.month : '';
+    var period = H.range || mk;
+    var cour = H.courier !== 'all' ? H.courier.charAt(0).toUpperCase() + H.courier.slice(1) : '';
+    // To-do lines ("parcels:pending:open") count orders since openFrom, whatever the period.
+    var open = H.data && H.data.openFrom && g[2] === 'open';
+    if (open) P.ctx = { mk: '', from: H.data.openFrom, to: '9999-12-31', courier: H.courier, label: ['Since ' + niceDay(H.data.openFrom), cour].filter(Boolean).join(' · ') };
+    else P.ctx = period || H.courier !== 'all' ? {
+      mk: mk, from: H.range ? H.range.from : '', to: H.range ? H.range.to : '', courier: H.courier,
+      label: [period ? H.data.monthLabel : '', H.courier !== 'all' ? H.courier.charAt(0).toUpperCase() + H.courier.slice(1) : ''].filter(Boolean).join(' · ')
+    } : null;
+    P.filter = g[1] || 'all'; P.limit = 40; showTab('parcels');
+  }
+  else if (g[0] === 'cash') {
+    C.range = H.range; C.month = H.range ? 'all' : H.data && H.data.month !== 'all' ? H.data.month : 'all'; C.courier = H.courier;
+    // (Cash period / courier buttons are refreshed by renderCash)
+    // cash:pay / cash:nott -> Payments card (nott = Not transferred); cash:due|paid|over -> Parcel money card.
+    if (g[1] === 'nott') { C.bf = 'nott'; C.scrollTo = 'cpay'; }
+    else if (g[1] === 'pay') { C.bf = 'all'; C.scrollTo = 'cpay'; }
+    else if (g[1]) { C.pf = g[1]; C.plim = 30; C.scrollTo = 'cparcels'; }
+    C.data = null; showTab('cash');
+  }
+  else if (g[0] === 'ndr') { N.type = g[1] || ''; N.filter = 'all'; N.scrollOnce = !!g[1]; showTab('ndr'); }
+  else if (g[0] === 'returns') { R.filter = g[1] || ''; R.scrollTo = !!g[1]; showTab('returns'); }
+  else showTab(g[0]);
+}
+// After a screen is drawn, bring the card that was asked for into view.
+function scrollToCard(id) {
+  var n = el(id); if (!n) return;
+  setTimeout(function () { n.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60);
+}
+
+// ---------- Parcels ----------
+var P = { data: snap('parcels'), filter: 'all', q: '', limit: 40, ctx: null };
+// The courier journey, in order: [key, name, hint, icon, colour]. Same stages as the server (APP_JOURNEY).
+var JOURNEY = [
+  ['pending', 'Awaiting confirmation', 'Pending customer confirmation', 'phone-call', 'var(--amber)'],
+  ['confirmed', 'Confirmed', 'Ready to book with courier', 'clipboard-check', 'var(--faint)'],
+  ['booked', 'Awaiting pickup', 'Booked · awaiting courier pickup', 'package', 'var(--blue)'],
+  ['picked', 'Picked up', 'At origin facility', 'building-warehouse', 'var(--blue)'],
+  ['transit', 'In transit', 'En route to destination city', 'truck', 'var(--blue)'],
+  ['atdest', 'At destination', 'At destination facility', 'map-pin', 'var(--brand)'],
+  ['ofd', 'Out for delivery', 'With delivery rider', 'motorbike', 'var(--brand)'],
+  ['ndr', 'Failed attempt', 'Delivery unsuccessful · contact customer', 'phone-x', 'var(--amber)'],
+  ['delivered', 'Delivered', 'Completed', 'circle-check', 'var(--green)'],
+  ['returning', 'Returning', 'Return in progress', 'arrow-back-up', 'var(--red)'],
+  ['returned', 'Returned', 'Returned to origin', 'package-import', 'var(--red)']
+];
+var MOVING = ['booked', 'picked', 'transit', 'atdest', 'ofd', 'ndr']; // same as the server's APP_MOVING_STAGES
+var STAGE = {};
+JOURNEY.forEach(function (s) { STAGE[s[0]] = [s[1], s[4]]; });
+STAGE.cancelled = ['Cancelled', 'var(--faint)'];
+STAGE.moving = ['With courier', 'var(--blue)']; // filter only: all stages still with the courier
+var pAt = 0;
+function loadParcels(fresh) {
+  if (!fresh && Date.now() - pAt < 60000) return;
+  pAt = Date.now();
+  api('getAppParcels', [{ fresh: !!fresh, token: TOKEN }], function (d) {
+    P.data = d; snap('parcels', d);
+    if (curTab === 'parcels') renderParcels();
+    if (fresh) toast('Parcels updated');
+  });
+}
+function renderParcels() {
+  if (!P.data) return;
+  var q = P.q.toLowerCase().replace(/\s+/g, ' ').trim(), qd = q.replace(/[^0-9]/g, '');
+  var ctx = P.ctx;
+  var found = P.data.parcels.filter(function (p) {
+    if (ctx && ctx.mk && p.mk !== ctx.mk) return false;
+    if (ctx && ctx.from) { var dk = p.ms ? pkDay(new Date(p.ms)) : ''; if (!dk || dk < ctx.from || dk > ctx.to) return false; }
+    if (ctx && ctx.courier !== 'all' && String(p.courier).toLowerCase().indexOf(ctx.courier.slice(0, 4)) !== 0) return false;
+    if (!q) return true;
+    return [p.cn, p.name, p.phone, p.city, p.ref, p.id].join(' ').toLowerCase().indexOf(q) !== -1 ||
+      (qd.length >= 4 && String(p.phone).replace(/[^0-9]/g, '').indexOf(qd.replace(/^92/, '0')) !== -1);
+  });
+  var counts = { all: found.filter(function (p) { return p.stage !== 'cancelled'; }).length }; // like Home: cancelled orders only under their own chip
+  found.forEach(function (p) { counts[p.stage] = (counts[p.stage] || 0) + 1; if (MOVING.indexOf(p.stage) !== -1) counts.moving = (counts.moving || 0) + 1; });
+  // Chips: [month/courier from Home ✕] All, then every journey stage that has parcels (the chosen one always).
+  var keys = ['all'].concat(P.filter === 'moving' ? ['moving'] : [], JOURNEY.map(function (s) { return s[0]; }), ['cancelled'])
+    .filter(function (k) { return k === 'all' || counts[k] || k === P.filter; });
+  P.opts = keys.map(function (k) { return [k, k === 'all' ? 'All stages' : STAGE[k][0], counts[k] || 0]; });
+  el('pchips').innerHTML = fbar('p', P.filter === 'all' ? 'All stages' : (STAGE[P.filter] || [P.filter])[0], counts[P.filter] || 0, ctx && ctx.label);
+  var list = found.filter(function (p) { return P.filter === 'all' ? p.stage !== 'cancelled' : P.filter === 'moving' ? MOVING.indexOf(p.stage) !== -1 : p.stage === P.filter; });
+  if (!list.length) { el('plist').innerHTML = '<div class="card empty"><i class="ti ti-package-off" style="color:var(--faint)"></i>No parcels found</div>'; return; }
+  el('plist').innerHTML = list.slice(0, P.limit).map(parcelCard).join('') +
+    (list.length > P.limit ? '<button class="btn more" id="pmore">Show more (' + (list.length - P.limit) + ')</button>' : '');
+  if (el('pmore')) el('pmore').onclick = function () { P.limit += 40; renderParcels(); };
+}
+function parcelCard(p) {
+  var s = STAGE[p.stage] || ['', 'var(--line)'];
+  var note = ['picked', 'transit', 'atdest', 'ofd', 'ndr', 'returning'].indexOf(p.stage) !== -1 ? (p.reason || p.lastRaw) : '';
+  var wa = p.wa ? '<a class="btn wa" target="_blank" href="' + waLink(p.wa, 'Assalam-o-Alaikum ' + p.name + '! Every Home se baat kar rahe hain, aap ke order ' + p.ref + ' ke baare mein.') + '"><i class="ti ti-brand-whatsapp"></i>WhatsApp</a>' : '';
+  return '<div class="pc" style="--c:' + s[1] + '">' +
+    '<div class="pc-top"><span class="pc-cn">' + (p.cn ? esc(p.courier) + ' · ' + esc(p.cn) : esc(p.ref)) + '</span><span class="st" style="--c:' + s[1] + '">' + s[0] + '</span></div>' +
+    '<div class="pc-who">' + esc(p.name) + ' · ' + esc(p.city) + ' · ' + esc(p.ref) + '</div>' +
+    ((p.flags || []).length ? '<div>' + p.flags.map(function (f) { return '<span class="flag">' + esc(f) + '</span>'; }).join('') + '</div>' : '') +
+    '<div class="pc-meta"><span>' + esc(p.date) + '</span><span>COD <b>' + rs(p.total) + '</b></span><span>' + (p.charge ? 'Charge <b>' + rs(p.charge) + '</b>' : (p.attempts ? 'Attempts <b>' + p.attempts + '</b>' : '')) + '</span></div>' +
+    (note ? '<div class="pc-note">' + esc(note) + '</div>' : '') +
+    '<div class="btns">' + (p.cn && !p.done ? trackBtn(p.cn, p.track) : '') + wa +
+    (p.phone ? '<a class="btn sq" href="tel:' + esc(p.phone) + '" aria-label="Call"><i class="ti ti-phone"></i></a>' : '') + '</div></div>';
+}
+el('q').oninput = function () { P.q = el('q').value; P.limit = 40; renderParcels(); };
+el('pchips').onclick = function (e) {
+  if (e.target.closest('[data-fx]')) { P.ctx = null; P.limit = 40; return renderParcels(); }
+  if (e.target.closest('[data-fs]')) openFilterSheet('Stage', P.opts, P.filter, function (k) { P.filter = k; P.limit = 40; renderParcels(); });
+};
+
+// ---------- NDR + Parcel Watch ----------
+var N = { data: snap('ndr'), filter: 'all' };
+function caseKey(c) { return c.cn + '|' + c.type.slice(0, 12); }
+function seenSet() { try { return JSON.parse(store('eh_ndr_seen') || '[]'); } catch (e) { return []; } }
+function markNdrSeen() { if (N.data) store('eh_ndr_seen', JSON.stringify(N.data.cases.map(caseKey))); updateBadge(); }
+function newCases() { var s = seenSet(); return N.data ? N.data.cases.filter(function (c) { return s.indexOf(caseKey(c)) === -1; }) : []; }
+function isTodo(c) { return !c.outcome || c.outcome === 'Not called yet'; }
+function updateBadge() {
+  var b = el('badge'); if (!N.data) return;
+  var open = N.data.cases.filter(isTodo).length, fresh = curTab === 'ndr' ? 0 : newCases().length;
+  b.textContent = fresh ? fresh + ' new' : open; b.style.display = (fresh || open) ? '' : 'none';
+}
+function loadNdr(fresh) {
+  api('getAppNdr', [TOKEN, !!fresh], function (d) {
+    var before = N.data ? newCases().map(function (c) { return c.cn; }) : null;
+    N.data = d; snap('ndr', d);
+    var fr = newCases();
+    if (before && fr.some(function (c) { return before.indexOf(c.cn) === -1; })) alertNew(fr[0]);
+    updateBadge();
+    if (curTab === 'ndr') { renderNdr(); markNdrSeen(); }
+  }, function () { if (fresh) toast('Could not load NDR'); });
+}
+function alertNew(c) {
+  toast('🔔 New case: ' + c.type);
+  try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (e) {}
+  try {
+    var a = new (window.AudioContext || window.webkitAudioContext)(), o = a.createOscillator(), g = a.createGain();
+    o.connect(g); g.connect(a.destination); o.frequency.value = 880; g.gain.value = .08; o.start(); o.stop(a.currentTime + .25);
+  } catch (e) {}
+}
+var NDR_GROUPS = [['all', 'All'], ['1', 'Urgent'], ['todo', 'To contact'], ['courier', 'Escalated'], ['watch', 'Stalled']];
+// Case kinds used by Home's to-do lines (same rules as the server's grouping).
+var NDR_TYPES = { premature: 'Premature returns', refused: 'Marked as refused', watch: 'Stalled with courier', ndr: 'Failed deliveries', rto: 'Returns initiated', reattempt: 'Reattempts' };
+function caseType(c) {
+  var t = c.type || '';
+  return /premature/i.test(t) ? 'premature' : /refus/i.test(t) ? 'refused' : c.watch ? 'watch' : /rto/i.test(t) ? 'rto' : /reattempt/i.test(t) ? 'reattempt' : 'ndr';
+}
+function inGroup(c, g) {
+  return g === 'all' || (g === '1' && c.priority === '1') || (g === 'todo' && isTodo(c)) ||
+    (g === 'courier' && c.next === 'Escalate to courier' && c.sent !== 'Courier confirmed') || (g === 'watch' && c.watch);
+}
+function renderNdr() {
+  if (!N.data) return;
+  var cs = N.data.cases, seen = seenSet();
+  el('ndrBrief').innerHTML = '<i class="ti ti-bell-ringing"></i><span>' + cs.length + ' open · ' + cs.filter(isTodo).length + ' to contact · refreshes every 2 min · ' + esc(N.data.updatedAt) + '</span>';
+  renderCourierCards();
+  // From a Home to-do line: only that kind of case (chip with ✕ clears it).
+  var typed = N.type ? cs.filter(function (c) { return caseType(c) === N.type; }) : cs;
+  N.opts = NDR_GROUPS.map(function (g) { return [g[0], g[0] === 'all' ? 'All cases' : g[1], typed.filter(function (c) { return inGroup(c, g[0]); }).length]; });
+  var ng = N.opts.filter(function (o) { return o[0] === N.filter; })[0] || N.opts[0];
+  el('nchips').innerHTML = fbar('n', ng[1], ng[2], N.type ? NDR_TYPES[N.type] || N.type : '');
+  var list = typed.filter(function (c) { return inGroup(c, N.filter); });
+  if (N.scrollOnce) { N.scrollOnce = false; scrollToCard('nchips'); }
+  if (!list.length) { el('nlist').innerHTML = '<div class="card empty"><i class="ti ti-circle-check"></i>No cases here</div>'; return; }
+  el('nlist').innerHTML = list.map(function (c) {
+    var col = c.priority === '1' ? 'var(--red)' : c.priority === '2' ? 'var(--amber)' : 'var(--blue)';
+    return '<div class="pc" style="--c:' + col + '">' +
+      '<div class="pc-top"><span class="pc-cn">' + (seen.indexOf(caseKey(c)) === -1 ? '<span class="new-dot"></span>' : '') + esc(c.type) + '</span><span class="prio pr-' + c.priority + '">' + (c.priority === '1' ? 'Urgent' : c.priority === '2' ? 'Today' : 'Monitor') + '</span></div>' +
+      '<div class="pc-who">' + esc(c.name) + ' · ' + esc(c.city) + ' · ' + esc(c.ref) + '</div>' +
+      '<div class="pc-meta"><span>' + esc(c.courier) + ' · ' + esc(c.cn) + '</span><span>COD <b>' + rs(c.cod) + '</b></span><span>Attempts <b>' + c.attempts + '</b></span></div>' +
+      ((c.reason || c.courierStatus) ? '<div class="pc-note">' + esc(c.reason || c.courierStatus) + (c.hours ? ' · ' + c.hours + 'h' : '') + '</div>' : '') +
+      (!isTodo(c) ? '<div class="done-line"><i class="ti ti-circle-check"></i>' + esc(c.outcome) + (c.next ? ' → ' + esc(c.next) : '') + (c.sent && c.sent !== 'Not sent' ? ' · ' + esc(c.sent) : '') + '</div>' : '') +
+      (c.says ? '<div class="pc-note"><b style="color:var(--text)">Customer:</b> ' + esc(c.says) + '</div>' : '') +
+      ticketLine(c) +
+      '<div class="btns">' + trackBtn(c.cn) + (c.phone ? '<a class="btn sq" href="tel:' + esc(c.phone) + '" aria-label="Call"><i class="ti ti-phone"></i></a>' : '') +
+      (c.wa ? '<a class="btn sq wa" target="_blank" href="' + waLink(c.wa, c.waText) + '" aria-label="WhatsApp"><i class="ti ti-brand-whatsapp"></i></a>' : '') +
+      '<button class="btn pri" data-rec="' + esc(c.cn) + '"><i class="ti ti-pencil"></i>Update</button></div></div>';
+  }).join('');
+}
+function ticketLine(c) {
+  var co = N.data.couriers && N.data.couriers[c.courier], t = co && co.tickets[c.cn];
+  if (!t) return '';
+  var res = String(t.result).replace('Amal hua', 'Acted').replace('Amal nahi hua', 'No action').replace('Intezar', 'Waiting').replace('Deliver ho gaya', 'Delivered').replace('Return ho gaya', 'Returned');
+  var cls = /Acted|Delivered/.test(res) ? 'ok' : /No action/.test(res) ? 'bad' : '';
+  return '<div class="tk ' + cls + '"><b>Ticket ' + esc(t.id) + (t.round > 1 ? ' · follow-up' : '') + ':</b> ' + esc(res) +
+    (t.status || t.reply ? '<br>' + c.courier + ': ' + esc([t.status, t.reply].filter(Boolean).join(' – ')) : '<br>Awaiting reply from ' + c.courier) + '</div>';
+}
+function renderCourierCards() {
+  var cs = N.data.couriers || {};
+  el('ncour').innerHTML = Object.keys(cs).map(function (name) {
+    var s = cs[name];
+    var msg = 'Dear ' + name + ' team, Every Home has ' + s.open + ' parcels that need your action' +
+      (s.notActed ? ' (' + s.notActed + ' still pending from earlier requests)' : '') + '. Please update the status and your reply in the sheet: ' + s.link + ' Thank you.';
+    return '<div class="card"><div class="h"><b>' + name + ' escalations</b><span>' + (s.replyHours != null ? 'avg. reply ~' + s.replyHours + 'h' : '') + '</span></div>' +
+      // Open = still on the courier's Issues tab; closed tickets move to its Done tab and are counted by outcome.
+      '<div class="cs-h">Open in sheet</div>' +
+      '<div class="cs"><div><b>' + s.open + '</b><small>Open</small></div><div><b>' + s.replied + '</b><small>Replied</small></div><div><b class="up">' + s.acted + '</b><small>Actioned</small></div><div><b class="down">' + s.notActed + '</b><small>No action</small></div></div>' +
+      '<div class="cs-done"><i class="ti ti-archive"></i><span>' + (s.delivered + s.returned + (s.closedOther || 0) ?
+        'Closed · last ' + (s.closedDays || 30) + ' days: <b class="up">' + s.delivered + ' delivered</b> · <b class="down">' + s.returned + ' returned</b>' + (s.closedOther ? ' · ' + s.closedOther + ' other' : '') :
+        'No closed cases in the last ' + (s.closedDays || 30) + ' days') + '</span><small>' + (s.total || 0) + ' sent in total</small></div>' +
+      (s.link ? '<div class="btns"><a class="btn" target="_blank" href="' + esc(s.link) + '"><i class="ti ti-table"></i>Open sheet</a>' +
+        (s.open ? '<a class="btn wa" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(msg) + '"><i class="ti ti-brand-whatsapp"></i>Send to group</a>' : '') + '</div>' : '') + '</div>';
+  }).join('');
+}
+el('nchips').onclick = function (e) {
+  if (e.target.closest('[data-fx]')) { N.type = ''; return renderNdr(); }
+  if (e.target.closest('[data-fs]')) openFilterSheet('Cases', N.opts, N.filter, function (k) { N.filter = k; renderNdr(); });
+};
+el('nlist').onclick = function (e) { var b = e.target.closest('[data-rec]'); if (b) openNdrForm(b.getAttribute('data-rec')); };
+
+function openNdrForm(cn) {
+  var c = N.data.cases.filter(function (x) { return x.cn === cn; })[0]; if (!c) return;
+  var o = N.data.options;
+  el('panel').innerHTML = '<h3>' + esc(c.name) + ' · ' + esc(c.ref) + '</h3><p>' + esc(c.type) + ' · ' + esc(c.courier) + ' ' + esc(c.cn) + '</p>' +
+    '<div class="fld"><label>Call result</label><div class="opts" id="fOut">' +
+    o.outcomes.filter(function (x) { return x !== 'Not called yet'; }).map(function (x) { return '<div class="opt' + (x === c.outcome ? ' on' : '') + '" data-v="' + esc(x) + '">' + esc(x) + '</div>'; }).join('') + '</div></div>' +
+    '<div class="fld"><label>Customer feedback (shared with courier)</label>' +
+    '<div class="chips wrapc" id="fSaysChips">' + (o.says || []).map(function (x) { return '<button class="chip" type="button" data-say="' + esc(x) + '">+ ' + esc(x) + '</button>'; }).join('') + '</div>' +
+    '<textarea id="fSaysTxt" rows="2" placeholder="e.g. Rider has not called for 2 days; home after 5 pm today">' + esc(c.says || '') + '</textarea></div>' +
+    '<div class="fld"><label>Next step</label><select id="fNext"><option value="">Auto (suggested)</option>' + o.actions.map(function (x) { return '<option' + (x === c.next ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></div>' +
+    '<div class="fld"><label>Updated phone / address (if any)</label><input id="fUpd" value="' + esc(c.updated) + '" placeholder="0300 1234567, Street 4 Model Town"></div>' +
+    '<div class="fld"><label>Reattempt date</label><input id="fDate" type="date" value="' + esc(c.reattempt) + '"></div>' +
+    '<div class="fld"><label>Internal notes</label><textarea id="fNotes" rows="2">' + esc(c.notes) + '</textarea></div>' +
+    '<div class="err" id="fErr"></div>' +
+    '<div class="btns"><button class="btn" id="fCancel">Cancel</button><button class="btn" id="fSave"><i class="ti ti-device-floppy"></i>Save</button></div>' +
+    '<button class="btn pri" id="fSend" style="width:100%;margin-top:8px;padding:12px"><i class="ti ti-send"></i>Save &amp; send to ' + esc(c.courier) + '</button>' +
+    '<small style="display:block;text-align:center;color:var(--muted);margin-top:6px">Synced to the ' + esc(c.courier) + ' issue sheet within 5 minutes</small>';
+  openPanel();
+  var picked = !isTodo(c) ? c.outcome : '';
+  el('fOut').onclick = function (e) {
+    var t = e.target.closest('.opt'); if (!t) return;
+    picked = t.getAttribute('data-v'); el('fErr').textContent = '';
+    el('fOut').querySelectorAll('.opt').forEach(function (x) { x.classList.toggle('on', x === t); });
+    if (!el('fNext').value && o.suggest[picked]) el('fNext').value = o.suggest[picked];
+  };
+  el('fSaysChips').onclick = function (e) {
+    var b = e.target.closest('[data-say]'); if (!b) return;
+    var t = el('fSaysTxt'), add = b.getAttribute('data-say');
+    if (t.value.indexOf(add) === -1) t.value = (t.value.trim() ? t.value.trim().replace(/[.,]$/, '') + ', ' : '') + add;
+    b.classList.add('on'); el('fErr').textContent = '';
+  };
+  el('fSaysTxt').oninput = function () { el('fErr').textContent = ''; };
+  el('fCancel').onclick = closePanel;
+  var save = function (send) {
+    var says = el('fSaysTxt').value.replace(/\s+/g, ' ').trim();
+    if (!picked) { el('fErr').textContent = 'Select a call result'; return; }
+    if (send && !says) { el('fErr').textContent = 'Add customer feedback before sending'; el('fSaysTxt').focus(); return; }
+    // Optimistic: close and update the card now, save in the background.
+    var before = JSON.stringify(c);
+    c.outcome = picked; c.says = says; if (send) c.next = 'Escalate to courier'; else if (el('fNext').value) c.next = el('fNext').value;
+    closePanel(); renderNdr(); updateBadge();
+    toast(send ? '📨 Sending to ' + c.courier + '…' : 'Saving…');
+    api('saveAppNdrOutcome', [{ token: TOKEN, cn: c.cn, outcome: picked, next: el('fNext').value, updated: el('fUpd').value, reattempt: el('fDate').value,
+      sent: c.sent || 'Not sent', notes: el('fNotes').value, says: says, send: send }], function (r) {
+      c.next = r.next; snap('ndr', N.data);
+      toast(send ? '✅ Queued for ' + c.courier + ' (≤5 min)' : '✅ Saved');
+      loadNdr(true);
+    }, function (e) {
+      Object.assign(c, JSON.parse(before)); renderNdr(); updateBadge();
+      toast('❌ Not saved: ' + ((e && e.message) || 'try again'));
+    });
+  };
+  el('fSave').onclick = function () { save(false); };
+  el('fSend').onclick = function () { save(true); };
+}
+
+// ---------- Cash ----------
+var C = { data: null, month: 'all', range: null, courier: 'all', pf: 'due', bf: 'all', q: '', plim: 30, mem: {} };
+function cashKey() { return 'cash_' + (C.range ? rangeKey(C.range) : C.month) + '_' + C.courier; }
+function loadCash(fresh) {
+  var key = cashKey();
+  var cached = C.mem[key] || snap(key);
+  if (cached) { C.data = cached; renderCash(); }
+  else el('cview').innerHTML = '<div class="sk" style="height:170px;margin-bottom:12px"></div><div class="sk" style="height:220px"></div>';
+  api('getAppCash', [{ token: TOKEN, month: C.month, range: C.range, courier: C.courier, fresh: !!fresh }], function (d) {
+    C.mem[key] = d; snap(key, d);
+    if (cashKey() !== key) return;
+    C.data = d; if (curTab === 'cash') renderCash();
+  });
+}
+var CASH_F = [
+  ['due', 'Outstanding', function (p) { return p.cat !== 'paid'; }],
+  ['late', 'Overdue', function (p) { return p.cat === 'late'; }],
+  ['paid', 'Settled', function (p) { return p.cat === 'paid'; }],
+  ['ret', 'Returns', function (p) { return p.returned; }],
+  ['over', 'Overcharged', function (p) { return p.over > 0; }],
+  ['all', 'All', function () { return true; }]
+];
+var BATCH_F = [
+  ['all', 'All', function () { return true; }],
+  ['check', 'To verify', function (b) { return b.transferred && b.bank == null; }],
+  ['nott', 'Not transferred', function (b) { return !b.transferred; }],
+  ['gap', 'Mismatch', function (b) { return b.bank != null && !/✅/.test(b.matched); }],
+  ['ok', 'Matched', function (b) { return /✅/.test(b.matched); }]
+];
+function renderCash() {
+  var d = C.data, s = d.stats;
+  var months = (H.data && H.data.months) || [];
+  cashPbar();
+  var h = cashHero('Net COD · ' + periodLabel(C, months, 'all'), s, 'data-pf="paid"', 'data-pf="due"', 'c');
+  var bfc = BATCH_F.filter(function (x) { return x[0] === C.bf; })[0] || BATCH_F[0];
+  var shown = d.batches.filter(bfc[2]);
+  h += '<div class="card" id="cpay"><div class="h"><b>Courier payments · bank reconciliation</b><span>' + shown.length + '</span></div>' +
+    fbar('bf', bfc[0] === 'all' ? 'All payments' : bfc[1], shown.length) +
+    (shown.length ? d.batches.map(function (b, i) {
+      if (!bfc[2](b)) return '';
+      var st = !b.transferred ? '<span class="pill p-no">Not transferred</span>' : b.bank == null ? '<span class="pill" style="background:var(--amber-bg);color:var(--amber)">Verify in bank</span>' :
+        (/✅/.test(b.matched) ? '<span class="pill p-ok">✅ Matched</span>' : '<span class="pill p-no">' + esc(b.matched || 'Gap') + '</span>');
+      return '<div class="li"><div class="d"><b>' + esc(b.courier) + ' · ' + esc(b.ref) + '</b><small>' + esc(b.date) + ' · ' + b.parcels + ' parcels' + (b.bank != null ? ' · bank ' + rs(b.bank) : '') + '</small>' +
+        (b.transferred ? '<button class="mini" data-bank="' + i + '">' + (b.bank == null ? '+ Record bank amount' : 'Edit amount') + '</button>' : '') + '</div>' +
+        '<div class="r"><b class="num">' + rs(b.net) + '</b>' + st + '</div></div>';
+    }).join('') : '<div class="empty">No payments here</div>') + '</div>';
+  h += '<div class="card" id="cparcels"></div>';
+  el('cview').innerHTML = h;
+  el('cview').querySelectorAll('[data-n]').forEach(countUp); growBars(el('cview'));
+  renderCashParcels();
+  if (C.scrollTo) { scrollToCard(C.scrollTo); C.scrollTo = null; }
+}
+function renderCashParcels() {
+  var box = el('cparcels'); if (!box) return;
+  var q = (C.q || '').toLowerCase().trim();
+  var found = C.data.parcels.filter(function (p) { return !q || (p.cn + ' ' + p.order).toLowerCase().indexOf(q) !== -1; });
+  var f = CASH_F.filter(function (x) { return x[0] === C.pf; })[0] || CASH_F[0];
+  var list = found.filter(f[2]);
+  var sum = list.reduce(function (a, p) { return a + (f[0] === 'over' ? p.over : p.net); }, 0);
+  box.innerHTML = '<div class="h"><b>Settlement by parcel</b><span>' + list.length + ' · ' + (f[0] === 'over' ? '+' : '') + rs(sum) + '</span></div>' +
+    '<div class="search" style="box-shadow:none;background:var(--bg)"><i class="ti ti-search"></i><input id="cq" placeholder="Search CN or order #" value="' + esc(C.q || '') + '"></div>' +
+    fbar('pf', f[0] === 'all' ? 'All parcels' : f[1], list.length) +
+    '<div id="clist"></div>';
+  renderCashList(list, f);
+  el('cq').oninput = function () { C.q = el('cq').value; C.plim = 30; var pos = el('cq').selectionStart; renderCashParcels(); el('cq').focus(); el('cq').setSelectionRange(pos, pos); };
+}
+function renderCashList(list, f) {
+  var lim = C.plim || 30;
+  el('clist').innerHTML = list.length ? list.slice(0, lim).map(function (p) {
+    var tone = p.cat === 'late' ? 'down' : p.cat === 'paid' ? 'up' : '';
+    var right = f[0] === 'over' ? '<b class="num down">+' + rs(p.over) + '</b><small style="color:var(--muted);font-size:11px">charged ' + rs(p.charges) + '</small>'
+      : '<b class="num ' + tone + '">' + rs(p.net) + '</b><small style="color:var(--muted);font-size:11px">' + (p.cat === 'paid' ? (p.paidOn || 'Settled') : p.cat === 'late' ? 'Overdue' : 'Outstanding') + '</small>';
+    return '<div class="li"><div class="d"><b>' + esc(p.order) + ' · ' + esc(p.courier) + (p.returned ? ' · ↩' : '') + '</b><small>' + esc(p.cn) + ' · ' + esc(p.note) + '</small></div><div class="r">' + right + '</div></div>';
+  }).join('') + (list.length > lim ? '<button class="btn more" id="cmore">Show more (' + (list.length - lim) + ')</button>' : '') +
+    (f[0] === 'over' && C.data.diffLink ? '<a class="btn" target="_blank" href="' + esc(C.data.diffLink) + '" style="margin-top:8px"><i class="ti ti-table"></i>Full overcharge report</a>' : '')
+    : '<div class="empty"><i class="ti ti-circle-check"></i>' + (f[0] === 'due' ? 'Fully settled' : 'Nothing here') + '</div>';
+  if (el('cmore')) el('cmore').onclick = function () { C.plim = lim + 30; renderCashList(list, f); };
+}
+function cashPbar() { setPbar('c', C, (H.data && H.data.months) || [], 'all'); }
+el('cPeriod').onclick = function () { openPeriodSheet(C, (H.data && H.data.months) || [], 'all', function () { cashPbar(); loadCash(false); }); };
+el('cCourier').onclick = function () { openCourierSheet(C, function () { cashPbar(); loadCash(false); }); };
+el('cview').onclick = function (e) {
+  var fs = e.target.closest('[data-fs]');
+  if (fs && fs.getAttribute('data-fs') === 'bf') {
+    return openFilterSheet('Payments', BATCH_F.map(function (x) { return [x[0], x[0] === 'all' ? 'All payments' : x[1], C.data.batches.filter(x[2]).length]; }), C.bf || 'all',
+      function (k) { C.bf = k; renderCash(); });
+  }
+  if (fs && fs.getAttribute('data-fs') === 'pf') {
+    var q = (C.q || '').toLowerCase().trim();
+    var found = C.data.parcels.filter(function (p) { return !q || (p.cn + ' ' + p.order).toLowerCase().indexOf(q) !== -1; });
+    return openFilterSheet('Parcels', CASH_F.map(function (x) { return [x[0], x[0] === 'all' ? 'All parcels' : x[1], found.filter(x[2]).length]; }), C.pf || 'due',
+      function (k) { C.pf = k; C.plim = 30; renderCashParcels(); });
+  }
+  var pf = e.target.closest('[data-pf]');
+  if (pf) {
+    C.pf = pf.getAttribute('data-pf'); C.plim = 30; renderCashParcels();
+    if (pf.closest('.hero') && el('cparcels')) el('cparcels').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+  var bf = e.target.closest('[data-bf]'); if (bf) { C.bf = bf.getAttribute('data-bf'); renderCash(); return; }
+  var b = e.target.closest('[data-bank]'); if (!b) return;
+  var x = C.data.batches[Number(b.getAttribute('data-bank'))];
+  el('panel').innerHTML = '<h3>' + esc(x.courier) + ' · ' + esc(x.ref) + '</h3><p>' + esc(x.date) + ' · expected ' + rs(x.net) + '</p>' +
+    '<div class="fld"><label>Amount received in bank (Rs)</label><input id="bAmt" type="number" inputmode="decimal" value="' + (x.bank == null ? '' : x.bank) + '" placeholder="' + Math.round(x.net) + '"></div><div class="err" id="bErr"></div>' +
+    '<div class="btns"><button class="btn" id="bCancel">Cancel</button><button class="btn pri" id="bSave">Save</button></div>';
+  openPanel();
+  el('bCancel').onclick = closePanel;
+  el('bSave').onclick = function () {
+    if (el('bAmt').value === '') { el('bErr').textContent = 'Enter the amount'; return; }
+    el('bSave').disabled = true;
+    api('saveAppBankReceived', [{ token: TOKEN, courier: x.courier, ref: x.ref, amount: el('bAmt').value }], function (r) {
+      closePanel(); toast(r.matched); x.bank = Number(el('bAmt').value); x.matched = r.matched; renderCash(); C.mem = {};
+    }, function (er) { el('bSave').disabled = false; el('bErr').textContent = (er && er.message) || 'Not saved'; });
+  };
+};
+
+// ---------- Returns ----------
+var R = { data: snap('returns'), found: null };
+var rAt = 0;
+function loadReturns(fresh) {
+  if (!fresh && Date.now() - rAt < 60000) return;
+  rAt = Date.now();
+  api('getAppReturns', [TOKEN, !!fresh], function (d) { R.data = d; snap('returns', d); if (curTab === 'returns') renderReturns(); });
+}
+function renderReturns() {
+  var d = R.data;
+  var h = '<div class="grid"><div class="tile"><div class="lbl"><i class="ti ti-scan"></i>Scanned today</div><div class="v num">' + d.today.total + '</div><div class="s">' + d.today.good + ' good</div></div>' +
+    '<div class="tile" data-rf="back" style="cursor:pointer"><div class="lbl"><i class="ti ti-alert-triangle"></i>Returned by courier</div><div class="v num down">' + d.backCount + '</div><div class="s">pending scan ›</div></div></div>';
+  // R.filter = 'back' (from Home's to-do or the tile above): only returns the courier says it handed back.
+  var waiting = R.filter === 'back' ? d.waiting.filter(function (w) { return w.back; }) : d.waiting;
+  h += '<div class="card" id="rwait"><div class="h"><b>Awaiting return scan</b><span>' + waiting.length + '</span></div>' +
+    (R.filter === 'back' ? '<div class="chips wrapc"><button class="chip pctx" data-rf="">Returned by courier ✕</button></div>' : '') +
+    (waiting.length ? waiting.map(function (w) {
+      var pill = w.back ? '<span class="pill p-no">Returned by courier</span>' : w.atOrigin ? '<span class="pill" style="background:var(--amber-bg);color:var(--amber)">At local facility</span>' : '<span class="pill" style="background:var(--blue-bg);color:var(--blue)">In transit</span>';
+      return '<div class="li"><div class="d"><b>' + esc(w.order) + ' · ' + esc(w.name) + '</b><small>' + esc(w.courier) + ' ' + esc(w.cn) + ' · ' + esc(w.items) + '</small>' +
+        '<div class="btns" style="margin-top:6px">' + trackBtn(w.cn) + '<button class="btn" data-pick="' + esc(w.cn) + '"><i class="ti ti-scan"></i>Receive</button></div></div>' +
+        '<div class="r">' + pill + '<small style="display:block;color:var(--muted);font-size:11px">' + (w.days != null ? w.days + 'd' : '') + '</small></div></div>';
+    }).join('') : '<div class="empty"><i class="ti ti-circle-check"></i>All returns scanned</div>') + '</div>';
+  h += '<div class="card"><div class="h"><b>Recently scanned</b><span>' + d.recent.length + '</span></div>' +
+    (d.recent.length ? d.recent.slice(0, 20).map(function (r) {
+      return '<div class="li"><div class="d"><b>' + esc(r.order) + ' · ' + esc(r.name) + '</b><small>' + esc(r.when) + ' · ' + esc(r.by) + '</small></div><div class="r"><span class="pill ' + (r.good ? 'p-ok' : 'p-no') + '">' + esc(r.condition.split(' –')[0]) + '</span></div></div>';
+    }).join('') : '<div class="empty">No scans yet</div>') + '</div>';
+  el('rview').innerHTML = h;
+  if (R.scrollTo) { R.scrollTo = false; scrollToCard('rwait'); }
+}
+function findReturn(code) {
+  code = String(code || '').trim(); if (!code) return;
+  el('rfound').innerHTML = '<div class="sk" style="height:150px;margin-bottom:12px"></div>';
+  api('lookupAppReturn', [{ token: TOKEN, code: code }], function (p) { R.found = p; renderFound(); },
+    function (e) { el('rfound').innerHTML = '<div class="card" style="color:var(--red)"><i class="ti ti-alert-circle"></i> ' + esc(e && e.message) + '</div>'; try { navigator.vibrate && navigator.vibrate(300); } catch (x) {} });
+}
+function renderFound() {
+  var p = R.found, conds = (R.data && R.data.conditions) || ['Good – back to stock', 'Damaged', 'Item missing', 'Wrong parcel'];
+  var h = '<div class="card found fade"><div class="pc-top"><span class="pc-cn">' + esc(p.courier) + ' · ' + esc(p.cn) + '</span><span class="st ' + (p.isReturn ? 's-returned' : 's-moving') + '">' + esc(p.status) + '</span></div>' +
+    '<div class="pc-who">' + esc(p.name) + ' · ' + esc(p.city) + ' · ' + esc(p.order) + '</div><div class="pc-note">' + esc(p.items) + ' · COD ' + rs(p.cod) + '</div>';
+  if (p.already) h += '<div class="tk ok">Already scanned: ' + esc(p.already.when) + ' · ' + esc(p.already.by) + ' · ' + esc(p.already.condition) + '</div>';
+  else {
+    if (!p.isReturn) h += '<div class="tk">Note: courier status does not indicate a return (' + esc(p.status) + ')</div>';
+    h += '<div class="fld" style="margin-top:10px"><label>Condition</label><div class="opts" id="rcond">' +
+      conds.map(function (c, i) { return '<div class="opt' + (i === 0 ? ' on' : '') + '" data-v="' + esc(c) + '">' + esc(c) + '</div>'; }).join('') + '</div></div>' +
+      '<div class="fld"><input id="rnotes" placeholder="Note (anything missing or damaged)"></div><div class="err" id="rErr"></div>' +
+      '<div class="btns">' + trackBtn(p.cn) + '<button class="btn" id="rclear">Cancel</button><button class="btn pri" id="rsave"><i class="ti ti-check"></i>Received</button></div>';
+  }
+  el('rfound').innerHTML = h + '</div>';
+  if (p.already) return;
+  var cond = conds[0];
+  el('rcond').onclick = function (e) { var t = e.target.closest('.opt'); if (!t) return; cond = t.getAttribute('data-v'); el('rcond').querySelectorAll('.opt').forEach(function (x) { x.classList.toggle('on', x === t); }); };
+  el('rclear').onclick = function () { el('rfound').innerHTML = ''; el('rcode').value = ''; el('rcode').focus(); };
+  el('rsave').onclick = function () {
+    el('rsave').disabled = true;
+    api('saveAppReturnScan', [{ token: TOKEN, cn: p.cn, condition: cond, notes: el('rnotes').value }], function () {
+      toast('✅ Return received'); try { navigator.vibrate && navigator.vibrate(80); } catch (x) {}
+      el('rfound').innerHTML = ''; el('rcode').value = ''; el('rcode').focus(); loadReturns(true);
+    }, function (e) { el('rsave').disabled = false; el('rErr').textContent = (e && e.message) || 'Not saved'; });
+  };
+}
+el('rgo').onclick = function () { findReturn(el('rcode').value); };
+el('rcode').onkeydown = function (e) { if (e.key === 'Enter') findReturn(el('rcode').value); }; // USB / Bluetooth scanners press Enter
+el('rview').onclick = function (e) {
+  var f = e.target.closest('[data-rf]');
+  if (f) { R.filter = f.getAttribute('data-rf'); R.scrollTo = !!R.filter; renderReturns(); return; }
+  var t = e.target.closest('[data-pick]'); if (t) { el('rcode').value = t.getAttribute('data-pick'); findReturn(t.getAttribute('data-pick')); window.scrollTo(0, 0); } };
+el('rcam').onchange = function () {
+  var f = el('rcam').files[0]; if (!f) return;
+  toast('Reading label…');
+  var url = URL.createObjectURL(f);
+  var done = function (txt) { el('rcam').value = ''; if (txt) { el('rcode').value = txt; findReturn(txt); } else toast('Could not read the barcode. Type the CN.'); };
+  var zxing = function () {
+    var run = function () { new ZXing.BrowserMultiFormatReader().decodeFromImageUrl(url).then(function (r) { done(r.getText()); }).catch(function () { done(''); }); };
+    if (window.ZXing) return run();
+    var s = document.createElement('script'); s.src = 'https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js'; s.onload = run; s.onerror = function () { done(''); }; document.head.appendChild(s);
+  };
+  if ('BarcodeDetector' in window) {
+    var img = new Image(); img.onload = function () { new BarcodeDetector().detect(img).then(function (codes) { codes.length ? done(codes[0].rawValue) : zxing(); }).catch(zxing); }; img.src = url;
+  } else zxing();
+};
+
+// ---------- header ----------
+el('btnRefresh').onclick = function () {
+  if (curTab === 'parcels') loadParcels(true);
+  else if (curTab === 'ndr') { loadNdr(true); toast('Refreshing NDR…'); }
+  else if (curTab === 'cash') { C.mem = {}; loadCash(true); }
+  else if (curTab === 'returns') loadReturns(true);
+  else { H.mem = {}; loadHome(true); }
+};
+el('btnMode').onclick = function () {
+  var m = root.getAttribute('data-mode') === 'dark' ? 'light' : 'dark';
+  root.setAttribute('data-mode', m); store('eh_mode', m);
+  el('btnMode').innerHTML = '<i class="ti ti-' + (m === 'dark' ? 'sun' : 'moon') + '"></i>';
+};
+if (root.getAttribute('data-mode') === 'dark') el('btnMode').innerHTML = '<i class="ti ti-sun"></i>';
+el('btnOut').onclick = document.querySelector('.logo').onclick = function () {
+  if (confirm('Log out ' + (USER || '') + '?')) { TOKEN = ''; store('eh_token', ''); location.reload(); }
+};
+
+// ---------- login ----------
+function showLogin() {
+  el('login').hidden = false;
+  google.script.run.withSuccessHandler(function (names) {
+    el('lgName').innerHTML = '<option value="">Name…</option>' + names.map(function (n) { return '<option' + (n === USER ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('');
+    if (!names.length) el('lgErr').textContent = 'No users yet. Add one from the sheet menu: App Users — Add.';
+  }).appLoginNames();
+}
+el('lgGo').onclick = function () {
+  var n = el('lgName').value, p = el('lgPin').value;
+  if (!n) { el('lgErr').textContent = 'Choose your name'; return; }
+  if (!/^\d{4,8}$/.test(p)) { el('lgErr').textContent = 'PIN is 4–8 digits'; return; }
+  el('lgGo').disabled = true; el('lgGo').textContent = 'Checking…';
+  google.script.run.withSuccessHandler(function (r) {
+    TOKEN = r.token; USER = r.name; store('eh_token', TOKEN); store('eh_user', USER);
+    el('lgPin').value = ''; el('lgErr').textContent = ''; el('lgGo').disabled = false; el('lgGo').textContent = 'Log in';
+    el('login').hidden = true; start();
+  }).withFailureHandler(function (e) {
+    el('lgGo').disabled = false; el('lgGo').textContent = 'Log in'; el('lgErr').textContent = (e && e.message) || 'Login failed';
+  }).appLogin(n, p);
+};
+el('lgPin').onkeydown = function (e) { if (e.key === 'Enter') el('lgGo').click(); };
+el('lgPin').oninput = el('lgName').onchange = function () { el('lgErr').textContent = ''; };
+
+// ---------- start ----------
+var started = false;
+function start() {
+  greet();
+  loadHome(false);
+  if (N.data) updateBadge();
+  loadNdr(false);
+  // Warm the other tabs in the background so switching is instant.
+  setTimeout(function () { loadParcels(false); loadReturns(false); loadCash(false); }, 1500);
+  if (!started) { started = true; setInterval(function () { if (TOKEN) loadNdr(false); }, 120000); }
+}
+if (TOKEN) start(); else showLogin();
+</script>
+<script>
+if ('serviceWorker' in navigator) addEventListener('load', function () { navigator.serviceWorker.register('sw.js'); });
+</script>
+</body>
+</html>
