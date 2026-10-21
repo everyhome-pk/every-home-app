@@ -52,6 +52,8 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .jr-cancel{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:9px 10px;border-radius:12px;background:var(--bg);font-size:12.5px;color:var(--muted);cursor:pointer}
 .jr-cancel b{color:var(--text)}
 .nw{white-space:nowrap}
+.jr-disp{display:flex;gap:8px;align-items:flex-start;margin:-2px 0 10px;padding:8px 10px;border-radius:12px;background:var(--bg);font-size:12.5px;color:var(--muted)}
+.jr-disp i{font-size:16px;color:var(--brand);margin-top:1px}.jr-disp b{color:var(--text)}.jr-disp small{display:block;font-size:11.5px;margin-top:2px}
 .jr-sum{font-size:12.5px;color:var(--muted);margin:-4px 0 8px}.jr-sum b{color:var(--text);font-size:15px}
 .jr-list{position:relative}
 .jr-row{display:grid;grid-template-columns:26px 1fr 64px 30px 14px;align-items:center;gap:8px;padding:6px 0;position:relative;cursor:pointer}
@@ -481,7 +483,7 @@ function openParcel(key) {
     '<span class="st" style="--c:' + s[1] + '">' + s[0] + '</span></div>' +
     ((p.flags || []).length ? '<div style="margin:-4px 0 8px">' + p.flags.map(function (f) { return '<span class="flag">' + esc(f) + '</span>'; }).join('') + '</div>' : '') +
     '<div class="pd">' +
-    row('Order date', esc(p.date)) + row('COD', rs(p.total)) + row('Items', esc(p.items)) +
+    row('Order date', esc(p.ordered || p.date)) + (p.dispatched ? row('Dispatched', esc(p.dispatched)) : '') + row('COD', rs(p.total)) + row('Items', esc(p.items)) +
     row('Phone', esc(p.phone)) + row('City', esc(p.city)) + row('Address', esc(p.address)) +
     (p.attempts ? row('Delivery attempts', p.attempts) : '') + (p.charge ? row('Courier charge', rs(p.charge)) : '') +
     (p.reason || p.lastRaw ? row('Last update', esc(p.reason || p.lastRaw)) : '') +
@@ -677,17 +679,23 @@ function renderHome(d) {
       '<span class="jr-bar"><i style="width:0;background:' + s[4] + '" data-w="' + (100 * n / jmax) + '"></i></span>' +
       '<b class="jr-n num">' + n + '</b><i class="ti ti-chevron-right" style="color:var(--faint)"></i></div>';
   };
+  // Booked parcels count on their dispatch day; orders not booked yet on their order day.
+  var ds = d.dispatched || { leopards: 0, trax: 0 };
+  var waitingBook = (jr.pending || 0) + (jr.confirmed || 0);
+  var sumLine = '<div class="jr-sum"><b class="num">' + k.booked + '</b> dispatched · ' + rs(k.bookedValue) +
+    (k.booked ? ' · Leopards ' + ds.leopards + ' · Trax ' + ds.trax : '') + (waitingBook ? ' · <b class="num">' + waitingBook + '</b> not booked yet' : '') +
+    (delta(k.booked, p && p.booked) ? ' · <span class="nw">' + delta(k.booked, p && p.booked) + '</span>' : '') + '</div>';
   var stg = function (key) { return JOURNEY.filter(function (s) { return s[0] === key; })[0]; };
   if (d.live !== false) {
     h += '<div class="card fade"><div class="h"><b>Order journey</b><span>' + esc(d.monthLabel) + '</span></div>' +
-      '<div class="jr-sum"><b class="num">' + k.orders + '</b> orders · <b class="num">' + k.booked + '</b> booked · ' + rs(k.bookedValue) + (delta(k.booked, p && p.booked) ? ' · <span class="nw">' + delta(k.booked, p && p.booked) + '</span>' : '') + '</div><div class="jr-list">' +
+      sumLine + '<div class="jr-list">' +
       JOURNEY.map(function (s) {
         return (s[0] === 'pending' ? '<div class="jr-sep">In progress</div>' : '') + (s[0] === 'delivered' ? '<div class="jr-sep">Outcome</div>' : '') + jrow(s);
       }).join('') + '</div>' + cancelLine + '</div>';
   } else {
     var still = d.stillMoving || 0, never = (jr.pending || 0) + (jr.confirmed || 0);
     h += '<div class="card fade"><div class="h"><b>Order outcome</b><span>' + esc(d.monthLabel) + ' · closed</span></div>' +
-      '<div class="jr-sum"><b class="num">' + k.orders + '</b> orders · <b class="num">' + k.booked + '</b> booked · ' + rs(k.bookedValue) + '</div>' +
+      sumLine +
       '<div class="oc-kp"><div data-go="parcels:delivered"><b class="num up">' + (jr.delivered || 0) + '</b><small>Delivered</small></div>' +
       '<div data-go="parcels:returned"><b class="num down">' + ((jr.returned || 0) + (jr.returning || 0)) + '</b><small>Returned</small></div>' +
       '<div><b class="num">' + pct(k.success) + '</b><small>Success</small></div></div>' +
