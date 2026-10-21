@@ -756,6 +756,7 @@ var STAGE = {};
 JOURNEY.forEach(function (s) { STAGE[s[0]] = [s[1], s[4]]; });
 STAGE.cancelled = ['Cancelled', 'var(--faint)'];
 STAGE.moving = ['With courier', 'var(--blue)']; // filter only: all stages still with the courier
+STAGE.nocn = ['Missing tracking', 'var(--amber)']; // filter only: booked (courier tag) but no CN yet
 var pAt = 0;
 function loadParcels(fresh) {
   if (!fresh && Date.now() - pAt < 60000) return;
@@ -779,13 +780,13 @@ function renderParcels() {
       (qd.length >= 4 && String(p.phone).replace(/[^0-9]/g, '').indexOf(qd.replace(/^92/, '0')) !== -1);
   });
   var counts = { all: found.filter(function (p) { return p.stage !== 'cancelled'; }).length }; // like Home: cancelled orders only under their own chip
-  found.forEach(function (p) { counts[p.stage] = (counts[p.stage] || 0) + 1; if (MOVING.indexOf(p.stage) !== -1) counts.moving = (counts.moving || 0) + 1; });
+  found.forEach(function (p) { counts[p.stage] = (counts[p.stage] || 0) + 1; if (MOVING.indexOf(p.stage) !== -1) counts.moving = (counts.moving || 0) + 1; if (p.stage === 'booked' && !p.cn) counts.nocn = (counts.nocn || 0) + 1; });
   // Chips: [month/courier from Home ✕] All, then every journey stage that has parcels (the chosen one always).
-  var keys = ['all'].concat(P.filter === 'moving' ? ['moving'] : [], JOURNEY.map(function (s) { return s[0]; }), ['cancelled'])
+  var keys = ['all'].concat(P.filter === 'moving' || P.filter === 'nocn' ? [P.filter] : [], JOURNEY.map(function (s) { return s[0]; }), ['cancelled'])
     .filter(function (k) { return k === 'all' || counts[k] || k === P.filter; });
   P.opts = keys.map(function (k) { return [k, k === 'all' ? 'All stages' : STAGE[k][0], counts[k] || 0]; });
   el('pchips').innerHTML = fbar('p', P.filter === 'all' ? 'All stages' : (STAGE[P.filter] || [P.filter])[0], counts[P.filter] || 0, ctx && ctx.label);
-  var list = found.filter(function (p) { return P.filter === 'all' ? p.stage !== 'cancelled' : P.filter === 'moving' ? MOVING.indexOf(p.stage) !== -1 : p.stage === P.filter; });
+  var list = found.filter(function (p) { return P.filter === 'all' ? p.stage !== 'cancelled' : P.filter === 'moving' ? MOVING.indexOf(p.stage) !== -1 : P.filter === 'nocn' ? p.stage === 'booked' && !p.cn : p.stage === P.filter; });
   if (!list.length) { el('plist').innerHTML = '<div class="card empty"><i class="ti ti-package-off" style="color:var(--faint)"></i>No parcels found</div>'; return; }
   el('plist').innerHTML = list.slice(0, P.limit).map(parcelCard).join('') +
     (list.length > P.limit ? '<button class="btn more" id="pmore">Show more (' + (list.length - P.limit) + ')</button>' : '');
