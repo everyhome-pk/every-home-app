@@ -46,6 +46,7 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .flag{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:99px;background:var(--amber-bg);color:var(--amber);margin:6px 4px 0 0}
 .jr-cancel{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:9px 10px;border-radius:12px;background:var(--bg);font-size:12.5px;color:var(--muted);cursor:pointer}
 .jr-cancel b{color:var(--text)}
+.nw{white-space:nowrap}
 .jr-sum{font-size:12.5px;color:var(--muted);margin:-4px 0 8px}.jr-sum b{color:var(--text);font-size:15px}
 .jr-list{position:relative}
 .jr-row{display:grid;grid-template-columns:26px 1fr 64px 30px 14px;align-items:center;gap:8px;padding:6px 0;position:relative;cursor:pointer}
@@ -81,7 +82,7 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .hero-row div{background:rgba(255,255,255,.08);border-radius:14px;padding:10px 12px}
 .hero-row span{display:block;font-size:11.5px;color:rgba(255,255,255,.65)}
 .hero-row b{font-size:17px;font-weight:600}
-.hero-row b{display:block;margin:2px 0}.hero-row em{display:block;font-style:normal;font-size:11px;color:rgba(255,255,255,.65)}.hero-row .late{font-style:normal;color:#F7A8A8;font-weight:600}
+.hero-row b{display:block;margin:2px 0}.hero-row em{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-style:normal;font-size:11px;color:rgba(255,255,255,.65)}.hero-row .late{font-style:normal;color:#F7A8A8;font-weight:600}
 .hero-later{display:flex;align-items:center;gap:6px;margin-top:12px;font-size:12px;color:rgba(255,255,255,.75)}.hero-later i{font-size:15px}
 .oc-kp{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:4px 0 10px;text-align:center}
 .oc-kp div{background:var(--bg);border-radius:12px;padding:10px 4px;cursor:pointer}.oc-kp b{display:block;font-size:18px}.oc-kp small{font-size:11px;color:var(--muted)}
@@ -114,8 +115,8 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .act .go{margin-left:auto;color:var(--faint)}
 .cmp{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .cmp>div{border:1px solid var(--line);border-radius:14px;padding:12px}
-.cmp b{font-size:13px}.cmp .k{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px}.cmp .k em{font-style:normal;color:var(--text);font-weight:600}
-.chart{display:flex;align-items:flex-end;gap:10px;height:130px;padding-top:16px}
+.cmp b{font-size:13px}.cmp .k{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);margin-top:6px;white-space:nowrap}.cmp .k em{font-style:normal;color:var(--text);font-weight:600}
+.chart{display:flex;align-items:flex-end;gap:10px;height:140px;padding-top:26px}
 .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
 .stack{width:100%;max-width:34px;display:flex;flex-direction:column-reverse;border-radius:8px;overflow:hidden;background:var(--line);transition:opacity .2s}
 .stack i{display:block;transition:height .9s cubic-bezier(.2,.8,.2,1)}
@@ -126,7 +127,8 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .days-l{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);margin-top:6px}
 .pay{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
 .pay:first-of-type{border-top:0}
-.pay .d{flex:1}.pay .d b{font-size:13px;font-weight:600;display:block}.pay .d small{font-size:12px;color:var(--muted)}
+.pay .r{display:flex;flex-direction:column;align-items:flex-end;gap:4px}.pay .r b{font-size:14px}
+.pay .d{flex:1;min-width:0}.pay .d b{font-size:13px;font-weight:600;display:block}.pay .d small{font-size:12px;color:var(--muted)}
 .pill{font-size:11px;font-weight:600;padding:3px 8px;border-radius:99px}
 .p-ok{background:var(--green-bg);color:var(--green)}.p-no{background:var(--red-bg);color:var(--red)}
 .nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:10}
@@ -153,7 +155,7 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .pc-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .pc-cn{font-weight:600;font-size:14px;font-variant-numeric:tabular-nums}
 .pc-who{color:var(--muted);font-size:13px;margin-top:2px}
-.pc-meta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:8px}
+.pc-meta{display:flex;gap:16px;font-size:12px;color:var(--muted);margin-top:8px}.pc-meta span:empty{display:none}.pc-meta span:nth-child(3){margin-left:auto}
 .pc-meta b{color:var(--text);font-weight:600}
 .pc-note{font-size:12.5px;margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--bg);color:var(--muted)}
 .btns{display:flex;gap:8px;margin-top:10px}
@@ -199,12 +201,16 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .cs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0 4px;text-align:center}
 .cs div{background:var(--bg);border-radius:10px;padding:8px 2px}.cs b{display:block;font-size:16px}.cs small{font-size:10.5px;color:var(--muted)}
 .cs-h{font-size:10.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.7px;margin-top:8px}.cs-h+.cs{margin-top:4px}
-.cs-done{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);padding:8px 2px 2px;border-top:1px solid var(--line);margin-top:8px}
-.cs-done i{font-size:16px;color:var(--faint)}.cs-done span{flex:1}.cs-done b{font-weight:600}.cs-done small{font-size:11px;color:var(--faint)}
+.cs-done{padding:10px 0 2px;border-top:1px solid var(--line);margin-top:10px}
+.cs-done .cs-h{display:flex;align-items:center;gap:6px}.cs-done .cs-h i{font-size:14px}.cs-done .cs-h small{margin-left:auto;text-transform:none;letter-spacing:0;font-size:11px}
+.cs-res{font-size:13px;color:var(--muted);margin-top:4px}.cs-res b{font-weight:600}
 .scan{display:flex;gap:8px;background:var(--card);border-radius:16px;padding:6px;box-shadow:var(--shadow);margin-bottom:10px}
 .li{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
 .li:first-of-type{border-top:0}
 .li .d{flex:1;min-width:0}.li .d b{display:block;font-size:13px;font-weight:600}.li .d small{display:block;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rw{padding:12px 0;border-top:1px solid var(--line)}
+.rw-top{display:flex;align-items:center;gap:8px}.rw-top b{flex:1;min-width:0;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rw-top .pill{flex:none}
+.rw-sub{display:flex;gap:8px;margin:3px 0 8px;font-size:12px;color:var(--muted)}.rw-sub span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rw-sub em{flex:none;font-style:normal;font-size:11px}
 .li .r{text-align:right}.li .r b{display:block;font-size:13.5px}
 .mini{font-size:11.5px;color:var(--brand);background:none;border:0;padding:4px 0;font-weight:600;cursor:pointer;font-family:inherit}
 .found{border:2px solid var(--brand)}
@@ -584,8 +590,8 @@ function cashHero(label, s, paidAttr, dueAttr, k) {
     '<div class="big num" data-k="' + k + '_net" data-n="' + s.net + '" data-rs>' + rs(s.net) + '</div>' +
     '<div class="hero-bar"><i style="width:0" data-w="' + got + '"></i></div>' +
     '<div class="hero-top"><small>' + got + '% of the amount received</small></div>' +
-    '<div class="hero-row"><div ' + paidAttr + ' style="cursor:pointer"><span>Received ›</span><b class="num" data-k="' + k + '_rec" data-n="' + s.received + '" data-rs>' + rs(s.received) + '</b><em>' + (s.paidDelivered || 0) + ' delivered paid</em></div>' +
-    '<div ' + dueAttr + ' style="cursor:pointer"><span>Outstanding ›</span><b class="num" data-k="' + k + '_due" data-n="' + s.pending + '" data-rs>' + rs(s.pending) + '</b><em>' + (s.pendingDelivered || 0) + ' delivered unpaid' + (s.overdue ? ' · <i class="late">' + s.overdue + ' late</i>' : '') + '</em></div></div>' +
+    '<div class="hero-row"><div ' + paidAttr + ' style="cursor:pointer"><span>Received ›</span><b class="num" data-k="' + k + '_rec" data-n="' + s.received + '" data-rs>' + rs(s.received) + '</b><em>' + (s.paidDelivered || 0) + ' parcels paid</em></div>' +
+    '<div ' + dueAttr + ' style="cursor:pointer"><span>Outstanding ›</span><b class="num" data-k="' + k + '_due" data-n="' + s.pending + '" data-rs>' + rs(s.pending) + '</b><em>' + (s.pendingDelivered || 0) + ' unpaid' + (s.overdue ? ' · <i class="late">' + s.overdue + ' late</i>' : '') + '</em></div></div>' +
     (later ? '<div class="hero-later"><i class="ti ti-clock"></i>On the way: ' + (s.movingCod ? '~' + rs(s.movingCod) + ' COD · ' : '') + later + ' with courier' + '</div>' : '') + '</div>';
 }
 function renderHome(d) {
@@ -619,7 +625,7 @@ function renderHome(d) {
   var stg = function (key) { return JOURNEY.filter(function (s) { return s[0] === key; })[0]; };
   if (d.live !== false) {
     h += '<div class="card fade"><div class="h"><b>Order journey</b><span>' + esc(d.monthLabel) + '</span></div>' +
-      '<div class="jr-sum"><b class="num">' + k.orders + '</b> orders · <b class="num">' + k.booked + '</b> booked · ' + rs(k.bookedValue) + (delta(k.booked, p && p.booked) ? ' · ' + delta(k.booked, p && p.booked) : '') + '</div><div class="jr-list">' +
+      '<div class="jr-sum"><b class="num">' + k.orders + '</b> orders · <b class="num">' + k.booked + '</b> booked · ' + rs(k.bookedValue) + (delta(k.booked, p && p.booked) ? ' · <span class="nw">' + delta(k.booked, p && p.booked) + '</span>' : '') + '</div><div class="jr-list">' +
       JOURNEY.map(function (s) {
         return (s[0] === 'pending' ? '<div class="jr-sep">In progress</div>' : '') + (s[0] === 'delivered' ? '<div class="jr-sep">Outcome</div>' : '') + jrow(s);
       }).join('') + '</div>' + cancelLine + '</div>';
@@ -656,7 +662,7 @@ function renderHome(d) {
     h += '<div class="card fade"><div class="h"><b>Courier comparison</b><span>' + d.monthLabel + '</span></div><div class="cmp">' +
       d.couriers.map(function (x) {
         return '<div><b>' + x.name + (x.estimate ? ' <small style="color:var(--faint);font-weight:400">(est.)</small>' : '') + '</b>' +
-          '<div class="k">Success<em>' + pct(x.success) + '</em></div><div class="k">Cost per parcel<em>' + rs(x.perParcel) + '</em></div>' +
+          '<div class="k">Success<em>' + pct(x.success) + '</em></div><div class="k">Per parcel<em>' + rs(x.perParcel) + '</em></div>' +
           '<div class="k">Delivered / RTO<em>' + x.delivered + ' / ' + x.returned + '</em></div><div class="k">Outstanding<em>' + rs(x.pending) + '</em></div></div>';
       }).join('') + '</div></div>';
   }
@@ -676,8 +682,8 @@ function renderHome(d) {
   if (d.payments.length) {
     h += '<div class="card fade" data-go="cash:pay" style="cursor:pointer"><div class="h"><b>Courier payments ›</b><span>Bank reconciliation</span></div>' +
       d.payments.map(function (x) {
-        return '<div class="pay"><div class="d"><b>' + esc(x.courier) + ' · ' + esc(x.ref) + '</b><small>' + esc(x.date) + ' · ' + x.parcels + ' parcels</small></div><b class="num">' + rs(x.net) + '</b>' +
-          '<span class="pill ' + (x.ok ? 'p-ok' : 'p-no') + '">' + (x.ok ? 'Paid' : 'Unpaid') + '</span></div>';
+        return '<div class="pay"><div class="d"><b>' + esc(x.courier) + ' · ' + esc(x.ref) + '</b><small>' + esc(x.date) + ' · ' + x.parcels + ' parcels</small></div><div class="r"><b class="num">' + rs(x.net) + '</b>' +
+          '<span class="pill ' + (x.ok ? 'p-ok' : 'p-no') + '">' + (x.ok ? 'Paid' : 'Unpaid') + '</span></div></div>';
       }).join('') + '</div>';
   }
   el('view').innerHTML = h;
@@ -785,10 +791,34 @@ function renderParcels() {
     (list.length > P.limit ? '<button class="btn more" id="pmore">Show more (' + (list.length - P.limit) + ')</button>' : '');
   if (el('pmore')) el('pmore').onclick = function () { P.limit += 40; renderParcels(); };
 }
+// Customer WhatsApp message for where the parcel is now: short Roman Urdu, *bold* for order / amount / CN.
+function custWaText(p) {
+  var name = String(p.name || '').split(' ')[0] || 'Sir/Madam';
+  var ref = '*' + p.ref + '*';
+  var cod = p.total ? '*Rs ' + Math.round(p.total).toLocaleString('en-IN') + '* (COD)' : '';
+  var hi = 'Assalam-o-Alaikum ' + name + ',\n\n', sign = '\n\n– *Every Home*';
+  var track = p.cn ? '\nCourier: ' + (p.courier || '') + '\nTracking: *' + p.cn + '*' : '';
+  switch (p.stage) {
+    case 'pending':
+      return hi + 'Aap ka order ' + ref + ' humein mil gaya hai.\n' + (cod ? 'Raqam: ' + cod + '\n' : '') + '\nOrder confirm karne ke liye *YES* reply karein.' + sign;
+    case 'confirmed': case 'booked':
+      return hi + 'Aap ka order ' + ref + ' confirm ho gaya hai aur jald rawana hoga.' + track + sign;
+    case 'picked': case 'transit': case 'atdest':
+      return hi + 'Aap ka order ' + ref + ' rawana ho chuka hai.' + track + (cod ? '\nRaqam: ' + cod : '') + '\n\nRider delivery se pehle call karega.' + sign;
+    case 'ofd':
+      return hi + 'Aap ka order ' + ref + ' aaj delivery ke liye rider ke paas hai.\n' + (cod ? 'Raqam ' + cod + ' tayyar rakhein.\n' : '') + '\nBarah-e-karam rider ki call receive karein.' + sign;
+    case 'ndr':
+      return hi + 'Aap ka order ' + ref + ' deliver nahi ho saka.\n\nBarah-e-karam confirm karein:\n1. Sahi address\n2. Delivery ka munasib waqt' + sign;
+    case 'delivered':
+      return hi + 'Every Home se khareedari ka shukriya.\nOrder ' + ref + ' ke baare mein koi sawal ho to isi number par batayein.' + sign;
+    default:
+      return hi + 'Every Home se order ' + ref + ' ke silsile mein rabta kar rahe hain.' + sign;
+  }
+}
 function parcelCard(p) {
   var s = STAGE[p.stage] || ['', 'var(--line)'];
   var note = ['picked', 'transit', 'atdest', 'ofd', 'ndr', 'returning'].indexOf(p.stage) !== -1 ? (p.reason || p.lastRaw) : '';
-  var wa = p.wa ? '<a class="btn wa" target="_blank" href="' + waLink(p.wa, 'Assalam-o-Alaikum ' + p.name + '! Every Home se baat kar rahe hain, aap ke order ' + p.ref + ' ke baare mein.') + '"><i class="ti ti-brand-whatsapp"></i>WhatsApp</a>' : '';
+  var wa = p.wa ? '<a class="btn wa" target="_blank" href="' + waLink(p.wa, custWaText(p)) + '"><i class="ti ti-brand-whatsapp"></i>WhatsApp</a>' : '';
   return '<div class="pc" style="--c:' + s[1] + '">' +
     '<div class="pc-top"><span class="pc-cn">' + (p.cn ? esc(p.courier) + ' · ' + esc(p.cn) : esc(p.ref)) + '</span><span class="st" style="--c:' + s[1] + '">' + s[0] + '</span></div>' +
     '<div class="pc-who">' + esc(p.name) + ' · ' + esc(p.city) + ' · ' + esc(p.ref) + '</div>' +
@@ -885,15 +915,16 @@ function renderCourierCards() {
   var cs = N.data.couriers || {};
   el('ncour').innerHTML = Object.keys(cs).map(function (name) {
     var s = cs[name];
-    var msg = 'Dear ' + name + ' team, Every Home has ' + s.open + ' parcels that need your action' +
-      (s.notActed ? ' (' + s.notActed + ' still pending from earlier requests)' : '') + '. Please update the status and your reply in the sheet: ' + s.link + ' Thank you.';
+    var msg = '*Every Home – ' + name + ' Issues*\n\nAssalam-o-Alaikum,\n*' + s.open + ' parcels* par aap ka action chahiye.' +
+      (s.notActed ? '\n*' + s.notActed + '* purane cases par ab tak action nahi hua.' : '') +
+      '\n\nSheet mein status aur reply update kar dein:\n' + s.link + '\n\nShukriya';
     return '<div class="card"><div class="h"><b>' + name + ' escalations</b><span>' + (s.replyHours != null ? 'avg. reply ~' + s.replyHours + 'h' : '') + '</span></div>' +
       // Open = still on the courier's Issues tab; closed tickets move to its Done tab and are counted by outcome.
       '<div class="cs-h">Open in sheet</div>' +
       '<div class="cs"><div><b>' + s.open + '</b><small>Open</small></div><div><b>' + s.replied + '</b><small>Replied</small></div><div><b class="up">' + s.acted + '</b><small>Actioned</small></div><div><b class="down">' + s.notActed + '</b><small>No action</small></div></div>' +
-      '<div class="cs-done"><i class="ti ti-archive"></i><span>' + (s.delivered + s.returned + (s.closedOther || 0) ?
-        'Closed · last ' + (s.closedDays || 30) + ' days: <b class="up">' + s.delivered + ' delivered</b> · <b class="down">' + s.returned + ' returned</b>' + (s.closedOther ? ' · ' + s.closedOther + ' other' : '') :
-        'No closed cases in the last ' + (s.closedDays || 30) + ' days') + '</span><small>' + (s.total || 0) + ' sent in total</small></div>' +
+      '<div class="cs-done"><div class="cs-h" style="margin:0"><i class="ti ti-archive"></i>Closed · last ' + (s.closedDays || 30) + ' days<small>' + (s.total || 0) + ' sent in total</small></div>' +
+        '<div class="cs-res">' + (s.delivered + s.returned + (s.closedOther || 0) ?
+          '<b class="up">' + s.delivered + ' delivered</b> · <b class="down">' + s.returned + ' returned</b>' + (s.closedOther ? ' · ' + s.closedOther + ' other' : '') : 'None yet') + '</div></div>' +
       (s.link ? '<div class="btns"><a class="btn" target="_blank" href="' + esc(s.link) + '"><i class="ti ti-table"></i>Open sheet</a>' +
         (s.open ? '<a class="btn wa" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(msg) + '"><i class="ti ti-brand-whatsapp"></i>Send to group</a>' : '') + '</div>' : '') + '</div>';
   }).join('');
@@ -1094,9 +1125,10 @@ function renderReturns() {
     (R.filter === 'back' ? '<div class="chips wrapc"><button class="chip pctx" data-rf="">Returned by courier ✕</button></div>' : '') +
     (waiting.length ? waiting.map(function (w) {
       var pill = w.back ? '<span class="pill p-no">Returned by courier</span>' : w.atOrigin ? '<span class="pill" style="background:var(--amber-bg);color:var(--amber)">At local facility</span>' : '<span class="pill" style="background:var(--blue-bg);color:var(--blue)">In transit</span>';
-      return '<div class="li"><div class="d"><b>' + esc(w.order) + ' · ' + esc(w.name) + '</b><small>' + esc(w.courier) + ' ' + esc(w.cn) + ' · ' + esc(w.items) + '</small>' +
-        '<div class="btns" style="margin-top:6px">' + trackBtn(w.cn) + '<button class="btn" data-pick="' + esc(w.cn) + '"><i class="ti ti-scan"></i>Receive</button></div></div>' +
-        '<div class="r">' + pill + '<small style="display:block;color:var(--muted);font-size:11px">' + (w.days != null ? w.days + 'd' : '') + '</small></div></div>';
+      // Three lines: order + status, courier / CN / items + days waiting, then two equal buttons.
+      return '<div class="rw"><div class="rw-top"><b>' + esc(w.order) + ' · ' + esc(w.name) + '</b>' + pill + '</div>' +
+        '<div class="rw-sub"><span>' + esc(w.courier) + ' ' + esc(w.cn) + ' · ' + esc(w.items) + '</span>' + (w.days != null ? '<em>' + w.days + 'd</em>' : '') + '</div>' +
+        '<div class="btns">' + trackBtn(w.cn) + '<button class="btn" data-pick="' + esc(w.cn) + '"><i class="ti ti-scan"></i>Receive</button></div></div>';
     }).join('') : '<div class="empty"><i class="ti ti-circle-check"></i>All returns scanned</div>') + '</div>';
   h += '<div class="card"><div class="h"><b>Recently scanned</b><span>' + d.recent.length + '</span></div>' +
     (d.recent.length ? d.recent.slice(0, 20).map(function (r) {
@@ -1213,7 +1245,12 @@ function start() {
 if (TOKEN) start(); else showLogin();
 </script>
 <script>
-if ('serviceWorker' in navigator) addEventListener('load', function () { navigator.serviceWorker.register('sw.js'); });
+if ('serviceWorker' in navigator) {
+  // A new version takes over once it is downloaded: reload once so the team sees it now, not on the next open.
+  var hadSw = !!navigator.serviceWorker.controller, reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', function () { if (hadSw && !reloaded) { reloaded = true; location.reload(); } });
+  addEventListener('load', function () { navigator.serviceWorker.register('sw.js'); });
+}
 </script>
 </body>
 </html>
