@@ -35,6 +35,11 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .pbtn:first-child{flex:1.3}.pbtn:last-child{flex:1}
 .pbtn span{flex:1;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pbtn i{font-size:16px;color:var(--muted)}
+[data-p]{cursor:pointer}
+.pd-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.pd-top h3{margin-bottom:2px}
+.pd{border:1px solid var(--line);border-radius:14px;padding:2px 12px}
+.pd-r{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line);font-size:13px}
+.pd-r:first-child{border-top:0}.pd-r span{color:var(--muted);flex:none}.pd-r b{font-weight:600;text-align:right;min-width:0;overflow-wrap:anywhere}
 .fbar{display:flex;gap:8px;margin-bottom:10px}
 .fbar .pbtn{flex:1;box-shadow:none}.fbar .pbtn b{font-size:12px;color:var(--muted)}
 .fbar .pbtn.ctx{flex:0 1 auto;max-width:55%;background:var(--brand);color:#fff;border-color:var(--brand)}.fbar .pbtn.ctx i{color:#fff}
@@ -448,6 +453,56 @@ function openTrack(cn) {
     }).join('') : '<small style="color:var(--muted)">No courier scans yet</small>') + '</div>';
   });
 }
+// ---------- parcel detail: tap any parcel (Parcels, NDR, Cash, Returns) ----------
+// Everything known about one parcel in one sheet: order, customer, money, NDR case, then the courier timeline.
+document.addEventListener('click', function (e) {
+  var card = e.target.closest('[data-p]');
+  if (!card || e.target.closest('a, button, input, textarea, select, .chip, [data-rec], [data-pick], [data-track]')) return;
+  openParcel(card.getAttribute('data-p'));
+});
+function findParcel(key) {
+  var k = String(key || '').toUpperCase().replace(/^#/, '');
+  var list = (P.data && P.data.parcels) || [];
+  return list.filter(function (p) { return p.cn && String(p.cn).toUpperCase() === k; })[0] ||
+    list.filter(function (p) { return String(p.ref || '').toUpperCase().replace(/^#/, '') === k || String(p.id) === key; })[0] || null;
+}
+function openParcel(key) {
+  var p = findParcel(key);
+  if (!p && !P.data) { // Parcels not loaded yet: load once, then open
+    el('panel').innerHTML = '<h3>Parcel</h3><div class="sk" style="height:160px"></div>'; openPanel();
+    return api('getAppParcels', [{ token: TOKEN }], function (d) { P.data = d; snap('parcels', d); openParcel(key); });
+  }
+  if (!p) { toast('Parcel not found'); return; }
+  var s = STAGE[p.stage] || ['', 'var(--line)'];
+  var cash = C.data && (C.data.parcels || []).filter(function (x) { return p.cn && x.cn === p.cn; })[0];
+  var ndr = N.data && (N.data.cases || []).filter(function (x) { return p.cn && x.cn === p.cn; })[0];
+  var row = function (k, v) { return v || v === 0 ? '<div class="pd-r"><span>' + k + '</span><b>' + v + '</b></div>' : ''; };
+  var h = '<div class="pd-top"><div><h3>' + esc(p.ref) + ' · ' + esc(p.name) + '</h3><p>' + (p.cn ? esc(p.courier) + ' · ' + esc(p.cn) : 'Not booked yet') + '</p></div>' +
+    '<span class="st" style="--c:' + s[1] + '">' + s[0] + '</span></div>' +
+    ((p.flags || []).length ? '<div style="margin:-4px 0 8px">' + p.flags.map(function (f) { return '<span class="flag">' + esc(f) + '</span>'; }).join('') + '</div>' : '') +
+    '<div class="pd">' +
+    row('Order date', esc(p.date)) + row('COD', rs(p.total)) + row('Items', esc(p.items)) +
+    row('Phone', esc(p.phone)) + row('City', esc(p.city)) + row('Address', esc(p.address)) +
+    (p.attempts ? row('Delivery attempts', p.attempts) : '') + (p.charge ? row('Courier charge', rs(p.charge)) : '') +
+    (p.reason || p.lastRaw ? row('Last update', esc(p.reason || p.lastRaw)) : '') +
+    (cash ? row('Settlement', esc(cash.note || cash.cat)) + row(cash.returned ? 'Charges' : 'Net to us', rs(cash.returned ? cash.charges : cash.net)) + (cash.over ? row('Above rate card', rs(cash.over)) : '') : '') +
+    (ndr ? row('NDR case', esc(ndr.type)) + (ndr.outcome && ndr.outcome !== 'Not called yet' ? row('Call result', esc(ndr.outcome)) : '') + (ndr.says ? row('Customer says', esc(ndr.says)) : '') : '') +
+    '</div>' +
+    '<div class="btns" style="margin:10px 0">' + (p.phone ? '<a class="btn" href="tel:' + esc(p.phone) + '"><i class="ti ti-phone"></i>Call</a>' : '') +
+    (p.wa ? '<a class="btn wa" target="_blank" href="' + waLink(p.wa, custWaText(p)) + '"><i class="ti ti-brand-whatsapp"></i>WhatsApp</a>' : '') +
+    (p.track ? '<a class="btn" target="_blank" href="' + esc(p.track) + '"><i class="ti ti-external-link"></i>Courier site</a>' : '') + '</div>' +
+    (p.cn ? '<div class="sl-h" style="margin:4px 0 6px">Tracking</div><div class="tl-sheet" id="pdtl"><div class="sk" style="height:100px"></div></div>' : '') +
+    '<div class="btns" style="margin-top:10px"><button class="btn" id="pdClose">Close</button></div>';
+  el('panel').innerHTML = h;
+  openPanel();
+  el('pdClose').onclick = closePanel;
+  if (p.cn) api('getAppParcelTimeline', [p.cn, TOKEN], function (ev) {
+    if (!el('pdtl')) return;
+    el('pdtl').innerHTML = '<div class="tl">' + (ev.length ? ev.map(function (x) {
+      return '<div class="tl-i"><div class="tl-d"></div><div><b>' + esc(x.status) + '</b><small>' + esc(x.when) + (x.place ? ' · ' + esc(x.place) : '') + (x.note ? ' · ' + esc(x.note) : '') + '</small></div></div>';
+    }).join('') : '<small style="color:var(--muted)">No courier scans yet</small>') + '</div>';
+  });
+}
 // Opening a sheet is a history step too, so Back closes it (even on Home).
 function openPanel() {
   if (!el('overlay').classList.contains('show')) { try { google.script.history.push({ tab: curTab, panel: 1 }, null, curTab); } catch (e) {} }
@@ -676,8 +731,11 @@ function renderHome(d) {
         '<i style="height:0;background:var(--blue)" data-h="' + (tot ? 100 * t.open / tot : 0) + '"></i></div><small>' + t.label + '</small></div>';
     }).join('') + '</div><div class="legend"><span style="--c:var(--green)">Delivered</span><span style="--c:var(--red)">Returned</span><span style="--c:var(--blue)">In progress</span></div></div>';
   var maxD = Math.max.apply(null, d.days.map(function (x) { return x.count; }).concat([1]));
-  h += '<div class="card fade"><div class="h"><b>Bookings · last 14 days</b><span>' + d.days.reduce(function (a, x) { return a + x.count; }, 0) + ' parcels</span></div><div class="days">' +
-    d.days.map(function (x) { return '<i title="' + x.weekday + ' ' + x.label + ': ' + x.count + '" style="height:0" data-h="' + (100 * x.count / maxD) + '"></i>'; }).join('') +
+  // Dispatches by booking day; today's count with the courier split on top.
+  var td = d.days[d.days.length - 1] || { count: 0, trax: 0, leopards: 0 };
+  h += '<div class="card fade"><div class="h"><b>Dispatched · last 14 days</b><span>' + d.days.reduce(function (a, x) { return a + x.count; }, 0) + ' parcels</span></div>' +
+    '<div class="jr-sum"><b class="num">' + td.count + '</b> dispatched today' + (td.count ? ' · Leopards ' + (td.leopards || 0) + ' · Trax ' + (td.trax || 0) : '') + '</div><div class="days">' +
+    d.days.map(function (x) { return '<i title="' + x.weekday + ' ' + x.label + ': ' + x.count + ' (Leopards ' + (x.leopards || 0) + ', Trax ' + (x.trax || 0) + ')" style="height:0" data-h="' + (100 * x.count / maxD) + '"></i>'; }).join('') +
     '</div><div class="days-l"><span>' + d.days[0].weekday + ' ' + d.days[0].label + '</span><span>Today</span></div></div>';
   if (d.payments.length) {
     h += '<div class="card fade" data-go="cash:pay" style="cursor:pointer"><div class="h"><b>Courier payments ›</b><span>Bank reconciliation</span></div>' +
@@ -820,7 +878,7 @@ function parcelCard(p) {
   var s = STAGE[p.stage] || ['', 'var(--line)'];
   var note = ['picked', 'transit', 'atdest', 'ofd', 'ndr', 'returning'].indexOf(p.stage) !== -1 ? (p.reason || p.lastRaw) : '';
   var wa = p.wa ? '<a class="btn wa" target="_blank" href="' + waLink(p.wa, custWaText(p)) + '"><i class="ti ti-brand-whatsapp"></i>WhatsApp</a>' : '';
-  return '<div class="pc" style="--c:' + s[1] + '">' +
+  return '<div class="pc" data-p="' + esc(p.cn || p.ref) + '" style="--c:' + s[1] + '">' +
     '<div class="pc-top"><span class="pc-cn">' + (p.cn ? esc(p.courier) + ' · ' + esc(p.cn) : esc(p.ref)) + '</span><span class="st" style="--c:' + s[1] + '">' + s[0] + '</span></div>' +
     '<div class="pc-who">' + esc(p.name) + ' · ' + esc(p.city) + ' · ' + esc(p.ref) + '</div>' +
     ((p.flags || []).length ? '<div>' + p.flags.map(function (f) { return '<span class="flag">' + esc(f) + '</span>'; }).join('') + '</div>' : '') +
@@ -891,7 +949,7 @@ function renderNdr() {
   if (!list.length) { el('nlist').innerHTML = '<div class="card empty"><i class="ti ti-circle-check"></i>No cases here</div>'; return; }
   el('nlist').innerHTML = list.map(function (c) {
     var col = c.priority === '1' ? 'var(--red)' : c.priority === '2' ? 'var(--amber)' : 'var(--blue)';
-    return '<div class="pc" style="--c:' + col + '">' +
+    return '<div class="pc" data-p="' + esc(c.cn) + '" style="--c:' + col + '">' +
       '<div class="pc-top"><span class="pc-cn">' + (seen.indexOf(caseKey(c)) === -1 ? '<span class="new-dot"></span>' : '') + esc(c.type) + '</span><span class="prio pr-' + c.priority + '">' + (c.priority === '1' ? 'Urgent' : c.priority === '2' ? 'Today' : 'Monitor') + '</span></div>' +
       '<div class="pc-who">' + esc(c.name) + ' · ' + esc(c.city) + ' · ' + esc(c.ref) + '</div>' +
       '<div class="pc-meta"><span>' + esc(c.courier) + ' · ' + esc(c.cn) + '</span><span>COD <b>' + rs(c.cod) + '</b></span><span>Attempts <b>' + c.attempts + '</b></span></div>' +
@@ -1064,7 +1122,7 @@ function renderCashList(list, f) {
     var tone = p.cat === 'late' ? 'down' : p.cat === 'paid' ? 'up' : '';
     var right = f[0] === 'over' ? '<b class="num down">+' + rs(p.over) + '</b><small style="color:var(--muted);font-size:11px">charged ' + rs(p.charges) + '</small>'
       : '<b class="num ' + tone + '">' + rs(p.net) + '</b><small style="color:var(--muted);font-size:11px">' + (p.cat === 'paid' ? (p.paidOn || 'Settled') : p.cat === 'late' ? 'Overdue' : 'Outstanding') + '</small>';
-    return '<div class="li"><div class="d"><b>' + esc(p.order) + ' · ' + esc(p.courier) + (p.returned ? ' · ↩' : '') + '</b><small>' + esc(p.cn) + ' · ' + esc(p.note) + '</small></div><div class="r">' + right + '</div></div>';
+    return '<div class="li" data-p="' + esc(p.cn || p.order) + '"><div class="d"><b>' + esc(p.order) + ' · ' + esc(p.courier) + (p.returned ? ' · ↩' : '') + '</b><small>' + esc(p.cn) + ' · ' + esc(p.note) + '</small></div><div class="r">' + right + '</div></div>';
   }).join('') + (list.length > lim ? '<button class="btn more" id="cmore">Show more (' + (list.length - lim) + ')</button>' : '') +
     (f[0] === 'over' && C.data.diffLink ? '<a class="btn" target="_blank" href="' + esc(C.data.diffLink) + '" style="margin-top:8px"><i class="ti ti-table"></i>Full overcharge report</a>' : '')
     : '<div class="empty"><i class="ti ti-circle-check"></i>' + (f[0] === 'due' ? 'Fully settled' : 'Nothing here') + '</div>';
@@ -1127,13 +1185,13 @@ function renderReturns() {
     (waiting.length ? waiting.map(function (w) {
       var pill = w.back ? '<span class="pill p-no">Returned by courier</span>' : w.atOrigin ? '<span class="pill" style="background:var(--amber-bg);color:var(--amber)">At local facility</span>' : '<span class="pill" style="background:var(--blue-bg);color:var(--blue)">In transit</span>';
       // Three lines: order + status, courier / CN / items + days waiting, then two equal buttons.
-      return '<div class="rw"><div class="rw-top"><b>' + esc(w.order) + ' · ' + esc(w.name) + '</b>' + pill + '</div>' +
+      return '<div class="rw" data-p="' + esc(w.cn || w.order) + '"><div class="rw-top"><b>' + esc(w.order) + ' · ' + esc(w.name) + '</b>' + pill + '</div>' +
         '<div class="rw-sub"><span>' + esc(w.courier) + ' ' + esc(w.cn) + ' · ' + esc(w.items) + '</span>' + (w.days != null ? '<em>' + w.days + 'd</em>' : '') + '</div>' +
         '<div class="btns">' + trackBtn(w.cn) + '<button class="btn" data-pick="' + esc(w.cn) + '"><i class="ti ti-scan"></i>Receive</button></div></div>';
     }).join('') : '<div class="empty"><i class="ti ti-circle-check"></i>All returns scanned</div>') + '</div>';
   h += '<div class="card"><div class="h"><b>Recently scanned</b><span>' + d.recent.length + '</span></div>' +
     (d.recent.length ? d.recent.slice(0, 20).map(function (r) {
-      return '<div class="li"><div class="d"><b>' + esc(r.order) + ' · ' + esc(r.name) + '</b><small>' + esc(r.when) + ' · ' + esc(r.by) + '</small></div><div class="r"><span class="pill ' + (r.good ? 'p-ok' : 'p-no') + '">' + esc(r.condition.split(' –')[0]) + '</span></div></div>';
+      return '<div class="li" data-p="' + esc(r.order) + '"><div class="d"><b>' + esc(r.order) + ' · ' + esc(r.name) + '</b><small>' + esc(r.when) + ' · ' + esc(r.by) + '</small></div><div class="r"><span class="pill ' + (r.good ? 'p-ok' : 'p-no') + '">' + esc(r.condition.split(' –')[0]) + '</span></div></div>';
     }).join('') : '<div class="empty">No scans yet</div>') + '</div>';
   el('rview').innerHTML = h;
   if (R.scrollTo) { R.scrollTo = false; scrollToCard('rwait'); }
