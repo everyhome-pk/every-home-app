@@ -620,31 +620,41 @@ function rangeKey(r) { return 'r' + r.from + '_' + r.to; }
 var COURIERS = [['all', 'All couriers'], ['trax', 'Trax'], ['leopards', 'Leopards']];
 
 // One button shows the chosen period; tapping it opens a list (best practice: Shopify / Analytics).
+function curMonth() { return pkDay(new Date()).slice(0, 7); }
+function lastMonth() { return addDays(curMonth() + '-01', -1).slice(0, 7); }
+function monthOf(sel) { return sel.month === 'this' ? curMonth() : sel.month === 'last' ? lastMonth() : sel.month; }
+function monthName(k) { var p = k.split('-').map(Number); return new Date(Date.UTC(p[0], p[1] - 1, 15)).toLocaleDateString('en-GB', { month: 'short', year: 'numeric', timeZone: 'UTC' }); }
 function periodLabel(sel, months, latest) {
   if (sel.range) {
     if (sel.range.q === 'custom') return niceDay(sel.range.from) + ' – ' + niceDay(sel.range.to);
     var q = quickRanges().filter(function (x) { return x[0] === sel.range.q; })[0];
     return q ? q[1] : 'Custom';
   }
+  if (sel.month === 'this') return 'This month';
+  if (sel.month === 'last') return 'Last month';
   var m = sel.month || latest;
   if (m === 'all') return 'All time';
   var hit = months.filter(function (x) { return x.key === m; })[0];
-  return hit ? hit.label : 'This month';
+  return hit ? hit.label : (m ? monthName(m) : 'This month');
 }
 function setPbar(prefix, sel, months, latest) {
   el(prefix + 'Period').querySelector('span').textContent = periodLabel(sel, months, latest);
   el(prefix + 'Courier').querySelector('span').textContent = COURIERS.filter(function (c) { return c[0] === sel.courier; })[0][1];
 }
 function openPeriodSheet(sel, months, latest, done) {
-  var active = sel.range ? '' : (sel.month || latest);
+  var active = sel.range ? '' : sel.month === 'this' || sel.month === 'last' ? sel.month : (sel.month || latest);
   var row = function (attr, label, on, sub) {
     return '<div class="sl' + (on ? ' on' : '') + '" ' + attr + '><span>' + label + (sub ? '<small>' + sub + '</small>' : '') + '</span>' + (on ? '<i class="ti ti-check"></i>' : '') + '</div>';
   };
-  el('panel').innerHTML = '<h3>Period</h3><p>Orders placed in…</p><div class="sheet-list" id="psheet">' +
+  // This month and Last month always mean the current ones (also before the month's first order).
+  var cm = curMonth(), lm = lastMonth();
+  var others = months.filter(function (m) { return m.key !== cm && m.key !== lm; });
+  el('panel').innerHTML = '<h3>Period</h3><p>Parcels shipped in…</p><div class="sheet-list" id="psheet">' +
     '<div class="sl-h">Quick</div>' + quickRanges().map(function (q) {
       return row('data-q="' + q[0] + '"', q[1], sel.range && sel.range.q === q[0], q[2] === q[3] ? niceDay(q[2]) : niceDay(q[2]) + ' – ' + niceDay(q[3]));
     }).join('') +
-    '<div class="sl-h">Months</div>' + months.map(function (m, i) { return row('data-m="' + m.key + '"', m.label, active === m.key, i === 0 ? 'This month' : i === 1 ? 'Last month' : ''); }).join('') +
+    '<div class="sl-h">Months</div>' + row('data-m="this"', 'This month', active === 'this' || active === cm, monthName(cm)) + row('data-m="last"', 'Last month', active === 'last' || active === lm, monthName(lm)) +
+    others.map(function (m) { return row('data-m="' + m.key + '"', m.label, active === m.key); }).join('') +
     row('data-m="all"', 'All time', active === 'all') +
     row('data-m="reset"', 'Reset to default', false, 'This month · all couriers') +
     row('data-q="custom"', 'Custom range…', sel.range && sel.range.q === 'custom', sel.range && sel.range.q === 'custom' ? niceDay(sel.range.from) + ' – ' + niceDay(sel.range.to) : '') +
@@ -652,7 +662,7 @@ function openPeriodSheet(sel, months, latest, done) {
   openPanel();
   el('psheet').onclick = function (e) {
     var b = e.target.closest('.sl'); if (!b) return;
-    if (b.getAttribute('data-m') === 'reset') { sel.month = sel === C ? 'all' : ''; sel.range = null; sel.courier = 'all'; closePanel(); return done(); }
+    if (b.getAttribute('data-m') === 'reset') { sel.month = sel === C ? 'all' : 'this'; sel.range = null; sel.courier = 'all'; closePanel(); return done(); }
     if (b.hasAttribute('data-m')) { sel.month = b.getAttribute('data-m'); sel.range = null; closePanel(); return done(); }
     var q = b.getAttribute('data-q');
     if (q !== 'custom') {
@@ -698,14 +708,14 @@ function openCourierSheet(sel, done) {
   el('csheet').onclick = function (e) { var b = e.target.closest('.sl'); if (!b) return; sel.courier = b.getAttribute('data-c'); closePanel(); done(); };
 }
 
-var H = { month: '', range: null, courier: 'all', data: null, mem: {} };
-function homeKey() { return H.range ? 'home_' + rangeKey(H.range) + '_' + H.courier : 'home_' + (H.month || 'latest') + '_' + H.courier; }
+var H = { month: 'this', range: null, courier: 'all', data: null, mem: {} };
+function homeKey() { return H.range ? 'home_' + rangeKey(H.range) + '_' + H.courier : 'home_' + (monthOf(H) || 'latest') + '_' + H.courier; }
 function loadHome(fresh) {
   var key = homeKey();
   var cached = H.mem[key] || snap(key);
   if (cached) { H.data = cached; renderHome(cached); }
   else el('view').innerHTML = el('view').innerHTML.indexOf('sk') > -1 ? el('view').innerHTML : '<div class="sk" style="height:170px;margin-bottom:12px"></div><div class="sk" style="height:220px"></div>';
-  api('getAppHomeData', [{ month: H.range ? '' : H.month, range: H.range, courier: H.courier, fresh: !!fresh, token: TOKEN }], function (d) {
+  api('getAppHomeData', [{ month: H.range ? '' : monthOf(H), range: H.range, courier: H.courier, fresh: !!fresh, token: TOKEN }], function (d) {
     H.mem[key] = d; snap(key, d);
     if (homeKey() !== key) return; // user switched meanwhile
     H.data = d; renderHome(d);
@@ -1234,13 +1244,13 @@ function openNdrForm(cn) {
 
 // ---------- Cash ----------
 var C = { data: null, month: 'all', range: null, courier: 'all', pf: 'due', bf: 'all', q: '', plim: 20, blim: 5, mem: {} };
-function cashKey() { return 'cash_' + (C.range ? rangeKey(C.range) : C.month) + '_' + C.courier; }
+function cashKey() { return 'cash_' + (C.range ? rangeKey(C.range) : monthOf(C)) + '_' + C.courier; }
 function loadCash(fresh) {
   var key = cashKey();
   var cached = C.mem[key] || snap(key);
   if (cached) { C.data = cached; renderCash(); }
   else el('cview').innerHTML = '<div class="sk" style="height:170px;margin-bottom:12px"></div><div class="sk" style="height:220px"></div>';
-  api('getAppCash', [{ token: TOKEN, month: C.month, range: C.range, courier: C.courier, fresh: !!fresh }], function (d) {
+  api('getAppCash', [{ token: TOKEN, month: monthOf(C), range: C.range, courier: C.courier, fresh: !!fresh }], function (d) {
     C.mem[key] = d; snap(key, d);
     if (cashKey() !== key) return;
     C.data = d; if (curTab === 'cash') renderCash();
@@ -1491,7 +1501,7 @@ function loadFilters() {
   if (!f) return;
   var qr = quickRanges();
   var range = function (r) { if (!r) return null; if (r.q && r.q !== 'custom') { var x = qr.filter(function (q) { return q[0] === r.q; })[0]; return x ? { from: x[2], to: x[3], q: r.q } : null; } return r.from && r.to ? r : null; };
-  if (f.h) { H.month = f.h.month || ''; H.courier = f.h.courier || 'all'; H.range = range(f.h.range); }
+  if (f.h) { H.month = f.h.month || 'this'; H.courier = f.h.courier || 'all'; H.range = range(f.h.range); }
   if (f.c) { C.month = f.c.month || 'all'; C.courier = f.c.courier || 'all'; C.range = range(f.c.range); }
   if (f.p) P.filter = f.p;
   if (f.n) N.filter = f.n;
