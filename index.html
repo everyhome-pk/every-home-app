@@ -227,6 +227,19 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .login{position:fixed;inset:0;background:var(--bg);z-index:40;display:flex;align-items:center;justify-content:center;padding:20px}
 .login[hidden]{display:none}
 .login-box{width:100%;max-width:340px;text-align:center}
+.lg-av{width:60px;height:60px;border-radius:18px;background:var(--brand);color:var(--brand-ink);display:grid;place-items:center;margin:0 auto 14px;font-weight:700;font-size:20px}
+.lg-av.known{border-radius:50%;background:var(--brand-bg,#E6F4F1);color:var(--brand)}[data-mode="dark"] .lg-av.known{background:#12302d;color:var(--accent)}
+.lg-dots{display:flex;gap:12px;justify-content:center;margin:18px 0 6px;min-height:16px}
+.lg-dots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--faint);transition:all .12s}.lg-dots i.on{background:var(--brand);border-color:var(--brand)}
+[data-mode="dark"] .lg-dots i.on{background:var(--accent);border-color:var(--accent)}
+.lg-dots.busy i.on{animation:lgPulse .8s infinite alternate}@keyframes lgPulse{to{opacity:.35}}
+.lg-dots.shake{animation:lgShake .35s}@keyframes lgShake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.lg-pad{display:grid;grid-template-columns:repeat(3,72px);gap:14px 26px;justify-content:center;margin-top:14px}
+.lg-pad button{width:72px;height:72px;border-radius:50%;border:0;background:var(--card);color:var(--text);font:500 26px Inter,sans-serif;box-shadow:var(--shadow);cursor:pointer}
+.lg-pad button:active{transform:scale(.94);background:var(--line)}.lg-pad button i{font-size:24px}
+.lg-pad .lg-go{background:var(--brand);color:var(--brand-ink)}
+.lg-links{display:flex;justify-content:center;gap:18px;margin-top:20px}.lg-links button{border:0;background:none;color:var(--brand);font:600 13px Inter,sans-serif;cursor:pointer}
+[data-mode="dark"] .lg-links button{color:var(--accent)}
 .login-box h2{margin:0;font-size:22px}.login-box p{color:var(--muted);font-size:13px;margin:4px 0 18px}
 .login-box select,.login-box input{width:100%;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:14px;padding:13px 14px;font:400 15px Inter,sans-serif;margin-bottom:10px;text-align:center}
 .tk{font-size:12px;margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--amber-bg);color:var(--amber)}
@@ -340,19 +353,42 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   <div id="drLinks"></div>
   <div class="dr-h">App</div>
   <button class="dr-i" id="btnMode"><i class="ti ti-moon"></i>Dark mode</button>
+  <button class="dr-i" id="btnPin"><i class="ti ti-key"></i>Change PIN</button>
   <button class="dr-i" id="btnOut"><i class="ti ti-logout"></i>Log out</button>
 </div></div>
 <div class="overlay" id="overlay"><div class="panel" id="panel"></div></div>
 
-<div class="login" id="login" hidden>
+<div class="login" id="pinbox" hidden>
   <div class="login-box">
     <div class="logo" style="width:56px;height:56px;border-radius:16px;font-size:20px;margin:0 auto 14px">EH</div>
-    <h2>Every Home</h2>
-    <p>Choose your name and enter your PIN</p>
-    <select id="lgName"><option value="">Name…</option></select>
-    <input id="lgPin" type="password" inputmode="numeric" maxlength="8" placeholder="PIN" autocomplete="current-password">
+    <h2 id="pbTitle">Change PIN</h2>
+    <p id="pbSub">Enter your current PIN, then your new PIN twice</p>
+    <input id="pbOld" type="password" inputmode="numeric" maxlength="8" placeholder="Current PIN" autocomplete="current-password">
+    <input id="pbNew" type="password" inputmode="numeric" maxlength="8" placeholder="New PIN (6–8 digits)" autocomplete="new-password">
+    <input id="pbNew2" type="password" inputmode="numeric" maxlength="8" placeholder="Repeat new PIN" autocomplete="new-password">
+    <div class="err" id="pbErr"></div>
+    <button class="btn pri" id="pbGo" style="width:100%;padding:12px;margin-top:6px">Save PIN</button>
+    <button class="btn" id="pbCancel" style="width:100%;padding:12px;margin-top:8px">Cancel</button>
+  </div>
+</div>
+
+<!-- Login: a returning user (remembered on this phone) sees only "Welcome back" + PIN; a new phone types the name
+     (no list of team names is shown to anyone with the link). PIN with dots and a number pad. -->
+<div class="login" id="login" hidden>
+  <div class="login-box">
+    <div id="lgAv" class="lg-av">EH</div>
+    <h2 id="lgTitle">Every Home</h2>
+    <p id="lgSub">Enter your name and PIN</p>
+    <input id="lgName" type="text" placeholder="Your full name (e.g. Kashif Imran)" autocomplete="username" autocapitalize="words">
+    <div class="lg-dots" id="lgDots"></div>
     <div class="err" id="lgErr"></div>
-    <button class="btn pri" id="lgGo" style="width:100%;padding:12px;margin-top:6px">Log in</button>
+    <div class="lg-pad" id="lgPad">
+      <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+      <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+      <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+      <button data-k="del" aria-label="Delete"><i class="ti ti-backspace"></i></button><button data-k="0">0</button><button data-k="go" class="lg-go" id="lgGo" aria-label="Log in"><i class="ti ti-arrow-right"></i></button>
+    </div>
+    <div class="lg-links"><button id="lgSwitch" hidden>Switch user</button><button id="lgForgot">Forgot PIN?</button></div>
   </div>
 </div>
 
@@ -1466,28 +1502,65 @@ el('btnOut').onclick = function () {
 };
 
 // ---------- login ----------
+// ---------- login ----------
+var lgPin = '', lgBusy = false;
+function initials(n) { return String(n || '').split(' ').filter(Boolean).slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase() || 'EH'; }
 function showLogin() {
   el('login').hidden = false;
-  google.script.run.withSuccessHandler(function (names) {
-    el('lgName').innerHTML = '<option value="">Name…</option>' + names.map(function (n) { return '<option' + (n === USER ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('');
-    if (!names.length) el('lgErr').textContent = 'No users yet. Add one from the sheet menu: App Users — Add.';
-  }).appLoginNames();
+  var known = !!USER;
+  el('lgAv').textContent = known ? initials(USER) : 'EH';
+  el('lgAv').classList.toggle('known', known);
+  el('lgTitle').textContent = known ? 'Welcome back, ' + USER.split(' ')[0] : 'Every Home';
+  el('lgSub').textContent = known ? 'Enter your PIN' : 'Enter your name and PIN';
+  el('lgName').hidden = known;
+  el('lgSwitch').hidden = !known;
+  el('lgSwitch').textContent = known ? 'Not ' + USER.split(' ')[0] + '? Switch user' : '';
+  lgPin = ''; drawDots(); el('lgErr').textContent = '';
 }
-el('lgGo').onclick = function () {
-  var n = el('lgName').value, p = el('lgPin').value;
-  if (!n) { el('lgErr').textContent = 'Choose your name'; return; }
-  if (!/^\d{4,8}$/.test(p)) { el('lgErr').textContent = 'PIN is 4–8 digits'; return; }
-  el('lgGo').disabled = true; el('lgGo').textContent = 'Checking…';
+function drawDots() {
+  var n = Math.max(6, lgPin.length);
+  el('lgDots').innerHTML = Array.from({ length: n }, function (_, i) { return '<i' + (i < lgPin.length ? ' class="on"' : '') + '></i>'; }).join('');
+}
+function lgShake(msg) {
+  el('lgErr').textContent = msg;
+  el('lgDots').classList.remove('shake'); void el('lgDots').offsetWidth; el('lgDots').classList.add('shake');
+  lgPin = ''; drawDots();
+}
+function lgKey(k) {
+  if (lgBusy) return;
+  el('lgErr').textContent = '';
+  if (k === 'del') lgPin = lgPin.slice(0, -1);
+  else if (k === 'go') return lgSubmit();
+  else if (lgPin.length < 8) lgPin += k;
+  drawDots();
+  if (lgPin.length === 8) lgSubmit(); // the longest PIN logs in by itself; shorter ones with →
+}
+function lgSubmit() {
+  var n = USER || el('lgName').value.replace(/\s+/g, ' ').trim();
+  if (!n) { el('lgErr').textContent = 'Enter your name'; el('lgName').focus(); return; }
+  if (lgPin.length < 4) { lgShake('Enter your PIN'); return; }
+  var p = lgPin;
+  lgBusy = true; el('lgDots').classList.add('busy');
   google.script.run.withSuccessHandler(function (r) {
+    lgBusy = false; el('lgDots').classList.remove('busy');
     TOKEN = r.token; USER = r.name; store('eh_token', TOKEN); store('eh_user', USER);
-    el('lgPin').value = ''; el('lgErr').textContent = ''; el('lgGo').disabled = false; el('lgGo').textContent = 'Log in';
-    el('login').hidden = true; start();
+    el('login').hidden = true; lgPin = ''; el('lgName').value = '';
+    if (r.mustChange) { showPinBox(true, p); return; } // PIN given by the admin: suggest a new one (Later is allowed)
+    start();
   }).withFailureHandler(function (e) {
-    el('lgGo').disabled = false; el('lgGo').textContent = 'Log in'; el('lgErr').textContent = (e && e.message) || 'Login failed';
+    lgBusy = false; el('lgDots').classList.remove('busy');
+    lgShake((e && e.message) || 'Login failed');
   }).appLogin(n, p);
-};
-el('lgPin').onkeydown = function (e) { if (e.key === 'Enter') el('lgGo').click(); };
-el('lgPin').oninput = el('lgName').onchange = function () { el('lgErr').textContent = ''; };
+}
+el('lgPad').onclick = function (e) { var b = e.target.closest('[data-k]'); if (b) lgKey(b.getAttribute('data-k')); };
+document.addEventListener('keydown', function (e) {
+  if (el('login').hidden || document.activeElement === el('lgName')) return;
+  if (/^\d$/.test(e.key)) lgKey(e.key); else if (e.key === 'Backspace') lgKey('del'); else if (e.key === 'Enter') lgKey('go');
+});
+el('lgName').onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); el('lgName').blur(); } };
+el('lgName').oninput = function () { el('lgErr').textContent = ''; };
+el('lgSwitch').onclick = function () { USER = ''; store('eh_user', ''); showLogin(); el('lgName').focus(); };
+el('lgForgot').onclick = function () { el('lgErr').textContent = 'Ask the admin to set a new PIN for you. You can change it after you log in.'; };
 
 // ---------- remembered filters ----------
 // Kept until changed: Home + Cash period and courier, Parcels stage, NDR cases, Cash filters. Quick periods are
@@ -1509,6 +1582,40 @@ function loadFilters() {
   if (f.bf) C.bf = f.bf;
 }
 loadFilters();
+
+// ---------- change PIN (menu) / set your own PIN (after a temporary PIN) ----------
+var pinForced = false;
+function showPinBox(forced, currentPin) {
+  pinForced = !!forced;
+  el('pbTitle').textContent = forced ? 'Set your own PIN' : 'Change PIN';
+  el('pbSub').textContent = forced ? 'Your PIN was given by the admin. We suggest choosing a new PIN only you know. You can also do this later from the menu.' : 'Enter your current PIN, then your new PIN twice';
+  el('pbOld').value = currentPin || ''; el('pbOld').hidden = !!currentPin;
+  el('pbNew').value = ''; el('pbNew2').value = ''; el('pbErr').textContent = '';
+  el('pbCancel').textContent = forced ? 'Later' : 'Cancel';
+  el('pinbox').hidden = false;
+  setTimeout(function () { (currentPin ? el('pbNew') : el('pbOld')).focus(); }, 50);
+}
+el('btnPin').onclick = function () { closeDrawer(); showPinBox(false); };
+el('pbCancel').onclick = function () { el('pinbox').hidden = true; if (pinForced) { pinForced = false; start(); } }; // Later: just use the app
+el('pbGo').onclick = function () {
+  var o = el('pbOld').value.trim(), n = el('pbNew').value.trim(), n2 = el('pbNew2').value.trim();
+  if (!/^\d{4,8}$/.test(o)) { el('pbErr').textContent = 'Enter your current PIN'; return; }
+  if (!/^\d{6,8}$/.test(n)) { el('pbErr').textContent = 'New PIN must be 6 to 8 digits'; return; }
+  if (n !== n2) { el('pbErr').textContent = 'The two new PINs do not match'; return; }
+  el('pbGo').disabled = true; el('pbGo').textContent = 'Saving…';
+  google.script.run.withSuccessHandler(function (r) {
+    TOKEN = r.token; store('eh_token', TOKEN);
+    el('pbGo').disabled = false; el('pbGo').textContent = 'Save PIN';
+    el('pinbox').hidden = true;
+    toast('PIN changed · other phones are logged out');
+    if (pinForced) start();
+  }).withFailureHandler(function (e) {
+    el('pbGo').disabled = false; el('pbGo').textContent = 'Save PIN';
+    if (/LOGIN_REQUIRED/.test(e && e.message)) { el('pinbox').hidden = true; authFail(e); return; }
+    el('pbErr').textContent = (e && e.message) || 'Could not change PIN';
+  }).appChangePin(TOKEN, o, n);
+};
+el('pbNew2').onkeydown = function (e) { if (e.key === 'Enter') el('pbGo').click(); };
 
 // ---------- start ----------
 var started = false;
