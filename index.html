@@ -333,7 +333,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   <button class="dr-i" data-rep="cod"><i class="ti ti-receipt"></i>COD breakdown</button>
   <button class="dr-i" data-rep="couriers"><i class="ti ti-scale"></i>Courier comparison</button>
   <button class="dr-i" data-rep="months"><i class="ti ti-chart-bar"></i>Last 6 months</button>
-  <button class="dr-i" data-rep="dispatched"><i class="ti ti-truck-delivery"></i>Dispatched · last 14 days</button>
+  <button class="dr-i" data-rep="dispatched"><i class="ti ti-truck-delivery"></i>Shipped · last 14 days</button>
   <button class="dr-i" data-go="cash:pay"><i class="ti ti-building-bank"></i>Courier payments</button>
   <button class="dr-i" data-rep="escalations"><i class="ti ti-headset"></i>Courier escalations</button>
   <div class="dr-h">Links</div>
@@ -543,7 +543,7 @@ function openParcel(key) {
     '<span class="st" style="--c:' + s[1] + '">' + s[0] + '</span></div>' +
     ((p.flags || []).length ? '<div style="margin:-4px 0 8px">' + p.flags.map(function (f) { return '<span class="flag">' + esc(f) + '</span>'; }).join('') + '</div>' : '') +
     '<div class="pd">' +
-    row('Order date', esc(p.ordered || p.date)) + (p.dispatched ? row('Dispatched', esc(p.dispatched)) : '') + row('COD', rs(p.total)) + row('Items', esc(p.items)) +
+    row('Order date', esc(p.ordered || p.date)) + (p.dispatched ? row('Shipped', esc(p.dispatched)) : '') + row('COD', rs(p.total)) + row('Items', esc(p.items)) +
     row('Phone', esc(p.phone)) + row('City', esc(p.city)) + row('Address', esc(p.address)) +
     (p.attempts ? row('Delivery attempts', p.attempts) : '') + (p.charge ? row('Courier charge', rs(p.charge)) : '') +
     (p.reason || p.lastRaw ? row('Last update', esc(p.reason || p.lastRaw)) : '') +
@@ -730,8 +730,8 @@ function cashHero(label, s, paidAttr, dueAttr, k) {
     '<div class="hero-bar"><i style="width:0" data-w="' + got + '"></i></div>' +
     '<div class="hero-top"><small>' + got + '% of the amount received</small></div>' +
     '<div class="hero-row"><div ' + paidAttr + ' style="cursor:pointer"><span>Received ›</span><b class="num" data-k="' + k + '_rec" data-n="' + s.received + '" data-rs>' + rs(s.received) + '</b><em>' + (s.paidDelivered || 0) + ' parcels paid</em></div>' +
-    '<div ' + dueAttr + ' style="cursor:pointer"><span>Outstanding ›</span><b class="num" data-k="' + k + '_due" data-n="' + s.pending + '" data-rs>' + rs(s.pending) + '</b><em>' + (s.pendingDelivered || 0) + ' unpaid' + (s.overdue ? ' · <i class="late">' + s.overdue + ' late</i>' : '') + '</em></div></div>' +
-    (later ? '<div class="hero-later"><i class="ti ti-clock"></i>On the way: ' + (s.movingCod ? '~' + rs(s.movingCod) + ' COD · ' : '') + later + ' with courier' + '</div>' : '') + '</div>';
+    '<div ' + dueAttr + ' style="cursor:pointer"><span>Pending ›</span><b class="num" data-k="' + k + '_due" data-n="' + s.pending + '" data-rs>' + rs(s.pending) + '</b><em>' + (s.pendingDelivered || 0) + ' unpaid' + (s.overdue ? ' · <i class="late">' + s.overdue + ' late</i>' : '') + '</em></div></div>' +
+    (later ? '<div class="hero-later"><i class="ti ti-clock"></i>In transit: ' + (s.movingCod ? '~' + rs(s.movingCod) + ' COD · ' : '') + later + ' with courier' + '</div>' : '') + '</div>';
 }
 function renderHome(d) {
   saveFilters();
@@ -775,16 +775,16 @@ function renderHome(d) {
   var sumOf = function (keys, src) { return keys.reduce(function (a, st) { return a + ((src || jr)[st] || 0); }, 0); };
   var onWay = sumOf(MOVING), comingBack = sumOf(BACK), back = jr.returned || 0, dlv = jr.delivered || 0;
   var lateAll = Object.keys(late).reduce(function (a, st) { return a + late[st]; }, 0);
-  var sumLine = '<div class="jr-head"><b class="num">' + k.booked + '</b> dispatched · ' + rs(k.bookedValue) + ' COD</div>' +
-    '<div class="jr-sum">' + (k.booked ? 'Leopards ' + ds.leopards + ' · Trax ' + ds.trax : 'Nothing dispatched in this period') +
+  var sumLine = '<div class="jr-head"><b class="num">' + k.booked + '</b> shipped · ' + rs(k.bookedValue) + ' COD</div>' +
+    '<div class="jr-sum">' + (k.booked ? 'Leopards ' + ds.leopards + ' · Trax ' + ds.trax : 'Nothing shipped in this period') +
     (delta(k.booked, p && p.booked) ? ' · <span class="nw">' + delta(k.booked, p && p.booked) + '</span>' : '') + '</div>';
   var tot = Math.max(1, dlv + onWay + comingBack + back);
   var seg = function (n, c) { return n ? '<i style="width:' + (100 * n / tot) + '%;background:' + c + '"></i>' : ''; };
   var picture = k.booked ? '<div class="jr-stack">' + seg(dlv, 'var(--green)') + seg(onWay, 'var(--blue)') + seg(comingBack, 'var(--amber)') + seg(back, 'var(--red)') + '</div>' +
     '<div class="jr-tiles">' +
     '<div data-go="parcels:delivered"><b class="num" style="color:var(--green)">' + dlv + '</b><small>Delivered</small></div>' +
-    '<div data-go="parcels:moving"><b class="num" style="color:var(--blue)">' + onWay + '</b><small>On the way' + (lateAll ? ' · <i class="late-t">' + lateAll + ' late</i>' : '') + '</small></div>' +
-    '<div data-go="parcels:comingback"><b class="num" style="color:var(--amber)">' + comingBack + '</b><small>Coming back</small></div>' +
+    '<div data-go="parcels:moving"><b class="num" style="color:var(--blue)">' + onWay + '</b><small>In transit' + (lateAll ? ' · <i class="late-t">' + lateAll + ' late</i>' : '') + '</small></div>' +
+    '<div data-go="parcels:comingback"><b class="num" style="color:var(--amber)">' + comingBack + '</b><small>Returning</small></div>' +
     '<div data-go="parcels:returned"><b class="num" style="color:var(--red)">' + back + '</b><small>Returned</small></div></div>' : '';
   var group = function (title, keys) {
     var n = sumOf(keys); if (!n) return '';
@@ -796,11 +796,11 @@ function renderHome(d) {
       }).join('') + '</div>';
   };
   // Any date: everything with the couriers right now (one tap opens them in Parcels).
-  var nowLine = d.movingNow ? '<div class="jr-now" data-go="parcels:moving:open"><i class="ti ti-truck"></i><span>Right now: <b class="num">' + d.movingNow + '</b> parcels on the way (any date)</span><i class="ti ti-chevron-right"></i></div>' : '';
+  var nowLine = d.movingNow ? '<div class="jr-now" data-go="parcels:moving:open"><i class="ti ti-truck"></i><span>Right now: <b class="num">' + d.movingNow + '</b> parcels in transit (any date)</span><i class="ti ti-chevron-right"></i></div>' : '';
   var stg = function (key) { return JOURNEY.filter(function (s) { return s[0] === key; })[0]; };
   if (d.live !== false) {
     h += '<div class="card fade"><div class="h"><b>Order journey</b><span>' + esc(d.monthLabel) + '</span></div>' + sumLine + picture +
-      group('Before dispatch', ['pending', 'confirmed']) + group('With courier', MOVING) + group('Coming back', BACK) +
+      group('Not shipped yet', ['pending', 'confirmed']) + group('Shipped', MOVING) + group('Returning', BACK) +
       cancelLine + nowLine + '</div>';
   } else {
     var still = d.stillMoving || 0, never = (jr.pending || 0) + (jr.confirmed || 0);
@@ -810,7 +810,7 @@ function renderHome(d) {
       '<div data-go="parcels:returned"><b class="num down">' + (jr.returned || 0) + '</b><small>Returned</small></div>' +
       '<div><b class="num">' + pct(k.success) + '</b><small>Success</small></div></div>' +
       '<div class="jr-sep" style="margin-left:0">Returns</div><div class="jr-list">' +
-      jrow(stg('returned'), ['Received back', 'Scanned by us']) + jrow(stg('rtoback'), ['Courier says returned', 'Not scanned by us yet']) + jrow(stg('returning'), ['Still coming back', 'On the way to us']) + '</div>' +
+      jrow(stg('returned'), ['Received back', 'Scanned by us']) + jrow(stg('rtoback'), ['Returned by courier · not scanned', 'Check and scan in Returns']) + jrow(stg('returning'), ['Return in transit', 'Parcel on its way back to us']) + '</div>' +
       (still ? '<div class="oc-warn" data-go="parcels:moving"><i class="ti ti-alert-triangle"></i><span>' + still + ' parcel' + (still > 1 ? 's' : '') + ' still with courier · check</span><i class="ti ti-chevron-right"></i></div>' : '') +
       (never ? '<div class="oc-warn" data-go="parcels:' + (jr.pending ? 'pending' : 'confirmed') + '"><i class="ti ti-alert-triangle"></i><span>' + never + ' order' + (never > 1 ? 's' : '') + ' never booked</span><i class="ti ti-chevron-right"></i></div>' : '') +
       cancelLine + nowLine + '</div>';
@@ -821,7 +821,7 @@ function renderHome(d) {
 }
 // ---------- reports (☰ menu): same period + courier as Home, shown in a sheet ----------
 var REPORT = {};
-var REPORT_TITLE = { success: 'Delivery success', cod: 'COD breakdown', couriers: 'Courier comparison', months: 'Last 6 months', dispatched: 'Dispatched · last 14 days', payments: 'Courier payments' };
+var REPORT_TITLE = { success: 'Delivery success', cod: 'COD breakdown', couriers: 'Courier comparison', months: 'Last 6 months', dispatched: 'Shipped · last 14 days', payments: 'Courier payments' };
 REPORT.success = function (d) {
   var k = d.kpis, p = d.prev, h = '';
   var succ = k.success == null ? 0 : k.success;
@@ -839,7 +839,7 @@ REPORT.cod = function (d) {
     '<div class="row"><span>Tax (2% WHT + 2% SST)</span><b class="num">− ' + rs(c.tax) + '</b></div>' +
     (c.over >= 1 ? '<div class="row"><span>Overcharged vs rate card (FAF)</span><b class="num down">' + rs(c.over) + '</b></div>' : '') +
     '<div class="row"><span>Received</span><b class="num up">' + rs(c.received) + '</b></div>' +
-    '<div class="row"><span>Outstanding</span><b class="num" style="color:var(--amber)">' + rs(c.pending) + '</b></div></div>';
+    '<div class="row"><span>Pending</span><b class="num" style="color:var(--amber)">' + rs(c.pending) + '</b></div></div>';
   return h;
 };
 REPORT.couriers = function (d) {
@@ -850,7 +850,7 @@ REPORT.couriers = function (d) {
       d.couriers.map(function (x) {
         return '<div><b>' + x.name + (x.estimate ? ' <small style="color:var(--faint);font-weight:400">(est.)</small>' : '') + '</b>' +
           '<div class="k">Success<em>' + pct(x.success) + '</em></div><div class="k">Per parcel<em>' + rs(x.perParcel) + '</em></div>' +
-          '<div class="k">Delivered / RTO<em>' + x.delivered + ' / ' + x.returned + '</em></div><div class="k">Outstanding<em>' + rs(x.pending) + '</em></div></div>';
+          '<div class="k">Delivered / RTO<em>' + x.delivered + ' / ' + x.returned + '</em></div><div class="k">Pending<em>' + rs(x.pending) + '</em></div></div>';
       }).join('') + '</div></div>';
   }
   return h;
@@ -873,8 +873,8 @@ REPORT.dispatched = function (d) {
   var maxD = Math.max.apply(null, d.days.map(function (x) { return x.count; }).concat([1]));
   // Dispatches by booking day; today's count with the courier split on top.
   var td = d.days[d.days.length - 1] || { count: 0, trax: 0, leopards: 0 };
-  h += '<div class="card fade"><div class="h"><b>Dispatched · last 14 days</b><span>' + d.days.reduce(function (a, x) { return a + x.count; }, 0) + ' parcels</span></div>' +
-    '<div class="jr-sum"><b class="num">' + td.count + '</b> dispatched today' + (td.count ? ' · Leopards ' + (td.leopards || 0) + ' · Trax ' + (td.trax || 0) : '') + '</div><div class="days">' +
+  h += '<div class="card fade"><div class="h"><b>Shipped · last 14 days</b><span>' + d.days.reduce(function (a, x) { return a + x.count; }, 0) + ' parcels</span></div>' +
+    '<div class="jr-sum"><b class="num">' + td.count + '</b> shipped today' + (td.count ? ' · Leopards ' + (td.leopards || 0) + ' · Trax ' + (td.trax || 0) : '') + '</div><div class="days">' +
     d.days.map(function (x) { return '<i title="' + x.weekday + ' ' + x.label + ': ' + x.count + ' (Leopards ' + (x.leopards || 0) + ', Trax ' + (x.trax || 0) + ')" style="height:0" data-h="' + (100 * x.count / maxD) + '"></i>'; }).join('') +
     '</div><div class="days-l"><span>' + d.days[0].weekday + ' ' + d.days[0].label + '</span><span>Today</span></div></div>';
   return h;
@@ -955,16 +955,16 @@ function scrollToCard(id) {
 var P = { data: snap('parcels'), filter: 'all', q: '', limit: 20, ctx: null };
 // The courier journey, in order: [key, name, hint, icon, colour]. Same stages as the server (APP_JOURNEY).
 var JOURNEY = [
-  ['pending', 'Awaiting confirmation', 'Pending customer confirmation', 'phone-call', 'var(--amber)'],
-  ['confirmed', 'Confirmed', 'Ready to book with courier', 'clipboard-check', 'var(--faint)'],
-  ['booked', 'Awaiting pickup', 'Booked · awaiting courier pickup', 'package', 'var(--blue)'],
+  ['pending', 'Pending confirmation', 'Customer has not confirmed yet', 'phone-call', 'var(--amber)'],
+  ['confirmed', 'Confirmed · ready to book', 'Not booked with courier yet', 'clipboard-check', 'var(--faint)'],
+  ['booked', 'Booked · awaiting pickup', 'Courier has not collected yet', 'package', 'var(--blue)'],
   ['picked', 'Picked up', 'At origin facility', 'building-warehouse', 'var(--blue)'],
   ['transit', 'In transit', 'En route to destination city', 'truck', 'var(--blue)'],
-  ['atdest', 'At destination', 'At destination facility', 'map-pin', 'var(--brand)'],
+  ['atdest', 'At destination city', 'At courier office in customer city', 'map-pin', 'var(--brand)'],
   ['ofd', 'Out for delivery', 'With delivery rider', 'motorbike', 'var(--brand)'],
-  ['ndr', 'Failed attempt', 'Delivery unsuccessful · contact customer', 'phone-x', 'var(--amber)'],
-  ['returning', 'Returning', 'Coming back to us', 'arrow-back-up', 'var(--red)'],
-  ['rtoback', 'Courier says returned', 'Not scanned by us yet · check and scan', 'package-export', 'var(--amber)'],
+  ['ndr', 'Delivery failed', 'Rider could not deliver · call customer', 'phone-x', 'var(--amber)'],
+  ['returning', 'Return in transit', 'Parcel on its way back to us', 'arrow-back-up', 'var(--red)'],
+  ['rtoback', 'Returned by courier · not scanned', 'Check the parcel and scan it in Returns', 'package-export', 'var(--amber)'],
   ['delivered', 'Delivered', 'Completed', 'circle-check', 'var(--green)'],
   ['returned', 'Returned', 'Received and scanned by us', 'package-import', 'var(--red)']
 ];
@@ -973,9 +973,9 @@ var BACK = ['returning', 'rtoback']; // on the way back to us, or handed back by
 var STAGE = {};
 JOURNEY.forEach(function (s) { STAGE[s[0]] = [s[1], s[4]]; });
 STAGE.cancelled = ['Cancelled', 'var(--faint)'];
-STAGE.moving = ['With courier', 'var(--blue)']; // filter only: all stages still with the courier
+STAGE.moving = ['Shipped', 'var(--blue)']; // filter only: all stages still with the courier
 STAGE.nocn = ['Missing tracking', 'var(--amber)'];
-STAGE.comingback = ['Coming back', 'var(--amber)']; // filter only: returning + courier says returned // filter only: booked (courier tag) but no CN yet
+STAGE.comingback = ['Returning', 'var(--amber)']; // filter only: return in transit + returned by courier, not scanned
 var pAt = 0;
 function loadParcels(fresh) {
   if (!fresh && Date.now() - pAt < 60000) return;
@@ -1247,7 +1247,7 @@ function loadCash(fresh) {
   });
 }
 var CASH_F = [
-  ['due', 'Outstanding', function (p) { return p.cat !== 'paid'; }],
+  ['due', 'Pending', function (p) { return p.cat !== 'paid'; }],
   ['late', 'Overdue', function (p) { return p.cat === 'late'; }],
   ['paid', 'Settled', function (p) { return p.cat === 'paid'; }],
   ['ret', 'Returns', function (p) { return p.returned; }],
@@ -1305,7 +1305,7 @@ function renderCashList(list, f) {
   el('clist').innerHTML = list.length ? list.slice(0, lim).map(function (p) {
     var tone = p.cat === 'late' ? 'down' : p.cat === 'paid' ? 'up' : '';
     var right = f[0] === 'over' ? '<b class="num down">+' + rs(p.over) + '</b><small style="color:var(--muted);font-size:11px">charged ' + rs(p.charges) + '</small>'
-      : '<b class="num ' + tone + '">' + rs(p.net) + '</b><small style="color:var(--muted);font-size:11px">' + (p.cat === 'paid' ? (p.paidOn || 'Settled') : p.cat === 'late' ? 'Overdue' : 'Outstanding') + '</small>';
+      : '<b class="num ' + tone + '">' + rs(p.net) + '</b><small style="color:var(--muted);font-size:11px">' + (p.cat === 'paid' ? (p.paidOn || 'Received') : p.cat === 'late' ? 'Overdue' : 'Pending') + '</small>';
     return '<div class="li" data-p="' + esc(p.cn || p.order) + '"><div class="d"><b>' + esc(p.order) + ' · ' + esc(p.courier) + (p.returned ? ' · ↩' : '') + '</b><small>' + esc(p.cn) + ' · ' + esc(p.note) + '</small></div><div class="r">' + right + '</div></div>';
   }).join('') + moreBtn('cmore', Math.min(lim, list.length), list.length) +
     (f[0] === 'over' && C.data.diffLink ? '<a class="btn" target="_blank" href="' + esc(C.data.diffLink) + '" style="margin-top:8px"><i class="ti ti-table"></i>Full overcharge report</a>' : '')
