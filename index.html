@@ -40,6 +40,22 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .pd{border:1px solid var(--line);border-radius:14px;padding:2px 12px}
 .pd-r{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line);font-size:13px}
 .pd-r:first-child{border-top:0}.pd-r span{color:var(--muted);flex:none}.pd-r b{font-weight:600;text-align:right;min-width:0;overflow-wrap:anywhere}
+.drawer{position:fixed;inset:0;background:rgba(2,6,23,.45);z-index:40;display:none}
+.drawer.show{display:block}
+.dr-panel{position:absolute;left:0;top:0;bottom:0;width:min(300px,82vw);background:var(--card);padding:18px 14px calc(18px + env(safe-area-inset-bottom));overflow:auto;animation:drIn .22s ease}
+@keyframes drIn{from{transform:translateX(-100%)}to{transform:none}}
+.dr-user{display:flex;align-items:center;gap:10px;margin-bottom:8px}.dr-user .logo{width:40px;height:40px}.dr-user b{display:block;font-size:15px}.dr-user small{color:var(--muted);font-size:12px}
+.dr-h{font-size:10.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.7px;margin:16px 4px 4px}
+.dr-i{display:flex;align-items:center;gap:12px;width:100%;border:0;background:none;color:var(--text);font:500 14px Inter,sans-serif;padding:11px 6px;border-radius:10px;text-align:left;cursor:pointer;text-decoration:none}
+.dr-i:active{background:var(--bg)}.dr-i i{font-size:19px;color:var(--muted)}
+.dr-note{font-size:12px;color:var(--muted);padding:6px}
+.cstrip{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.cs-line{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 12px;font:13px Inter,sans-serif;color:var(--muted);cursor:pointer;text-align:left}
+.cs-line b{color:var(--text);font-weight:600;min-width:70px}.cs-line span{flex:1}.cs-line .down{font-style:normal}
+.totop{position:fixed;right:16px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:15;display:none;align-items:center;gap:4px;border:0;border-radius:99px;padding:9px 14px;background:var(--text);color:var(--bg);font:600 12.5px Inter,sans-serif;box-shadow:var(--shadow);cursor:pointer}
+.totop.show{display:flex}.totop i{font-size:15px}
+.list-end{text-align:center;font-size:12px;color:var(--faint);padding:10px 0}
+.rep .card{box-shadow:none;border:1px solid var(--line)}
 .fbar{display:flex;gap:8px;margin-bottom:10px}
 .fbar .pbtn{flex:1;box-shadow:none}.fbar .pbtn b{font-size:12px;color:var(--muted)}
 .fbar .pbtn.ctx{flex:0 1 auto;max-width:55%;background:var(--brand);color:#fff;border-color:var(--brand)}.fbar .pbtn.ctx i{color:#fff}
@@ -54,6 +70,9 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .nw{white-space:nowrap}
 .jr-disp{display:flex;gap:8px;align-items:flex-start;margin:-2px 0 10px;padding:8px 10px;border-radius:12px;background:var(--bg);font-size:12.5px;color:var(--muted)}
 .jr-disp i{font-size:16px;color:var(--brand);margin-top:1px}.jr-disp b{color:var(--text)}.jr-disp small{display:block;font-size:11.5px;margin-top:2px}
+.jr-funnel{font-size:13px;color:var(--muted);margin:-4px 0 2px;line-height:1.5}.jr-funnel b{color:var(--text);font-size:15px}.jr-funnel b.up{color:var(--green)}.jr-funnel b.down{color:var(--red)}.jr-funnel i.ti{font-size:13px;vertical-align:-1px}
+.late-b,.late-t{font-style:normal;color:var(--red);font-weight:600}.late-b{font-size:10.5px;background:var(--red-bg);padding:1px 6px;border-radius:99px;margin-left:4px;vertical-align:1px}
+.jr-now{display:flex;align-items:center;gap:8px;margin-top:8px;padding:9px 10px;border-radius:12px;border:1px dashed var(--line);font-size:12.5px;color:var(--muted);cursor:pointer}.jr-now span{flex:1}.jr-now b{color:var(--text)}.jr-now i{font-size:16px}
 .jr-sum{font-size:12.5px;color:var(--muted);margin:-4px 0 8px}.jr-sum b{color:var(--text);font-size:15px}
 .jr-list{position:relative}
 .jr-row{display:grid;grid-template-columns:26px 1fr 64px 30px 14px;align-items:center;gap:8px;padding:6px 0;position:relative;cursor:pointer}
@@ -242,10 +261,8 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 <div class="sync" id="sync"></div>
 <div class="wrap">
   <div class="top">
-    <div class="logo">EH</div>
+    <button class="icon-btn" id="btnMenu" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
     <div class="hello"><b id="greet">Welcome</b><span id="upd">Every Home</span></div>
-    <button class="icon-btn" id="btnMode" aria-label="Dark mode"><i class="ti ti-moon"></i></button>
-    <button class="icon-btn" id="btnOut" aria-label="Log out"><i class="ti ti-logout"></i></button>
     <button class="icon-btn" id="btnRefresh" aria-label="Refresh"><i class="ti ti-refresh"></i></button>
   </div>
 
@@ -270,8 +287,8 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   <section id="tab-ndr" hidden>
     <h1 class="title">NDR &amp; stuck parcels</h1>
     <div class="brief" id="ndrBrief"><i class="ti ti-bell-ringing"></i><span>Loading…</span></div>
-    <div id="ncour"></div>
     <div id="nchips"></div>
+    <div id="ncour"></div>
     <div id="nlist"><div class="sk" style="height:170px;margin-bottom:10px"></div><div class="sk" style="height:170px"></div></div>
   </section>
 
@@ -301,6 +318,24 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   <button data-tab="returns"><i class="ti ti-scan"></i>Returns</button>
 </div></div>
 <div class="toast" id="toast"></div>
+<button class="totop" id="totop" aria-label="Back to top"><i class="ti ti-arrow-up"></i>Top</button>
+<!-- ☰ menu: reports that are not on Home, links, app settings -->
+<div class="drawer" id="drawer"><div class="dr-panel">
+  <div class="dr-user"><div class="logo">EH</div><div><b id="drName">Every Home</b><small>Every Home · Ops</small></div></div>
+  <div class="dr-h">Reports</div>
+  <button class="dr-i" data-rep="success"><i class="ti ti-chart-donut"></i>Delivery success</button>
+  <button class="dr-i" data-rep="cod"><i class="ti ti-receipt"></i>COD breakdown</button>
+  <button class="dr-i" data-rep="couriers"><i class="ti ti-scale"></i>Courier comparison</button>
+  <button class="dr-i" data-rep="months"><i class="ti ti-chart-bar"></i>Last 6 months</button>
+  <button class="dr-i" data-rep="dispatched"><i class="ti ti-truck-delivery"></i>Dispatched · last 14 days</button>
+  <button class="dr-i" data-go="cash:pay"><i class="ti ti-building-bank"></i>Courier payments</button>
+  <button class="dr-i" data-rep="escalations"><i class="ti ti-headset"></i>Courier escalations</button>
+  <div class="dr-h">Links</div>
+  <div id="drLinks"></div>
+  <div class="dr-h">App</div>
+  <button class="dr-i" id="btnMode"><i class="ti ti-moon"></i>Dark mode</button>
+  <button class="dr-i" id="btnOut"><i class="ti ti-logout"></i>Log out</button>
+</div></div>
 <div class="overlay" id="overlay"><div class="panel" id="panel"></div></div>
 
 <div class="login" id="login" hidden>
@@ -425,7 +460,7 @@ document.querySelectorAll('.nav button').forEach(function (b) {
   b.onclick = function () {
     var t = b.getAttribute('data-tab');
     // Bottom bar = full lists; Home taps keep their filters.
-    if (t === 'parcels') { P.ctx = null; P.filter = 'all'; }
+    if (t === 'parcels') P.ctx = null;
     if (t === 'ndr') N.type = '';
     if (t === 'returns') R.filter = '';
     showTab(t);
@@ -455,6 +490,25 @@ function openTrack(cn) {
     }).join('') : '<small style="color:var(--muted)">No courier scans yet</small>') + '</div>';
   });
 }
+// "Top" button once you have scrolled down a long way.
+addEventListener('scroll', function () { el('totop').classList.toggle('show', window.scrollY > 1200); }, { passive: true });
+el('totop').onclick = function () { window.scrollTo({ top: 0, behavior: 'smooth' }); };
+
+// ---------- long lists: PAGE rows at a time; the "more" button loads itself when it scrolls into view ----------
+var PAGE = 20;
+function moreBtn(id, shown, total) {
+  return total > shown ? '<button class="btn more" id="' + id + '">Showing ' + shown + ' of ' + total + ' · Show ' + Math.min(PAGE, total - shown) + ' more</button>' :
+    (total > PAGE ? '<div class="list-end">All ' + total + ' shown</div>' : '');
+}
+// The first AUTO_ROWS rows load by themselves while scrolling; after that the list stops at a button (you decide).
+var AUTO_ROWS = 60;
+function autoMore(id, shown) {
+  var b = el(id);
+  if (!b || !('IntersectionObserver' in window) || (shown || 0) >= AUTO_ROWS) return;
+  var io = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { io.disconnect(); b.click(); } }, { rootMargin: '200px' });
+  io.observe(b);
+}
+
 // ---------- parcel detail: tap any parcel (Parcels, NDR, Cash, Returns) ----------
 // Everything known about one parcel in one sheet: order, customer, money, NDR case, then the courier timeline.
 document.addEventListener('click', function (e) {
@@ -512,6 +566,25 @@ function openPanel() {
 }
 function closePanel() { el('overlay').classList.remove('show'); }
 
+// ---------- ☰ menu ----------
+function openDrawer() {
+  el('drName').textContent = USER || 'Every Home';
+  var cs = (N.data && N.data.couriers) || {};
+  el('drLinks').innerHTML = Object.keys(cs).filter(function (n) { return cs[n].link; }).map(function (n) {
+    return '<a class="dr-i" target="_blank" href="' + esc(cs[n].link) + '"><i class="ti ti-table"></i>' + esc(n) + ' issue sheet</a>';
+  }).join('') || '<div class="dr-note">Issue sheet links appear after NDR loads</div>';
+  if (!el('drawer').classList.contains('show')) { try { google.script.history.push({ tab: curTab, drawer: 1 }, null, curTab); } catch (e) {} }
+  el('drawer').classList.add('show');
+}
+function closeDrawer() { el('drawer').classList.remove('show'); }
+el('btnMenu').onclick = openDrawer;
+el('drawer').onclick = function (e) {
+  if (e.target === el('drawer')) return closeDrawer();
+  var r = e.target.closest('[data-rep]'); if (r) { closeDrawer(); return openReport(r.getAttribute('data-rep')); }
+  var g = e.target.closest('[data-go]'); if (g) { closeDrawer(); return go(g.getAttribute('data-go')); }
+  if (e.target.closest('a')) closeDrawer();
+};
+
 // ---------- phone Back button ----------
 // Every tab change is a history step (google.script.history), so Back goes to the previous screen
 // instead of closing the app. Back with a sheet open (Track, Update, Custom period) closes the sheet.
@@ -519,6 +592,7 @@ function navPush(t) { try { google.script.history.push({ tab: t }, null, t); } c
 try {
   google.script.history.replace({ tab: 'home' }, null, 'home');
   google.script.history.setChangeHandler(function (e) {
+    if (el('drawer').classList.contains('show')) { closeDrawer(); return; } // Back with the menu open: close it
     if (el('overlay').classList.contains('show')) { closePanel(); return; } // Back with a sheet open: close the sheet
     var t = (e && e.state && e.state.tab) || 'home';
     if (TABS[t] && t !== curTab) showTab(t, true);
@@ -566,11 +640,13 @@ function openPeriodSheet(sel, months, latest, done) {
     }).join('') +
     '<div class="sl-h">Months</div>' + months.map(function (m, i) { return row('data-m="' + m.key + '"', m.label, active === m.key, i === 0 ? 'This month' : i === 1 ? 'Last month' : ''); }).join('') +
     row('data-m="all"', 'All time', active === 'all') +
+    row('data-m="reset"', 'Reset to default', false, 'This month · all couriers') +
     row('data-q="custom"', 'Custom range…', sel.range && sel.range.q === 'custom', sel.range && sel.range.q === 'custom' ? niceDay(sel.range.from) + ' – ' + niceDay(sel.range.to) : '') +
     '</div>';
   openPanel();
   el('psheet').onclick = function (e) {
     var b = e.target.closest('.sl'); if (!b) return;
+    if (b.getAttribute('data-m') === 'reset') { sel.month = sel === C ? 'all' : ''; sel.range = null; sel.courier = 'all'; closePanel(); return done(); }
     if (b.hasAttribute('data-m')) { sel.month = b.getAttribute('data-m'); sel.range = null; closePanel(); return done(); }
     var q = b.getAttribute('data-q');
     if (q !== 'custom') {
@@ -652,6 +728,7 @@ function cashHero(label, s, paidAttr, dueAttr, k) {
     (later ? '<div class="hero-later"><i class="ti ti-clock"></i>On the way: ' + (s.movingCod ? '~' + rs(s.movingCod) + ' COD · ' : '') + later + ' with courier' + '</div>' : '') + '</div>';
 }
 function renderHome(d) {
+  saveFilters();
   lastUpdated = String(d.updatedAt).split(', ').pop(); greet();
   homePbar();
   var k = d.kpis, p = d.prev, c = d.cash, jr = d.journey || {};
@@ -660,7 +737,13 @@ function renderHome(d) {
     (d.actions.length ? d.actions.length + ' action items' + (urgent ? ' (' + urgent + ' urgent)' : '') : 'All clear · nothing pending') +
     ' · ' + rs(c.pending) + ' outstanding</span><i class="ti ti-chevron-right" style="color:var(--faint)"></i>';
 
-  var h = cashHero('Net COD · ' + d.monthLabel, c, 'data-go="cash:paid"', 'data-go="cash:due"', 'h');
+  // Home = what to do now, the money, where parcels are. Other reports live in the ☰ menu.
+  var acts = d.actions, showAll = H.allActs || acts.length <= 4;
+  var h = '<div class="card fade" id="todo"><div class="h"><b>Action items</b><span>' + acts.length + '</span></div>' +
+    (acts.length ? (showAll ? acts : acts.slice(0, 3)).map(function (a) {
+      return '<div class="act" data-go="' + esc(a.go || 'ndr') + '" style="cursor:pointer"><div class="ic t-' + a.tone + '"><i class="ti ti-' + a.icon + '"></i></div><div><b>' + esc(a.title) + '</b><small>' + esc(a.sub) + '</small></div><i class="ti ti-chevron-right go"></i></div>';
+    }).join('') + (showAll ? '' : '<button class="btn more" id="actsAll">See all ' + acts.length + ' action items</button>') : '<div class="empty"><i class="ti ti-circle-check"></i>Nothing pending</div>') + '</div>';
+  h += cashHero('Net COD · ' + d.monthLabel, c, 'data-go="cash:paid"', 'data-go="cash:due"', 'h');
   // Parcel journey: every parcel counted once, at the stage it is at now. Tap a stage to see those parcels.
   var jmax = Math.max.apply(null, JOURNEY.map(function (s) { return jr[s[0]] || 0; }).concat([1]));
   var cx = d.cancelled || { total: 0, reasons: {} };
@@ -671,49 +754,67 @@ function renderHome(d) {
   var cancelLine = cx.total ? '<div class="jr-cancel" data-go="parcels:cancelled"><span><b>' + cx.total + ' cancelled</b> · ' +
     Object.keys(cx.reasons).sort(function (a, b) { return cx.reasons[b] - cx.reasons[a]; }).map(function (r) { return cx.reasons[r] + ' ' + r.toLowerCase(); }).join(' · ') +
     '</span><i class="ti ti-chevron-right" style="color:var(--faint)"></i></div>' : '';
+  var late = d.journeyLate || {};
   var jrow = function (s, hint) {
     var n = jr[s[0]] || 0;
     return '<div class="jr-row' + (n ? '' : ' zero') + '" data-go="parcels:' + s[0] + '" style="--c:' + s[4] + '">' +
       '<span class="jr-dot"><i class="ti ti-' + s[3] + '"></i></span>' +
-      '<span class="jr-name">' + (hint && hint[0] || s[1]) + '<small>' + (hint && hint[1] || (s[0] === 'pending' && pf ? pf : s[2])) + '</small></span>' +
+      '<span class="jr-name">' + (hint && hint[0] || s[1]) + (late[s[0]] ? ' <i class="late-b">' + late[s[0]] + ' late</i>' : '') + '<small>' + (hint && hint[1] || (s[0] === 'pending' && pf ? pf : s[2])) + '</small></span>' +
       '<span class="jr-bar"><i style="width:0;background:' + s[4] + '" data-w="' + (100 * n / jmax) + '"></i></span>' +
       '<b class="jr-n num">' + n + '</b><i class="ti ti-chevron-right" style="color:var(--faint)"></i></div>';
   };
   // Booked parcels count on their dispatch day; orders not booked yet on their order day.
   var ds = d.dispatched || { leopards: 0, trax: 0 };
   var waitingBook = (jr.pending || 0) + (jr.confirmed || 0);
-  var sumLine = '<div class="jr-sum"><b class="num">' + k.booked + '</b> dispatched · ' + rs(k.bookedValue) +
-    (k.booked ? ' · Leopards ' + ds.leopards + ' · Trax ' + ds.trax : '') + (waitingBook ? ' · <b class="num">' + waitingBook + '</b> not booked yet' : '') +
+  // Funnel: what happened to the parcels dispatched in this period so far.
+  var onWay = MOVING.reduce(function (a, st) { return a + (jr[st] || 0); }, 0);
+  var back = jr.returned || 0, comingBack = (jr.returning || 0) + (jr.rtoback || 0);
+  var lateAll = Object.keys(late).reduce(function (a, st) { return a + late[st]; }, 0);
+  var sumLine = '<div class="jr-funnel"><b class="num">' + k.booked + '</b> dispatched <i class="ti ti-arrow-right"></i> ' +
+    '<b class="num up">' + (jr.delivered || 0) + '</b> delivered' + (k.booked ? ' (' + Math.round(100 * (jr.delivered || 0) / k.booked) + '%)' : '') +
+    ' · <b class="num">' + onWay + '</b> on the way' + (lateAll ? ' (<i class="late-t">' + lateAll + ' late</i>)' : '') + (comingBack ? ' · <b class="num">' + comingBack + '</b> coming back' : '') + ' · <b class="num down">' + back + '</b> returned</div>' +
+    '<div class="jr-sum">' + rs(k.bookedValue) + (k.booked ? ' · Leopards ' + ds.leopards + ' · Trax ' + ds.trax : '') + (waitingBook ? ' · <b class="num">' + waitingBook + '</b> not booked yet' : '') +
     (delta(k.booked, p && p.booked) ? ' · <span class="nw">' + delta(k.booked, p && p.booked) + '</span>' : '') + '</div>';
+  // Any date: everything with the couriers right now (one tap opens them in Parcels).
+  var nowLine = d.movingNow ? '<div class="jr-now" data-go="parcels:moving:open"><i class="ti ti-truck"></i><span>Right now: <b class="num">' + d.movingNow + '</b> parcels on the way (any date)</span><i class="ti ti-chevron-right"></i></div>' : '';
   var stg = function (key) { return JOURNEY.filter(function (s) { return s[0] === key; })[0]; };
   if (d.live !== false) {
     h += '<div class="card fade"><div class="h"><b>Order journey</b><span>' + esc(d.monthLabel) + '</span></div>' +
       sumLine + '<div class="jr-list">' +
       JOURNEY.map(function (s) {
-        return (s[0] === 'pending' ? '<div class="jr-sep">In progress</div>' : '') + (s[0] === 'delivered' ? '<div class="jr-sep">Outcome</div>' : '') + jrow(s);
-      }).join('') + '</div>' + cancelLine + '</div>';
+        return (s[0] === 'pending' ? '<div class="jr-sep">In progress</div>' : '') + (s[0] === 'returning' ? '<div class="jr-sep">Coming back</div>' : '') + (s[0] === 'delivered' ? '<div class="jr-sep">Outcome</div>' : '') + jrow(s);
+      }).join('') + '</div>' + cancelLine + nowLine + '</div>';
   } else {
     var still = d.stillMoving || 0, never = (jr.pending || 0) + (jr.confirmed || 0);
     h += '<div class="card fade"><div class="h"><b>Order outcome</b><span>' + esc(d.monthLabel) + ' · closed</span></div>' +
       sumLine +
       '<div class="oc-kp"><div data-go="parcels:delivered"><b class="num up">' + (jr.delivered || 0) + '</b><small>Delivered</small></div>' +
-      '<div data-go="parcels:returned"><b class="num down">' + ((jr.returned || 0) + (jr.returning || 0)) + '</b><small>Returned</small></div>' +
+      '<div data-go="parcels:returned"><b class="num down">' + (jr.returned || 0) + '</b><small>Returned</small></div>' +
       '<div><b class="num">' + pct(k.success) + '</b><small>Success</small></div></div>' +
       '<div class="jr-sep" style="margin-left:0">Returns</div><div class="jr-list">' +
-      jrow(stg('returned'), ['Received back', 'Back with courier / us']) + jrow(stg('returning'), ['Still coming back', 'Return in progress']) + '</div>' +
+      jrow(stg('returned'), ['Received back', 'Scanned by us']) + jrow(stg('rtoback'), ['Courier says returned', 'Not scanned by us yet']) + jrow(stg('returning'), ['Still coming back', 'On the way to us']) + '</div>' +
       (still ? '<div class="oc-warn" data-go="parcels:moving"><i class="ti ti-alert-triangle"></i><span>' + still + ' parcel' + (still > 1 ? 's' : '') + ' still with courier · check</span><i class="ti ti-chevron-right"></i></div>' : '') +
       (never ? '<div class="oc-warn" data-go="parcels:' + (jr.pending ? 'pending' : 'confirmed') + '"><i class="ti ti-alert-triangle"></i><span>' + never + ' order' + (never > 1 ? 's' : '') + ' never booked</span><i class="ti ti-chevron-right"></i></div>' : '') +
-      cancelLine + '</div>';
+      cancelLine + nowLine + '</div>';
   }
+  el('view').innerHTML = h;
+  el('view').querySelectorAll('[data-n]').forEach(countUp);
+  growBars(el('view'));
+}
+// ---------- reports (☰ menu): same period + courier as Home, shown in a sheet ----------
+var REPORT = {};
+var REPORT_TITLE = { success: 'Delivery success', cod: 'COD breakdown', couriers: 'Courier comparison', months: 'Last 6 months', dispatched: 'Dispatched · last 14 days', payments: 'Courier payments' };
+REPORT.success = function (d) {
+  var k = d.kpis, p = d.prev, h = '';
   var succ = k.success == null ? 0 : k.success;
   h += '<div class="card fade"><div class="h"><b>Delivery success</b><b class="num" style="font-size:18px">' + pct(k.success) + '</b></div>' +
     '<div class="bar"><i style="width:0;background:var(--green)" data-w="' + (succ * 100) + '"></i></div>' +
     '<div class="legend" style="justify-content:space-between"><span style="--c:transparent;margin-left:-14px">Delivered ÷ (delivered + returned)</span>' +
     (p && p.success != null && k.success != null ? '<span style="--c:transparent;margin-left:-14px" class="' + (k.success >= p.success ? 'up' : 'down') + '">' + (k.success >= p.success ? '↑ ' : '↓ ') + Math.abs(Math.round((k.success - p.success) * 1000) / 10) + ' pts</span>' : '') + '</div></div>';
-  h += '<div class="card fade" id="todo"><div class="h"><b>Action items</b><span>' + d.actions.length + '</span></div>' +
-    (d.actions.length ? d.actions.map(function (a) {
-      return '<div class="act" data-go="' + esc(a.go || 'ndr') + '" style="cursor:pointer"><div class="ic t-' + a.tone + '"><i class="ti ti-' + a.icon + '"></i></div><div><b>' + esc(a.title) + '</b><small>' + esc(a.sub) + '</small></div><i class="ti ti-chevron-right go"></i></div>';
-    }).join('') : '<div class="empty"><i class="ti ti-circle-check"></i>Nothing pending</div>') + '</div>';
+  return h;
+};
+REPORT.cod = function (d) {
+  var c = d.cash, h = '';
   h += '<div class="card fade" data-go="cash:due" style="cursor:pointer"><div class="h"><b>COD breakdown ›</b><span>' + c.paidParcels + ' settled · ' + c.pendingParcels + ' outstanding</span></div>' +
     '<div class="row"><span>COD collected</span><b class="num">' + rs(c.cod) + '</b></div>' +
     '<div class="row"><span>Courier charges</span><b class="num">− ' + rs(c.charges) + '</b></div>' +
@@ -721,7 +822,12 @@ function renderHome(d) {
     (c.over >= 1 ? '<div class="row"><span>Overcharged vs rate card (FAF)</span><b class="num down">' + rs(c.over) + '</b></div>' : '') +
     '<div class="row"><span>Received</span><b class="num up">' + rs(c.received) + '</b></div>' +
     '<div class="row"><span>Outstanding</span><b class="num" style="color:var(--amber)">' + rs(c.pending) + '</b></div></div>';
-  if (d.couriers.length > 1) {
+  return h;
+};
+REPORT.couriers = function (d) {
+  var h = '';
+  if (!d.couriers.length) return '<div class="empty">No courier data in this period</div>';
+  {
     h += '<div class="card fade"><div class="h"><b>Courier comparison</b><span>' + d.monthLabel + '</span></div><div class="cmp">' +
       d.couriers.map(function (x) {
         return '<div><b>' + x.name + (x.estimate ? ' <small style="color:var(--faint);font-weight:400">(est.)</small>' : '') + '</b>' +
@@ -729,6 +835,10 @@ function renderHome(d) {
           '<div class="k">Delivered / RTO<em>' + x.delivered + ' / ' + x.returned + '</em></div><div class="k">Outstanding<em>' + rs(x.pending) + '</em></div></div>';
       }).join('') + '</div></div>';
   }
+  return h;
+};
+REPORT.months = function (d) {
+  var h = '';
   var maxT = Math.max.apply(null, d.trend.map(function (t) { return t.delivered + t.returned + t.open; }).concat([1]));
   h += '<div class="card fade"><div class="h"><b>Last 6 months</b><span>Tap a month</span></div><div class="chart">' +
     d.trend.map(function (t) {
@@ -738,6 +848,10 @@ function renderHome(d) {
         '<i style="height:0;background:var(--red)" data-h="' + (tot ? 100 * t.returned / tot : 0) + '"></i>' +
         '<i style="height:0;background:var(--blue)" data-h="' + (tot ? 100 * t.open / tot : 0) + '"></i></div><small>' + t.label + '</small></div>';
     }).join('') + '</div><div class="legend"><span style="--c:var(--green)">Delivered</span><span style="--c:var(--red)">Returned</span><span style="--c:var(--blue)">In progress</span></div></div>';
+  return h;
+};
+REPORT.dispatched = function (d) {
+  var h = '';
   var maxD = Math.max.apply(null, d.days.map(function (x) { return x.count; }).concat([1]));
   // Dispatches by booking day; today's count with the courier split on top.
   var td = d.days[d.days.length - 1] || { count: 0, trax: 0, leopards: 0 };
@@ -745,6 +859,10 @@ function renderHome(d) {
     '<div class="jr-sum"><b class="num">' + td.count + '</b> dispatched today' + (td.count ? ' · Leopards ' + (td.leopards || 0) + ' · Trax ' + (td.trax || 0) : '') + '</div><div class="days">' +
     d.days.map(function (x) { return '<i title="' + x.weekday + ' ' + x.label + ': ' + x.count + ' (Leopards ' + (x.leopards || 0) + ', Trax ' + (x.trax || 0) + ')" style="height:0" data-h="' + (100 * x.count / maxD) + '"></i>'; }).join('') +
     '</div><div class="days-l"><span>' + d.days[0].weekday + ' ' + d.days[0].label + '</span><span>Today</span></div></div>';
+  return h;
+};
+REPORT.payments = function (d) {
+  var h = '';
   if (d.payments.length) {
     h += '<div class="card fade" data-go="cash:pay" style="cursor:pointer"><div class="h"><b>Courier payments ›</b><span>Bank reconciliation</span></div>' +
       d.payments.map(function (x) {
@@ -752,16 +870,31 @@ function renderHome(d) {
           '<span class="pill ' + (x.ok ? 'p-ok' : 'p-no') + '">' + (x.ok ? 'Paid' : 'Unpaid') + '</span></div></div>';
       }).join('') + '</div>';
   }
-  el('view').innerHTML = h;
-  el('view').querySelectorAll('[data-n]').forEach(countUp);
-  growBars(el('view'));
+  return h;
+};
+function openReport(key) {
+  if (key === 'escalations') return openEscalations();
+  var d = H.data;
+  if (!d) { toast('Loading…'); return; }
+  el('panel').innerHTML = '<h3>' + REPORT_TITLE[key] + '</h3><p>' + esc(d.monthLabel) + (H.courier !== 'all' ? ' · ' + esc(H.courier.charAt(0).toUpperCase() + H.courier.slice(1)) : '') + '</p>' +
+    '<div class="rep" id="repBox">' + REPORT[key](d) + '</div><div class="btns" style="margin-top:10px"><button class="btn" id="repClose">Close</button></div>';
+  openPanel();
+  el('repClose').onclick = closePanel;
+  el('repBox').querySelectorAll('[data-n]').forEach(countUp);
+  growBars(el('repBox'));
+  el('repBox').onclick = function (e) {
+    var col = e.target.closest('.col'); if (col) { H.month = col.getAttribute('data-m'); H.range = null; closePanel(); loadHome(false); window.scrollTo(0, 0); return; }
+    var n = e.target.closest('[data-go]'); if (!n || e.target.closest('a,button')) return;
+    closePanel(); go(n.getAttribute('data-go'));
+  };
 }
 function homePbar() { var ms = (H.data && H.data.months) || []; setPbar('h', H, ms, ms[0] && ms[0].key); }
 el('hPeriod').onclick = function () { var ms = (H.data && H.data.months) || []; openPeriodSheet(H, ms, ms[0] && ms[0].key, function () { homePbar(); loadHome(false); }); };
 el('hCourier').onclick = function () { openCourierSheet(H, function () { homePbar(); loadHome(false); }); };
-el('brief').onclick = function () { if (el('todo')) el('todo').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+el('brief').onclick = function () { H.allActs = true; if (H.data) renderHome(H.data); if (el('todo')) el('todo').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
 function markChip(box, b) { box.querySelectorAll('.chip,button').forEach(function (x) { x.classList.toggle('on', x === b); }); }
 el('view').onclick = function (e) {
+  if (e.target.closest('#actsAll')) { H.allActs = true; renderHome(H.data); return; }
   var col = e.target.closest('.col'); if (col) { H.month = col.getAttribute('data-m'); H.range = null; loadHome(false); window.scrollTo(0, 0); return; }
   var n = e.target.closest('[data-go]'); if (!n || e.target.closest('a,button')) return;
   go(n.getAttribute('data-go'));
@@ -780,7 +913,7 @@ function go(target) {
       mk: mk, from: H.range ? H.range.from : '', to: H.range ? H.range.to : '', courier: H.courier,
       label: [period ? H.data.monthLabel : '', H.courier !== 'all' ? H.courier.charAt(0).toUpperCase() + H.courier.slice(1) : ''].filter(Boolean).join(' · ')
     } : null;
-    P.filter = g[1] || 'all'; P.limit = 40; showTab('parcels');
+    P.filter = g[1] || 'all'; P.limit = PAGE; showTab('parcels');
   }
   else if (g[0] === 'cash') {
     C.range = H.range; C.month = H.range ? 'all' : H.data && H.data.month !== 'all' ? H.data.month : 'all'; C.courier = H.courier;
@@ -788,7 +921,7 @@ function go(target) {
     // cash:pay / cash:nott -> Payments card (nott = Not transferred); cash:due|paid|over -> Parcel money card.
     if (g[1] === 'nott') { C.bf = 'nott'; C.scrollTo = 'cpay'; }
     else if (g[1] === 'pay') { C.bf = 'all'; C.scrollTo = 'cpay'; }
-    else if (g[1]) { C.pf = g[1]; C.plim = 30; C.scrollTo = 'cparcels'; }
+    else if (g[1]) { C.pf = g[1]; C.plim = PAGE; C.scrollTo = 'cparcels'; }
     C.data = null; showTab('cash');
   }
   else if (g[0] === 'ndr') { N.type = g[1] || ''; N.filter = 'all'; N.scrollOnce = !!g[1]; showTab('ndr'); }
@@ -802,7 +935,7 @@ function scrollToCard(id) {
 }
 
 // ---------- Parcels ----------
-var P = { data: snap('parcels'), filter: 'all', q: '', limit: 40, ctx: null };
+var P = { data: snap('parcels'), filter: 'all', q: '', limit: 20, ctx: null };
 // The courier journey, in order: [key, name, hint, icon, colour]. Same stages as the server (APP_JOURNEY).
 var JOURNEY = [
   ['pending', 'Awaiting confirmation', 'Pending customer confirmation', 'phone-call', 'var(--amber)'],
@@ -813,9 +946,10 @@ var JOURNEY = [
   ['atdest', 'At destination', 'At destination facility', 'map-pin', 'var(--brand)'],
   ['ofd', 'Out for delivery', 'With delivery rider', 'motorbike', 'var(--brand)'],
   ['ndr', 'Failed attempt', 'Delivery unsuccessful · contact customer', 'phone-x', 'var(--amber)'],
+  ['returning', 'Returning', 'Coming back to us', 'arrow-back-up', 'var(--red)'],
+  ['rtoback', 'Courier says returned', 'Not scanned by us yet · check and scan', 'package-export', 'var(--amber)'],
   ['delivered', 'Delivered', 'Completed', 'circle-check', 'var(--green)'],
-  ['returning', 'Returning', 'Return in progress', 'arrow-back-up', 'var(--red)'],
-  ['returned', 'Returned', 'Returned to origin', 'package-import', 'var(--red)']
+  ['returned', 'Returned', 'Received and scanned by us', 'package-import', 'var(--red)']
 ];
 var MOVING = ['booked', 'picked', 'transit', 'atdest', 'ofd', 'ndr']; // same as the server's APP_MOVING_STAGES
 var STAGE = {};
@@ -854,9 +988,9 @@ function renderParcels() {
   el('pchips').innerHTML = fbar('p', P.filter === 'all' ? 'All stages' : (STAGE[P.filter] || [P.filter])[0], counts[P.filter] || 0, ctx && ctx.label);
   var list = found.filter(function (p) { return P.filter === 'all' ? p.stage !== 'cancelled' : P.filter === 'moving' ? MOVING.indexOf(p.stage) !== -1 : P.filter === 'nocn' ? p.stage === 'booked' && !p.cn : p.stage === P.filter; });
   if (!list.length) { el('plist').innerHTML = '<div class="card empty"><i class="ti ti-package-off" style="color:var(--faint)"></i>No parcels found</div>'; return; }
-  el('plist').innerHTML = list.slice(0, P.limit).map(parcelCard).join('') +
-    (list.length > P.limit ? '<button class="btn more" id="pmore">Show more (' + (list.length - P.limit) + ')</button>' : '');
-  if (el('pmore')) el('pmore').onclick = function () { P.limit += 40; renderParcels(); };
+  el('plist').innerHTML = list.slice(0, P.limit).map(parcelCard).join('') + moreBtn('pmore', Math.min(P.limit, list.length), list.length);
+  if (el('pmore')) { el('pmore').onclick = function () { P.limit += PAGE; renderParcels(); }; autoMore('pmore', P.limit); }
+  saveFilters();
 }
 // Customer WhatsApp message for where the parcel is now: short Roman Urdu, *bold* for order / amount / CN.
 function custWaText(p) {
@@ -884,7 +1018,7 @@ function custWaText(p) {
 }
 function parcelCard(p) {
   var s = STAGE[p.stage] || ['', 'var(--line)'];
-  var note = ['picked', 'transit', 'atdest', 'ofd', 'ndr', 'returning'].indexOf(p.stage) !== -1 ? (p.reason || p.lastRaw) : '';
+  var note = ['picked', 'transit', 'atdest', 'ofd', 'ndr', 'returning', 'rtoback'].indexOf(p.stage) !== -1 ? (p.reason || p.lastRaw) : '';
   var wa = p.wa ? '<a class="btn wa" target="_blank" href="' + waLink(p.wa, custWaText(p)) + '"><i class="ti ti-brand-whatsapp"></i>WhatsApp</a>' : '';
   return '<div class="pc" data-p="' + esc(p.cn || p.ref) + '" style="--c:' + s[1] + '">' +
     '<div class="pc-top"><span class="pc-cn">' + (p.cn ? esc(p.courier) + ' · ' + esc(p.cn) : esc(p.ref)) + '</span><span class="st" style="--c:' + s[1] + '">' + s[0] + '</span></div>' +
@@ -895,14 +1029,14 @@ function parcelCard(p) {
     '<div class="btns">' + (p.cn && !p.done ? trackBtn(p.cn, p.track) : '') + wa +
     (p.phone ? '<a class="btn sq" href="tel:' + esc(p.phone) + '" aria-label="Call"><i class="ti ti-phone"></i></a>' : '') + '</div></div>';
 }
-el('q').oninput = function () { P.q = el('q').value; P.limit = 40; renderParcels(); };
+el('q').oninput = function () { P.q = el('q').value; P.limit = PAGE; renderParcels(); };
 el('pchips').onclick = function (e) {
-  if (e.target.closest('[data-fx]')) { P.ctx = null; P.limit = 40; return renderParcels(); }
-  if (e.target.closest('[data-fs]')) openFilterSheet('Stage', P.opts, P.filter, function (k) { P.filter = k; P.limit = 40; renderParcels(); });
+  if (e.target.closest('[data-fx]')) { P.ctx = null; P.limit = PAGE; return renderParcels(); }
+  if (e.target.closest('[data-fs]')) openFilterSheet('Stage', P.opts, P.filter, function (k) { P.filter = k; P.limit = PAGE; renderParcels(); });
 };
 
 // ---------- NDR + Parcel Watch ----------
-var N = { data: snap('ndr'), filter: 'all' };
+var N = { data: snap('ndr'), filter: 'all', limit: 20 };
 function caseKey(c) { return c.cn + '|' + c.type.slice(0, 12); }
 function seenSet() { try { return JSON.parse(store('eh_ndr_seen') || '[]'); } catch (e) { return []; } }
 function markNdrSeen() { if (N.data) store('eh_ndr_seen', JSON.stringify(N.data.cases.map(caseKey))); updateBadge(); }
@@ -955,6 +1089,8 @@ function renderNdr() {
   var list = typed.filter(function (c) { return inGroup(c, N.filter); });
   if (N.scrollOnce) { N.scrollOnce = false; scrollToCard('nchips'); }
   if (!list.length) { el('nlist').innerHTML = '<div class="card empty"><i class="ti ti-circle-check"></i>No cases here</div>'; return; }
+  var nTotal = list.length;
+  list = list.slice(0, N.limit || PAGE);
   el('nlist').innerHTML = list.map(function (c) {
     var col = c.priority === '1' ? 'var(--red)' : c.priority === '2' ? 'var(--amber)' : 'var(--blue)';
     return '<div class="pc" data-p="' + esc(c.cn) + '" style="--c:' + col + '">' +
@@ -968,7 +1104,9 @@ function renderNdr() {
       '<div class="btns">' + trackBtn(c.cn) + (c.phone ? '<a class="btn sq" href="tel:' + esc(c.phone) + '" aria-label="Call"><i class="ti ti-phone"></i></a>' : '') +
       (c.wa ? '<a class="btn sq wa" target="_blank" href="' + waLink(c.wa, c.waText) + '" aria-label="WhatsApp"><i class="ti ti-brand-whatsapp"></i></a>' : '') +
       '<button class="btn pri" data-rec="' + esc(c.cn) + '"><i class="ti ti-pencil"></i>Update</button></div></div>';
-  }).join('');
+  }).join('') + moreBtn('nmore', list.length, nTotal);
+  if (el('nmore')) { el('nmore').onclick = function () { N.limit = (N.limit || PAGE) + PAGE; renderNdr(); }; autoMore('nmore', N.limit || PAGE); }
+  saveFilters();
 }
 function ticketLine(c) {
   var co = N.data.couriers && N.data.couriers[c.courier], t = co && co.tickets[c.cn];
@@ -980,7 +1118,24 @@ function ticketLine(c) {
 }
 function renderCourierCards() {
   var cs = N.data.couriers || {};
-  el('ncour').innerHTML = Object.keys(cs).map(function (name) {
+  el('ncour').innerHTML = '<div class="cstrip">' + Object.keys(cs).map(function (name) {
+    var s = cs[name];
+    return '<button class="cs-line" data-cour="' + esc(name) + '"><b>' + esc(name) + '</b><span>' + s.open + ' open · ' + s.replied + ' replied' +
+      (s.notActed ? ' · <i class="down">' + s.notActed + ' no action</i>' : '') + '</span><i class="ti ti-chevron-right"></i></button>';
+  }).join('') + '</div>';
+}
+el('ncour').onclick = function (e) { var b = e.target.closest('[data-cour]'); if (b) openEscalations(b.getAttribute('data-cour')); };
+// Full courier escalation cards (sheet link, WhatsApp to the group) in a sheet; one courier or all.
+function openEscalations(only) {
+  if (!N.data) { toast('Loading NDR…'); return; }
+  el('panel').innerHTML = '<h3>Courier escalations</h3><p>Cases sent to the couriers\' issue sheets</p>' + courierCardsHtml(only) +
+    '<div class="btns" style="margin-top:10px"><button class="btn" id="escClose">Close</button></div>';
+  openPanel();
+  el('escClose').onclick = closePanel;
+}
+function courierCardsHtml(only) {
+  var cs = N.data.couriers || {};
+  return Object.keys(cs).filter(function (n) { return !only || n === only; }).map(function (name) {
     var s = cs[name];
     var msg = '*Every Home – ' + name + ' Issues*\n\nAssalam-o-Alaikum,\n*' + s.open + ' parcels* par aap ka action chahiye.' +
       (s.notActed ? '\n*' + s.notActed + '* purane cases par ab tak action nahi hua.' : '') +
@@ -998,7 +1153,7 @@ function renderCourierCards() {
 }
 el('nchips').onclick = function (e) {
   if (e.target.closest('[data-fx]')) { N.type = ''; return renderNdr(); }
-  if (e.target.closest('[data-fs]')) openFilterSheet('Cases', N.opts, N.filter, function (k) { N.filter = k; renderNdr(); });
+  if (e.target.closest('[data-fs]')) openFilterSheet('Cases', N.opts, N.filter, function (k) { N.filter = k; N.limit = PAGE; renderNdr(); });
 };
 el('nlist').onclick = function (e) { var b = e.target.closest('[data-rec]'); if (b) openNdrForm(b.getAttribute('data-rec')); };
 
@@ -1059,7 +1214,7 @@ function openNdrForm(cn) {
 }
 
 // ---------- Cash ----------
-var C = { data: null, month: 'all', range: null, courier: 'all', pf: 'due', bf: 'all', q: '', plim: 30, mem: {} };
+var C = { data: null, month: 'all', range: null, courier: 'all', pf: 'due', bf: 'all', q: '', plim: 20, blim: 5, mem: {} };
 function cashKey() { return 'cash_' + (C.range ? rangeKey(C.range) : C.month) + '_' + C.courier; }
 function loadCash(fresh) {
   var key = cashKey();
@@ -1088,22 +1243,24 @@ var BATCH_F = [
   ['ok', 'Matched', function (b) { return /✅/.test(b.matched); }]
 ];
 function renderCash() {
+  saveFilters();
   var d = C.data, s = d.stats;
   var months = (H.data && H.data.months) || [];
   cashPbar();
   var h = cashHero('Net COD · ' + periodLabel(C, months, 'all'), s, 'data-pf="paid"', 'data-pf="due"', 'c');
   var bfc = BATCH_F.filter(function (x) { return x[0] === C.bf; })[0] || BATCH_F[0];
-  var shown = d.batches.filter(bfc[2]);
+  var shown = d.batches.filter(bfc[2]), payN = 0;
   h += '<div class="card" id="cpay"><div class="h"><b>Courier payments · bank reconciliation</b><span>' + shown.length + '</span></div>' +
     fbar('bf', bfc[0] === 'all' ? 'All payments' : bfc[1], shown.length) +
     (shown.length ? d.batches.map(function (b, i) {
       if (!bfc[2](b)) return '';
+      if (++payN > (C.blim || 5)) return '';
       var st = !b.transferred ? '<span class="pill p-no">Not transferred</span>' : b.bank == null ? '<span class="pill" style="background:var(--amber-bg);color:var(--amber)">Verify in bank</span>' :
         (/✅/.test(b.matched) ? '<span class="pill p-ok">✅ Matched</span>' : '<span class="pill p-no">' + esc(b.matched || 'Gap') + '</span>');
       return '<div class="li"><div class="d"><b>' + esc(b.courier) + ' · ' + esc(b.ref) + '</b><small>' + esc(b.date) + ' · ' + b.parcels + ' parcels' + (b.bank != null ? ' · bank ' + rs(b.bank) : '') + '</small>' +
         (b.transferred ? '<button class="mini" data-bank="' + i + '">' + (b.bank == null ? '+ Record bank amount' : 'Edit amount') + '</button>' : '') + '</div>' +
         '<div class="r"><b class="num">' + rs(b.net) + '</b>' + st + '</div></div>';
-    }).join('') : '<div class="empty">No payments here</div>') + '</div>';
+    }).join('') + (shown.length > (C.blim || 5) ? '<button class="btn more" id="bmore">See all ' + shown.length + ' payments</button>' : '') : '<div class="empty">No payments here</div>') + '</div>';
   h += '<div class="card" id="cparcels"></div>';
   el('cview').innerHTML = h;
   el('cview').querySelectorAll('[data-n]').forEach(countUp); growBars(el('cview'));
@@ -1122,19 +1279,19 @@ function renderCashParcels() {
     fbar('pf', f[0] === 'all' ? 'All parcels' : f[1], list.length) +
     '<div id="clist"></div>';
   renderCashList(list, f);
-  el('cq').oninput = function () { C.q = el('cq').value; C.plim = 30; var pos = el('cq').selectionStart; renderCashParcels(); el('cq').focus(); el('cq').setSelectionRange(pos, pos); };
+  el('cq').oninput = function () { C.q = el('cq').value; C.plim = PAGE; var pos = el('cq').selectionStart; renderCashParcels(); el('cq').focus(); el('cq').setSelectionRange(pos, pos); };
 }
 function renderCashList(list, f) {
-  var lim = C.plim || 30;
+  var lim = C.plim || PAGE;
   el('clist').innerHTML = list.length ? list.slice(0, lim).map(function (p) {
     var tone = p.cat === 'late' ? 'down' : p.cat === 'paid' ? 'up' : '';
     var right = f[0] === 'over' ? '<b class="num down">+' + rs(p.over) + '</b><small style="color:var(--muted);font-size:11px">charged ' + rs(p.charges) + '</small>'
       : '<b class="num ' + tone + '">' + rs(p.net) + '</b><small style="color:var(--muted);font-size:11px">' + (p.cat === 'paid' ? (p.paidOn || 'Settled') : p.cat === 'late' ? 'Overdue' : 'Outstanding') + '</small>';
     return '<div class="li" data-p="' + esc(p.cn || p.order) + '"><div class="d"><b>' + esc(p.order) + ' · ' + esc(p.courier) + (p.returned ? ' · ↩' : '') + '</b><small>' + esc(p.cn) + ' · ' + esc(p.note) + '</small></div><div class="r">' + right + '</div></div>';
-  }).join('') + (list.length > lim ? '<button class="btn more" id="cmore">Show more (' + (list.length - lim) + ')</button>' : '') +
+  }).join('') + moreBtn('cmore', Math.min(lim, list.length), list.length) +
     (f[0] === 'over' && C.data.diffLink ? '<a class="btn" target="_blank" href="' + esc(C.data.diffLink) + '" style="margin-top:8px"><i class="ti ti-table"></i>Full overcharge report</a>' : '')
     : '<div class="empty"><i class="ti ti-circle-check"></i>' + (f[0] === 'due' ? 'Fully settled' : 'Nothing here') + '</div>';
-  if (el('cmore')) el('cmore').onclick = function () { C.plim = lim + 30; renderCashList(list, f); };
+  if (el('cmore')) { el('cmore').onclick = function () { C.plim = lim + PAGE; renderCashList(list, f); }; autoMore('cmore', lim); }
 }
 function cashPbar() { setPbar('c', C, (H.data && H.data.months) || [], 'all'); }
 el('cPeriod').onclick = function () { openPeriodSheet(C, (H.data && H.data.months) || [], 'all', function () { cashPbar(); loadCash(false); }); };
@@ -1149,14 +1306,15 @@ el('cview').onclick = function (e) {
     var q = (C.q || '').toLowerCase().trim();
     var found = C.data.parcels.filter(function (p) { return !q || (p.cn + ' ' + p.order).toLowerCase().indexOf(q) !== -1; });
     return openFilterSheet('Parcels', CASH_F.map(function (x) { return [x[0], x[0] === 'all' ? 'All parcels' : x[1], found.filter(x[2]).length]; }), C.pf || 'due',
-      function (k) { C.pf = k; C.plim = 30; renderCashParcels(); });
+      function (k) { C.pf = k; C.plim = PAGE; renderCashParcels(); });
   }
   var pf = e.target.closest('[data-pf]');
   if (pf) {
-    C.pf = pf.getAttribute('data-pf'); C.plim = 30; renderCashParcels();
+    C.pf = pf.getAttribute('data-pf'); C.plim = PAGE; renderCashParcels();
     if (pf.closest('.hero') && el('cparcels')) el('cparcels').scrollIntoView({ behavior: 'smooth', block: 'start' });
     return;
   }
+  if (e.target.closest('#bmore')) { C.blim = 1000; renderCash(); return; }
   var bf = e.target.closest('[data-bf]'); if (bf) { C.bf = bf.getAttribute('data-bf'); renderCash(); return; }
   var b = e.target.closest('[data-bank]'); if (!b) return;
   var x = C.data.batches[Number(b.getAttribute('data-bank'))];
@@ -1190,18 +1348,20 @@ function renderReturns() {
   var waiting = R.filter === 'back' ? d.waiting.filter(function (w) { return w.back; }) : d.waiting;
   h += '<div class="card" id="rwait"><div class="h"><b>Awaiting return scan</b><span>' + waiting.length + '</span></div>' +
     (R.filter === 'back' ? '<div class="chips wrapc"><button class="chip pctx" data-rf="">Returned by courier ✕</button></div>' : '') +
-    (waiting.length ? waiting.map(function (w) {
+    (waiting.length ? waiting.slice(0, R.wlim || PAGE).map(function (w) {
       var pill = w.back ? '<span class="pill p-no">Returned by courier</span>' : w.atOrigin ? '<span class="pill" style="background:var(--amber-bg);color:var(--amber)">At local facility</span>' : '<span class="pill" style="background:var(--blue-bg);color:var(--blue)">In transit</span>';
       // Three lines: order + status, courier / CN / items + days waiting, then two equal buttons.
       return '<div class="rw" data-p="' + esc(w.cn || w.order) + '"><div class="rw-top"><b>' + esc(w.order) + ' · ' + esc(w.name) + '</b>' + pill + '</div>' +
         '<div class="rw-sub"><span>' + esc(w.courier) + ' ' + esc(w.cn) + ' · ' + esc(w.items) + '</span>' + (w.days != null ? '<em>' + w.days + 'd</em>' : '') + '</div>' +
         '<div class="btns">' + trackBtn(w.cn) + '<button class="btn" data-pick="' + esc(w.cn) + '"><i class="ti ti-scan"></i>Receive</button></div></div>';
-    }).join('') : '<div class="empty"><i class="ti ti-circle-check"></i>All returns scanned</div>') + '</div>';
+    }).join('') + moreBtn('wmore', Math.min(R.wlim || PAGE, waiting.length), waiting.length) : '<div class="empty"><i class="ti ti-circle-check"></i>All returns scanned</div>') + '</div>';
   h += '<div class="card"><div class="h"><b>Recently scanned</b><span>' + d.recent.length + '</span></div>' +
-    (d.recent.length ? d.recent.slice(0, 20).map(function (r) {
+    (d.recent.length ? d.recent.slice(0, R.rlim || 10).map(function (r) {
       return '<div class="li" data-p="' + esc(r.order) + '"><div class="d"><b>' + esc(r.order) + ' · ' + esc(r.name) + '</b><small>' + esc(r.when) + ' · ' + esc(r.by) + '</small></div><div class="r"><span class="pill ' + (r.good ? 'p-ok' : 'p-no') + '">' + esc(r.condition.split(' –')[0]) + '</span></div></div>';
-    }).join('') : '<div class="empty">No scans yet</div>') + '</div>';
+    }).join('') + (d.recent.length > (R.rlim || 10) ? '<button class="btn more" id="rmore">See more scans</button>' : '') : '<div class="empty">No scans yet</div>') + '</div>';
   el('rview').innerHTML = h;
+  if (el('wmore')) { el('wmore').onclick = function () { R.wlim = (R.wlim || PAGE) + PAGE; renderReturns(); }; autoMore('wmore', R.wlim || PAGE); }
+  if (el('rmore')) el('rmore').onclick = function () { R.rlim = (R.rlim || 10) + PAGE; renderReturns(); };
   if (R.scrollTo) { R.scrollTo = false; scrollToCard('rwait'); }
 }
 function findReturn(code) {
@@ -1265,12 +1425,14 @@ el('btnRefresh').onclick = function () {
   else { H.mem = {}; loadHome(true); }
 };
 el('btnMode').onclick = function () {
+  closeDrawer();
   var m = root.getAttribute('data-mode') === 'dark' ? 'light' : 'dark';
   root.setAttribute('data-mode', m); store('eh_mode', m);
-  el('btnMode').innerHTML = '<i class="ti ti-' + (m === 'dark' ? 'sun' : 'moon') + '"></i>';
+  el('btnMode').innerHTML = '<i class="ti ti-' + (m === 'dark' ? 'sun' : 'moon') + '"></i>' + (m === 'dark' ? 'Light mode' : 'Dark mode');
 };
-if (root.getAttribute('data-mode') === 'dark') el('btnMode').innerHTML = '<i class="ti ti-sun"></i>';
-el('btnOut').onclick = document.querySelector('.logo').onclick = function () {
+if (root.getAttribute('data-mode') === 'dark') el('btnMode').innerHTML = '<i class="ti ti-sun"></i>Light mode';
+el('btnOut').onclick = function () {
+  closeDrawer();
   if (confirm('Log out ' + (USER || '') + '?')) { TOKEN = ''; store('eh_token', ''); location.reload(); }
 };
 
@@ -1297,6 +1459,27 @@ el('lgGo').onclick = function () {
 };
 el('lgPin').onkeydown = function (e) { if (e.key === 'Enter') el('lgGo').click(); };
 el('lgPin').oninput = el('lgName').onchange = function () { el('lgErr').textContent = ''; };
+
+// ---------- remembered filters ----------
+// Kept until changed: Home + Cash period and courier, Parcels stage, NDR cases, Cash filters. Quick periods are
+// saved by name ("Yesterday" stays yesterday tomorrow); a custom range keeps its dates.
+function saveFilters() {
+  var per = function (s) { return { month: s.month || '', courier: s.courier || 'all', range: s.range ? (s.range.q && s.range.q !== 'custom' ? { q: s.range.q } : s.range) : null }; };
+  store('eh_f1', JSON.stringify({ h: per(H), c: per(C), p: P.filter, n: N.filter, pf: C.pf, bf: C.bf }));
+}
+function loadFilters() {
+  var f; try { f = JSON.parse(store('eh_f1') || 'null'); } catch (e) { f = null; }
+  if (!f) return;
+  var qr = quickRanges();
+  var range = function (r) { if (!r) return null; if (r.q && r.q !== 'custom') { var x = qr.filter(function (q) { return q[0] === r.q; })[0]; return x ? { from: x[2], to: x[3], q: r.q } : null; } return r.from && r.to ? r : null; };
+  if (f.h) { H.month = f.h.month || ''; H.courier = f.h.courier || 'all'; H.range = range(f.h.range); }
+  if (f.c) { C.month = f.c.month || 'all'; C.courier = f.c.courier || 'all'; C.range = range(f.c.range); }
+  if (f.p) P.filter = f.p;
+  if (f.n) N.filter = f.n;
+  if (f.pf) C.pf = f.pf;
+  if (f.bf) C.bf = f.bf;
+}
+loadFilters();
 
 // ---------- start ----------
 var started = false;
