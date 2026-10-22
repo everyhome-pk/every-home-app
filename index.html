@@ -240,6 +240,9 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .lg-pad .lg-go{background:var(--brand);color:var(--brand-ink)}
 .lg-links{display:flex;justify-content:center;gap:18px;margin-top:20px}.lg-links button{border:0;background:none;color:var(--brand);font:600 13px Inter,sans-serif;cursor:pointer}
 [data-mode="dark"] .lg-links button{color:var(--accent)}
+.omark{display:block;width:40px;height:40px;flex:none}
+.lg-av:not(.known){background:none}
+.lg-brand[hidden]{display:none}.lg-brand{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:22px;color:var(--muted);font-size:12px}.lg-brand .omark{width:16px;height:16px}
 .login-box h2{margin:0;font-size:22px}.login-box p{color:var(--muted);font-size:13px;margin:4px 0 18px}
 .login-box select,.login-box input{width:100%;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:14px;padding:13px 14px;font:400 15px Inter,sans-serif;margin-bottom:10px;text-align:center}
 .tk{font-size:12px;margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--amber-bg);color:var(--amber)}
@@ -272,12 +275,15 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="ORDI">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Every Home</title>
+<title>ORDI</title>
 </head>
 <body>
+<!-- ORDI: the app's own name and mark, the same for every store; the store's name is STORE (script) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="ordiMark" viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="#0F766E"/><circle cx="50" cy="50" r="24" fill="none" stroke="#fff" stroke-width="11"/><circle cx="72" cy="28" r="8" fill="#5EEAD4"/></symbol></svg>
 <div class="sync" id="sync"></div>
 <div class="wrap">
   <div class="top">
@@ -340,7 +346,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 <button class="totop" id="totop" aria-label="Back to top"><i class="ti ti-arrow-up"></i>Top</button>
 <!-- ☰ menu: reports that are not on Home, links, app settings -->
 <div class="drawer" id="drawer"><div class="dr-panel">
-  <div class="dr-user"><div class="logo">EH</div><div><b id="drName">Every Home</b><small>Every Home · Ops</small></div></div>
+  <div class="dr-user"><svg class="omark" aria-hidden="true"><use href="#ordiMark"/></svg><div><b id="drName">Every Home</b><small id="drStore">ORDI · Every Home</small></div></div>
   <div class="dr-h">Reports</div>
   <button class="dr-i" data-rep="success"><i class="ti ti-chart-donut"></i>Delivery success</button>
   <button class="dr-i" data-rep="cod"><i class="ti ti-receipt"></i>COD breakdown</button>
@@ -360,7 +366,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 
 <div class="login" id="pinbox" hidden>
   <div class="login-box">
-    <div class="logo" style="width:56px;height:56px;border-radius:16px;font-size:20px;margin:0 auto 14px">EH</div>
+    <svg class="omark" style="width:56px;height:56px;margin:0 auto 14px" aria-hidden="true"><use href="#ordiMark"/></svg>
     <h2 id="pbTitle">Change PIN</h2>
     <p id="pbSub">Enter your current PIN, then your new PIN twice</p>
     <input id="pbOld" type="password" inputmode="numeric" maxlength="8" placeholder="Current PIN" autocomplete="current-password">
@@ -389,6 +395,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
       <button data-k="del" aria-label="Delete"><i class="ti ti-backspace"></i></button><button data-k="0">0</button><button data-k="go" class="lg-go" id="lgGo" aria-label="Log in"><i class="ti ti-arrow-right"></i></button>
     </div>
     <div class="lg-links"><button id="lgSwitch" hidden>Switch user</button><button id="lgForgot">Forgot PIN?</button></div>
+    <div class="lg-brand" id="lgBrand" hidden><svg class="omark" aria-hidden="true"><use href="#ordiMark"/></svg><span id="lgBrandTx">ORDI</span></div>
   </div>
 </div>
 
@@ -435,6 +442,7 @@ function waLink(wa, text) { return 'https://wa.me/' + wa + (text ? '?text=' + en
 
 var TOKEN = store('eh_token') || '';
 var USER = store('eh_user') || '';
+var BRAND = 'ORDI', STORE = 'Every Home'; // app name (same everywhere) and this store's name
 
 // Last data kept on the phone: screens open instantly and refresh in the background.
 function snap(key, data) { if (data === undefined) { try { return JSON.parse(store('eh_s4_' + key) || 'null'); } catch (e) { return null; } } store('eh_s4_' + key, JSON.stringify(data)); }
@@ -1508,10 +1516,11 @@ function initials(n) { return String(n || '').split(' ').filter(Boolean).slice(0
 function showLogin() {
   el('login').hidden = false;
   var known = !!USER;
-  el('lgAv').textContent = known ? initials(USER) : 'EH';
+  el('lgAv').innerHTML = known ? esc(initials(USER)) : '<svg class="omark" style="width:60px;height:60px" aria-hidden="true"><use href="#ordiMark"/></svg>';
   el('lgAv').classList.toggle('known', known);
-  el('lgTitle').textContent = known ? 'Welcome back, ' + USER.split(' ')[0] : 'Every Home';
-  el('lgSub').textContent = known ? 'Enter your PIN' : 'Enter your name and PIN';
+  el('lgTitle').textContent = known ? 'Welcome back, ' + USER.split(' ')[0] : BRAND;
+  el('lgSub').textContent = known ? 'Enter your PIN' : STORE + ' · Enter your name and PIN';
+  el('lgBrand').hidden = !known; el('lgBrandTx').textContent = BRAND + ' · ' + STORE;
   el('lgName').hidden = known;
   el('lgSwitch').hidden = !known;
   el('lgSwitch').textContent = known ? 'Not ' + USER.split(' ')[0] + '? Switch user' : '';

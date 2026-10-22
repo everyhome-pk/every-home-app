@@ -1,6 +1,6 @@
 {
-  "name": "Every Home",
-  "short_name": "Every Home",
+  "name": "ORDI · Every Home",
+  "short_name": "ORDI",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -18,6 +18,12 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
