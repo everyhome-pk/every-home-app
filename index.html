@@ -70,6 +70,15 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .nw{white-space:nowrap}
 .jr-disp{display:flex;gap:8px;align-items:flex-start;margin:-2px 0 10px;padding:8px 10px;border-radius:12px;background:var(--bg);font-size:12.5px;color:var(--muted)}
 .jr-disp i{font-size:16px;color:var(--brand);margin-top:1px}.jr-disp b{color:var(--text)}.jr-disp small{display:block;font-size:11.5px;margin-top:2px}
+.jr-head{font-size:13px;color:var(--muted);margin:-4px 0 2px}.jr-head b{color:var(--text);font-size:17px}
+.jr-stack{display:flex;height:10px;border-radius:99px;overflow:hidden;background:var(--line);margin:10px 0 10px}.jr-stack i{display:block;height:100%}
+.jr-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:6px}
+.jr-tiles div{background:var(--bg);border-radius:12px;padding:8px 4px;text-align:center;cursor:pointer}.jr-tiles b{display:block;font-size:18px}.jr-tiles small{font-size:10.5px;color:var(--muted)}
+.jr-grp{border-top:1px solid var(--line);padding:8px 0 2px;margin-top:6px}
+.jr-gh{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;margin-bottom:2px}.jr-gh>b{font-size:13px}.jr-gh span{color:var(--muted)}.jr-gh span b{color:var(--text)}
+.jr-gi{display:flex;align-items:center;gap:10px;padding:7px 0;cursor:pointer}.jr-gi>b{font-size:15px}.jr-gi>i{color:var(--faint);font-size:16px}
+.jr-dot2{width:8px;height:8px;border-radius:50%;background:var(--c);flex:none}
+.jr-gn{flex:1;min-width:0;font-size:13px;font-weight:600}.jr-gn small{display:block;font-weight:400;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .jr-funnel{font-size:13px;color:var(--muted);margin:-4px 0 2px;line-height:1.5}.jr-funnel b{color:var(--text);font-size:15px}.jr-funnel b.up{color:var(--green)}.jr-funnel b.down{color:var(--red)}.jr-funnel i.ti{font-size:13px;vertical-align:-1px}
 .late-b,.late-t{font-style:normal;color:var(--red);font-weight:600}.late-b{font-size:10.5px;background:var(--red-bg);padding:1px 6px;border-radius:99px;margin-left:4px;vertical-align:1px}
 .jr-now{display:flex;align-items:center;gap:8px;margin-top:8px;padding:9px 10px;border-radius:12px;border:1px dashed var(--line);font-size:12.5px;color:var(--muted);cursor:pointer}.jr-now span{flex:1}.jr-now b{color:var(--text)}.jr-now i{font-size:16px}
@@ -98,23 +107,21 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .seg{display:flex;background:var(--card);border-radius:12px;padding:3px;box-shadow:var(--shadow);margin-bottom:14px}
 .seg button{flex:1;border:0;background:none;color:var(--muted);padding:8px;border-radius:9px;font:500 12.5px Inter,sans-serif;cursor:pointer}
 .seg button.on{background:var(--brand);color:var(--brand-ink)}
-.hero{background:var(--hero);color:#fff;border-radius:22px;padding:18px;position:relative;overflow:hidden;margin-bottom:12px}
-.hero:after{content:"";position:absolute;right:-60px;top:-60px;width:180px;height:180px;border-radius:50%;background:var(--hero-2);opacity:.9}
-.hero>*{position:relative;z-index:1}
-.hero small{color:rgba(255,255,255,.7);font-size:12px}
-.hero .big{font-size:34px;font-weight:700;letter-spacing:-.5px;margin:4px 0 2px}
-.hero .delta{font-size:12px;color:var(--accent)}
-.hero-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
-.hero-row div{background:rgba(255,255,255,.08);border-radius:14px;padding:10px 12px}
-.hero-row span{display:block;font-size:11.5px;color:rgba(255,255,255,.65)}
-.hero-row b{font-size:17px;font-weight:600}
-.hero-row b{display:block;margin:2px 0}.hero-row em{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-style:normal;font-size:11px;color:rgba(255,255,255,.65)}.hero-row .late{font-style:normal;color:#F7A8A8;font-weight:600}
-.hero-later{display:flex;align-items:center;gap:6px;margin-top:12px;font-size:12px;color:rgba(255,255,255,.75)}.hero-later i{font-size:15px}
+/* Net COD card: same white card as the rest of Home; colour only on the numbers (teal total, green received, amber outstanding, red late). */
+.hero{background:var(--card);color:var(--text);border-radius:18px;padding:14px;box-shadow:var(--shadow);margin-bottom:12px}
+.hero small{color:var(--muted);font-size:12px}.hero>.hero-top:first-child small{color:var(--text);font-size:14px;font-weight:600}
+.hero .big{font-size:30px;font-weight:700;letter-spacing:-.5px;margin:6px 0 2px;color:var(--brand)}[data-mode="dark"] .hero .big{color:var(--accent)}
+.hero-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.hero-row div{background:var(--bg);border-radius:12px;padding:10px 12px}
+.hero-row span{display:block;font-size:11.5px;color:var(--muted)}
+.hero-row b{display:block;margin:2px 0;font-size:16px;font-weight:600}.hero-row div:first-child b{color:var(--green)}.hero-row div:last-child b{color:var(--amber)}
+.hero-row em{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-style:normal;font-size:11px;color:var(--muted)}.hero-row .late{font-style:normal;color:var(--red);font-weight:600}
+.hero-later{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;color:var(--muted)}.hero-later i{font-size:15px}
+.hero-bar{height:8px;border-radius:9px;background:var(--line);overflow:hidden;margin:10px 0 6px}.hero-bar i{display:block;height:100%;border-radius:9px;background:var(--brand);transition:width .8s cubic-bezier(.2,.8,.2,1)}[data-mode="dark"] .hero-bar i{background:var(--accent)}
 .oc-kp{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:4px 0 10px;text-align:center}
 .oc-kp div{background:var(--bg);border-radius:12px;padding:10px 4px;cursor:pointer}.oc-kp b{display:block;font-size:18px}.oc-kp small{font-size:11px;color:var(--muted)}
 .oc-warn{display:flex;align-items:center;gap:8px;margin-top:8px;padding:9px 10px;border-radius:12px;background:var(--amber-bg);color:var(--amber);font-size:12.5px;font-weight:600;cursor:pointer}.oc-warn span{flex:1}
 .hero-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.hero-bar{height:8px;border-radius:9px;background:rgba(255,255,255,.15);overflow:hidden;margin:10px 0 6px}.hero-bar i{display:block;height:100%;border-radius:9px;background:var(--accent);transition:width .8s cubic-bezier(.2,.8,.2,1)}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 .card{background:var(--card);border-radius:18px;padding:14px;box-shadow:var(--shadow);margin-bottom:12px}
 .tile{background:var(--card);border-radius:18px;padding:13px 14px;box-shadow:var(--shadow)}
@@ -267,7 +274,6 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   </div>
 
   <section id="tab-home">
-    <div class="brief" id="brief"><i class="ti ti-sparkles"></i><span>Loading…</span></div>
     <div class="pbar"><button class="pbtn" id="hPeriod"><i class="ti ti-calendar"></i><span>This month</span><i class="ti ti-chevron-down"></i></button><button class="pbtn" id="hCourier"><i class="ti ti-truck"></i><span>All couriers</span><i class="ti ti-chevron-down"></i></button></div>
     <div id="view">
       <div class="sk" style="height:170px;margin-bottom:12px"></div>
@@ -733,13 +739,10 @@ function renderHome(d) {
   homePbar();
   var k = d.kpis, p = d.prev, c = d.cash, jr = d.journey || {};
   var urgent = d.actions.filter(function (a) { return a.tone === 'danger'; }).length;
-  el('brief').innerHTML = '<i class="ti ti-sparkles"></i><span>' +
-    (d.actions.length ? d.actions.length + ' action items' + (urgent ? ' (' + urgent + ' urgent)' : '') : 'All clear · nothing pending') +
-    ' · ' + rs(c.pending) + ' outstanding</span><i class="ti ti-chevron-right" style="color:var(--faint)"></i>';
 
   // Home = what to do now, the money, where parcels are. Other reports live in the ☰ menu.
   var acts = d.actions, showAll = H.allActs || acts.length <= 4;
-  var h = '<div class="card fade" id="todo"><div class="h"><b>Action items</b><span>' + acts.length + '</span></div>' +
+  var h = '<div class="card fade" id="todo"><div class="h"><b>Action items</b><span>' + (acts.length ? acts.length + (urgent ? ' · <i class="late-t">' + urgent + ' urgent</i>' : '') : '') + '</span></div>' +
     (acts.length ? (showAll ? acts : acts.slice(0, 3)).map(function (a) {
       return '<div class="act" data-go="' + esc(a.go || 'ndr') + '" style="cursor:pointer"><div class="ic t-' + a.tone + '"><i class="ti ti-' + a.icon + '"></i></div><div><b>' + esc(a.title) + '</b><small>' + esc(a.sub) + '</small></div><i class="ti ti-chevron-right go"></i></div>';
     }).join('') + (showAll ? '' : '<button class="btn more" id="actsAll">See all ' + acts.length + ' action items</button>') : '<div class="empty"><i class="ti ti-circle-check"></i>Nothing pending</div>') + '</div>';
@@ -766,24 +769,39 @@ function renderHome(d) {
   // Booked parcels count on their dispatch day; orders not booked yet on their order day.
   var ds = d.dispatched || { leopards: 0, trax: 0 };
   var waitingBook = (jr.pending || 0) + (jr.confirmed || 0);
-  // Funnel: what happened to the parcels dispatched in this period so far.
-  var onWay = MOVING.reduce(function (a, st) { return a + (jr[st] || 0); }, 0);
-  var back = jr.returned || 0, comingBack = (jr.returning || 0) + (jr.rtoback || 0);
+  // Order journey: one picture first (bar + 4 tiles of what happened to this period's dispatches), then groups
+  // with their own count and COD, showing only stages that hold parcels. Amounts sit inside the box they belong to.
+  var jv = d.journeyValue || {};
+  var sumOf = function (keys, src) { return keys.reduce(function (a, st) { return a + ((src || jr)[st] || 0); }, 0); };
+  var onWay = sumOf(MOVING), comingBack = sumOf(BACK), back = jr.returned || 0, dlv = jr.delivered || 0;
   var lateAll = Object.keys(late).reduce(function (a, st) { return a + late[st]; }, 0);
-  var sumLine = '<div class="jr-funnel"><b class="num">' + k.booked + '</b> dispatched <i class="ti ti-arrow-right"></i> ' +
-    '<b class="num up">' + (jr.delivered || 0) + '</b> delivered' + (k.booked ? ' (' + Math.round(100 * (jr.delivered || 0) / k.booked) + '%)' : '') +
-    ' · <b class="num">' + onWay + '</b> on the way' + (lateAll ? ' (<i class="late-t">' + lateAll + ' late</i>)' : '') + (comingBack ? ' · <b class="num">' + comingBack + '</b> coming back' : '') + ' · <b class="num down">' + back + '</b> returned</div>' +
-    '<div class="jr-sum">' + rs(k.bookedValue) + (k.booked ? ' · Leopards ' + ds.leopards + ' · Trax ' + ds.trax : '') + (waitingBook ? ' · <b class="num">' + waitingBook + '</b> not booked yet' : '') +
+  var sumLine = '<div class="jr-head"><b class="num">' + k.booked + '</b> dispatched · ' + rs(k.bookedValue) + ' COD</div>' +
+    '<div class="jr-sum">' + (k.booked ? 'Leopards ' + ds.leopards + ' · Trax ' + ds.trax : 'Nothing dispatched in this period') +
     (delta(k.booked, p && p.booked) ? ' · <span class="nw">' + delta(k.booked, p && p.booked) + '</span>' : '') + '</div>';
+  var tot = Math.max(1, dlv + onWay + comingBack + back);
+  var seg = function (n, c) { return n ? '<i style="width:' + (100 * n / tot) + '%;background:' + c + '"></i>' : ''; };
+  var picture = k.booked ? '<div class="jr-stack">' + seg(dlv, 'var(--green)') + seg(onWay, 'var(--blue)') + seg(comingBack, 'var(--amber)') + seg(back, 'var(--red)') + '</div>' +
+    '<div class="jr-tiles">' +
+    '<div data-go="parcels:delivered"><b class="num" style="color:var(--green)">' + dlv + '</b><small>Delivered</small></div>' +
+    '<div data-go="parcels:moving"><b class="num" style="color:var(--blue)">' + onWay + '</b><small>On the way' + (lateAll ? ' · <i class="late-t">' + lateAll + ' late</i>' : '') + '</small></div>' +
+    '<div data-go="parcels:comingback"><b class="num" style="color:var(--amber)">' + comingBack + '</b><small>Coming back</small></div>' +
+    '<div data-go="parcels:returned"><b class="num" style="color:var(--red)">' + back + '</b><small>Returned</small></div></div>' : '';
+  var group = function (title, keys) {
+    var n = sumOf(keys); if (!n) return '';
+    return '<div class="jr-grp"><div class="jr-gh"><b>' + title + '</b><span><b class="num">' + n + '</b> · ' + rs(sumOf(keys, jv)) + '</span></div>' +
+      keys.filter(function (st) { return jr[st]; }).map(function (st) {
+        var s = stg(st);
+        return '<div class="jr-gi" data-go="parcels:' + st + '" style="--c:' + s[4] + '"><span class="jr-dot2"></span><span class="jr-gn">' + s[1] +
+          (late[st] ? ' <i class="late-b">' + late[st] + ' late</i>' : '') + '<small>' + (st === 'pending' && pf ? pf : s[2]) + '</small></span><b class="num">' + jr[st] + '</b><i class="ti ti-chevron-right"></i></div>';
+      }).join('') + '</div>';
+  };
   // Any date: everything with the couriers right now (one tap opens them in Parcels).
   var nowLine = d.movingNow ? '<div class="jr-now" data-go="parcels:moving:open"><i class="ti ti-truck"></i><span>Right now: <b class="num">' + d.movingNow + '</b> parcels on the way (any date)</span><i class="ti ti-chevron-right"></i></div>' : '';
   var stg = function (key) { return JOURNEY.filter(function (s) { return s[0] === key; })[0]; };
   if (d.live !== false) {
-    h += '<div class="card fade"><div class="h"><b>Order journey</b><span>' + esc(d.monthLabel) + '</span></div>' +
-      sumLine + '<div class="jr-list">' +
-      JOURNEY.map(function (s) {
-        return (s[0] === 'pending' ? '<div class="jr-sep">In progress</div>' : '') + (s[0] === 'returning' ? '<div class="jr-sep">Coming back</div>' : '') + (s[0] === 'delivered' ? '<div class="jr-sep">Outcome</div>' : '') + jrow(s);
-      }).join('') + '</div>' + cancelLine + nowLine + '</div>';
+    h += '<div class="card fade"><div class="h"><b>Order journey</b><span>' + esc(d.monthLabel) + '</span></div>' + sumLine + picture +
+      group('Before dispatch', ['pending', 'confirmed']) + group('With courier', MOVING) + group('Coming back', BACK) +
+      cancelLine + nowLine + '</div>';
   } else {
     var still = d.stillMoving || 0, never = (jr.pending || 0) + (jr.confirmed || 0);
     h += '<div class="card fade"><div class="h"><b>Order outcome</b><span>' + esc(d.monthLabel) + ' · closed</span></div>' +
@@ -891,7 +909,6 @@ function openReport(key) {
 function homePbar() { var ms = (H.data && H.data.months) || []; setPbar('h', H, ms, ms[0] && ms[0].key); }
 el('hPeriod').onclick = function () { var ms = (H.data && H.data.months) || []; openPeriodSheet(H, ms, ms[0] && ms[0].key, function () { homePbar(); loadHome(false); }); };
 el('hCourier').onclick = function () { openCourierSheet(H, function () { homePbar(); loadHome(false); }); };
-el('brief').onclick = function () { H.allActs = true; if (H.data) renderHome(H.data); if (el('todo')) el('todo').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
 function markChip(box, b) { box.querySelectorAll('.chip,button').forEach(function (x) { x.classList.toggle('on', x === b); }); }
 el('view').onclick = function (e) {
   if (e.target.closest('#actsAll')) { H.allActs = true; renderHome(H.data); return; }
@@ -952,11 +969,13 @@ var JOURNEY = [
   ['returned', 'Returned', 'Received and scanned by us', 'package-import', 'var(--red)']
 ];
 var MOVING = ['booked', 'picked', 'transit', 'atdest', 'ofd', 'ndr']; // same as the server's APP_MOVING_STAGES
+var BACK = ['returning', 'rtoback']; // on the way back to us, or handed back by the courier but not scanned yet
 var STAGE = {};
 JOURNEY.forEach(function (s) { STAGE[s[0]] = [s[1], s[4]]; });
 STAGE.cancelled = ['Cancelled', 'var(--faint)'];
 STAGE.moving = ['With courier', 'var(--blue)']; // filter only: all stages still with the courier
-STAGE.nocn = ['Missing tracking', 'var(--amber)']; // filter only: booked (courier tag) but no CN yet
+STAGE.nocn = ['Missing tracking', 'var(--amber)'];
+STAGE.comingback = ['Coming back', 'var(--amber)']; // filter only: returning + courier says returned // filter only: booked (courier tag) but no CN yet
 var pAt = 0;
 function loadParcels(fresh) {
   if (!fresh && Date.now() - pAt < 60000) return;
@@ -980,13 +999,13 @@ function renderParcels() {
       (qd.length >= 4 && String(p.phone).replace(/[^0-9]/g, '').indexOf(qd.replace(/^92/, '0')) !== -1);
   });
   var counts = { all: found.filter(function (p) { return p.stage !== 'cancelled'; }).length }; // like Home: cancelled orders only under their own chip
-  found.forEach(function (p) { counts[p.stage] = (counts[p.stage] || 0) + 1; if (MOVING.indexOf(p.stage) !== -1) counts.moving = (counts.moving || 0) + 1; if (p.stage === 'booked' && !p.cn) counts.nocn = (counts.nocn || 0) + 1; });
+  found.forEach(function (p) { counts[p.stage] = (counts[p.stage] || 0) + 1; if (MOVING.indexOf(p.stage) !== -1) counts.moving = (counts.moving || 0) + 1; if (p.stage === 'booked' && !p.cn) counts.nocn = (counts.nocn || 0) + 1; if (BACK.indexOf(p.stage) !== -1) counts.comingback = (counts.comingback || 0) + 1; });
   // Chips: [month/courier from Home ✕] All, then every journey stage that has parcels (the chosen one always).
-  var keys = ['all'].concat(P.filter === 'moving' || P.filter === 'nocn' ? [P.filter] : [], JOURNEY.map(function (s) { return s[0]; }), ['cancelled'])
+  var keys = ['all'].concat(['moving', 'nocn', 'comingback'].indexOf(P.filter) !== -1 ? [P.filter] : [], JOURNEY.map(function (s) { return s[0]; }), ['cancelled'])
     .filter(function (k) { return k === 'all' || counts[k] || k === P.filter; });
   P.opts = keys.map(function (k) { return [k, k === 'all' ? 'All stages' : STAGE[k][0], counts[k] || 0]; });
   el('pchips').innerHTML = fbar('p', P.filter === 'all' ? 'All stages' : (STAGE[P.filter] || [P.filter])[0], counts[P.filter] || 0, ctx && ctx.label);
-  var list = found.filter(function (p) { return P.filter === 'all' ? p.stage !== 'cancelled' : P.filter === 'moving' ? MOVING.indexOf(p.stage) !== -1 : P.filter === 'nocn' ? p.stage === 'booked' && !p.cn : p.stage === P.filter; });
+  var list = found.filter(function (p) { return P.filter === 'all' ? p.stage !== 'cancelled' : P.filter === 'moving' ? MOVING.indexOf(p.stage) !== -1 : P.filter === 'nocn' ? p.stage === 'booked' && !p.cn : P.filter === 'comingback' ? BACK.indexOf(p.stage) !== -1 : p.stage === P.filter; });
   if (!list.length) { el('plist').innerHTML = '<div class="card empty"><i class="ti ti-package-off" style="color:var(--faint)"></i>No parcels found</div>'; return; }
   el('plist').innerHTML = list.slice(0, P.limit).map(parcelCard).join('') + moreBtn('pmore', Math.min(P.limit, list.length), list.length);
   if (el('pmore')) { el('pmore').onclick = function () { P.limit += PAGE; renderParcels(); }; autoMore('pmore', P.limit); }
