@@ -172,11 +172,12 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .p-ok{background:var(--green-bg);color:var(--green)}.p-no{background:var(--red-bg);color:var(--red)}
 .nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:10}
 .nav div{max-width:460px;margin:0 auto;display:flex}
-.nav button{flex:1;border:0;background:none;color:var(--faint);font:500 11px Inter,sans-serif;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;position:relative}
-.nav button i{font-size:22px}
-.nav button.on{color:var(--brand)}
+.nav button{flex:1;border:0;background:none;color:var(--muted);font:500 11px Inter,sans-serif;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;position:relative}
+.nav button i{font-size:22px;padding:3px 18px;border-radius:16px;transition:background .2s}
+.nav button.on{color:var(--brand);font-weight:700}.nav button.on i{background:rgba(0,133,122,.13)}
+[data-mode="dark"] .nav button.on i{background:rgba(63,224,168,.15)}
 [data-mode="dark"] .nav button.on,[data-mode="dark"] .brief i{color:var(--accent)}
-.badge{position:absolute;top:-4px;left:calc(50% + 6px);background:var(--red);color:#fff;font-size:10px;font-weight:700;border-radius:99px;padding:1px 6px}
+.badge{position:absolute;top:-4px;left:calc(50% + 8px);background:var(--red);color:#fff;font-size:10px;font-weight:700;border-radius:99px;padding:1px 6px}
 .sk{background:linear-gradient(90deg,var(--line) 25%,var(--card) 50%,var(--line) 75%);background-size:200% 100%;animation:sk 1.2s infinite;border-radius:18px}
 @keyframes sk{to{background-position:-200% 0}}
 .toast{position:fixed;left:50%;bottom:86px;transform:translate(-50%,20px);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:20}
@@ -201,6 +202,35 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .prow-3{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--amber);margin-top:4px}.prow-3 i{font-size:14px}
 .cf-r{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:13.5px}.cf-r small{display:block;font-size:11.5px;color:var(--muted);margin-top:1px}.cf-r.tap{cursor:pointer}
 .cflow .cf-r:first-of-type{border-top:0}.cf-pct{display:block;font-size:11px;color:var(--muted);margin-bottom:4px}
+.mr-pick{display:flex;align-items:center;gap:8px;margin:2px 0 10px}.mr-pick select{flex:1;padding:8px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);font:500 13px Inter,sans-serif}.mr-pick span{font-size:12px;color:var(--muted)}
+.mchart .col small{font-size:9.5px}
+.mtab{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.mtab th{font-size:10.5px;color:var(--muted);font-weight:600;text-align:right;padding:4px 3px}.mtab th:first-child,.mtab td:first-child{text-align:left}
+.mtab td{text-align:right;padding:7px 3px;border-top:1px solid var(--line)}.mtab tbody tr{cursor:pointer}.mtab tfoot td{font-weight:700;border-top:2px solid var(--line)}
+.mtab .up{color:var(--green)}.mtab .down{color:var(--red)}
+.mnote{display:block;font-size:11px;color:var(--muted);margin-top:8px;line-height:1.4}
+.prow.ins{flex-wrap:nowrap}.cprods{margin-top:8px;border-top:1px dashed var(--line);padding-top:6px}.cp{display:flex;gap:8px;font-size:12px;padding:3px 0}.cp span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cp em{font-style:normal;color:var(--red);font-size:11px;width:40px;text-align:right}
+.prow.open .ti-chevron-down{transform:rotate(180deg)}
+.rbar{margin:10px 0}.rbar div{display:flex;justify-content:space-between;font-size:13px}.rbar i{display:block;height:8px;border-radius:6px;background:var(--line);margin-top:5px;overflow:hidden}.rbar u{display:block;height:100%;background:var(--amber);border-radius:6px;transition:width .8s}
+.ccl{padding:9px 0;border-top:1px solid var(--line)}.ccity .ccl:first-of-type,.card .h+.ccl{border-top:0}
+.ccl-1{display:flex;justify-content:space-between;gap:8px;font-size:14px}.ccl-1 b{font-weight:600}.ccl-1 span{font-weight:700;font-size:13px}
+.ccl-2{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;color:var(--muted);margin-top:3px;flex-wrap:wrap}.ccl-2 i{font-size:13px;vertical-align:-2px;margin-right:3px}
+.ccl-3{font-size:11px;color:var(--faint);margin-top:2px}
+.ccbest{font-size:10.5px;font-weight:700;color:var(--green);background:var(--green-bg);padding:1px 7px;border-radius:99px;margin-left:4px}
+.risk{font-weight:600}
+.hist{border:1px solid var(--line);border-left:4px solid var(--c);border-radius:12px;padding:9px 11px;margin:0 0 10px;font-size:12.5px}
+.hist.new{display:flex;gap:8px;align-items:center;color:var(--muted);border-left-color:var(--line)}.hist.new b{color:var(--text)}
+.hist-h{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.hist-h i{color:var(--c);font-size:16px}.hist-h span{margin-left:auto;color:var(--muted);font-size:11.5px}
+.hist-r{display:flex;justify-content:space-between;align-items:center;padding:5px 0 0;color:var(--muted);cursor:pointer}.hist-r .st{font-size:10.5px;padding:1px 8px}
+.dl-bar{height:4px;border-radius:3px;background:var(--line);margin-top:6px;overflow:hidden}.dl-bar i{display:block;height:100%;background:var(--brand);border-radius:3px}
+.dl-now{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:4px 0 6px}.dl-now span{background:var(--bg);border-radius:12px;padding:8px 4px;text-align:center;font-size:10.5px;color:var(--muted)}.dl-now b{display:block;font-size:18px}
+.dl-share{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--green);text-decoration:none;letter-spacing:0}
+.icon-btn{position:relative}.bell-dot{position:absolute;top:8px;right:9px;width:9px;height:9px;border-radius:50%;background:var(--red);border:2px solid var(--card)}
+.al{display:flex;gap:11px;padding:11px 14px;border-top:1px solid var(--line);cursor:pointer}.al:first-child{border-top:0}.al.new{background:rgba(0,133,122,.06)}
+.al-i{flex:none;width:32px;height:32px;border-radius:10px;background:var(--bg);display:grid;place-items:center;font-size:17px}
+.al b{display:block;font-size:13.5px}.al small{display:block;font-size:12px;color:var(--muted);margin-top:2px;line-height:1.4}.al em{display:block;font-style:normal;font-size:11px;color:var(--faint);margin-top:3px}
+.pref{display:flex;align-items:center;gap:10px;padding:12px 14px;border-top:1px solid var(--line);cursor:pointer}.pref:first-child{border-top:0}.pref div{flex:1}.pref b{display:block;font-size:13.5px}.pref small{font-size:11.5px;color:var(--muted)}
+.pref input{display:none}.sw{flex:none;width:42px;height:24px;border-radius:99px;background:var(--line);position:relative;transition:background .2s}.sw:after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .2s}
+.pref input:checked+.sw{background:var(--brand)}.pref input:checked+.sw:after{left:21px}
 .prow.dim{opacity:.7}.found-items{display:flex;align-items:center;gap:8px;font-size:13px;background:var(--bg);border-radius:12px;padding:9px 11px;margin:4px 0 6px}.found-items span{flex:1}.found-items i{color:var(--muted)}
 .prow.in{padding-left:0;padding-right:0}.prow.in:first-child{border-top:1px solid var(--line)}
 .prow-btn{flex:none !important;width:auto !important;padding:7px 11px;font-size:12px;align-self:center;gap:5px}
@@ -335,6 +365,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   <div class="top">
     <button class="icon-btn" id="btnMenu" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
     <div class="hello"><b id="greet">Welcome</b><span id="upd">Every Home</span></div>
+    <button class="icon-btn" id="btnBell" aria-label="Notifications"><i class="ti ti-bell"></i><span class="bell-dot" id="bellDot" hidden></span></button>
     <button class="icon-btn" id="btnRefresh" aria-label="Refresh"><i class="ti ti-refresh"></i></button>
   </div>
 
@@ -385,7 +416,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   <button class="on" data-tab="home"><i class="ti ti-home"></i>Home</button>
   <button data-tab="parcels"><i class="ti ti-package"></i>Parcels</button>
   <button data-tab="ndr"><i class="ti ti-headset"></i>NDR<span class="badge" id="badge" style="display:none"></span></button>
-  <button data-tab="returns"><i class="ti ti-scan"></i>Returns</button>
+  <button data-tab="returns"><i class="ti ti-scan"></i>Returns<span class="badge" id="rbadge" style="display:none;background:var(--amber)"></span></button>
   <button data-tab="cash"><i class="ti ti-wallet"></i>Cash</button>
 </div></div>
 <div class="toast" id="toast"></div>
@@ -396,8 +427,13 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   <div class="dr-h">Performance</div>
   <button class="dr-i" data-rep="success"><i class="ti ti-chart-donut"></i>Delivery success</button>
   <button class="dr-i" data-rep="couriers"><i class="ti ti-scale"></i>Courier comparison</button>
-  <button class="dr-i" data-rep="dispatched"><i class="ti ti-truck-delivery"></i>Shipped · last 14 days</button>
-  <button class="dr-i" data-rep="months"><i class="ti ti-chart-bar"></i>Last 6 months</button>
+  <button class="dr-i" id="btnDispatch"><i class="ti ti-truck-delivery"></i>Dispatch log</button>
+  <button class="dr-i" data-rep="months"><i class="ti ti-chart-bar"></i>Monthly report</button>
+  <div class="dr-h">Insights</div>
+  <button class="dr-i" data-rep="couriercity"><i class="ti ti-route"></i>Courier by city</button>
+  <button class="dr-i" data-rep="cities"><i class="ti ti-map-pin"></i>Top cities</button>
+  <button class="dr-i" data-rep="products"><i class="ti ti-shopping-bag"></i>Top products</button>
+  <button class="dr-i" data-rep="reasons"><i class="ti ti-alert-triangle"></i>Why deliveries fail</button>
   <div class="dr-h">Couriers</div>
   <button class="dr-i" data-rep="escalations"><i class="ti ti-headset"></i>Courier escalations</button>
   <div class="dr-h">App</div>
@@ -654,6 +690,79 @@ function findParcel(key) {
   return list.filter(function (p) { return p.cn && String(p.cn).toUpperCase() === k; })[0] ||
     list.filter(function (p) { return String(p.ref || '').toUpperCase().replace(/^#/, '') === k || String(p.id) === key; })[0] || null;
 }
+function histBlock(p) {
+  var h = p.hist, r = custRisk(h);
+  if (!h) return '<div class="hist new"><i class="ti ti-user-plus"></i><span><b>New customer</b> · first order from this number</span></div>';
+  var lab = { delivered: ['Delivered', 'var(--green)'], returned: ['Returned', 'var(--red)'], cancelled: ['Cancelled', 'var(--faint)'], open: ['Open', 'var(--blue)'] };
+  return '<div class="hist" style="--c:' + (r ? r.c : 'var(--line)') + '"><div class="hist-h"><i class="ti ti-' + (r ? r.i : 'user') + '"></i><b>Customer history</b><span>' +
+    [h.delivered + ' delivered', h.returned + ' returned', h.cancelled ? h.cancelled + ' cancelled' : '', h.open ? h.open + ' open' : ''].filter(Boolean).join(' · ') + '</span></div>' +
+    (h.prev || []).map(function (x) { var l = lab[x.out] || ['', 'var(--muted)']; return '<div class="hist-r" data-p="' + esc(x.ref) + '"><span>' + esc(x.ref) + (x.date ? ' · ' + esc(x.date) : '') + '</span><span class="st" style="--c:' + l[1] + '">' + l[0] + '</span></div>'; }).join('') + '</div>';
+}
+// ---------- Dispatch log: parcels handed to couriers, day by day (pickup manifest) ----------
+// Per day: how many parcels went to each courier, their COD, and the pickup check (did the courier scan them?).
+// Tap a day: that day's manifest per courier, each parcel's status now, and Share (WhatsApp list for the rider).
+var DL_DAYS = 30;
+function dispatchDays() {
+  var from = addDays(pkDay(new Date()), -DL_DAYS + 1), days = {};
+  ((P.data && P.data.parcels) || []).forEach(function (p) {
+    if (!p.cn || !p.dispatched || p.stage === 'cancelled' || !p.ms) return;
+    var k = pkDay(new Date(p.ms)); if (k < from) return;
+    (days[k] = days[k] || []).push(p);
+  });
+  return days;
+}
+function pickedUp(p) { return ['pending', 'confirmed', 'booked'].indexOf(p.stage) === -1; }
+function openDispatchLog(day) {
+  if (!P.data) {
+    el('panel').innerHTML = '<h3>Dispatch log</h3><div class="sk" style="height:160px"></div>'; openPanel();
+    return api('getAppParcels', [{ token: TOKEN }], function (d) { P.data = d; snap('parcels', d); openDispatchLog(day); });
+  }
+  var days = dispatchDays(), keys = Object.keys(days).sort().reverse(), today = pkDay(new Date()), yday = addDays(today, -1);
+  var label = function (k) { return k === today ? 'Today · ' + niceDay(k) : k === yday ? 'Yesterday · ' + niceDay(k) : niceDay(k); };
+  var sum = function (list) { return list.reduce(function (a, p) { return a + (Number(p.total) || 0); }, 0); };
+  var h;
+  if (!day) {
+    var max = Math.max.apply(null, keys.map(function (k) { return days[k].length; }).concat([1]));
+    h = '<h3>Dispatch log</h3><p>Parcels handed to couriers · last ' + DL_DAYS + ' days · tap a day for its manifest</p>' +
+      (keys.length ? '<div class="plist-box">' + keys.map(function (k) {
+        var list = days[k], lp = list.filter(function (p) { return p.courier === 'Leopards'; }).length, tx = list.filter(function (p) { return p.courier === 'Trax'; }).length;
+        var wait = list.filter(function (p) { return !pickedUp(p); }).length, late = wait && k < yday;
+        var chk = !wait ? ['All ' + list.length + ' picked', 'var(--green)'] : late ? [wait + ' not picked', 'var(--red)'] : [(list.length - wait) + ' picked · ' + wait + ' waiting', 'var(--amber)'];
+        return '<div class="prow" data-dl="' + k + '" style="--c:' + chk[1] + '"><span class="prow-d"></span><div class="prow-m">' +
+          '<div class="prow-1"><b>' + label(k) + '</b><span class="num">' + list.length + ' parcels</span></div>' +
+          '<div class="prow-2"><span>' + [lp ? 'Leopards ' + lp : '', tx ? 'Trax ' + tx : ''].filter(Boolean).join(' · ') + ' · ' + rs(sum(list)) + '</span><span class="st" style="--c:' + chk[1] + '">' + chk[0] + '</span></div>' +
+          '<div class="dl-bar"><i style="width:' + (100 * list.length / max) + '%"></i></div></div></div>';
+      }).join('') + '</div>' : '<div class="empty">Nothing dispatched in the last ' + DL_DAYS + ' days</div>') +
+      '<div class="btns" style="margin-top:10px"><button class="btn" id="dlClose">Close</button></div>';
+  } else {
+    var list = days[day] || [];
+    var cnt = function (f) { return list.filter(f).length; };
+    var by = {}; list.forEach(function (p) { (by[p.courier || 'Other'] = by[p.courier || 'Other'] || []).push(p); });
+    h = '<h3>' + label(day) + ' · ' + list.length + ' parcels</h3><p>' + rs(sum(list)) + ' COD · ' + cnt(pickedUp) + ' of ' + list.length + ' picked up</p>' +
+      '<div class="dl-now"><span><b class="num" style="color:var(--green)">' + cnt(function (p) { return p.stage === 'delivered'; }) + '</b>Delivered</span>' +
+      '<span><b class="num" style="color:var(--blue)">' + cnt(function (p) { return MOVING.indexOf(p.stage) !== -1 && p.stage !== 'booked'; }) + '</b>In transit</span>' +
+      '<span><b class="num" style="color:var(--amber)">' + cnt(function (p) { return p.stage === 'booked'; }) + '</b>Not picked</span>' +
+      '<span><b class="num" style="color:var(--red)">' + cnt(function (p) { return BACK.indexOf(p.stage) !== -1 || p.stage === 'returned'; }) + '</b>Returning</span></div>' +
+      Object.keys(by).sort().map(function (c) {
+        var l = by[c], msg = '*' + STORE + ' → ' + c + '*\n' + niceDay(day) + ' · ' + l.length + ' parcels · COD ' + rs(sum(l)) + '\n\n' +
+          l.map(function (p, i) { return (i + 1) + '. ' + p.cn + ' · ' + p.ref + ' · ' + p.city + ' · ' + rs(p.total); }).join('\n');
+        return '<div class="pday"><span>' + esc(c).toUpperCase() + ' · ' + l.length + ' · ' + rs(sum(l)) + '</span><a class="dl-share" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(msg) + '"><i class="ti ti-brand-whatsapp"></i>Share</a></div>' +
+          '<div class="plist-box">' + l.map(function (p) {
+            var s = STAGE[p.stage] || ['', 'var(--line)'], st = p.stage === 'booked' ? ['Not picked yet', 'var(--amber)'] : [STAGE_SHORT[p.stage] || s[0], s[1]];
+            return '<div class="prow" data-p="' + esc(p.cn) + '" style="--c:' + st[1] + '"><span class="prow-d"></span><div class="prow-m">' +
+              '<div class="prow-1"><b>' + esc(p.ref) + ' · ' + esc(p.name) + '</b><span class="num">' + rs(p.total) + '</span></div>' +
+              '<div class="prow-2"><span>' + esc(p.cn) + ' · ' + esc(p.city) + '</span><span class="st" style="--c:' + st[1] + '">' + st[0] + '</span></div></div></div>';
+          }).join('') + '</div>';
+      }).join('') +
+      '<div class="btns" style="margin-top:10px"><button class="btn" id="dlBack"><i class="ti ti-arrow-left"></i>All days</button><button class="btn" id="dlClose">Close</button></div>';
+  }
+  el('panel').innerHTML = h;
+  if (!el('overlay').classList.contains('show')) openPanel();
+  el('panel').scrollTop = 0;
+  el('dlClose').onclick = closePanel;
+  if (el('dlBack')) el('dlBack').onclick = function () { openDispatchLog(); };
+  el('panel').querySelectorAll('[data-dl]').forEach(function (r) { r.onclick = function () { openDispatchLog(r.getAttribute('data-dl')); }; });
+}
 function openParcel(key) {
   var p = findParcel(key);
   if (!p && !P.data) { // Parcels not loaded yet: load once, then open
@@ -668,6 +777,7 @@ function openParcel(key) {
   var h = '<div class="pd-top"><div><h3>' + esc(p.ref) + ' · ' + esc(p.name) + '</h3><p>' + (p.cn ? esc(p.courier) + ' · ' + esc(p.cn) : 'Not booked yet') + '</p></div>' +
     '<span class="st" style="--c:' + s[1] + '">' + s[0] + '</span></div>' +
     ((p.flags || []).length ? '<div style="margin:-4px 0 8px">' + p.flags.map(function (f) { return '<span class="flag">' + esc(f) + '</span>'; }).join('') + '</div>' : '') +
+    histBlock(p) +
     '<div class="pd">' +
     row('Order date', esc(p.ordered || p.date)) + (p.dispatched ? row('Shipped', esc(p.dispatched)) : '') + row('COD', rs(p.total)) + row('Items', esc(p.items)) +
     row('Phone', esc(phoneText(p.phone))) + row('City', esc(p.city)) + row('Address', esc(p.address)) +
@@ -968,7 +1078,7 @@ function renderHome(d) {
 }
 // ---------- reports (☰ menu): same period + courier as Home, shown in a sheet ----------
 var REPORT = {};
-var REPORT_TITLE = { success: 'Delivery success', cod: 'COD breakdown', couriers: 'Courier comparison', months: 'Last 6 months', dispatched: 'Shipped · last 14 days', payments: 'Courier payments' };
+var REPORT_TITLE = { success: 'Delivery success', cod: 'COD breakdown', couriers: 'Courier comparison', months: 'Monthly report', couriercity: 'Courier by city', cities: 'Top cities', products: 'Top products', reasons: 'Why deliveries fail', dispatched: 'Shipped · last 14 days', payments: 'Courier payments' };
 REPORT.success = function (d) {
   var k = d.kpis, p = d.prev, h = '';
   var succ = k.success == null ? 0 : k.success;
@@ -1002,18 +1112,103 @@ REPORT.couriers = function (d) {
   }
   return h;
 };
+// Monthly report: last 12 months by default; this year, last year or any months (from–to) the user picks
+var MR = { mode: '12', from: '', to: '' };
+function monthRange(tr) {
+  // months before the store had any order are left out (like the W1 cockpit)
+  var first = tr.findIndex(function (m) { return m.orders || m.delivered || m.returned; });
+  tr = first < 0 ? [] : tr.slice(first);
+  var y = String(new Date().getFullYear());
+  if (MR.mode === 'year') return tr.filter(function (m) { return m.year === y; });
+  if (MR.mode === 'lastyear') return tr.filter(function (m) { return m.year === String(Number(y) - 1); });
+  if (MR.mode === 'custom' && MR.from && MR.to) return tr.filter(function (m) { return m.key >= MR.from && m.key <= MR.to; });
+  return tr.slice(-12);
+}
 REPORT.months = function (d) {
-  var h = '';
-  var maxT = Math.max.apply(null, d.trend.map(function (t) { return t.delivered + t.returned + t.open; }).concat([1]));
-  h += '<div class="card fade"><div class="h"><b>Last 6 months</b><span>Tap a month</span></div><div class="chart">' +
-    d.trend.map(function (t) {
-      var tot = t.delivered + t.returned + t.open;
-      return '<div class="col" data-m="' + t.key + '"><div class="tot num">' + (tot || '') + '</div><div class="stack" style="height:' + Math.max(4, 100 * tot / maxT) + 'px">' +
-        '<i style="height:0;background:var(--green)" data-h="' + (tot ? 100 * t.delivered / tot : 0) + '"></i>' +
-        '<i style="height:0;background:var(--red)" data-h="' + (tot ? 100 * t.returned / tot : 0) + '"></i>' +
-        '<i style="height:0;background:var(--blue)" data-h="' + (tot ? 100 * t.open / tot : 0) + '"></i></div><small>' + t.label + '</small></div>';
-    }).join('') + '</div><div class="legend"><span style="--c:var(--green)">Delivered</span><span style="--c:var(--red)">Returned</span><span style="--c:var(--blue)">In progress</span></div></div>';
+  var tr = d.trend || [], list = monthRange(tr);
+  var maxT = Math.max.apply(null, list.map(function (t) { return t.delivered + t.returned + t.open; }).concat([1]));
+  var opt = function (k) { return tr.map(function (m) { return '<option value="' + m.key + '"' + (m.key === k ? ' selected' : '') + '>' + m.label + ' ' + m.year + '</option>'; }).join(''); };
+  var pctf = function (a, b) { return b ? Math.round(100 * a / b) + '%' : '—'; };
+  var tot = list.reduce(function (s, m) { return { o: s.o + m.orders, d: s.d + m.delivered, r: s.r + m.returned, s: s.s + m.sale }; }, { o: 0, d: 0, r: 0, s: 0 });
+  var h = '<div class="chips wrapc" id="mrMode">' + [['12', 'Last 12 months'], ['year', 'This year'], ['lastyear', 'Last year'], ['custom', 'Custom']].map(function (x) {
+    return '<button class="chip' + (MR.mode === x[0] ? ' on' : '') + '" data-mr="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>' +
+    (MR.mode === 'custom' ? '<div class="mr-pick"><select id="mrFrom">' + opt(MR.from || (tr[tr.length - 3] || {}).key) + '</select><span>to</span><select id="mrTo">' + opt(MR.to || (tr[tr.length - 1] || {}).key) + '</select></div>' : '');
+  if (!list.length) return h + '<div class="empty">No months in this range</div>';
+  h += '<div class="card fade"><div class="chart mchart">' + list.map(function (t) {
+    var n = t.delivered + t.returned + t.open;
+    return '<div class="col" data-m="' + t.key + '"><div class="tot num">' + (n || '') + '</div><div class="stack" style="height:' + Math.max(4, 90 * n / maxT) + 'px">' +
+      '<i style="height:0;background:var(--green)" data-h="' + (n ? 100 * t.delivered / n : 0) + '"></i>' +
+      '<i style="height:0;background:var(--red)" data-h="' + (n ? 100 * t.returned / n : 0) + '"></i>' +
+      '<i style="height:0;background:var(--blue)" data-h="' + (n ? 100 * t.open / n : 0) + '"></i></div><small>' + t.label + '</small></div>';
+  }).join('') + '</div><div class="legend"><span style="--c:var(--green)">Delivered</span><span style="--c:var(--red)">Returned</span><span style="--c:var(--blue)">In progress</span></div></div>' +
+    '<div class="card"><table class="mtab"><thead><tr><th>Month</th><th>Orders</th><th>Deliv.</th><th>Success</th><th>RTO</th><th>Sale</th></tr></thead><tbody>' +
+    list.slice().reverse().map(function (m) {
+      var fin = m.delivered + m.returned;
+      return '<tr class="mrow" data-m="' + m.key + '"><td>' + m.label + ' ' + m.year.slice(2) + '</td><td>' + m.orders + '</td><td>' + m.delivered + '</td><td class="up">' + pctf(m.delivered, fin) + '</td><td class="down">' + pctf(m.returned, fin) + '</td><td>' + rsK(m.sale) + '</td></tr>';
+    }).join('') +
+    '</tbody><tfoot><tr><td>Total</td><td>' + tot.o + '</td><td>' + tot.d + '</td><td class="up">' + pctf(tot.d, tot.d + tot.r) + '</td><td class="down">' + pctf(tot.r, tot.d + tot.r) + '</td><td>' + rsK(tot.s) + '</td></tr></tfoot></table>' +
+    '<small class="mnote">Success / RTO count finished parcels only (delivered + returned). Sale = delivered orders. Tap a month to open it on Home.</small></div>';
   return h;
+};
+// Rs 1,07,884 → 1.08L, 84,210 → 84.2k (table cells stay short)
+function rsK(n) { n = Math.round(n || 0); return n >= 100000 ? (n / 100000).toFixed(2) + 'L' : n >= 1000 ? (n / 1000).toFixed(1) + 'k' : String(n); }
+
+// ---- Insights ----
+var riskOf = function (ret, fin) { var r = fin ? ret / fin : 0; return r >= 0.25 ? ['High RTO', 'var(--red)'] : r >= 0.15 ? ['Moderate', 'var(--amber)'] : ['Stable', 'var(--green)']; };
+REPORT.cities = function (d) {
+  var cs = (d.insights && d.insights.cities) || [];
+  if (!cs.length) return '<div class="empty">No orders in this period</div>';
+  return '<div class="plist-box">' + cs.map(function (c, i) {
+    var fin = c.delivered + c.returned, r = riskOf(c.returned, fin);
+    return '<div class="prow ins" data-city="' + i + '" style="--c:' + r[1] + '"><span class="prow-d"></span><div class="prow-m">' +
+      '<div class="prow-1"><b>' + (i + 1) + '. ' + esc(c.city) + '</b><span class="num">' + c.orders + ' orders</span></div>' +
+      '<div class="prow-2"><span>' + c.delivered + ' delivered · ' + rs(c.sale) + (c.delivered ? ' · avg ' + rs(c.sale / c.delivered) : '') + '</span><span class="st" style="--c:' + r[1] + '">' + (fin ? Math.round(100 * c.returned / fin) + '% RTO' : r[0]) + '</span></div>' +
+      '<div class="cprods" hidden>' + (c.products.length ? c.products.map(function (p) {
+        return '<div class="cp"><span>' + esc(p.name) + '</span><b class="num">' + p.orders + '</b><em>' + (p.returned ? p.returned + ' ret' : '') + '</em></div>'; }).join('') : '<small>No product lines</small>') + '</div>' +
+      '</div><i class="ti ti-chevron-down" style="color:var(--faint)"></i></div>';
+  }).join('') + '</div><small class="mnote">Tap a city to see what sells there. RTO % = returned of finished parcels. 🔴 25%+ · 🟡 15%+ · 🟢 stable</small>';
+};
+REPORT.products = function (d) {
+  var ps = (d.insights && d.insights.products) || [];
+  if (!ps.length) return '<div class="empty">No product lines in this period</div>';
+  return '<div class="plist-box">' + ps.map(function (p, i) {
+    var rr = p.orders ? p.returned / p.orders : 0, c = rr >= 0.25 ? 'var(--red)' : rr >= 0.15 ? 'var(--amber)' : 'var(--green)';
+    return '<div class="prow" style="--c:' + c + '"><span class="prow-d"></span><div class="prow-m">' +
+      '<div class="prow-1"><b>' + (i + 1) + '. ' + esc(p.name) + '</b><span class="num">' + p.orders + ' orders</span></div>' +
+      '<div class="prow-2"><span>' + p.units + ' units · ' + rs(p.sale) + ' delivered</span><span class="st" style="--c:' + c + '">' + Math.round(100 * rr) + '% returned</span></div></div></div>';
+  }).join('') + '</div>';
+};
+// Courier by city: who delivers best and fastest where (last 6 months, all couriers) — to pick the courier per city
+var CC = { q: '' };
+function ccLine(c) {
+  var succ = c.success == null ? null : Math.round(100 * c.success);
+  var col = succ == null ? 'var(--faint)' : succ >= 85 ? 'var(--green)' : succ >= 70 ? 'var(--amber)' : 'var(--red)';
+  var eta = c.typical == null ? 'no deliveries yet' : '~' + c.typical + ' days' + (c.most != null && c.most > c.typical ? ' · most within ' + Math.ceil(c.most) : '');
+  return '<div class="ccl"><div class="ccl-1"><b>' + esc(c.name) + (c.best ? ' <span class="ccbest">★ Best</span>' : '') + '</b>' +
+    '<span class="num" style="color:' + col + '">' + (succ == null ? '—' : succ + '% delivered') + '</span></div>' +
+    '<div class="ccl-2"><span>' + c.shipped + ' sent · ' + c.delivered + ' delivered · ' + c.returned + ' returned</span><span><i class="ti ti-clock"></i>' + eta + '</span></div>' +
+    (c.finished < 5 ? '<div class="ccl-3">Too few finished parcels to judge</div>' : '') + '</div>';
+}
+REPORT.couriercity = function (d) {
+  var cc = d.insights && d.insights.courierCity;
+  if (!cc || !cc.cities.length) return '<div class="empty">No parcels booked in the last 6 months</div>';
+  var q = CC.q.toLowerCase().trim();
+  var list = cc.cities.filter(function (c) { return !q || c.city.toLowerCase().indexOf(q) !== -1; });
+  return '<div class="card"><div class="h"><b>All cities</b><span>last ' + Math.round(cc.days / 30) + ' months</span></div>' + cc.overall.map(ccLine).join('') + '</div>' +
+    '<div class="search" style="margin:4px 0 10px"><i class="ti ti-search"></i><input id="ccq" placeholder="Find a city" value="' + esc(CC.q) + '"></div>' +
+    (list.length ? list.map(function (c) {
+      return '<div class="card ccity"><div class="h"><b>' + esc(c.city) + '</b><span>' + c.total + ' parcels</span></div>' + c.couriers.map(ccLine).join('') + '</div>';
+    }).join('') : '<div class="empty">No city matches</div>') +
+    '<small class="mnote">Delivered % counts finished parcels (delivered + returned). Days = booking to delivery: "~" is the usual time, "most within" covers 8 of 10 deliveries — use it as the estimate for customers. ★ Best = highest delivered % (faster on a tie), shown when two couriers have ' + cc.min + '+ finished parcels in that city.</small>';
+};
+REPORT.reasons = function (d) {
+  var r = (d.insights && d.insights.reasons) || {}, n = (d.insights && d.insights.failed) || 0;
+  if (!n) return '<div class="empty"><i class="ti ti-circle-check"></i>No failed deliveries in this period</div>';
+  var keys = Object.keys(r).sort(function (a, b) { return r[b] - r[a]; });
+  return '<div class="card"><div class="h"><b>' + n + ' parcels had a failed delivery</b></div>' + keys.map(function (k) {
+    var p = Math.round(100 * r[k] / n);
+    return '<div class="rbar"><div><span>' + esc(k) + '</span><b class="num">' + r[k] + ' · ' + p + '%</b></div><i><u style="width:0" data-w="' + p + '"></u></i></div>';
+  }).join('') + '<small class="mnote">From the courier\'s reason on each failed attempt. Tap NDR to act on open cases.</small></div>';
 };
 REPORT.dispatched = function (d) {
   var h = '';
@@ -1047,8 +1242,24 @@ function openReport(key) {
   el('repClose').onclick = closePanel;
   el('repBox').querySelectorAll('[data-n]').forEach(countUp);
   growBars(el('repBox'));
+  el('repBox').oninput = function (e) {
+    if (e.target.id !== 'ccq') return;
+    CC.q = e.target.value; var pos = e.target.selectionStart;
+    el('repBox').innerHTML = REPORT[key](H.data); var i = el('ccq'); i.focus(); i.setSelectionRange(pos, pos);
+  };
+  el('repBox').onchange = function (e) {
+    if (e.target.id === 'mrFrom' || e.target.id === 'mrTo') {
+      MR.from = el('mrFrom').value; MR.to = el('mrTo').value;
+      if (MR.from > MR.to) { var x = MR.from; MR.from = MR.to; MR.to = x; }
+      el('repBox').innerHTML = REPORT[key](H.data); growBars(el('repBox'));
+    }
+  };
   el('repBox').onclick = function (e) {
-    var col = e.target.closest('.col'); if (col) { H.month = col.getAttribute('data-m'); H.range = null; closePanel(); loadHome(false); window.scrollTo(0, 0); return; }
+    var mr = e.target.closest('[data-mr]');
+    if (mr) { MR.mode = mr.getAttribute('data-mr'); el('repBox').innerHTML = REPORT[key](H.data); growBars(el('repBox')); return; }
+    var city = e.target.closest('[data-city]');
+    if (city) { var cp = city.querySelector('.cprods'); cp.hidden = !cp.hidden; city.classList.toggle('open', !cp.hidden); return; }
+    var col = e.target.closest('.col, .mrow'); if (col) { H.month = col.getAttribute('data-m'); H.range = null; closePanel(); loadHome(false); window.scrollTo(0, 0); return; }
     var n = e.target.closest('[data-go]'); if (!n || e.target.closest('a,button')) return;
     closePanel(); go(n.getAttribute('data-go'));
   };
@@ -1188,6 +1399,21 @@ function niceReason(r) {
   return t.charAt(0) + t.slice(1).toLowerCase();
 }
 // One parcel = one line: who and how much, then order · city · courier and the stage; a third line only for a problem
+// Customer record (same phone number, all other orders): COD risk before confirming, booking or calling
+// returns ≥ deliveries → high risk (red) · some returns → amber · 2+ cancelled → amber · only deliveries → trusted (green)
+function custRisk(h) {
+  if (!h) return null;
+  if (h.returned && h.returned >= h.delivered) return { t: h.returned + ' returned before' + (h.delivered ? ' · ' + h.delivered + ' delivered' : ''), c: 'var(--red)', i: 'alert-triangle', lvl: 3 };
+  if (h.returned) return { t: h.returned + ' returned · ' + h.delivered + ' delivered before', c: 'var(--amber)', i: 'arrow-back-up', lvl: 2 };
+  if (h.cancelled >= 2) return { t: h.cancelled + ' cancelled before', c: 'var(--amber)', i: 'ban', lvl: 2 };
+  if (h.delivered) return { t: h.delivered + ' delivered before', c: 'var(--green)', i: 'circle-check', lvl: 1 };
+  if (h.open) return { t: h.open + ' other open order' + (h.open > 1 ? 's' : ''), c: 'var(--blue)', i: 'package', lvl: 0 };
+  return null;
+}
+function riskLine(p, cls) {
+  var r = custRisk(p && p.hist);
+  return r ? '<div class="' + (cls || 'prow-3') + ' risk" style="color:' + r.c + '"><i class="ti ti-' + r.i + '"></i>' + esc(r.t) + '</div>' : '';
+}
 // Short stage names for the one-line rows (full names stay in filters and the parcel sheet)
 var STAGE_SHORT = { pending: 'Pending', confirmed: 'Confirmed', booked: 'Booked', picked: 'Picked up', transit: 'In transit', atdest: 'At city', ofd: 'Out for delivery', ndr: 'Delivery failed', returning: 'Returning', rtoback: 'Returned', delivered: 'Delivered', returned: 'Returned', cancelled: 'Cancelled' };
 function parcelRow(p) {
@@ -1200,7 +1426,9 @@ function parcelRow(p) {
   return '<div class="prow" data-p="' + esc(p.cn || p.ref) + '" style="--c:' + s[1] + '"><span class="prow-d"></span><div class="prow-m">' +
     '<div class="prow-1"><b>' + esc(p.name || p.ref) + '</b><span class="num">' + rs(p.total) + '</span></div>' +
     '<div class="prow-2"><span>' + [esc(p.ref), esc(p.city), esc(p.courier)].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + s[1] + '">' + (STAGE_SHORT[p.stage] || s[0]) + '</span></div>' +
-    (issue ? '<div class="prow-3"><i class="ti ti-alert-circle"></i>' + esc(issue) + '</div>' : '') + '</div>' + call + '</div>';
+    (issue ? '<div class="prow-3"><i class="ti ti-alert-circle"></i>' + esc(issue) + '</div>' : '') +
+    // customer record while the parcel is still open (before it is delivered / returned / cancelled)
+    (['delivered', 'returned', 'cancelled'].indexOf(p.stage) === -1 ? riskLine(p) : '') + '</div>' + call + '</div>';
 }
 // Customer WhatsApp message for where the parcel is now: short Roman Urdu, *bold* for order / amount / CN.
 function custWaText(p) {
@@ -1334,6 +1562,7 @@ function taskCard(c, seen) {
     '<div class="tw">' + ['<b class="tref">' + esc(c.ref) + '</b>', esc(c.name), esc(c.city), rs(c.cod), c.attempts ? c.attempts + (c.attempts === 1 ? ' attempt' : ' attempts') : ''].filter(Boolean).join(' · ') + '</div>' +
     (c.calls ? '<div class="tcalls' + (c.calls >= 3 && /no answer|phone off/i.test(c.outcome) ? ' warn' : '') + '"><i class="ti ti-phone-call"></i>Called ' + c.calls + '×' + (c.lastCall ? ' · last ' + esc(c.lastCall) : '') +
       (/no answer|phone off/i.test(c.outcome) ? ' · no answer' + (c.calls >= 3 ? ' → consider letting it return' : '') : '') + '</div>' : '') +
+    riskLine(findParcel(c.cn), 'tcalls') +
     taskSteps(c) +
     (c.says ? '<div class="tsays"><i class="ti ti-message-circle"></i>' + esc(c.says) + '</div>' : '') +
     ticketLine(c) +
@@ -1701,7 +1930,12 @@ var rAt = 0;
 function loadReturns(fresh) {
   if (!fresh && Date.now() - rAt < 60000) return;
   rAt = Date.now();
-  api('getAppReturns', [TOKEN, !!fresh], function (d) { R.data = d; snap('returns', d); if (curTab === 'returns') renderReturns(); });
+  api('getAppReturns', [TOKEN, !!fresh], function (d) { R.data = d; snap('returns', d); updateRBadge(); if (curTab === 'returns') renderReturns(); });
+}
+// Returns tab badge: parcels ready to collect (handed back by the courier, or at our city's courier office)
+function updateRBadge() {
+  var n = R.data ? R.data.waiting.filter(function (w) { return w.back || w.atOrigin; }).length : 0;
+  el('rbadge').textContent = n; el('rbadge').style.display = n ? '' : 'none';
 }
 function renderReturns() {
   var d = R.data;
@@ -1816,6 +2050,44 @@ el('btnOut').onclick = function () {
   google.script.run.withSuccessHandler(bye).withFailureHandler(bye).appRemovePush(TOKEN, pt);
 };
 
+// ---------- 🔔 notification list (everything W1 sent; the dot = new since you last opened it) ----------
+var ALERT_ICON = { ndr: ['headset', 'var(--red)'], back: ['arrow-back-up', 'var(--amber)'], late: ['clock-exclamation', 'var(--amber)'], nocn: ['barcode-off', 'var(--amber)'], brief: ['sun', 'var(--brand)'], test: ['bell', 'var(--muted)'] };
+var alertsData = null;
+function loadAlerts(open) {
+  api('getAppAlerts', [TOKEN], function (list) {
+    alertsData = list || [];
+    var seen = Number(store('eh_alerts_seen') || 0);
+    el('bellDot').hidden = !alertsData.some(function (a) { return a.ms > seen; });
+    if (open) drawAlerts();
+  }, function () { if (open) { alertsData = []; drawAlerts(); } });
+}
+function drawAlerts() {
+  var seen = Number(store('eh_alerts_seen') || 0);
+  el('panel').innerHTML = '<h3>Notifications</h3><p>What was sent to the team · tap one to open it</p>' +
+    (alertsData && alertsData.length ? '<div class="plist-box">' + alertsData.map(function (a, i) {
+      var ic = ALERT_ICON[a.kind] || ['bell', 'var(--muted)'];
+      return '<div class="al' + (a.ms > seen ? ' new' : '') + '" data-al="' + i + '"><span class="al-i" style="color:' + ic[1] + '"><i class="ti ti-' + ic[0] + '"></i></span><div>' +
+        '<b>' + esc(a.title) + '</b><small>' + esc(a.body).replace(/\n/g, '<br>') + '</small><em>' + esc(a.when) + '</em></div></div>';
+    }).join('') + '</div>' : '<div class="empty"><i class="ti ti-bell-off"></i>No notifications yet</div>') +
+    '<div class="btns" style="margin-top:10px"><button class="btn" id="alClose">Close</button></div>';
+  if (!el('overlay').classList.contains('show')) openPanel();
+  el('alClose').onclick = closePanel;
+  el('panel').querySelectorAll('[data-al]').forEach(function (r) {
+    r.onclick = function () {
+      var a = alertsData[Number(r.getAttribute('data-al'))];
+      if (a.p) { closePanel(); setTimeout(function () { openParcel(a.p); }, 250); return; }
+      var tab = (String(a.url).match(/tab=(\w+)/) || [])[1];
+      closePanel(); if (tab && TABS[tab]) showTab(tab);
+    };
+  });
+  if (alertsData && alertsData[0]) store('eh_alerts_seen', String(alertsData[0].ms));
+  el('bellDot').hidden = true;
+}
+el('btnBell').onclick = function () {
+  el('panel').innerHTML = '<h3>Notifications</h3><div class="sk" style="height:140px"></div>'; openPanel();
+  loadAlerts(true);
+};
+
 // ---------- notifications (installed app only): Firebase Cloud Messaging ----------
 // The phone's push token is saved in W1 _APP_PUSH; W1 sends the alerts (PushAlerts.js); sw.js shows them.
 var PUSH = {
@@ -1858,7 +2130,28 @@ function drawPushBtn() {
   var b = el('btnPush'); b.hidden = !pushSupported();
   b.innerHTML = '<i class="ti ti-bell' + (pushIsOn() ? '-ringing' : '-off') + '"></i>Notifications · ' + (pushIsOn() ? 'On' : 'Off');
 }
-el('btnPush').onclick = function () { closeDrawer(); if (pushIsOn()) pushOff(); else pushOn(false); };
+el('btnPush').onclick = function () { closeDrawer(); if (pushIsOn()) openPushPrefs(); else pushOn(false); };
+// What this phone gets: each kind on / off (saved in W1 _APP_PUSH "Types"), or notifications off altogether
+var PUSH_KINDS = [['ndr', 'NDR cases', 'Failed delivery, refused, stuck with courier'], ['back', 'Returns back', 'A return reached our city · collect and scan'],
+  ['late', 'Late parcels', '8+ days since dispatch, not delivered'], ['nocn', 'Missing tracking', 'Booked but no tracking number'], ['brief', 'Morning brief', '10 am · yesterday and today in one message']];
+function openPushPrefs() {
+  var cur = store('eh_push_types'), on = cur == null || cur === '' ? PUSH_KINDS.map(function (k) { return k[0]; }) : cur === 'none' ? [] : cur.split(',');
+  el('panel').innerHTML = '<h3>Notifications</h3><p>Choose what this phone gets</p><div class="plist-box">' + PUSH_KINDS.map(function (k) {
+    return '<label class="pref"><div><b>' + k[1] + '</b><small>' + k[2] + '</small></div><input type="checkbox" data-kind="' + k[0] + '"' + (on.indexOf(k[0]) !== -1 ? ' checked' : '') + '><span class="sw"></span></label>';
+  }).join('') + '</div><div class="err" id="ppErr"></div>' +
+    '<div class="btns" style="margin-top:10px"><button class="btn" id="ppOff"><i class="ti ti-bell-off"></i>Turn off</button><button class="btn pri" id="ppSave">Save</button></div>';
+  openPanel();
+  el('ppOff').onclick = function () { closePanel(); pushOff(); };
+  el('ppSave').onclick = function () {
+    var picked = [].slice.call(el('panel').querySelectorAll('[data-kind]')).filter(function (c) { return c.checked; }).map(function (c) { return c.getAttribute('data-kind'); });
+    el('ppSave').disabled = true;
+    google.script.run.withSuccessHandler(function () {
+      store('eh_push_types', picked.length === PUSH_KINDS.length ? '' : picked.length ? picked.join(',') : 'none');
+      closePanel(); toast('Saved · ' + (picked.length ? picked.length + ' kinds on' : 'all kinds off'));
+    }).withFailureHandler(function (e) { el('ppSave').disabled = false; el('ppErr').textContent = (e && e.message) || 'Not saved'; })
+      .appSetPushTypes(TOKEN, store('eh_push'), picked);
+  };
+}
 // Tokens can change: refresh once a day while notifications are on.
 function pushRefresh() { if (pushIsOn() && store('eh_push_day') !== pkDay(new Date())) pushOn(true); }
 
@@ -1998,6 +2291,7 @@ function showProfile(forced, next) {
     .withFailureHandler(function (e) { if (/LOGIN_REQUIRED/.test(e && e.message)) { el('profbox').hidden = true; authFail(e); } }).appGetProfile(TOKEN);
 }
 el('drUser').onclick = function () { closeDrawer(); showProfile(false); };
+el('btnDispatch').onclick = function () { closeDrawer(); openDispatchLog(); };
 // Install: Chrome offers it once the app qualifies; the menu shows the button only then (not when already installed)
 var installEv = null;
 addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); installEv = e; el('btnInstall').hidden = false; });
@@ -2026,16 +2320,18 @@ el('pfGo').onclick = function () {
 var started = false;
 function start() {
   greet();
-  drawPushBtn(); pushRefresh();
+  drawPushBtn(); pushRefresh(); loadAlerts(false);
   // Opened from a notification: ?tab=ndr / returns / parcels
-  var qt = new URLSearchParams(location.search).get('tab');
-  if (qt && TABS[qt]) { showTab(qt); try { history.replaceState(history.state, '', location.pathname + location.hash); } catch (e) {} }
+  var qs = new URLSearchParams(location.search), qt = qs.get('tab'), qp = qs.get('p');
+  if (qt && TABS[qt]) showTab(qt);
+  if (qp) setTimeout(function () { openParcel(qp); }, 600);
+  if (qt || qp) { try { history.replaceState(history.state, '', location.pathname + location.hash); } catch (e) {} }
   loadHome(false);
   if (N.data) updateBadge();
   loadNdr(false);
   // Warm the other tabs in the background so switching is instant.
   setTimeout(function () { loadParcels(false); loadReturns(false); loadCash(false); }, 1500);
-  if (!started) { started = true; setInterval(function () { if (TOKEN) loadNdr(false); }, 120000); }
+  if (!started) { started = true; setInterval(function () { if (TOKEN) { loadNdr(false); loadAlerts(false); } }, 120000); }
 }
 if (TOKEN) start(); else showLogin();
 // Launch screen stays at least 1 s from opening, then fades into the app.

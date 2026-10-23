@@ -1,5 +1,5 @@
-const CACHE = 'eh-mvl98z6s';
-const SHELL = ['./', 'index.html', 'ordi.webmanifest', 'ordi-192.png', 'ordi-512.png', 'ordi-maskable-512.png', 'ordi-apple-180.png'];
+const CACHE = 'eh-mvlc7205';
+const SHELL = ['./', 'index.html', 'ordi.webmanifest', 'ordi-192.png', 'ordi-512.png', 'ordi-maskable-512.png', 'ordi-apple-180.png', 'ordi-badge-96.png'];
 // 'reload': a new version always takes the files from the server, never from the browser's own (older) copy.
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {
@@ -10,8 +10,11 @@ self.addEventListener('push', e => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch (x) {}
   const m = Object.assign({}, d, d.notification || {}, d.data || {});
+  const url = (m.url || './') + (m.p ? ((m.url || './').indexOf('?') === -1 ? '?' : '&') + 'p=' + encodeURIComponent(m.p) : '');
+  const urgent = m.urgent === '1' || m.urgent === true;
   e.waitUntil(self.registration.showNotification(m.title || 'ORDI', {
-    body: m.body || '', icon: 'ordi-192.png', tag: m.tag || undefined, renotify: !!m.tag, data: { url: m.url || './' }
+    body: m.body || '', icon: 'ordi-192.png', badge: 'ordi-badge-96.png', tag: m.tag || undefined, renotify: !!m.tag,
+    vibrate: urgent ? [250, 120, 250, 120, 400] : [120], requireInteraction: urgent, data: { url: url }
   }));
 });
 self.addEventListener('notificationclick', e => {
