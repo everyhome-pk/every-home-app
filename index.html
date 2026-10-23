@@ -45,6 +45,7 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .dr-panel{position:absolute;left:0;top:0;bottom:0;width:min(300px,82vw);background:var(--card);padding:18px 14px calc(18px + env(safe-area-inset-bottom));overflow:auto;animation:drIn .22s ease}
 @keyframes drIn{from{transform:translateX(-100%)}to{transform:none}}
 .dr-user{display:flex;align-items:center;gap:10px;margin-bottom:8px}.dr-user .logo{width:40px;height:40px}.dr-user b{display:block;font-size:15px}.dr-user small{color:var(--muted);font-size:12px}
+.dr-i[hidden],.dr-h[hidden],.nav button[hidden]{display:none}
 .dr-h{font-size:10.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.7px;margin:16px 4px 4px}
 .dr-i{display:flex;align-items:center;gap:12px;width:100%;border:0;background:none;color:var(--text);font:500 14px Inter,sans-serif;padding:11px 6px;border-radius:10px;text-align:left;cursor:pointer;text-decoration:none}
 .dr-i:active{background:var(--bg)}.dr-i i{font-size:19px;color:var(--muted)}
@@ -571,7 +572,11 @@ function syncBar(d) { busy = Math.max(0, busy + d); el('sync').classList.toggle(
 function api(fn, args, ok, fail) {
   syncBar(1);
   var r = google.script.run.withSuccessHandler(function (d) { syncBar(-1); ok && ok(d); })
-    .withFailureHandler(function (e) { syncBar(-1); if (authFail(e)) return; fail ? fail(e) : toast((e && e.message) || 'Something went wrong'); });
+    .withFailureHandler(function (e) {
+      syncBar(-1); if (authFail(e)) return;
+      if (/NOT_ALLOWED/.test(e && e.message)) { if (fail) fail(e); return; } // not in this user's role: nothing to show
+      fail ? fail(e) : toast((e && e.message) || 'Something went wrong');
+    });
   r[fn].apply(r, args);
 }
 function authFail(e) {
@@ -610,10 +615,51 @@ function greet() {
   el('upd').textContent = (h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening') + (lastUpdated ? ' · ' + lastUpdated : '');
 }
 
+// ---------- role: what this user may see (W1 sheet 00_App_Roles; the server checks every call as well) ----------
+var PERMS = null; try { PERMS = JSON.parse(store('eh_perms') || 'null'); } catch (e) {}
+var ROLE = store('eh_role') || '';
+var TAB_PERM = { home: 'home.view', parcels: 'parcels.view', ndr: 'ndr.view', returns: 'returns.view', cash: 'cash.view' };
+var KIND_PERM = { ndr: 'ndr.view', back: 'returns.view', late: 'parcels.view', nocn: 'parcels.view', brief: 'home.view' };
+function can(p) { return !PERMS || PERMS.indexOf(p) !== -1; } // not known yet (old login): show all until the server answers
+function canTab(t) { return can(TAB_PERM[t]); }
+function firstTab() { return ['home', 'parcels', 'ndr', 'returns', 'cash'].filter(canTab)[0] || ''; }
+function setPerms(r) {
+  if (!r || !Array.isArray(r.perms)) return;
+  var changed = JSON.stringify(r.perms) !== JSON.stringify(PERMS);
+  PERMS = r.perms; ROLE = r.role || ''; store('eh_perms', JSON.stringify(PERMS)); store('eh_role', ROLE);
+  applyPerms();
+  if (changed && TOKEN) loadAllowed();
+}
+function applyPerms() {
+  document.querySelectorAll('.nav button').forEach(function (b) { b.hidden = !canTab(b.getAttribute('data-tab')); });
+  document.querySelectorAll('[data-rep]').forEach(function (b) {
+    b.hidden = b.getAttribute('data-rep') === 'escalations' ? !can('ndr.view') : !(can('reports.view') && can('home.view'));
+  });
+  el('btnDispatch').hidden = !can('parcels.view');
+  // a menu heading goes when nothing under it is left
+  document.querySelectorAll('.dr-h').forEach(function (h) {
+    var any = false;
+    for (var n = h.nextElementSibling; n && !n.classList.contains('dr-h'); n = n.nextElementSibling) if (n.classList.contains('dr-i') && !n.hidden) any = true;
+    h.hidden = !any;
+  });
+  if (!canTab(curTab)) { var ft = firstTab(); if (ft) showTab(ft, true); else toast('Your role has no screens yet · ask the admin'); }
+}
+// Data for the tabs this role has (the first one now, the others in the background)
+function loadAllowed() {
+  if (can('home.view')) loadHome(false);
+  if (can('ndr.view')) { if (N.data) updateBadge(); loadNdr(false); }
+  setTimeout(function () {
+    if (can('parcels.view')) loadParcels(false);
+    if (can('returns.view')) loadReturns(false);
+    if (can('cash.view')) loadCash(false);
+  }, 1500);
+}
+
 // ---------- tabs ----------
 var curTab = 'home';
 var TABS = { home: 'tab-home', parcels: 'tab-parcels', ndr: 'tab-ndr', cash: 'tab-cash', returns: 'tab-returns' };
 function showTab(t, fromBack) {
+  if (!canTab(t)) { toast('Not part of your role'); return; }
   if (!fromBack && t !== curTab) navPush(t);
   curTab = t;
   document.querySelectorAll('.nav button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-tab') === t); });
@@ -842,7 +888,7 @@ function closePanel() { el('overlay').classList.remove('show'); }
 function openDrawer() {
   el('drName').textContent = USER || 'Every Home';
   var cs = (N.data && N.data.couriers) || {};
-  el('drStore').textContent = (store('eh_phone') ? store('eh_phone') + ' · ' : '') + 'My profile';
+  el('drStore').textContent = (store('eh_phone') ? store('eh_phone') + ' · ' : '') + (ROLE && ROLE !== 'Owner' ? ROLE : 'My profile');
   el('drVer').textContent = BRAND + ' · ' + STORE + (window.EH_BUILD ? ' · version ' + window.EH_BUILD : '');
   if (!el('drawer').classList.contains('show')) { try { google.script.history.push({ tab: curTab, drawer: 1 }, null, curTab); } catch (e) {} }
   el('drawer').classList.add('show');
@@ -2112,7 +2158,7 @@ if (root.getAttribute('data-mode') === 'dark') el('btnMode').innerHTML = '<i cla
 el('btnOut').onclick = function () {
   closeDrawer();
   if (!confirm('Log out ' + (USER || '') + '?')) return;
-  var bye = function () { TOKEN = ''; store('eh_token', ''); location.reload(); };
+  var bye = function () { TOKEN = ''; store('eh_token', ''); store('eh_perms', ''); store('eh_role', ''); location.reload(); };
   var pt = store('eh_push');
   if (!pt) return bye();
   store('eh_push', ''); // this phone stops getting this user's alerts
@@ -2204,8 +2250,9 @@ el('btnPush').onclick = function () { closeDrawer(); if (pushIsOn()) openPushPre
 var PUSH_KINDS = [['ndr', 'NDR cases', 'Failed delivery, refused, stuck with courier'], ['back', 'Returns back', 'A return reached our city · collect and scan'],
   ['late', 'Late parcels', '8+ days since dispatch, not delivered'], ['nocn', 'Missing tracking', 'Booked but no tracking number'], ['brief', 'Morning brief', '10 am · yesterday and today in one message']];
 function openPushPrefs() {
-  var cur = store('eh_push_types'), on = cur == null || cur === '' ? PUSH_KINDS.map(function (k) { return k[0]; }) : cur === 'none' ? [] : cur.split(',');
-  el('panel').innerHTML = '<h3>Notifications</h3><p>Choose what this phone gets</p><div class="plist-box">' + PUSH_KINDS.map(function (k) {
+  var kinds = PUSH_KINDS.filter(function (k) { return can(KIND_PERM[k[0]]); }); // only what this role gets
+  var cur = store('eh_push_types'), on = cur == null || cur === '' ? kinds.map(function (k) { return k[0]; }) : cur === 'none' ? [] : cur.split(',');
+  el('panel').innerHTML = '<h3>Notifications</h3><p>Choose what this phone gets</p><div class="plist-box">' + kinds.map(function (k) {
     return '<label class="pref"><div><b>' + k[1] + '</b><small>' + k[2] + '</small></div><input type="checkbox" data-kind="' + k[0] + '"' + (on.indexOf(k[0]) !== -1 ? ' checked' : '') + '><span class="sw"></span></label>';
   }).join('') + '</div><div class="err" id="ppErr"></div>' +
     '<div class="btns" style="margin-top:10px"><button class="btn" id="ppOff"><i class="ti ti-bell-off"></i>Turn off</button><button class="btn pri" id="ppSave">Save</button></div>';
@@ -2215,7 +2262,7 @@ function openPushPrefs() {
     var picked = [].slice.call(el('panel').querySelectorAll('[data-kind]')).filter(function (c) { return c.checked; }).map(function (c) { return c.getAttribute('data-kind'); });
     el('ppSave').disabled = true;
     google.script.run.withSuccessHandler(function () {
-      store('eh_push_types', picked.length === PUSH_KINDS.length ? '' : picked.length ? picked.join(',') : 'none');
+      store('eh_push_types', picked.length === kinds.length ? '' : picked.length ? picked.join(',') : 'none');
       closePanel(); toast('Saved · ' + (picked.length ? picked.length + ' kinds on' : 'all kinds off'));
     }).withFailureHandler(function (e) { el('ppSave').disabled = false; el('ppErr').textContent = (e && e.message) || 'Not saved'; })
       .appSetPushTypes(TOKEN, store('eh_push'), picked);
@@ -2270,6 +2317,7 @@ function lgSubmit() {
   google.script.run.withSuccessHandler(function (r) {
     lgBusy = false; el('lgDots').classList.remove('busy');
     TOKEN = r.token; USER = r.name; store('eh_token', TOKEN); store('eh_user', USER); store('eh_login', r.login); store('eh_phone', r.phone || '');
+    PERMS = r.perms || null; ROLE = r.role || ''; store('eh_perms', PERMS ? JSON.stringify(PERMS) : ''); store('eh_role', ROLE);
     el('login').hidden = true; lgPin = ''; el('lgName').value = '';
     // First login: the user writes their name; then, with a PIN given by the admin, a new PIN is suggested (Later is allowed)
     var next = function () { if (r.mustChange) showPinBox(true, p); else start(); };
@@ -2392,15 +2440,14 @@ function start() {
   drawPushBtn(); pushRefresh(); loadAlerts(false);
   // Opened from a notification: ?tab=ndr / returns / parcels
   var qs = new URLSearchParams(location.search), qt = qs.get('tab'), qp = qs.get('p');
-  if (qt && TABS[qt]) showTab(qt);
-  if (qp) setTimeout(function () { openParcel(qp); }, 600);
+  applyPerms();
+  if (qt && TABS[qt] && canTab(qt)) showTab(qt);
+  if (qp && can('parcels.view')) setTimeout(function () { openParcel(qp); }, 600);
   if (qt || qp) { try { history.replaceState(history.state, '', location.pathname + location.hash); } catch (e) {} }
-  loadHome(false);
-  if (N.data) updateBadge();
-  loadNdr(false);
   // Warm the other tabs in the background so switching is instant.
-  setTimeout(function () { loadParcels(false); loadReturns(false); loadCash(false); }, 1500);
-  if (!started) { started = true; setInterval(function () { if (TOKEN) { loadNdr(false); loadAlerts(false); } }, 120000); }
+  loadAllowed();
+  google.script.run.withSuccessHandler(setPerms).withFailureHandler(function (e) { authFail(e); }).appGetProfile(TOKEN);
+  if (!started) { started = true; setInterval(function () { if (TOKEN) { if (can('ndr.view')) loadNdr(false); loadAlerts(false); } }, 120000); }
 }
 if (TOKEN) start(); else showLogin();
 // Launch screen stays at least 1 s from opening, then fades into the app.
