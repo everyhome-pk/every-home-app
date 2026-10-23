@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0B4F4A">
+<meta name="theme-color" content="#00857A">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
@@ -12,7 +12,7 @@
   --bg:#F5F6F8;--card:#FFFFFF;--text:#0F172A;--muted:#64748B;--faint:#94A3B8;--line:#E8ECF1;
   --shadow:0 1px 2px rgba(15,23,42,.04),0 6px 20px rgba(15,23,42,.05);
   --green:#15803D;--green-bg:#ECFDF3;--red:#C2410C;--red-bg:#FFF4ED;--amber:#B45309;--amber-bg:#FFFBEB;--blue:#1D4ED8;--blue-bg:#EFF4FF;
-  --brand:#0F766E;--brand-ink:#FFFFFF;--hero:#0B3D3A;--hero-2:#12524D;--accent:#5EEAD4;
+  --brand:#00857A;--brand-ink:#FFFFFF;--hero:#0B3D3A;--hero-2:#12524D;--accent:#3FE0A8;
 }
 [data-mode="dark"]{
   --bg:#0A0F1A;--card:#121A2A;--text:#E6EAF0;--muted:#94A3B8;--faint:#64748B;--line:#1F2A3C;
@@ -241,8 +241,9 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .lg-links{display:flex;justify-content:center;gap:18px;margin-top:20px}.lg-links button{border:0;background:none;color:var(--brand);font:600 13px Inter,sans-serif;cursor:pointer}
 [data-mode="dark"] .lg-links button{color:var(--accent)}
 .omark{display:block;width:40px;height:40px;flex:none}
-.lg-av:not(.known){background:none}
-.lg-brand[hidden]{display:none}.lg-brand{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:22px;color:var(--muted);font-size:12px}.lg-brand .omark{width:16px;height:16px}
+.lg-av:not(.known){background:none;width:auto;height:auto;margin-bottom:18px}
+.oword{display:block;margin:0 auto;color:var(--text);flex:none}
+.lg-brand[hidden]{display:none}.lg-brand{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:22px;color:var(--muted);font-size:12px}.lg-brand .oword{margin:0;color:var(--muted)}.lg-brand .omark{width:16px;height:16px}
 .login-box h2{margin:0;font-size:22px}.login-box p{color:var(--muted);font-size:13px;margin:4px 0 18px}
 .login-box select,.login-box input{width:100%;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:14px;padding:13px 14px;font:400 15px Inter,sans-serif;margin-bottom:10px;text-align:center}
 .tk{font-size:12px;margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--amber-bg);color:var(--amber)}
@@ -282,8 +283,8 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 <title>ORDI</title>
 </head>
 <body>
-<!-- ORDI: the app's own name and mark, the same for every store; the store's name is STORE (script) -->
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="ordiMark" viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="#0F766E"/><circle cx="50" cy="50" r="24" fill="none" stroke="#fff" stroke-width="11"/><circle cx="72" cy="28" r="8" fill="#5EEAD4"/></symbol></svg>
+<!-- ORDI: the app's own name and logo, the same for every store (made by tools/ordi-brand.js); the store's name is STORE (script) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="ordiG" x1="160" y1="160" x2="864" y2="864" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#0BD460"/><stop offset="0.55" stop-color="#05C58A"/><stop offset="1" stop-color="#00A8A0"/></linearGradient><linearGradient id="ordiGw" x1="0" y1="-32" x2="164" y2="132" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#0BD460"/><stop offset="0.55" stop-color="#05C58A"/><stop offset="1" stop-color="#00A8A0"/></linearGradient></defs><symbol id="ordiMark" viewBox="180 180 664 664"><path d="M575.75 239.35A280 280 0 1 0 784.65 448.25" fill="none" stroke="url(#ordiG)" stroke-width="96" stroke-linecap="round"/><circle cx="709.99" cy="314.01" r="72" fill="url(#ordiG)"/></symbol><symbol id="ordiWord" viewBox="-2 -34 411 168"><path d="M97.94 -18.16A70 70 0 1 0 150.16 34.06" fill="none" stroke="url(#ordiGw)" stroke-width="24" stroke-linecap="round"/><circle cx="131.5" cy="0.5" r="18" fill="url(#ordiGw)"/><g fill="currentColor" stroke="currentColor" stroke-width="6" stroke-linejoin="round" fill-rule="evenodd"><path d="M185 3H228A30 30 0 0 1 228 63H185ZM198 16H228A17 17 0 0 1 228 50H198Z"/><path d="M185 3H198V97H185Z"/><path d="M216 58H232L259 97H243Z"/><path d="M284 3H319A47 47 0 0 1 319 97H284ZM297 16H319A34 34 0 0 1 319 84H297Z"/><path d="M391 3H404V97H391Z"/></g></symbol></svg>
 <div class="sync" id="sync"></div>
 <div class="wrap">
   <div class="top">
@@ -359,6 +360,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   <div id="drLinks"></div>
   <div class="dr-h">App</div>
   <button class="dr-i" id="btnMode"><i class="ti ti-moon"></i>Dark mode</button>
+  <button class="dr-i" id="btnPush" hidden><i class="ti ti-bell-off"></i>Notifications · Off</button>
   <button class="dr-i" id="btnPin"><i class="ti ti-key"></i>Change PIN</button>
   <button class="dr-i" id="btnOut"><i class="ti ti-logout"></i>Log out</button>
 </div></div>
@@ -384,8 +386,8 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   <div class="login-box">
     <div id="lgAv" class="lg-av">EH</div>
     <h2 id="lgTitle">Every Home</h2>
-    <p id="lgSub">Enter your name and PIN</p>
-    <input id="lgName" type="text" placeholder="Your full name (e.g. Kashif Imran)" autocomplete="username" autocapitalize="words">
+    <p id="lgSub">Enter your username and PIN</p>
+    <input id="lgName" type="text" placeholder="Username (e.g. kashif)" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false">
     <div class="lg-dots" id="lgDots"></div>
     <div class="err" id="lgErr"></div>
     <div class="lg-pad" id="lgPad">
@@ -395,13 +397,14 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
       <button data-k="del" aria-label="Delete"><i class="ti ti-backspace"></i></button><button data-k="0">0</button><button data-k="go" class="lg-go" id="lgGo" aria-label="Log in"><i class="ti ti-arrow-right"></i></button>
     </div>
     <div class="lg-links"><button id="lgSwitch" hidden>Switch user</button><button id="lgForgot">Forgot PIN?</button></div>
-    <div class="lg-brand" id="lgBrand" hidden><svg class="omark" aria-hidden="true"><use href="#ordiMark"/></svg><span id="lgBrandTx">ORDI</span></div>
+    <div class="lg-brand" id="lgBrand" hidden><svg class="oword" style="height:16px;width:39px" aria-label="ORDI"><use href="#ordiWord"/></svg><span id="lgBrandTx">· Every Home</span></div>
   </div>
 </div>
 
 <script>
 (function () {
   if (window.google && google.script) return;
+  window.EH_PWA = true; // installed app: notifications are possible
   var API = "https://script.google.com/macros/s/AKfycbyqtyrClenCG1_iqTSDK5KhtFItfX6rUsYdIexwQ3qPFbSv9d1n8jy06ItjvWXXtB-I/exec";
   function call(fn, args, ok, fail) {
     fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: fn, args: args }) })
@@ -1506,8 +1509,59 @@ el('btnMode').onclick = function () {
 if (root.getAttribute('data-mode') === 'dark') el('btnMode').innerHTML = '<i class="ti ti-sun"></i>Light mode';
 el('btnOut').onclick = function () {
   closeDrawer();
-  if (confirm('Log out ' + (USER || '') + '?')) { TOKEN = ''; store('eh_token', ''); location.reload(); }
+  if (!confirm('Log out ' + (USER || '') + '?')) return;
+  var bye = function () { TOKEN = ''; store('eh_token', ''); location.reload(); };
+  var pt = store('eh_push');
+  if (!pt) return bye();
+  store('eh_push', ''); // this phone stops getting this user's alerts
+  google.script.run.withSuccessHandler(bye).withFailureHandler(bye).appRemovePush(TOKEN, pt);
 };
+
+// ---------- notifications (installed app only): Firebase Cloud Messaging ----------
+// The phone's push token is saved in W1 _APP_PUSH; W1 sends the alerts (PushAlerts.js); sw.js shows them.
+var PUSH = {
+  sdk: 'https://www.gstatic.com/firebasejs/10.12.2/',
+  vapid: 'BGboGpidy4um8pJb6Tdc8WjfPXK3H9R9RBQk1aNmJBczc3NCc26Qr-Zo_TLf35KpWItjruIMQgQYhJvuxXqhapc',
+  config: {
+    apiKey: 'AIzaSyCJrbjdiJT7RN28Rp8m3_vAa-j7Zu6_04g', authDomain: 'ordi-2ba43.firebaseapp.com', projectId: 'ordi-2ba43',
+    storageBucket: 'ordi-2ba43.firebasestorage.app', messagingSenderId: '1086435260607', appId: '1:1086435260607:web:8bedfaffbd26d9676aae0a'
+  }
+};
+function pushSupported() { return !!(window.EH_PWA && 'serviceWorker' in navigator && 'PushManager' in window && window.Notification); }
+function pushIsOn() { return pushSupported() && !!store('eh_push') && Notification.permission === 'granted'; }
+function loadScript(src) {
+  return new Promise(function (ok, no) { var s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
+}
+function pushToken() {
+  return loadScript(PUSH.sdk + 'firebase-app-compat.js')
+    .then(function () { return loadScript(PUSH.sdk + 'firebase-messaging-compat.js'); })
+    .then(function () { if (!firebase.apps.length) firebase.initializeApp(PUSH.config); return navigator.serviceWorker.ready; })
+    .then(function (reg) { return firebase.messaging().getToken({ vapidKey: PUSH.vapid, serviceWorkerRegistration: reg }); });
+}
+function pushOn(quiet) {
+  if (!pushSupported()) { if (!quiet) toast('Install the app on your phone (Add to Home screen) to get notifications'); return; }
+  Notification.requestPermission().then(function (p) {
+    if (p !== 'granted') { if (!quiet) toast('Notifications are blocked · allow them in the phone settings'); drawPushBtn(); return; }
+    return pushToken().then(function (t) {
+      google.script.run.withSuccessHandler(function () {
+        store('eh_push', t); store('eh_push_day', pkDay(new Date())); drawPushBtn();
+        if (!quiet) toast('Notifications on');
+      }).withFailureHandler(function (e) { if (!authFail(e) && !quiet) toast((e && e.message) || 'Could not turn on notifications'); })
+        .appSavePush(TOKEN, t, navigator.userAgent.slice(0, 120));
+    });
+  }).catch(function () { if (!quiet) toast('Could not turn on notifications'); });
+}
+function pushOff() {
+  var t = store('eh_push'); store('eh_push', ''); drawPushBtn();
+  if (t) google.script.run.withSuccessHandler(function () { toast('Notifications off'); }).appRemovePush(TOKEN, t);
+}
+function drawPushBtn() {
+  var b = el('btnPush'); b.hidden = !pushSupported();
+  b.innerHTML = '<i class="ti ti-bell' + (pushIsOn() ? '-ringing' : '-off') + '"></i>Notifications · ' + (pushIsOn() ? 'On' : 'Off');
+}
+el('btnPush').onclick = function () { closeDrawer(); if (pushIsOn()) pushOff(); else pushOn(false); };
+// Tokens can change: refresh once a day while notifications are on.
+function pushRefresh() { if (pushIsOn() && store('eh_push_day') !== pkDay(new Date())) pushOn(true); }
 
 // ---------- login ----------
 // ---------- login ----------
@@ -1516,11 +1570,12 @@ function initials(n) { return String(n || '').split(' ').filter(Boolean).slice(0
 function showLogin() {
   el('login').hidden = false;
   var known = !!USER;
-  el('lgAv').innerHTML = known ? esc(initials(USER)) : '<svg class="omark" style="width:60px;height:60px" aria-hidden="true"><use href="#ordiMark"/></svg>';
+  el('lgAv').innerHTML = known ? esc(initials(USER)) : '<svg class="oword" style="height:64px;width:157px" aria-label="ORDI"><use href="#ordiWord"/></svg>';
   el('lgAv').classList.toggle('known', known);
-  el('lgTitle').textContent = known ? 'Welcome back, ' + USER.split(' ')[0] : BRAND;
-  el('lgSub').textContent = known ? 'Enter your PIN' : STORE + ' · Enter your name and PIN';
-  el('lgBrand').hidden = !known; el('lgBrandTx').textContent = BRAND + ' · ' + STORE;
+  el('lgTitle').textContent = known ? 'Welcome back, ' + USER.split(' ')[0] : '';
+  el('lgTitle').hidden = !known; // a new phone sees the ORDI wordmark instead of a title
+  el('lgSub').textContent = known ? 'Enter your PIN' : STORE + ' · Enter your username and PIN';
+  el('lgBrand').hidden = !known; el('lgBrandTx').textContent = '· ' + STORE;
   el('lgName').hidden = known;
   el('lgSwitch').hidden = !known;
   el('lgSwitch').textContent = known ? 'Not ' + USER.split(' ')[0] + '? Switch user' : '';
@@ -1546,7 +1601,7 @@ function lgKey(k) {
 }
 function lgSubmit() {
   var n = USER || el('lgName').value.replace(/\s+/g, ' ').trim();
-  if (!n) { el('lgErr').textContent = 'Enter your name'; el('lgName').focus(); return; }
+  if (!n) { el('lgErr').textContent = 'Enter your username'; el('lgName').focus(); return; }
   if (lgPin.length < 4) { lgShake('Enter your PIN'); return; }
   var p = lgPin;
   lgBusy = true; el('lgDots').classList.add('busy');
@@ -1630,6 +1685,10 @@ el('pbNew2').onkeydown = function (e) { if (e.key === 'Enter') el('pbGo').click(
 var started = false;
 function start() {
   greet();
+  drawPushBtn(); pushRefresh();
+  // Opened from a notification: ?tab=ndr / returns / parcels
+  var qt = new URLSearchParams(location.search).get('tab');
+  if (qt && TABS[qt]) { showTab(qt); try { history.replaceState(history.state, '', location.pathname + location.hash); } catch (e) {} }
   loadHome(false);
   if (N.data) updateBadge();
   loadNdr(false);
