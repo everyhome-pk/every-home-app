@@ -48,6 +48,9 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .dr-h{font-size:10.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.7px;margin:16px 4px 4px}
 .dr-i{display:flex;align-items:center;gap:12px;width:100%;border:0;background:none;color:var(--text);font:500 14px Inter,sans-serif;padding:11px 6px;border-radius:10px;text-align:left;cursor:pointer;text-decoration:none}
 .dr-i:active{background:var(--bg)}.dr-i i{font-size:19px;color:var(--muted)}
+.dr-user{width:100%;border:0;background:none;color:var(--text);text-align:left;cursor:pointer;padding:6px;border-radius:12px;font-family:inherit}
+.dr-sub{margin-left:auto;font-size:11px;color:var(--faint);font-weight:400}
+.dr-ver{font-size:11px;color:var(--faint);text-align:center;margin:18px 0 6px}
 .dr-note{font-size:12px;color:var(--muted);padding:6px}
 .cstrip{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
 .cs-line{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 12px;font:13px Inter,sans-serif;color:var(--muted);cursor:pointer;text-align:left}
@@ -382,30 +385,27 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   <button class="on" data-tab="home"><i class="ti ti-home"></i>Home</button>
   <button data-tab="parcels"><i class="ti ti-package"></i>Parcels</button>
   <button data-tab="ndr"><i class="ti ti-headset"></i>NDR<span class="badge" id="badge" style="display:none"></span></button>
-  <button data-tab="cash"><i class="ti ti-wallet"></i>Cash</button>
   <button data-tab="returns"><i class="ti ti-scan"></i>Returns</button>
+  <button data-tab="cash"><i class="ti ti-wallet"></i>Cash</button>
 </div></div>
 <div class="toast" id="toast"></div>
 <button class="totop" id="totop" aria-label="Back to top"><i class="ti ti-arrow-up"></i>Top</button>
-<!-- ☰ menu: reports that are not on Home, links, app settings -->
+<!-- ☰ menu: performance reports, courier escalations, app settings; the header opens My profile (Change PIN inside) -->
 <div class="drawer" id="drawer"><div class="dr-panel">
-  <div class="dr-user"><svg class="omark" aria-hidden="true"><use href="#ordiMark"/></svg><div><b id="drName">Every Home</b><small id="drStore">ORDI · Every Home</small></div></div>
-  <div class="dr-h">Reports</div>
+  <button class="dr-user" id="drUser"><svg class="omark" aria-hidden="true"><use href="#ordiMark"/></svg><div><b id="drName">Every Home</b><small id="drStore">My profile · PIN</small></div><i class="ti ti-chevron-right" style="margin-left:auto;color:var(--faint)"></i></button>
+  <div class="dr-h">Performance</div>
   <button class="dr-i" data-rep="success"><i class="ti ti-chart-donut"></i>Delivery success</button>
-  <button class="dr-i" data-rep="cod"><i class="ti ti-receipt"></i>COD breakdown</button>
   <button class="dr-i" data-rep="couriers"><i class="ti ti-scale"></i>Courier comparison</button>
-  <button class="dr-i" data-rep="months"><i class="ti ti-chart-bar"></i>Last 6 months</button>
   <button class="dr-i" data-rep="dispatched"><i class="ti ti-truck-delivery"></i>Shipped · last 14 days</button>
-  <button class="dr-i" data-go="cash:pay"><i class="ti ti-building-bank"></i>Courier payments</button>
+  <button class="dr-i" data-rep="months"><i class="ti ti-chart-bar"></i>Last 6 months</button>
+  <div class="dr-h">Couriers</div>
   <button class="dr-i" data-rep="escalations"><i class="ti ti-headset"></i>Courier escalations</button>
-  <div class="dr-h">Links</div>
-  <div id="drLinks"></div>
   <div class="dr-h">App</div>
-  <button class="dr-i" id="btnMode"><i class="ti ti-moon"></i>Dark mode</button>
   <button class="dr-i" id="btnPush" hidden><i class="ti ti-bell-off"></i>Notifications · Off</button>
-  <button class="dr-i" id="btnProfile"><i class="ti ti-user-circle"></i>My profile</button>
-  <button class="dr-i" id="btnPin"><i class="ti ti-key"></i>Change PIN</button>
+  <button class="dr-i" id="btnMode"><i class="ti ti-moon"></i>Dark mode</button>
+  <button class="dr-i" id="btnInstall" hidden><i class="ti ti-download"></i>Install app</button>
   <button class="dr-i" id="btnOut"><i class="ti ti-logout"></i>Log out</button>
+  <div class="dr-ver" id="drVer"></div>
 </div></div>
 <div class="overlay" id="overlay"><div class="panel" id="panel"></div></div>
 
@@ -464,6 +464,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 (function () {
   if (window.google && google.script) return;
   window.EH_PWA = true; // installed app: notifications are possible
+  window.EH_BUILD = '2026-10-23'; // shown at the bottom of the menu
   var API = "https://script.google.com/macros/s/AKfycbyqtyrClenCG1_iqTSDK5KhtFItfX6rUsYdIexwQ3qPFbSv9d1n8jy06ItjvWXXtB-I/exec";
   function call(fn, args, ok, fail) {
     fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: fn, args: args }) })
@@ -712,9 +713,8 @@ function closePanel() { el('overlay').classList.remove('show'); }
 function openDrawer() {
   el('drName').textContent = USER || 'Every Home';
   var cs = (N.data && N.data.couriers) || {};
-  el('drLinks').innerHTML = Object.keys(cs).filter(function (n) { return cs[n].link; }).map(function (n) {
-    return '<a class="dr-i" target="_blank" href="' + esc(cs[n].link) + '"><i class="ti ti-table"></i>' + esc(n) + ' issue sheet</a>';
-  }).join('') || '<div class="dr-note">Issue sheet links appear after NDR loads</div>';
+  el('drStore').textContent = (store('eh_phone') ? store('eh_phone') + ' · ' : '') + 'My profile';
+  el('drVer').textContent = BRAND + ' · ' + STORE + (window.EH_BUILD ? ' · version ' + window.EH_BUILD : '');
   if (!el('drawer').classList.contains('show')) { try { google.script.history.push({ tab: curTab, drawer: 1 }, null, curTab); } catch (e) {} }
   el('drawer').classList.add('show');
 }
@@ -1597,7 +1597,10 @@ function cashFlow(s, bankOk, label) {
   };
   return '<div class="card fade cflow"><div class="h"><b>Where the money is</b><span>' + esc(label) + '</span></div>' +
     row('Couriers collected', (s.delivered || 0) + ' delivered', rs(s.cod)) +
-    row('Courier charges &amp; tax', s.returned ? 'incl. ' + s.returned + ' returns' : '', '− ' + rs(ded), 'down') +
+    (s.charges != null && s.tax != null && Math.abs(s.charges + s.tax - ded) < 5
+      ? row('Courier charges', s.returned ? 'incl. ' + s.returned + ' returns' : '', '− ' + rs(s.charges), 'down') + row('Tax (2% WHT + 2% SST)', '', '− ' + rs(s.tax), 'down')
+      : row('Courier charges &amp; tax', s.returned ? 'incl. ' + s.returned + ' returns' : '', '− ' + rs(ded), 'down')) +
+    (s.over >= 1 ? row('Overcharged vs rate card ›', 'courier charged above our rates', rs(s.over), 'down', 'data-pf="over"') : '') +
     row('<b>Net for us</b>', '', '<b>' + rs(s.net) + '</b>', '', '') +
     '<div class="hero-bar" style="margin:4px 0 2px"><i style="width:0" data-w="' + got + '"></i></div><small class="cf-pct">' + got + '% received</small>' +
     row('Received ›', (s.paidDelivered || 0) + ' parcels paid' + (bankOk ? ' · ' + rs(bankOk) + ' checked in bank' : ''), rs(s.received), 'up', 'data-pf="paid"') +
@@ -1958,7 +1961,6 @@ function showPinBox(forced, currentPin) {
   el('pinbox').hidden = false;
   setTimeout(function () { (currentPin ? el('pbNew') : el('pbOld')).focus(); }, 50);
 }
-el('btnPin').onclick = function () { closeDrawer(); showPinBox(false); };
 el('pbCancel').onclick = function () { el('pinbox').hidden = true; if (pinForced) { pinForced = false; start(); } }; // Later: just use the app
 el('pbGo').onclick = function () {
   var o = el('pbOld').value.trim(), n = el('pbNew').value.trim(), n2 = el('pbNew2').value.trim();
@@ -1995,7 +1997,12 @@ function showProfile(forced, next) {
   else google.script.run.withSuccessHandler(function (p) { store('eh_phone', p.phone || ''); el('pfPhone').textContent = p.phone || 'Not set yet · ask the admin'; })
     .withFailureHandler(function (e) { if (/LOGIN_REQUIRED/.test(e && e.message)) { el('profbox').hidden = true; authFail(e); } }).appGetProfile(TOKEN);
 }
-el('btnProfile').onclick = function () { closeDrawer(); showProfile(false); };
+el('drUser').onclick = function () { closeDrawer(); showProfile(false); };
+// Install: Chrome offers it once the app qualifies; the menu shows the button only then (not when already installed)
+var installEv = null;
+addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); installEv = e; el('btnInstall').hidden = false; });
+addEventListener('appinstalled', function () { installEv = null; el('btnInstall').hidden = true; toast('ORDI installed'); });
+el('btnInstall').onclick = function () { closeDrawer(); if (installEv) { installEv.prompt(); installEv = null; el('btnInstall').hidden = true; } };
 el('pfCancel').onclick = function () { el('profbox').hidden = true; };
 el('pfPin').onclick = function () { el('profbox').hidden = true; showPinBox(false); };
 el('pfName').onkeydown = function (e) { if (e.key === 'Enter') el('pfGo').click(); };
