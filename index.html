@@ -327,7 +327,17 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .cs-done{padding:10px 0 2px;border-top:1px solid var(--line);margin-top:10px}
 .cs-done .cs-h{display:flex;align-items:center;gap:6px}.cs-done .cs-h i{font-size:14px}.cs-done .cs-h small{margin-left:auto;text-transform:none;letter-spacing:0;font-size:11px}
 .cs-res{font-size:13px;color:var(--muted);margin-top:4px}.cs-res b{font-weight:600}
-.scan{display:flex;gap:8px;background:var(--card);border-radius:16px;padding:6px;box-shadow:var(--shadow);margin-bottom:10px}
+.scan{display:flex;align-items:center;gap:8px;background:var(--card);border-radius:16px;padding:6px 6px 6px 14px;box-shadow:var(--shadow);margin-bottom:12px}
+.scan>i{color:var(--faint);font-size:20px;flex:none}
+.scan input{flex:1;min-width:0;border:0;background:none;color:var(--text);font:500 15px Inter,sans-serif;padding:10px 0;outline:none;letter-spacing:.3px}
+.scan-cam{flex:none;width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--brand);display:grid;place-items:center;font-size:21px;cursor:pointer}
+[data-mode="dark"] .scan-cam{color:var(--accent)}
+.scan .btn{flex:none;height:44px;padding:0 18px}
+.scanner{position:fixed;inset:0;z-index:9000;background:#000}.scanner video{width:100%;height:100%;object-fit:cover}
+.scan-frame{position:absolute;left:8%;right:8%;top:35%;height:22%;border:3px solid #5EEAD4;border-radius:16px;box-shadow:0 0 0 9999px rgba(0,0,0,.45)}
+.scan-top{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;gap:10px;padding:calc(14px + env(safe-area-inset-top)) 14px 14px;color:#fff;font:600 14px Inter,sans-serif}
+.scan-top span{flex:1}.scan-top button{width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.18);color:#fff;font-size:20px;display:grid;place-items:center}
+.scan-photo{position:absolute;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;align-items:center;gap:6px;border:0;border-radius:99px;padding:12px 18px;background:rgba(255,255,255,.92);color:#111;font:600 13px Inter,sans-serif}
 .li{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
 .li:first-of-type{border-top:0}
 .li .d{flex:1;min-width:0}.li .d b{display:block;font-size:13px;font-weight:600}.li .d small{display:block;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -403,10 +413,19 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   <section id="tab-returns" hidden>
     <h1 class="title">Returns</h1>
     <div class="scan">
-      <div class="search" style="margin:0;box-shadow:none"><i class="ti ti-barcode"></i><input id="rcode" placeholder="Scan or type CN / order #" autocomplete="off"></div>
-      <button class="btn pri" id="rgo" style="flex:none;padding:0 16px">Find</button>
+      <i class="ti ti-barcode"></i>
+      <input id="rcode" placeholder="CN or order #" autocomplete="off" autocapitalize="characters" spellcheck="false">
+      <button class="scan-cam" id="rcamBtn" type="button" aria-label="Scan with camera"><i class="ti ti-camera"></i></button>
+      <button class="btn pri" id="rgo" type="button">Find</button>
     </div>
-    <label class="btn" style="margin-bottom:12px;padding:12px"><i class="ti ti-camera"></i>Scan label with camera<input id="rcam" type="file" accept="image/*" capture="environment" hidden></label>
+    <input id="rcam" type="file" accept="image/*" capture="environment" hidden>
+    <!-- Live camera scanner: reads the label's barcode by itself (BarcodeDetector, or ZXing where the phone lacks it) -->
+    <div class="scanner" id="scanner" hidden>
+      <video id="scanVid" playsinline muted></video>
+      <div class="scan-frame"></div>
+      <div class="scan-top"><span>Point at the barcode on the courier label</span><button id="scanClose" aria-label="Close"><i class="ti ti-x"></i></button></div>
+      <button class="scan-photo" id="scanPhoto" type="button"><i class="ti ti-photo"></i>Take a photo instead</button>
+    </div>
     <div id="rfound"></div>
     <div id="rview"><div class="sk" style="height:120px;margin-bottom:12px"></div><div class="sk" style="height:220px"></div></div>
   </section>
@@ -2010,20 +2029,65 @@ el('rview').onclick = function (e) {
   var f = e.target.closest('[data-rf]');
   if (f) { R.filter = f.getAttribute('data-rf'); R.scrollTo = !!R.filter; renderReturns(); return; }
   var t = e.target.closest('[data-pick]'); if (t) { el('rcode').value = t.getAttribute('data-pick'); findReturn(t.getAttribute('data-pick')); window.scrollTo(0, 0); } };
+// A courier label has several barcodes (CN, order, QR): take the one shaped like a CN or our order number
+function pickCode(list) {
+  var vals = list.map(function (v) { return String(v || '').trim(); }).filter(Boolean);
+  var good = vals.filter(function (v) { return /^[A-Z]{2}\d{8,}$/i.test(v) || /^\d{11,18}$/.test(v) || /^#?EH\d{4,}$/i.test(v); });
+  return good[0] || vals[0] || '';
+}
+function scanned(txt) {
+  if (!txt) { toast('Could not read the barcode. Type the CN.'); return; }
+  try { navigator.vibrate && navigator.vibrate(60); } catch (e) {}
+  el('rcode').value = txt; findReturn(txt); window.scrollTo(0, 0);
+}
+function loadZXing(ok, fail) {
+  if (window.ZXing) return ok();
+  var s = document.createElement('script'); s.src = 'https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js'; s.onload = ok; s.onerror = fail; document.head.appendChild(s);
+}
+// Photo: read every barcode on the picture, then choose
 el('rcam').onchange = function () {
   var f = el('rcam').files[0]; if (!f) return;
   toast('Reading label…');
   var url = URL.createObjectURL(f);
-  var done = function (txt) { el('rcam').value = ''; if (txt) { el('rcode').value = txt; findReturn(txt); } else toast('Could not read the barcode. Type the CN.'); };
-  var zxing = function () {
-    var run = function () { new ZXing.BrowserMultiFormatReader().decodeFromImageUrl(url).then(function (r) { done(r.getText()); }).catch(function () { done(''); }); };
-    if (window.ZXing) return run();
-    var s = document.createElement('script'); s.src = 'https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js'; s.onload = run; s.onerror = function () { done(''); }; document.head.appendChild(s);
-  };
+  var done = function (txt) { el('rcam').value = ''; scanned(txt); };
+  var zxing = function () { loadZXing(function () { new ZXing.BrowserMultiFormatReader().decodeFromImageUrl(url).then(function (r) { done(r.getText()); }).catch(function () { done(''); }); }, function () { done(''); }); };
   if ('BarcodeDetector' in window) {
-    var img = new Image(); img.onload = function () { new BarcodeDetector().detect(img).then(function (codes) { codes.length ? done(codes[0].rawValue) : zxing(); }).catch(zxing); }; img.src = url;
+    var img = new Image(); img.onload = function () { new BarcodeDetector().detect(img).then(function (codes) { codes.length ? done(pickCode(codes.map(function (c) { return c.rawValue; }))) : zxing(); }).catch(zxing); }; img.src = url;
   } else zxing();
 };
+// Live: the camera stays open and reads the label by itself (no photo, no button)
+var scan = { stream: null, timer: null, reader: null };
+function stopScan() {
+  clearInterval(scan.timer); scan.timer = null;
+  if (scan.reader) { try { scan.reader.reset(); } catch (e) {} scan.reader = null; }
+  if (scan.stream) { scan.stream.getTracks().forEach(function (tr) { tr.stop(); }); scan.stream = null; }
+  el('scanner').hidden = true;
+}
+function startScan() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { el('rcam').click(); return; }
+  el('scanner').hidden = false;
+  var vid = el('scanVid');
+  var got = function (txt) { stopScan(); scanned(txt); };
+  if ('BarcodeDetector' in window) {
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 } } }).then(function (st) {
+      scan.stream = st; vid.srcObject = st; vid.play();
+      var det = new BarcodeDetector(), busy = false;
+      scan.timer = setInterval(function () {
+        if (busy || vid.readyState < 2) return; busy = true;
+        det.detect(vid).then(function (codes) { busy = false; var c = pickCode(codes.map(function (x) { return x.rawValue; })); if (c) got(c); }).catch(function () { busy = false; });
+      }, 250);
+    }).catch(function () { stopScan(); toast('Camera not allowed · taking a photo instead'); el('rcam').click(); });
+  } else {
+    loadZXing(function () {
+      scan.reader = new ZXing.BrowserMultiFormatReader();
+      scan.reader.decodeFromConstraints({ video: { facingMode: 'environment' } }, vid, function (r) { if (r) got(pickCode([r.getText()])); })
+        .catch(function () { stopScan(); toast('Camera not available · taking a photo instead'); el('rcam').click(); });
+    }, function () { stopScan(); el('rcam').click(); });
+  }
+}
+el('rcamBtn').onclick = startScan;
+el('scanClose').onclick = stopScan;
+el('scanPhoto').onclick = function () { stopScan(); el('rcam').click(); };
 
 // ---------- header ----------
 el('btnRefresh').onclick = function () {
