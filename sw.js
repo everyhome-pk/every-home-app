@@ -1,6 +1,7 @@
-const CACHE = 'eh-mvkqnctg';
-const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png'];
-self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
+const CACHE = 'eh-mvksmbga';
+const SHELL = ['./', 'index.html', 'ordi.webmanifest', 'ordi-192.png', 'ordi-512.png', 'ordi-maskable-512.png', 'ordi-apple-180.png'];
+// 'reload': a new version always takes the files from the server, never from the browser's own (older) copy.
+self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
@@ -10,7 +11,7 @@ self.addEventListener('push', e => {
   try { d = e.data ? e.data.json() : {}; } catch (x) {}
   const m = Object.assign({}, d, d.notification || {}, d.data || {});
   e.waitUntil(self.registration.showNotification(m.title || 'ORDI', {
-    body: m.body || '', icon: 'icon-192.png', tag: m.tag || undefined, renotify: !!m.tag, data: { url: m.url || './' }
+    body: m.body || '', icon: 'ordi-192.png', tag: m.tag || undefined, renotify: !!m.tag, data: { url: m.url || './' }
   }));
 });
 self.addEventListener('notificationclick', e => {
@@ -24,6 +25,14 @@ self.addEventListener('notificationclick', e => {
 self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET' || /script\.google(usercontent)?\.com/.test(req.url)) return;
+  // App name and icons: network first, so the phone always gets the current ones (Chrome reads them to update the app).
+  if (/\.(webmanifest|png)(\?|$)/.test(req.url)) {
+    e.respondWith(fetch(req, { cache: 'no-cache' }).then(r => {
+      if (r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }
+      return r;
+    }).catch(() => caches.match(req, { ignoreSearch: true })));
+    return;
+  }
   e.respondWith(caches.open(CACHE).then(c => c.match(req, { ignoreSearch: true }).then(hit => {
     const net = fetch(req).then(r => { if (r.ok || r.type === 'opaque') c.put(req, r.clone()); return r; }).catch(() => hit);
     return hit || net;
