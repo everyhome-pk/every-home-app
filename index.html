@@ -207,6 +207,12 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .tsteps-l{display:flex;font-size:10.5px;color:var(--faint)}.tsteps-l span{flex:1}.tsteps-l span:nth-child(2){text-align:center}.tsteps-l span:last-child{text-align:right}.tsteps-l .ok{color:var(--green)}.tsteps-l .warn{color:var(--amber)}
 .tsays{display:flex;gap:6px;font-size:12.5px;margin-top:8px}.tsays i{color:var(--muted);font-size:15px;margin-top:1px}
 .tact{display:flex;gap:8px;margin-top:11px}.tact .grow{flex:1}.tact .btn:not(.grow):not(.sq){flex:none}
+.seg2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.seg2 button{display:flex;align-items:center;justify-content:center;gap:6px;padding:13px 8px;border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--text);font:600 13.5px Inter,sans-serif;cursor:pointer}
+.seg2 button.on{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand);color:var(--brand)}
+.ogrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.og{display:flex;align-items:center;gap:8px;padding:12px 10px;border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--text);font:600 12.5px Inter,sans-serif;text-align:left;cursor:pointer}.og i{font-size:18px;color:var(--muted)}
+.og.on{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand)}.og.on i{color:var(--brand)}
+.msgprev{background:var(--bg);border-radius:12px;padding:10px 12px;margin:4px 0 8px;font-size:13px}.msgprev small{display:block;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.3px;margin-bottom:3px}
+.tcalls{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);margin-top:5px}.tcalls i{font-size:14px}.tcalls.warn{color:var(--red)}
 .opts.big .opt{padding:12px 14px;font-size:13.5px}
 .fmore{margin:6px 0 4px}.fmore summary{font-size:12.5px;color:var(--muted);cursor:pointer;padding:6px 0}
 .pc{background:var(--card);border-radius:18px;padding:14px;box-shadow:var(--shadow);margin-bottom:10px;border-left:4px solid var(--c,var(--line))}
@@ -572,6 +578,25 @@ document.querySelectorAll('.nav button').forEach(function (b) {
 
 // Track button (any parcel not delivered / not received back) -> timeline sheet.
 var TRACK_URL = {};
+// Sheets drop the leading 0 of Pakistani numbers (3130535037): calls need 03130535037 / +923130535037
+function phoneDigits(s) {
+  var d = String(s || '').replace(/[^0-9]/g, '');
+  if (/^3\d{9}$/.test(d)) return '92' + d;
+  if (/^03\d{9}$/.test(d)) return '92' + d.slice(1);
+  if (/^0092\d{10}$/.test(d)) return d.slice(2);
+  return d;
+}
+function telHref(s) { var d = phoneDigits(s); return 'tel:' + (/^92\d{10}$/.test(d) ? '+' + d : d); }
+function phoneText(s) { var d = phoneDigits(s); return /^92\d{10}$/.test(d) ? '0' + d.slice(2, 5) + '-' + d.slice(5) : String(s || ''); }
+// After a call from an NDR case: back in the app (4 s to 30 min later) the Update form opens by itself.
+var lastCall = null;
+document.addEventListener('click', function (e) { var a = e.target.closest('[data-call]'); if (a) lastCall = { cn: a.getAttribute('data-call'), t: Date.now() }; });
+document.addEventListener('visibilitychange', function () {
+  if (document.visibilityState !== 'visible' || !lastCall) return;
+  var c = lastCall, gone = Date.now() - c.t; lastCall = null;
+  if (gone < 4000 || gone > 30 * 60000 || !N.data || el('overlay').classList.contains('show')) return;
+  if (N.data.cases.some(function (x) { return x.cn === c.cn; })) openNdrForm(c.cn, true);
+});
 function trackBtn(cn, url) {
   if (!cn) return '';
   if (url) TRACK_URL[cn] = url;
@@ -641,13 +666,13 @@ function openParcel(key) {
     ((p.flags || []).length ? '<div style="margin:-4px 0 8px">' + p.flags.map(function (f) { return '<span class="flag">' + esc(f) + '</span>'; }).join('') + '</div>' : '') +
     '<div class="pd">' +
     row('Order date', esc(p.ordered || p.date)) + (p.dispatched ? row('Shipped', esc(p.dispatched)) : '') + row('COD', rs(p.total)) + row('Items', esc(p.items)) +
-    row('Phone', esc(p.phone)) + row('City', esc(p.city)) + row('Address', esc(p.address)) +
+    row('Phone', esc(phoneText(p.phone))) + row('City', esc(p.city)) + row('Address', esc(p.address)) +
     (p.attempts ? row('Delivery attempts', p.attempts) : '') + (p.charge ? row('Courier charge', rs(p.charge)) : '') +
     (p.reason || p.lastRaw ? row('Last update', esc(p.reason || p.lastRaw)) : '') +
     (cash ? row('Settlement', esc(cash.note || cash.cat)) + row(cash.returned ? 'Charges' : 'Net to us', rs(cash.returned ? cash.charges : cash.net)) + (cash.over ? row('Above rate card', rs(cash.over)) : '') : '') +
     (ndr ? row('NDR case', esc(ndr.type)) + (ndr.outcome && ndr.outcome !== 'Not called yet' ? row('Call result', esc(ndr.outcome)) : '') + (ndr.says ? row('Customer says', esc(ndr.says)) : '') : '') +
     '</div>' +
-    '<div class="btns" style="margin:10px 0">' + (p.phone ? '<a class="btn" href="tel:' + esc(p.phone) + '"><i class="ti ti-phone"></i>Call</a>' : '') +
+    '<div class="btns" style="margin:10px 0">' + (p.phone ? '<a class="btn"' + (ndr ? ' data-call="' + esc(ndr.cn) + '"' : '') + ' href="' + telHref(p.phone) + '"><i class="ti ti-phone"></i>Call</a>' : '') +
     (p.wa ? '<a class="btn wa" target="_blank" href="' + waLink(p.wa, custWaText(p)) + '"><i class="ti ti-brand-whatsapp"></i>WhatsApp</a>' : '') +
     (p.track ? '<a class="btn" target="_blank" href="' + esc(p.track) + '"><i class="ti ti-external-link"></i>Courier site</a>' : '') + '</div>' +
     (ndr ? '<button class="btn pri" id="pdNdr" style="width:100%;padding:12px;margin-bottom:10px"><i class="ti ti-pencil"></i>Update NDR case</button>' : '') +
@@ -1168,7 +1193,7 @@ function parcelRow(p) {
     : p.stage === 'booked' && !p.cn ? 'Missing tracking number'
     : p.stage === 'rtoback' ? 'Handed back by courier · scan it in Returns'
     : (p.flags || []).join(' · ');
-  var call = (p.stage === 'ndr' || p.stage === 'pending') && p.phone ? '<a class="prow-call" href="tel:' + esc(p.phone) + '" aria-label="Call"><i class="ti ti-phone"></i></a>' : '';
+  var call = (p.stage === 'ndr' || p.stage === 'pending') && p.phone ? '<a class="prow-call" href="' + telHref(p.phone) + '" aria-label="Call"><i class="ti ti-phone"></i></a>' : '';
   return '<div class="prow" data-p="' + esc(p.cn || p.ref) + '" style="--c:' + s[1] + '"><span class="prow-d"></span><div class="prow-m">' +
     '<div class="prow-1"><b>' + esc(p.name || p.ref) + '</b><span class="num">' + rs(p.total) + '</span></div>' +
     '<div class="prow-2"><span>' + [esc(p.ref), esc(p.city), esc(p.courier)].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + s[1] + '">' + (STAGE_SHORT[p.stage] || s[0]) + '</span></div>' +
@@ -1304,11 +1329,13 @@ function taskCard(c, seen) {
   return '<div class="tcard" data-p="' + esc(c.cn) + '" style="--c:' + col + '">' +
     '<div class="th"><b>' + (seen.indexOf(caseKey(c)) === -1 ? '<span class="new-dot"></span>' : '') + esc(taskTitle(c)) + '</b>' + (age ? '<span class="tage">' + age + '</span>' : '') + '</div>' +
     '<div class="tw">' + [esc(c.name), esc(c.city), rs(c.cod), c.attempts ? c.attempts + (c.attempts === 1 ? ' attempt' : ' attempts') : ''].filter(Boolean).join(' · ') + '</div>' +
+    (c.calls ? '<div class="tcalls' + (c.calls >= 3 && /no answer|phone off/i.test(c.outcome) ? ' warn' : '') + '"><i class="ti ti-phone-call"></i>Called ' + c.calls + '×' + (c.lastCall ? ' · last ' + esc(c.lastCall) : '') +
+      (/no answer|phone off/i.test(c.outcome) ? ' · no answer' + (c.calls >= 3 ? ' → consider letting it return' : '') : '') + '</div>' : '') +
     taskSteps(c) +
     (c.says ? '<div class="tsays"><i class="ti ti-message-circle"></i>' + esc(c.says) + '</div>' : '') +
     ticketLine(c) +
-    '<div class="tact">' + (todo && c.phone ? '<a class="btn pri grow" href="tel:' + esc(c.phone) + '"><i class="ti ti-phone"></i>Call now</a>' : '') +
-    (!todo && c.phone ? '<a class="btn sq" href="tel:' + esc(c.phone) + '" aria-label="Call"><i class="ti ti-phone"></i></a>' : '') +
+    '<div class="tact">' + (todo && c.phone ? '<a class="btn pri grow" data-call="' + esc(c.cn) + '" href="' + telHref(c.phone) + '"><i class="ti ti-phone"></i>Call now</a>' : '') +
+    (!todo && c.phone ? '<a class="btn sq" data-call="' + esc(c.cn) + '" href="' + telHref(c.phone) + '" aria-label="Call"><i class="ti ti-phone"></i></a>' : '') +
     (c.wa ? '<a class="btn sq wa" target="_blank" href="' + waLink(c.wa, c.waText) + '" aria-label="WhatsApp"><i class="ti ti-brand-whatsapp"></i></a>' : '') +
     '<button class="btn' + (todo ? '' : ' pri grow') + '" data-rec="' + esc(c.cn) + '"><i class="ti ti-pencil"></i>' + (todo ? 'Update' : 'Update case') + '</button></div></div>';
 }
@@ -1361,83 +1388,143 @@ el('nchips').onclick = function (e) {
 };
 el('nlist').onclick = function (e) { var b = e.target.closest('[data-rec]'); if (b) openNdrForm(b.getAttribute('data-rec')); };
 
-// Update a case step by step: first the call result (big buttons), then only the fields that result needs.
-// Results that need the courier (reattempt, fake NDR, address, later date) end in "Save & send to <courier>".
-var NDR_NEEDS = {
-  says: /reattempt|will receive|rider never|address|later date/i, // what the customer said (goes to the courier)
-  send: /reattempt|will receive|rider never|address|later date/i,
-  upd: /address/i,                                                 // new phone / address
-  date: /reattempt|will receive|later date|money/i                 // deliver on (date)
-};
-function openNdrForm(cn) {
+// Update a case after the call: "Did you reach the customer?" → what they want → only the details that answer needs.
+// Each answer maps onto the W1 desk's Call Outcome list (matched by words, so the sheet's wording can change).
+// The courier message is written for the agent, the agent can add their own words to any answer, and every message
+// that asks the courier to deliver again ends with "Please reattempt again."
+var NDR_FLOW = [
+  { k: 'deliver', label: 'Deliver again', icon: 'truck-delivery', out: /will receive|reattempt/i, when: true },
+  { k: 'rider', label: 'Rider never came', icon: 'user-x', out: /rider never|fake/i, when: true },
+  { k: 'address', label: 'New address / phone', icon: 'map-pin', out: /address/i, when: true },
+  { k: 'cash', label: 'Cash not ready', icon: 'cash', out: /money|cash/i, when: true },
+  { k: 'refuse', label: "Doesn't want it", icon: 'ban', out: /refus|cancel/i, noSend: true },
+  { k: 'other', label: 'Other', icon: 'pencil', out: /will receive|reattempt/i, when: true }
+];
+var NDR_NOT_REACHED = ['No answer', 'Phone off', 'Wrong number'];
+var NDR_REASONS = ['Changed mind', 'Ordered by mistake', 'Delivery too late', 'Price', 'Other reason'];
+var NDR_TIMES = ['Morning', 'Afternoon', 'Evening'];
+function openNdrForm(cn, afterCall) {
   var c = N.data.cases.filter(function (x) { return x.cn === cn; })[0]; if (!c) return;
-  var o = N.data.options;
-  el('panel').innerHTML = '<h3>' + esc(taskTitle(c)) + '</h3><p>' + esc(c.name) + ' · ' + esc(c.ref) + ' · ' + esc(c.courier) + '</p>' +
-    '<div class="fld"><label>1. What happened on the call?</label><div class="opts big" id="fOut">' +
-    o.outcomes.filter(function (x) { return x !== 'Not called yet'; }).map(function (x) { return '<div class="opt' + (x === c.outcome ? ' on' : '') + '" data-v="' + esc(x) + '">' + esc(x) + '</div>'; }).join('') + '</div></div>' +
-    '<div id="fMore" hidden>' +
-    '<div class="fld" data-need="says"><label>2. What did the customer say? (goes to the courier)</label>' +
-    '<div class="chips wrapc" id="fSaysChips">' + (o.says || []).map(function (x) { return '<button class="chip" type="button" data-say="' + esc(x) + '">+ ' + esc(x) + '</button>'; }).join('') + '</div>' +
-    '<textarea id="fSaysTxt" rows="2" placeholder="e.g. Rider has not called for 2 days; home after 5 pm today">' + esc(c.says || '') + '</textarea></div>' +
-    '<div class="fld" data-need="upd"><label>New phone / address</label><input id="fUpd" value="' + esc(c.updated) + '" placeholder="0300 1234567, Street 4 Model Town"></div>' +
-    '<div class="fld" data-need="date"><label>Deliver on</label><input id="fDate" type="date" value="' + esc(c.reattempt) + '"></div>' +
-    '<details class="fmore"><summary>More options</summary>' +
-    '<div class="fld"><label>Next step</label><select id="fNext"><option value="">Auto (suggested)</option>' + o.actions.map(function (x) { return '<option' + (x === c.next ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></div>' +
-    '<div class="fld"><label>Internal notes</label><textarea id="fNotes" rows="2">' + esc(c.notes) + '</textarea></div></details>' +
+  var o = N.data.options, first = String(c.name || '').split(' ')[0] || 'the customer';
+  var outOf = function (re) { return o.outcomes.filter(function (x) { return re.test(x); })[0] || ''; };
+  var today = pkDay(new Date());
+  var days = [['Today', today], ['Tomorrow', addDays(today, 1)], ['Day after', addDays(today, 2)]];
+  var chips = function (id, list) { return '<div class="chips wrapc" id="' + id + '">' + list.map(function (x) { var v = Array.isArray(x) ? x : [x, x]; return '<button class="chip" type="button" data-v="' + esc(v[1]) + '">' + esc(v[0]) + '</button>'; }).join('') + '</div>'; };
+  el('panel').innerHTML = (afterCall ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-phone-check"></i> You just called ' + esc(c.name) + '. What happened?</div>' : '') +
+    '<h3>' + esc(taskTitle(c)) + '</h3><p>' + esc(c.name) + ' · ' + esc(c.ref) + ' · ' + esc(c.courier) + (c.calls ? ' · called ' + c.calls + '×' : '') + '</p>' +
+    '<div class="fld"><label>Did you reach ' + esc(first) + '?</label><div class="seg2" id="fReach"><button type="button" data-r="yes"><i class="ti ti-phone-check"></i>Yes, we talked</button><button type="button" data-r="no"><i class="ti ti-phone-off"></i>No</button></div></div>' +
+    // not reached
+    '<div id="fNo" hidden><div class="fld"><label>What happened? · call ' + ((c.calls || 0) + 1) + (c.calls + 1 >= 3 ? '' : ' of 3') + '</label>' + chips('fNoWhy', NDR_NOT_REACHED) + '</div>' +
+    (c.wa ? '<a class="btn wa" target="_blank" href="' + waLink(c.wa, c.waText) + '" style="margin-bottom:10px"><i class="ti ti-brand-whatsapp"></i>Send WhatsApp to ' + esc(first) + '</a>' : '') +
+    ((c.calls || 0) + 1 >= 3 ? '<div class="tk" style="margin:0 0 10px">3 calls without an answer. If ' + esc(first) + ' does not reply on WhatsApp either, let the parcel return.</div>' : '') + '</div>' +
+    // reached
+    '<div id="fYes" hidden><div class="fld"><label>What does ' + esc(first) + ' want?</label><div class="ogrid" id="fWant">' +
+    NDR_FLOW.map(function (f) { return '<button type="button" class="og" data-k="' + f.k + '"><i class="ti ti-' + f.icon + '"></i>' + esc(f.label) + '</button>'; }).join('') + '</div></div>' +
+    '<div class="fld" id="fWhen" hidden><label>When should the courier come?</label>' + chips('fDay', days) +
+    '<input id="fDate" type="date" value="' + esc(c.reattempt) + '" style="margin-top:6px">' + chips('fTime', NDR_TIMES) + '</div>' +
+    '<div class="fld" id="fAddr" hidden><label>New address / phone</label><input id="fNewAddr" placeholder="House 12, Street 4, Model Town (landmark)"><input id="fNewPhone" type="tel" placeholder="New phone (if any)" style="margin-top:6px"></div>' +
+    '<div class="fld" id="fWhy" hidden><label>Why?</label>' + chips('fReason', NDR_REASONS) + '</div>' +
     '</div>' +
+    // own words, for every answer
+    '<div class="fld" id="fNoteW" hidden><label id="fNoteL">Your own words (optional)</label><textarea id="fNote" rows="2" placeholder="e.g. Call before coming, gate is at the back">' + '</textarea></div>' +
+    '<div class="msgprev" id="fPrev" hidden><small>Message to ' + esc(c.courier) + '</small><div id="fPrevT"></div></div>' +
+    '<details class="fmore"><summary>More options</summary><div class="fld"><label>Internal notes (not sent)</label><textarea id="fNotes" rows="2">' + esc(c.notes) + '</textarea></div></details>' +
     '<div class="err" id="fErr"></div>' +
-    '<button class="btn pri" id="fSend" style="width:100%;padding:12px;margin-top:6px" hidden><i class="ti ti-send"></i>Save &amp; send to ' + esc(c.courier) + '</button>' +
-    '<div class="btns" style="margin-top:8px"><button class="btn" id="fCancel">Cancel</button><button class="btn" id="fSave"><i class="ti ti-device-floppy"></i>Save</button></div>' +
-    '<small id="fSendNote" style="display:none;text-align:center;color:var(--muted);margin-top:6px">Goes to the ' + esc(c.courier) + ' issue sheet within 5 minutes</small>';
+    '<button class="btn pri" id="fGo" style="width:100%;padding:12px;margin-top:6px" hidden></button>' +
+    '<div class="btns" style="margin-top:8px"><button class="btn" id="fCancel">Cancel</button><button class="btn" id="fSaveOnly" hidden>Save only</button></div>';
   openPanel();
-  var picked = !isTodo(c) ? c.outcome : '';
-  var show = function () {
-    el('fMore').hidden = !picked;
-    el('panel').querySelectorAll('[data-need]').forEach(function (f) { f.hidden = !NDR_NEEDS[f.getAttribute('data-need')].test(picked); });
-    var send = !!picked && NDR_NEEDS.send.test(picked);
-    el('fSend').hidden = !send; el('fSendNote').style.display = send ? 'block' : 'none';
-    el('fSave').classList.toggle('pri', !!picked && !send);
-    el('fSave').innerHTML = send ? 'Save only' : '<i class="ti ti-device-floppy"></i>Save';
+
+  var st = { reach: '', why: '', want: null, day: '', time: '', reason: '' };
+  var pickChip = function (box, key) {
+    el(box).onclick = function (e) {
+      var b = e.target.closest('[data-v]'); if (!b) return;
+      var on = !b.classList.contains('on');
+      el(box).querySelectorAll('.chip').forEach(function (x) { x.classList.remove('on'); });
+      if (on) b.classList.add('on');
+      st[key] = on ? b.getAttribute('data-v') : '';
+      if (key === 'day') el('fDate').value = st.day;
+      el('fErr').textContent = ''; draw();
+    };
   };
-  show();
-  el('fOut').onclick = function (e) {
-    var t = e.target.closest('.opt'); if (!t) return;
-    picked = t.getAttribute('data-v'); el('fErr').textContent = '';
-    el('fOut').querySelectorAll('.opt').forEach(function (x) { x.classList.toggle('on', x === t); });
-    if (!el('fNext').value && o.suggest[picked]) el('fNext').value = o.suggest[picked];
-    show();
+  pickChip('fNoWhy', 'why'); pickChip('fDay', 'day'); pickChip('fTime', 'time'); pickChip('fReason', 'reason');
+  el('fDate').onchange = function () { st.day = el('fDate').value; el('fDay').querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-v') === st.day); }); draw(); };
+  ['fNote', 'fNewAddr', 'fNewPhone'].forEach(function (id) { el(id).oninput = function () { el('fErr').textContent = ''; draw(); }; });
+  el('fReach').onclick = function (e) {
+    var b = e.target.closest('[data-r]'); if (!b) return;
+    st.reach = b.getAttribute('data-r');
+    el('fReach').querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); });
+    el('fErr').textContent = ''; draw();
   };
-  el('fSaysChips').onclick = function (e) {
-    var b = e.target.closest('[data-say]'); if (!b) return;
-    var t = el('fSaysTxt'), add = b.getAttribute('data-say');
-    if (t.value.indexOf(add) === -1) t.value = (t.value.trim() ? t.value.trim().replace(/[.,]$/, '') + ', ' : '') + add;
-    b.classList.add('on'); el('fErr').textContent = '';
+  el('fWant').onclick = function (e) {
+    var b = e.target.closest('[data-k]'); if (!b) return;
+    st.want = NDR_FLOW.filter(function (f) { return f.k === b.getAttribute('data-k'); })[0];
+    el('fWant').querySelectorAll('.og').forEach(function (x) { x.classList.toggle('on', x === b); });
+    el('fErr').textContent = ''; draw();
   };
-  el('fSaysTxt').oninput = function () { el('fErr').textContent = ''; };
+  var whenText = function () {
+    if (!st.day) return st.time ? 'in the ' + st.time.toLowerCase() : '';
+    var d = st.day === today ? 'today' : st.day === addDays(today, 1) ? 'tomorrow (' + niceDay(st.day) + ')' : 'on ' + niceDay(st.day);
+    return d + (st.time ? ', ' + st.time.toLowerCase() : '');
+  };
+  // The message the courier gets (also saved as "Customer Says")
+  var message = function () {
+    var w = st.want, note = el('fNote').value.replace(/\s+/g, ' ').trim(), when = whenText(), m = '';
+    if (st.reach === 'no') return [st.why, note].filter(Boolean).join('. ');
+    if (!w) return '';
+    if (w.k === 'deliver') m = 'Customer will receive the parcel' + (when ? ' ' + when : '') + '.';
+    if (w.k === 'rider') m = 'Customer says the rider never came and did not call.' + (when ? ' Customer is available ' + when + '.' : '');
+    if (w.k === 'address') {
+      var a = el('fNewAddr').value.trim(), p = el('fNewPhone').value.trim();
+      m = 'Customer gave a new ' + (a && p ? 'address and phone' : p ? 'phone' : 'address') + ': ' + [a, p].filter(Boolean).join(', ') + '.' + (when ? ' Deliver ' + when + '.' : '');
+    }
+    if (w.k === 'cash') m = 'Customer will have the cash' + (when ? ' ' + when : '') + '.';
+    if (w.k === 'refuse') m = 'Customer does not want the parcel' + (st.reason ? ': ' + st.reason.toLowerCase() : '') + '.';
+    if (w.k === 'other') m = note ? note.replace(/[.\s]*$/, '.') : '';
+    else if (note) m += ' ' + note.replace(/[.\s]*$/, '.');
+    if (m && !w.noSend) m += (when && w.k === 'other' ? ' Please come ' + when + '.' : '') + ' Please reattempt again.';
+    return m.trim();
+  };
+  var draw = function () {
+    var yes = st.reach === 'yes', no = st.reach === 'no', w = yes && st.want;
+    el('fNo').hidden = !no; el('fYes').hidden = !yes;
+    el('fWhen').hidden = !(w && w.when); el('fAddr').hidden = !(w && w.k === 'address'); el('fWhy').hidden = !(w && w.k === 'refuse');
+    el('fNoteW').hidden = !(no || w);
+    el('fNoteL').textContent = w && w.k === 'other' ? 'What should the courier do?' : 'Your own words (optional)';
+    var msg = message(), send = !!(w && !w.noSend);
+    el('fPrev').hidden = !(send && msg); el('fPrevT').textContent = msg;
+    el('fGo').hidden = !(no || w);
+    el('fGo').innerHTML = send ? '<i class="ti ti-send"></i>Send to ' + esc(c.courier) : w && w.noSend ? '<i class="ti ti-arrow-back-up"></i>Save · let it return' : '<i class="ti ti-device-floppy"></i>Save';
+    el('fSaveOnly').hidden = !send;
+  };
+  draw();
   el('fCancel').onclick = closePanel;
   var save = function (send) {
-    var says = el('fSaysTxt').value.replace(/\s+/g, ' ').trim();
-    if (!picked) { el('fErr').textContent = 'Pick what happened on the call'; return; }
-    if (send && !says) { el('fErr').textContent = 'Write what the customer said before sending'; el('fSaysTxt').focus(); return; }
-    if (send && NDR_NEEDS.upd.test(picked) && !el('fUpd').value.trim()) { el('fErr').textContent = 'Write the new phone or address'; el('fUpd').focus(); return; }
+    var w = st.want, msg = message();
+    if (!st.reach) { el('fErr').textContent = 'Did you reach the customer?'; return; }
+    if (st.reach === 'no' && !st.why) { el('fErr').textContent = 'Pick what happened'; return; }
+    if (st.reach === 'yes' && !w) { el('fErr').textContent = 'Pick what the customer wants'; return; }
+    if (w && w.k === 'address' && !el('fNewAddr').value.trim() && !el('fNewPhone').value.trim()) { el('fErr').textContent = 'Write the new address or phone'; el('fNewAddr').focus(); return; }
+    if (w && w.k === 'other' && !el('fNote').value.trim()) { el('fErr').textContent = 'Write what the courier should do'; el('fNote').focus(); return; }
+    var outcome = st.reach === 'no' ? outOf(/no answer|phone off/i) : outOf(w.out);
+    var updated = w && w.k === 'address' ? [el('fNewAddr').value.trim(), el('fNewPhone').value.trim()].filter(Boolean).join(' · ') : '';
     // Optimistic: close and update the card now, save in the background.
     var before = JSON.stringify(c);
-    c.outcome = picked; c.says = says;
-    if (send) { c.next = 'Escalate to courier'; if (!c.sent || c.sent === 'Not sent') c.sent = 'Sent'; } else if (el('fNext').value) c.next = el('fNext').value;
+    c.outcome = outcome; c.says = msg; c.calls = (c.calls || 0) + 1; c.lastCall = 'just now';
+    if (send) { c.next = 'Escalate to courier'; if (!c.sent || c.sent === 'Not sent') c.sent = 'Sent'; }
     closePanel(); renderNdr(); updateBadge();
     toast(send ? '📨 Sending to ' + c.courier + '…' : 'Saving…');
-    api('saveAppNdrOutcome', [{ token: TOKEN, cn: c.cn, outcome: picked, next: el('fNext').value, updated: el('fUpd').value, reattempt: el('fDate').value,
-      sent: c.sent || 'Not sent', notes: el('fNotes').value, says: says, send: send }], function (r) {
+    api('saveAppNdrOutcome', [{ token: TOKEN, cn: c.cn, outcome: outcome, next: '', updated: updated, reattempt: st.day || el('fDate').value,
+      sent: c.sent || 'Not sent', notes: el('fNotes').value, says: msg, send: send, call: true }], function (r) {
       c.next = r.next; snap('ndr', N.data);
-      toast(send ? '✅ Queued for ' + c.courier + ' (≤5 min)' : '✅ Saved');
+      toast(send ? '✅ Sent to ' + c.courier + ' (≤5 min)' : '✅ Saved');
       loadNdr(true);
     }, function (e) {
       Object.assign(c, JSON.parse(before)); renderNdr(); updateBadge();
       toast('❌ Not saved: ' + ((e && e.message) || 'try again'));
     });
   };
-  el('fSave').onclick = function () { save(false); };
-  el('fSend').onclick = function () { save(true); };
+  el('fGo').onclick = function () { save(!!(st.reach === 'yes' && st.want && !st.want.noSend)); };
+  el('fSaveOnly').onclick = function () { save(false); };
 }
 
 // ---------- Cash ----------
