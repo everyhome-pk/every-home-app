@@ -622,7 +622,7 @@ function showTab(t, fromBack) {
   if (t === 'parcels') { if (P.data) renderParcels(); loadParcels(false); }
   if (t === 'ndr') { renderNdr(); markNdrSeen(); }
   if (t === 'cash') { if (C.data) renderCash(); loadCash(false); }
-  if (t === 'returns') { if (R.data) renderReturns(); loadReturns(false); setTimeout(function () { el('rcode').focus(); }, 50); }
+  if (t === 'returns') { if (R.data) renderReturns(); loadReturns(false); setTimeout(scanFocus, 50); }
 }
 document.querySelectorAll('.nav button').forEach(function (b) {
   b.onclick = function () {
@@ -2014,12 +2014,12 @@ function renderFound() {
   if (p.already) return;
   var cond = conds[0];
   el('rcond').onclick = function (e) { var t = e.target.closest('.opt'); if (!t) return; cond = t.getAttribute('data-v'); el('rcond').querySelectorAll('.opt').forEach(function (x) { x.classList.toggle('on', x === t); }); };
-  el('rclear').onclick = function () { el('rfound').innerHTML = ''; el('rcode').value = ''; el('rcode').focus(); };
+  el('rclear').onclick = function () { el('rfound').innerHTML = ''; el('rcode').value = ''; scanFocus(); };
   el('rsave').onclick = function () {
     el('rsave').disabled = true;
     api('saveAppReturnScan', [{ token: TOKEN, cn: p.cn, condition: cond, notes: el('rnotes').value }], function () {
       toast('✅ Return received'); try { navigator.vibrate && navigator.vibrate(80); } catch (x) {}
-      el('rfound').innerHTML = ''; el('rcode').value = ''; el('rcode').focus(); loadReturns(true);
+      el('rfound').innerHTML = ''; el('rcode').value = ''; scanFocus(); loadReturns(true);
     }, function (e) { el('rsave').disabled = false; el('rErr').textContent = (e && e.message) || 'Not saved'; });
   };
 }
@@ -2030,6 +2030,11 @@ el('rview').onclick = function (e) {
   if (f) { R.filter = f.getAttribute('data-rf'); R.scrollTo = !!R.filter; renderReturns(); return; }
   var t = e.target.closest('[data-pick]'); if (t) { el('rcode').value = t.getAttribute('data-pick'); findReturn(t.getAttribute('data-pick')); window.scrollTo(0, 0); } };
 // A courier label has several barcodes (CN, order, QR): take the one shaped like a CN or our order number
+// Returns field: on a computer (scanner gun types into it) it is ready at once; on a phone the keyboard opens
+// only when the user taps the field, because scanning is done with the camera
+function scanFocus() {
+  if (window.matchMedia && matchMedia('(pointer: fine)').matches) el('rcode').focus(); else el('rcode').blur();
+}
 function pickCode(list) {
   var vals = list.map(function (v) { return String(v || '').trim(); }).filter(Boolean);
   var good = vals.filter(function (v) { return /^[A-Z]{2}\d{8,}$/i.test(v) || /^\d{11,18}$/.test(v) || /^#?EH\d{4,}$/i.test(v); });
