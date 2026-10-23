@@ -240,6 +240,8 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .lg-pad .lg-go{background:var(--brand);color:var(--brand-ink)}
 .lg-links{display:flex;justify-content:center;gap:18px;margin-top:20px}.lg-links button{border:0;background:none;color:var(--brand);font:600 13px Inter,sans-serif;cursor:pointer}
 [data-mode="dark"] .lg-links button{color:var(--accent)}
+.boot{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#FFFFFF;transition:opacity .3s}
+[data-mode="dark"] .boot{background:var(--bg)}.boot small{color:var(--muted);font-size:13px;letter-spacing:.4px}.boot.out{opacity:0;pointer-events:none}
 .omark{display:block;width:40px;height:40px;flex:none}
 .lg-av:not(.known){background:none;width:auto;height:auto;margin-bottom:18px}
 .oword{display:block;margin:0 auto;color:var(--text);flex:none}
@@ -285,6 +287,8 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 <body>
 <!-- ORDI: the app's own name and logo, the same for every store (made by tools/ordi-brand.js); the store's name is STORE (script) -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="ordiG" x1="160" y1="160" x2="864" y2="864" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#0BD460"/><stop offset="0.55" stop-color="#05C58A"/><stop offset="1" stop-color="#00A8A0"/></linearGradient><linearGradient id="ordiGw" x1="0" y1="-32" x2="164" y2="132" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#0BD460"/><stop offset="0.55" stop-color="#05C58A"/><stop offset="1" stop-color="#00A8A0"/></linearGradient></defs><symbol id="ordiMark" viewBox="180 180 664 664"><path d="M575.75 239.35A280 280 0 1 0 784.65 448.25" fill="none" stroke="url(#ordiG)" stroke-width="96" stroke-linecap="round"/><circle cx="709.99" cy="314.01" r="72" fill="url(#ordiG)"/></symbol><symbol id="ordiWord" viewBox="-2 -34 411 168"><path d="M97.94 -18.16A70 70 0 1 0 150.16 34.06" fill="none" stroke="url(#ordiGw)" stroke-width="24" stroke-linecap="round"/><circle cx="131.5" cy="0.5" r="18" fill="url(#ordiGw)"/><g fill="currentColor" stroke="currentColor" stroke-width="6" stroke-linejoin="round" fill-rule="evenodd"><path d="M185 3H228A30 30 0 0 1 228 63H185ZM198 16H228A17 17 0 0 1 228 50H198Z"/><path d="M185 3H198V97H185Z"/><path d="M216 58H232L259 97H243Z"/><path d="M284 3H319A47 47 0 0 1 319 97H284ZM297 16H319A34 34 0 0 1 319 84H297Z"/><path d="M391 3H404V97H391Z"/></g></symbol></svg>
+<!-- Launch screen: right after Android's own splash (app icon only), the full ORDI wordmark -->
+<div class="boot" id="boot"><svg class="oword" style="height:72px;width:176px" aria-label="ORDI"><use href="#ordiWord"/></svg><small id="bootStore">Every Home</small></div>
 <div class="sync" id="sync"></div>
 <div class="wrap">
   <div class="top">
@@ -1697,6 +1701,11 @@ function start() {
   if (!started) { started = true; setInterval(function () { if (TOKEN) loadNdr(false); }, 120000); }
 }
 if (TOKEN) start(); else showLogin();
+// Launch screen stays at least 0.7 s from opening, then fades into the app.
+(function () {
+  el('bootStore').textContent = STORE;
+  setTimeout(function () { el('boot').classList.add('out'); setTimeout(function () { el('boot').remove(); }, 350); }, Math.max(0, 700 - performance.now()));
+})();
 </script>
 <script>
 if ('serviceWorker' in navigator) {
