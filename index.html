@@ -75,7 +75,10 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .jr-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:6px}
 .jr-tiles div{background:var(--bg);border-radius:12px;padding:8px 4px;text-align:center;cursor:pointer}.jr-tiles b{display:block;font-size:18px}.jr-tiles small{font-size:10.5px;color:var(--muted)}
 .jr-grp{border-top:1px solid var(--line);padding:8px 0 2px;margin-top:6px}
-.jr-gh{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;margin-bottom:2px}.jr-gh>b{font-size:13px}.jr-gh span{color:var(--muted)}.jr-gh span b{color:var(--text)}
+.jr-gh{display:flex;justify-content:space-between;align-items:center;margin:4px 0 2px}
+.jr-gt{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:6px}
+.jr-gt em{font-style:normal;font-size:11px;font-weight:700;letter-spacing:0;color:var(--text);background:var(--line);border-radius:999px;padding:1px 7px}
+.jr-amt{font-size:11.5px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 9px}
 .jr-gi{display:flex;align-items:center;gap:10px;padding:7px 0;cursor:pointer}.jr-gi>b{font-size:15px}.jr-gi>i{color:var(--faint);font-size:16px}
 .jr-dot2{width:8px;height:8px;border-radius:50%;background:var(--c);flex:none}
 .jr-gn{flex:1;min-width:0;font-size:13px;font-weight:600}.jr-gn small{display:block;font-weight:400;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -868,7 +871,8 @@ function renderHome(d) {
     '<div data-go="parcels:returned"><b class="num" style="color:var(--red)">' + back + '</b><small>Returned</small></div></div>' : '';
   var group = function (title, keys) {
     var n = sumOf(keys); if (!n) return '';
-    return '<div class="jr-grp"><div class="jr-gh"><b>' + title + '</b><span><b class="num">' + n + '</b> · ' + rs(sumOf(keys, jv)) + '</span></div>' +
+    // Section label (title + count chip) and the money as a pill, so it never reads like one more row
+    return '<div class="jr-grp"><div class="jr-gh"><span class="jr-gt">' + title + '<em class="num">' + n + '</em></span><span class="jr-amt">' + rs(sumOf(keys, jv)) + '</span></div>' +
       keys.filter(function (st) { return jr[st]; }).map(function (st) {
         var s = stg(st);
         return '<div class="jr-gi" data-go="parcels:' + st + '" style="--c:' + s[4] + '"><span class="jr-dot2"></span><span class="jr-gn">' + s[1] +
