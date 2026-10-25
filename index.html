@@ -520,7 +520,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 (function () {
   if (window.google && google.script) return;
   window.EH_PWA = true; // installed app: notifications are possible
-  window.EH_BUILD = '2026-10-23'; // shown at the bottom of the menu
+  window.EH_BUILD = '2026-10-25'; // shown at the bottom of the menu
   var API = "https://script.google.com/macros/s/AKfycbyqtyrClenCG1_iqTSDK5KhtFItfX6rUsYdIexwQ3qPFbSv9d1n8jy06ItjvWXXtB-I/exec";
   function call(fn, args, ok, fail) {
     fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: fn, args: args }) })
@@ -790,12 +790,13 @@ function openDispatchLog(day) {
     var max = Math.max.apply(null, keys.map(function (k) { return days[k].length; }).concat([1]));
     h = '<h3>Dispatch log</h3><p>Parcels handed to couriers · last ' + DL_DAYS + ' days · tap a day for its manifest</p>' +
       (keys.length ? '<div class="plist-box">' + keys.map(function (k) {
-        var list = days[k], lp = list.filter(function (p) { return p.courier === 'Leopards'; }).length, tx = list.filter(function (p) { return p.courier === 'Trax'; }).length;
+        var list = days[k], byC = {};
+        list.forEach(function (p) { var c = CLIST.filter(function (x) { return x.name === p.courier; })[0]; if (c) byC[c.key] = (byC[c.key] || 0) + 1; });
         var wait = list.filter(function (p) { return !pickedUp(p); }).length, late = wait && k < yday;
         var chk = !wait ? ['All ' + list.length + ' picked', 'var(--green)'] : late ? [wait + ' not picked', 'var(--red)'] : [(list.length - wait) + ' picked · ' + wait + ' waiting', 'var(--amber)'];
         return '<div class="prow" data-dl="' + k + '" style="--c:' + chk[1] + '"><span class="prow-d"></span><div class="prow-m">' +
           '<div class="prow-1"><b>' + label(k) + '</b><span class="num">' + list.length + ' parcels</span></div>' +
-          '<div class="prow-2"><span>' + [lp ? 'Leopards ' + lp : '', tx ? 'Trax ' + tx : ''].filter(Boolean).join(' · ') + ' · ' + rs(sum(list)) + '</span><span class="st" style="--c:' + chk[1] + '">' + chk[0] + '</span></div>' +
+          '<div class="prow-2"><span>' + [cSplit(byC, true), rs(sum(list))].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + chk[1] + '">' + chk[0] + '</span></div>' +
           '<div class="dl-bar"><i style="width:' + (100 * list.length / max) + '%"></i></div></div></div>';
       }).join('') + '</div>' : '<div class="empty">Nothing dispatched in the last ' + DL_DAYS + ' days</div>') +
       '<div class="btns" style="margin-top:10px"><button class="btn" id="dlClose">Close</button></div>';
@@ -928,7 +929,19 @@ function quickRanges() { // same days as the server's appQuickRanges_
 }
 function niceDay(ymd) { var p = ymd.split('-').map(Number); return new Date(Date.UTC(p[0], p[1] - 1, p[2], 12)).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' }); }
 function rangeKey(r) { return 'r' + r.from + '_' + r.to; }
-var COURIERS = [['all', 'All couriers'], ['trax', 'Trax'], ['leopards', 'Leopards']];
+// The store's couriers (W1 Store Settings "Couriers"); the server sends them with the Home data
+var CLIST = [{ key: 'trax', name: 'Trax' }, { key: 'leopards', name: 'Leopards' }];
+try { var cl0 = JSON.parse(store('eh_couriers') || 'null'); if (Array.isArray(cl0) && cl0.length) CLIST = cl0; } catch (e) {}
+var COURIERS = [];
+function setCouriers(list) {
+  if (Array.isArray(list) && list.length) { CLIST = list; store('eh_couriers', JSON.stringify(list)); }
+  COURIERS = [['all', 'All couriers']].concat(CLIST.map(function (c) { return [c.key, c.name]; }));
+}
+setCouriers();
+// "Leopards 3 · Trax 2" from { leopards: 3, trax: 2 } (by key) — skipZero leaves out couriers with none
+function cSplit(o, skipZero) {
+  return CLIST.map(function (c) { var n = (o && o[c.key]) || 0; return skipZero && !n ? '' : c.name + ' ' + n; }).filter(Boolean).join(' · ');
+}
 
 // One button shows the chosen period; tapping it opens a list (best practice: Shopify / Analytics).
 function curMonth() { return pkDay(new Date()).slice(0, 7); }
@@ -1027,7 +1040,7 @@ function loadHome(fresh) {
   if (cached) { H.data = cached; renderHome(cached); }
   else el('view').innerHTML = el('view').innerHTML.indexOf('sk') > -1 ? el('view').innerHTML : '<div class="sk" style="height:170px;margin-bottom:12px"></div><div class="sk" style="height:220px"></div>';
   api('getAppHomeData', [{ month: H.range ? '' : monthOf(H), range: H.range, courier: H.courier, fresh: !!fresh, token: TOKEN }], function (d) {
-    H.mem[key] = d; snap(key, d);
+    H.mem[key] = d; snap(key, d); if (d && d.courierList) setCouriers(d.courierList);
     if (homeKey() !== key) return; // user switched meanwhile
     H.data = d; renderHome(d);
     if (fresh) toast('Updated');
@@ -1088,7 +1101,7 @@ function renderHome(d) {
       '<b class="jr-n num">' + n + '</b><i class="ti ti-chevron-right" style="color:var(--faint)"></i></div>';
   };
   // Booked parcels count on their dispatch day; orders not booked yet on their order day.
-  var ds = d.dispatched || { leopards: 0, trax: 0 };
+  var ds = d.dispatched || {};
   var waitingBook = (jr.pending || 0) + (jr.confirmed || 0);
   // Order journey: one picture first (bar + 4 tiles of what happened to this period's dispatches), then groups
   // with their own count and COD, showing only stages that hold parcels. Amounts sit inside the box they belong to.
@@ -1097,7 +1110,7 @@ function renderHome(d) {
   var onWay = sumOf(MOVING), comingBack = sumOf(BACK), back = jr.returned || 0, dlv = jr.delivered || 0;
   var lateAll = Object.keys(late).reduce(function (a, st) { return a + late[st]; }, 0);
   var sumLine = '<div class="jr-head"><b class="num">' + k.booked + '</b> shipped · ' + rs(k.bookedValue) + ' COD</div>' +
-    '<div class="jr-sum">' + (k.booked ? 'Leopards ' + ds.leopards + ' · Trax ' + ds.trax : 'Nothing shipped in this period') +
+    '<div class="jr-sum">' + (k.booked ? cSplit(ds) : 'Nothing shipped in this period') +
     (delta(k.booked, p && p.booked) ? ' · <span class="nw">' + delta(k.booked, p && p.booked) + '</span>' : '') + '</div>';
   var tot = Math.max(1, dlv + onWay + comingBack + back);
   var seg = function (n, c) { return n ? '<i style="width:' + (100 * n / tot) + '%;background:' + c + '"></i>' : ''; };
@@ -1279,10 +1292,10 @@ REPORT.dispatched = function (d) {
   var h = '';
   var maxD = Math.max.apply(null, d.days.map(function (x) { return x.count; }).concat([1]));
   // Dispatches by booking day; today's count with the courier split on top.
-  var td = d.days[d.days.length - 1] || { count: 0, trax: 0, leopards: 0 };
+  var td = d.days[d.days.length - 1] || { count: 0 };
   h += '<div class="card fade"><div class="h"><b>Shipped · last 14 days</b><span>' + d.days.reduce(function (a, x) { return a + x.count; }, 0) + ' parcels</span></div>' +
-    '<div class="jr-sum"><b class="num">' + td.count + '</b> shipped today' + (td.count ? ' · Leopards ' + (td.leopards || 0) + ' · Trax ' + (td.trax || 0) : '') + '</div><div class="days">' +
-    d.days.map(function (x) { return '<i title="' + x.weekday + ' ' + x.label + ': ' + x.count + ' (Leopards ' + (x.leopards || 0) + ', Trax ' + (x.trax || 0) + ')" style="height:0" data-h="' + (100 * x.count / maxD) + '"></i>'; }).join('') +
+    '<div class="jr-sum"><b class="num">' + td.count + '</b> shipped today' + (td.count ? ' · ' + cSplit(td) : '') + '</div><div class="days">' +
+    d.days.map(function (x) { return '<i title="' + x.weekday + ' ' + x.label + ': ' + x.count + ' (' + cSplit(x, true) + ')" style="height:0" data-h="' + (100 * x.count / maxD) + '"></i>'; }).join('') +
     '</div><div class="days-l"><span>' + d.days[0].weekday + ' ' + d.days[0].label + '</span><span>Today</span></div></div>';
   return h;
 };
