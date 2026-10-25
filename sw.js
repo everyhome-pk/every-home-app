@@ -1,4 +1,4 @@
-const CACHE = 'eh-mvnqzocz';
+const CACHE = 'eh-mvo4ita6';
 const SHELL = ['./', 'index.html', 'ordi.webmanifest', 'ordi-192.png', 'ordi-512.png', 'ordi-maskable-512.png', 'ordi-apple-180.png', 'ordi-badge-96.png'];
 // 'reload': a new version always takes the files from the server, never from the browser's own (older) copy.
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting())); });
@@ -13,7 +13,8 @@ self.addEventListener('push', e => {
   const url = (m.url || './') + (m.p ? ((m.url || './').indexOf('?') === -1 ? '?' : '&') + 'p=' + encodeURIComponent(m.p) : '');
   const urgent = m.urgent === '1' || m.urgent === true;
   e.waitUntil(self.registration.showNotification(m.title || 'ORDI', {
-    body: m.body || '', icon: 'ordi-192.png', badge: 'ordi-badge-96.png', tag: m.tag || undefined, renotify: !!m.tag,
+    body: m.body || '', badge: 'ordi-badge-96.png', // no icon: on Android it shows as a second picture on the right (the app's own icon is already on the left)
+    tag: m.tag || undefined, renotify: !!m.tag,
     vibrate: urgent ? [250, 120, 250, 120, 400] : [120], requireInteraction: urgent, data: { url: url }
   }));
 });

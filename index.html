@@ -22,17 +22,42 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;font-size:14px;line-height:1.45;transition:background .3s,color .3s}
 .num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
-.wrap{max-width:460px;margin:0 auto;padding:16px 16px 96px}
-.top{display:flex;align-items:center;gap:12px;margin:4px 0 14px}
+.wrap{max-width:460px;margin:0 auto;padding:calc(var(--toph, 72px) + 12px) 16px 96px}
+.top{display:flex;align-items:center;gap:12px;position:fixed;top:0;left:0;right:0;max-width:460px;margin:0 auto;z-index:9;padding:calc(12px + env(safe-area-inset-top)) 16px 10px;
+  background:color-mix(in srgb,var(--bg) 86%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .2s,padding .2s}
+.top.scrolled{box-shadow:0 1px 0 var(--line),0 6px 16px rgba(2,6,23,.05)}
+/* Large header at the top of the page; scrolling down hides it, scrolling up brings back a compact one (name + buttons) */
+.top.hide{transform:translateY(-110%)}
+.top.compact{padding-top:calc(8px + env(safe-area-inset-top));padding-bottom:8px}
+.top .hello b,.top .hello>span{transition:font-size .2s,opacity .2s,max-height .2s}
+.top .hello>span{max-height:20px}
+.top.compact .hello b{font-size:15px}.hello b.long{font-size:15px}.top.compact .hello>span{opacity:0;max-height:0}
+.top.compact .icon-btn{width:36px;height:36px;font-size:17px}
 .logo{width:40px;height:40px;border-radius:12px;background:var(--brand);color:var(--brand-ink);display:grid;place-items:center;font-weight:700;letter-spacing:.5px}
 .hello{flex:1;min-width:0}.hello b{display:block;font-size:17px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hello span{display:block;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.top .icon-btn{width:36px;height:36px;font-size:17px}
+.hello span{display:block;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.swarn{display:flex;align-items:center;gap:10px;width:100%;margin:0 0 12px;border:1px solid var(--line);background:var(--card);border-radius:14px;padding:10px 12px;font:13px Inter,sans-serif;color:var(--text);text-align:left;cursor:pointer;box-shadow:var(--shadow)}
+.swarn[hidden]{display:none}.swarn i{font-size:18px;flex:none}.swarn span{flex:1}
+.hello .sstat{display:inline;white-space:nowrap}.hello .sstat i{font-size:13px;vertical-align:-2px;margin-right:2px}.hello .sstat.bad{color:var(--text);font-weight:600}
+.sx-card{padding:2px 14px}.sx-h{display:grid;grid-template-columns:1fr 64px 52px;padding:6px 0;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--faint)}
+.sx-h span:nth-child(n+2){text-align:right}
+.sx-r{display:grid;grid-template-columns:1fr 64px 52px;align-items:center;row-gap:5px;padding:8px 0;border-top:1px solid var(--line);cursor:pointer;font-size:13.5px}
+.sx-r b{text-align:right;font-size:13.5px}.sx-r b em{font-style:normal;font-size:11px;font-weight:600;color:var(--text)}.sx-r small{text-align:right;color:var(--muted);font-size:12.5px}
+.sx-r.bad span,.sx-r.bad b{font-weight:700}
+.sx-bar{grid-column:1/-1;height:2px;border-radius:99px;background:var(--bg);overflow:hidden}.sx-bar u{display:block;height:100%;background:var(--brand);opacity:.55;border-radius:99px}
+.sx-more{grid-column:1/-1;font-size:12px;color:var(--muted)}
+.sx-old{display:flex;align-items:center;gap:6px;margin:2px 2px 0;font-size:12.5px;color:var(--muted)}.sx-old i{font-size:15px}
+.top .icon-btn{width:40px;height:40px;border-radius:50%;border:0;background:var(--card);box-shadow:0 1px 2px rgba(2,6,23,.06),0 2px 8px rgba(2,6,23,.05);font-size:19px;color:var(--text)}
+.top .icon-btn:active{transform:scale(.94)}
+#btnRefresh.busy i{animation:spin .9s linear infinite;color:var(--brand)}
+.top .bell-dot{top:9px;right:10px;width:8px;height:8px}
 .top{gap:8px}
 #brief{cursor:pointer}#brief span{flex:1}
 .pbar{display:flex;gap:8px;margin-bottom:14px}
-.pbtn{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:12px;padding:9px 12px;font:600 13px Inter,sans-serif;cursor:pointer;box-shadow:var(--shadow);min-width:0}
-.pbtn:first-child{flex:1.3}.pbtn:last-child{flex:1}
+.pbtn{display:flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:99px;height:40px;padding:0 14px;font:600 13px Inter,sans-serif;cursor:pointer;box-shadow:0 1px 2px rgba(2,6,23,.04);min-width:0}
+.pbtn:active{transform:scale(.98)}
+.pbtn:first-child{flex:1 1 auto}.pbtn:last-child{flex:0 0 auto}
 .pbtn span{flex:1;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pbtn i{font-size:16px;color:var(--muted)}
 [data-p]{cursor:pointer}
@@ -42,7 +67,7 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .pd-r:first-child{border-top:0}.pd-r span{color:var(--muted);flex:none}.pd-r b{font-weight:600;text-align:right;min-width:0;overflow-wrap:anywhere}
 .drawer{position:fixed;inset:0;background:rgba(2,6,23,.45);z-index:40;display:none}
 .drawer.show{display:block}
-.dr-panel{position:absolute;left:0;top:0;bottom:0;width:min(300px,82vw);background:var(--card);padding:18px 14px calc(18px + env(safe-area-inset-bottom));overflow:auto;animation:drIn .22s ease}
+.dr-panel{position:absolute;left:0;top:0;bottom:0;overscroll-behavior:contain;width:min(300px,82vw);background:var(--card);padding:18px 14px calc(18px + env(safe-area-inset-bottom));overflow:auto;animation:drIn .22s ease}
 @keyframes drIn{from{transform:translateX(-100%)}to{transform:none}}
 .dr-user{display:flex;align-items:center;gap:10px;margin-bottom:8px}.dr-user .logo{width:40px;height:40px}.dr-user b{display:block;font-size:15px}.dr-user small{color:var(--muted);font-size:12px}
 .dr-i[hidden],.dr-h[hidden],.nav button[hidden]{display:none}
@@ -53,11 +78,37 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .dr-sub{margin-left:auto;font-size:11px;color:var(--faint);font-weight:400}
 .dr-ver{font-size:11px;color:var(--faint);text-align:center;margin:18px 0 6px}
 .dr-note{font-size:12px;color:var(--muted);padding:6px}
+.cf-r b.num{white-space:nowrap;flex:none}.cf-r b.num.muted{color:var(--muted);font-weight:600}
+.bf-l{display:flex;align-items:center;gap:11px;padding:12px 14px;border-top:1px solid var(--line);cursor:pointer}.bf-l:first-child{border-top:0}
+.bf-l>div{flex:1}.bf-l b{font-size:14px}.bf-l small{display:block;font-size:12px;color:var(--muted)}.bf-l>.num{font-size:16px}
+.bf-i{flex:none;width:34px;height:34px;border-radius:10px;background:var(--bg);display:grid;place-items:center;font-size:18px}
+.pd-sub{display:block;font-size:11.5px;font-weight:500;color:var(--muted);margin-top:2px;text-align:right}
+.prow .prow-3{font-size:11.5px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.rcpt{background:var(--bg);border-radius:14px;padding:6px 14px}.rc-l{display:flex;justify-content:space-between;gap:10px;padding:7px 0;font-size:13.5px;color:var(--muted)}
+.rc-l b{color:var(--text);font-weight:600}.rc-cod{color:var(--text)}.rc-cod span{font-weight:600}
+.rc-net{border-top:1px dashed var(--line);margin-top:4px;padding-top:10px;color:var(--text);font-weight:700}.rc-net b{font-size:16px;font-weight:700}
+.rc-card{margin-top:10px;font-size:12.5px;color:var(--muted);padding:0 4px}
+.rep-per{display:flex;gap:8px;margin:2px 0 12px;flex-wrap:wrap}.rep-per .pchip{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);border-radius:99px;padding:7px 12px;font:600 13px Inter,sans-serif;color:var(--text);cursor:pointer}
+.rep-per .pchip i{color:var(--muted)}
+.sx{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}.sx>div{background:var(--bg);border-radius:12px;padding:10px 12px;cursor:pointer}
+.sx small{display:block;font-size:12px;color:var(--muted)}.sx b{display:block;font-size:26px;margin:2px 0}.sx span{font-size:12px;color:var(--muted)}
+.sxbar{display:flex}.sxbar i{display:block;height:100%}
+.obox{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:12px;margin-bottom:12px}
+.obox-h{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13px;color:var(--muted)}.obox-h b{color:var(--text);font-size:14px}.obox-h i{color:var(--brand);font-size:18px}
+.ob-line{display:flex;align-items:center;gap:10px;width:100%;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 12px;margin-top:6px;font:13px Inter,sans-serif;color:var(--muted);cursor:pointer;text-align:left}
+.ob-line b{color:var(--text);min-width:70px}.ob-line span{flex:1}.ob-line .ob-go{flex:none;color:var(--brand);font-weight:600}
+.ob-it{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line);cursor:pointer}.ob-it:first-of-type{border-top:0}
+.ob-it input{margin-top:3px;width:18px;height:18px;accent-color:var(--brand)}.ob-it b{display:block;font-size:13.5px}.ob-it small{font-size:12px;color:var(--muted)}
+.btn.mini{padding:5px 10px;font-size:12px;margin-top:6px;display:inline-flex}
 .cstrip{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
 .cs-line{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 12px;font:13px Inter,sans-serif;color:var(--muted);cursor:pointer;text-align:left}
 .cs-line b{color:var(--text);font-weight:600;min-width:70px}.cs-line span{flex:1}.cs-line .down{font-style:normal}
-.totop{position:fixed;right:16px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:15;display:none;align-items:center;gap:4px;border:0;border-radius:99px;padding:9px 14px;background:var(--text);color:var(--bg);font:600 12.5px Inter,sans-serif;box-shadow:var(--shadow);cursor:pointer}
-.totop.show{display:flex}.totop i{font-size:15px}
+/* Back to top: small round button above the tab bar, fades in after scrolling down a long way */
+.totop{position:fixed;right:16px;bottom:calc(88px + env(safe-area-inset-bottom));z-index:15;width:46px;height:46px;border-radius:50%;border:1px solid var(--line);
+  background:var(--card);color:var(--brand);display:grid;place-items:center;box-shadow:0 6px 20px rgba(2,6,23,.16);cursor:pointer;
+  opacity:0;transform:translateY(12px) scale(.85);pointer-events:none;transition:opacity .2s ease,transform .2s ease}
+.totop.show{opacity:1;transform:none;pointer-events:auto}.totop i{font-size:22px}.totop:active{transform:scale(.92)}
+[data-mode="dark"] .totop{color:var(--accent)}
 .list-end{text-align:center;font-size:12px;color:var(--faint);padding:10px 0}
 .rep .card{box-shadow:none;border:1px solid var(--line)}
 .fbar{display:flex;gap:8px;margin-bottom:10px}
@@ -68,6 +119,76 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .sheet-list .sl small{display:block;font-size:11.5px;color:var(--muted);font-weight:400}
 .sheet-list .sl.on{color:var(--brand);font-weight:600}.sheet-list .sl i{font-size:18px}
 .sheet-list .sl-h{font-size:10.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.7px;margin:12px 0 2px}
+/* Dropdown menu: small choices open right under the button that asked for them (not a full-width sheet) */
+/* compact one-line input (amount + Save) */
+.mini-l{display:block;font-size:12px;color:var(--muted);margin:2px 0 6px}
+.inrow{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:14px;padding:5px 5px 5px 12px;background:var(--bg)}
+.inrow:focus-within{border-color:var(--brand);background:var(--card)}
+.inrow .pre{color:var(--muted);font-weight:600;font-size:14px}
+.inrow input{flex:1;min-width:0;border:0;background:none;padding:8px 0;font:600 17px Inter,sans-serif;color:var(--text);outline:none}
+.inrow .btn{flex:none;padding:10px 18px}
+/* Full page for details (parcel …): slides in from the right; Back returns to where you were */
+.page{position:fixed;inset:0;z-index:55;background:var(--bg);display:flex;flex-direction:column;animation:pgIn .26s cubic-bezier(.2,.8,.2,1)}
+.page[hidden]{display:none}
+@keyframes pgIn{from{transform:translateX(100%)}}
+.page ~ .overlay{z-index:50}.page:not([hidden]) ~ .overlay{z-index:65}
+.pg-top{display:flex;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top)) 12px 8px 6px;background:color-mix(in srgb,var(--bg) 90%,transparent);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.pg-back{flex:none;width:40px;height:40px;border:0;border-radius:50%;background:none;color:var(--text);font-size:24px;display:grid;place-items:center;cursor:pointer}
+.pg-back:active{background:var(--card)}
+.pg-t{flex:1;min-width:0}.pg-t b{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pg-t small{display:block;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pg-body{flex:1;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.pg-in{max-width:460px;margin:0 auto;padding:14px 16px 24px}
+.pg-bar{display:flex;gap:8px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--line)}
+.pg-bar:empty{display:none}.pg-bar .btn{flex:1;padding:12px;justify-content:center}
+/* parcel page parts */
+.pp-hero{background:var(--card);border-radius:18px;box-shadow:var(--shadow);padding:14px 16px;margin-bottom:12px}
+.pp-cod{display:flex;justify-content:space-between;align-items:baseline;margin-top:12px}.pp-cod b{font-size:22px}.pp-cod span{font-size:12.5px;color:var(--muted)}
+.pp-steps{display:flex;align-items:flex-start;gap:0;margin-top:2px}
+.pp-step{flex:1;text-align:center;font-size:10.5px;color:var(--faint);position:relative}
+.pp-step i{display:block;width:12px;height:12px;border-radius:50%;margin:0 auto 5px;background:var(--line);position:relative;z-index:1}
+.pp-step:not(:first-child):before{content:"";position:absolute;top:5px;right:50%;width:100%;height:2px;background:var(--line)}
+.pp-step.done i,.pp-step.done:before{background:var(--sc)}.pp-step.done{color:var(--text)}.pp-step.now i{box-shadow:0 0 0 4px color-mix(in srgb,var(--sc) 25%,transparent)}
+.pp-card{background:var(--card);border-radius:18px;box-shadow:var(--shadow);padding:6px 16px;margin-bottom:12px}
+.pp-card>.pp-h{display:flex;justify-content:space-between;align-items:center;padding:10px 0 4px;font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--faint);font-weight:600}
+.pp-card .pd{margin:0;border:0;background:none;box-shadow:none;padding:0;border-radius:0}.pp-card .pd-r:first-child{border-top:0}
+.pp-more{display:block;width:100%;border:0;background:none;color:var(--brand);font:600 13px Inter,sans-serif;padding:10px 0 8px;cursor:pointer}
+/* Pull to refresh: a small circle follows the finger down from the header */
+body{overscroll-behavior-y:contain}
+.ptr{position:fixed;left:50%;top:calc(var(--toph, 64px) - 44px);z-index:8;width:40px;height:40px;margin-left:-20px;border-radius:50%;background:var(--card);
+  box-shadow:0 4px 14px rgba(2,6,23,.16);display:grid;place-items:center;color:var(--brand);font-size:20px;opacity:0;transform:translateY(0);pointer-events:none}
+.ptr.go{transition:transform .25s ease,opacity .25s ease}.ptr.spin i{animation:spin .8s linear infinite}
+/* "↑ 3 new" when new items arrive while you are down the list */
+.newpill{position:fixed;left:50%;top:calc(var(--toph, 64px) + 10px);z-index:9;transform:translateX(-50%);border:0;border-radius:99px;padding:8px 16px;
+  background:var(--brand);color:#fff;font:600 13px Inter,sans-serif;box-shadow:0 6px 18px rgba(0,133,122,.35);display:flex;align-items:center;gap:6px;cursor:pointer;animation:pillIn .25s ease}
+.newpill[hidden]{display:none}@keyframes pillIn{from{opacity:0;transform:translate(-50%,-8px)}}
+/* offline: a quiet strip; it goes away by itself when the connection is back */
+.offbar{display:flex;align-items:center;gap:8px;margin:0 0 12px;padding:9px 12px;border-radius:12px;background:var(--card);border:1px solid var(--line);color:var(--muted);font-size:12.5px}
+.offbar[hidden]{display:none}.offbar i{font-size:16px}
+/* Full-page mode of the panel (reports, NDR form, brief, return history, courier list, notifications, dispatch log) */
+.overlay.full{align-items:stretch;justify-content:stretch;background:var(--bg);animation:none}
+.overlay.full .panel{max-width:none;width:100%;height:100%;max-height:none;border-radius:0;box-shadow:none;padding:0 16px calc(28px + env(safe-area-inset-bottom));
+  animation:pgIn .26s cubic-bezier(.2,.8,.2,1);background:var(--bg)}
+.overlay.full .panel:before,.overlay.full .panel>.pclose,.overlay.full .fs-hide,.overlay.full [data-back]{display:none}
+.overlay.full .panel>:not(.fs-top){max-width:460px;margin-left:auto;margin-right:auto}
+.fs-top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:6px;margin:0 -16px 14px;padding:calc(8px + env(safe-area-inset-top)) 12px 8px 6px;
+  background:color-mix(in srgb,var(--bg) 90%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.fs-top b{flex:1;min-width:0;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lg-bio{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:14px 0 0;border:1px solid var(--line);background:var(--card);
+  border-radius:14px;padding:12px;font:600 14px Inter,sans-serif;color:var(--text);cursor:pointer}.lg-bio i{font-size:22px;color:var(--brand)}
+.bio-art{display:flex;justify-content:center;gap:18px;padding:14px 0 4px;font-size:44px;color:var(--brand)}
+.menu-bd{position:fixed;inset:0;z-index:70}.menu-bd[hidden]{display:none}
+.menu{position:fixed;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:6px;overflow:auto;overscroll-behavior:contain;
+  box-shadow:0 14px 36px rgba(2,6,23,.18),0 2px 6px rgba(2,6,23,.08);animation:menuIn .14s ease-out;transform-origin:top center}
+.menu.up{transform-origin:bottom center}
+@keyframes menuIn{from{opacity:0;transform:scale(.96)}}
+.menu .sheet-list .sl{padding:10px 12px;border-top:0;border-radius:10px;font-size:14px}
+.menu .sheet-list .sl:hover,.menu .sheet-list .sl:active{background:var(--bg)}
+.menu .sheet-list .sl.on{background:rgba(0,133,122,.08)}
+[data-mode="dark"] .menu .sheet-list .sl.on{background:rgba(63,224,168,.1)}
+.menu .sheet-list .sl-h{margin:8px 12px 2px}
+.menu .sheet-list .sl small{margin-top:1px}
 .flag{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:99px;background:var(--amber-bg);color:var(--amber);margin:6px 4px 0 0}
 .jr-cancel{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:9px 10px;border-radius:12px;background:var(--bg);font-size:12.5px;color:var(--muted);cursor:pointer}
 .jr-cancel b{color:var(--text)}
@@ -171,17 +292,23 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .pay .d{flex:1;min-width:0}.pay .d b{font-size:13px;font-weight:600;display:block}.pay .d small{font-size:12px;color:var(--muted)}
 .pill{font-size:11px;font-weight:600;padding:3px 8px;border-radius:99px}
 .p-ok{background:var(--green-bg);color:var(--green)}.p-no{background:var(--red-bg);color:var(--red)}
-.nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:10}
+.nav{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--card) 94%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--line);box-shadow:0 -4px 18px rgba(2,6,23,.05);padding:7px 0 calc(7px + env(safe-area-inset-bottom));z-index:10}
 .nav div{max-width:460px;margin:0 auto;display:flex}
-.nav button{flex:1;border:0;background:none;color:var(--muted);font:500 11px Inter,sans-serif;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;position:relative}
-.nav button i{font-size:22px;padding:3px 18px;border-radius:16px;transition:background .2s}
-.nav button.on{color:var(--brand);font-weight:700}.nav button.on i{background:rgba(0,133,122,.13)}
-[data-mode="dark"] .nav button.on i{background:rgba(63,224,168,.15)}
+.nav button{flex:1;border:0;background:none;color:var(--muted);font:500 11px Inter,sans-serif;letter-spacing:.1px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;position:relative;-webkit-tap-highlight-color:transparent}
+.nv-i{position:relative;display:grid;place-items:center;width:58px;height:30px;border-radius:15px;transition:background .2s ease}
+.nv-i i{font-size:23px;line-height:1}
+.nav button.on{color:var(--brand);font-weight:600}.nav button.on .nv-i{background:rgba(0,133,122,.12)}
+[data-mode="dark"] .nav button.on .nv-i{background:rgba(63,224,168,.14)}
 [data-mode="dark"] .nav button.on,[data-mode="dark"] .brief i{color:var(--accent)}
-.badge{position:absolute;top:-4px;left:calc(50% + 8px);background:var(--red);color:#fff;font-size:10px;font-weight:700;border-radius:99px;padding:1px 6px}
+/* Tab badges: small count on the icon's corner, ringed with the bar colour (NDR = needs action, Returns = soft) */
+.badge{position:absolute;top:-3px;left:calc(50% + 7px);min-width:17px;height:17px;padding:0 5px;box-sizing:border-box;border-radius:9px;background:#E5484D;color:#fff;
+  font:700 10px/17px Inter,sans-serif;text-align:center;box-shadow:0 0 0 2px var(--card);font-variant-numeric:tabular-nums}
+.badge.soft{background:var(--brand)}[data-mode="dark"] .badge.soft{background:var(--accent);color:#06281F}
+.badge.fresh{animation:bdgIn .5s cubic-bezier(.3,1.6,.5,1)}
+@keyframes bdgIn{from{transform:scale(.3)}}
 .sk{background:linear-gradient(90deg,var(--line) 25%,var(--card) 50%,var(--line) 75%);background-size:200% 100%;animation:sk 1.2s infinite;border-radius:18px}
 @keyframes sk{to{background-position:-200% 0}}
-.toast{position:fixed;left:50%;bottom:86px;transform:translate(-50%,20px);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:20}
+.toast{position:fixed;left:50%;bottom:86px;transform:translate(-50%,20px);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:80}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .fade{animation:fade .45s ease both}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -232,6 +359,10 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .pref{display:flex;align-items:center;gap:10px;padding:12px 14px;border-top:1px solid var(--line);cursor:pointer}.pref:first-child{border-top:0}.pref div{flex:1}.pref b{display:block;font-size:13.5px}.pref small{font-size:11.5px;color:var(--muted)}
 .pref input{display:none}.sw{flex:none;width:42px;height:24px;border-radius:99px;background:var(--line);position:relative;transition:background .2s}.sw:after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .2s}
 .pref input:checked+.sw{background:var(--brand)}.pref input:checked+.sw:after{left:21px}
+.rh{margin:4px 0}.rh-s{display:flex;gap:11px;padding:10px 0;position:relative}.rh-s:not(:last-child):after{content:"";position:absolute;left:15px;top:42px;bottom:-4px;width:2px;background:var(--line)}
+.rh-i{flex:none;width:32px;height:32px;border-radius:50%;background:var(--bg);color:var(--c);display:grid;place-items:center;font-size:17px;z-index:1}
+.rh-s b{display:block;font-size:13.5px}.rh-s small{display:block;font-size:12px;color:var(--muted);margin-top:1px}
+.rh-s ul{margin:5px 0 0;padding-left:16px;font-size:12.5px;color:var(--text);line-height:1.45}.rh-s li{margin:2px 0}
 .prow.dim{opacity:.7}.found-items{display:flex;align-items:center;gap:8px;font-size:13px;background:var(--bg);border-radius:12px;padding:9px 11px;margin:4px 0 6px}.found-items span{flex:1}.found-items i{color:var(--muted)}
 .prow.in{padding-left:0;padding-right:0}.prow.in:first-child{border-top:1px solid var(--line)}
 .prow-btn{flex:none !important;width:auto !important;padding:7px 11px;font-size:12px;align-self:center;gap:5px}
@@ -283,10 +414,23 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .new-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-right:6px;animation:pulse 1.4s infinite}
 @keyframes pulse{50%{opacity:.3}}
 .done-line{font-size:12px;color:var(--green);margin-top:8px;display:flex;gap:6px;align-items:center}
-.overlay{position:fixed;inset:0;background:rgba(2,6,23,.45);display:none;align-items:flex-end;justify-content:center;z-index:30}
+.overlay{position:fixed;inset:0;background:rgba(2,6,23,.5);display:none;align-items:flex-end;justify-content:center;z-index:50;animation:fadeIn .2s ease}
+.drawer.show ~ .overlay{background:rgba(2,6,23,.28)}
 .overlay.show{display:flex}
-.panel{background:var(--card);width:100%;max-width:460px;border-radius:22px 22px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto;animation:up .25s ease}
-@keyframes up{from{transform:translateY(40px);opacity:0}}
+/* Bottom sheet: grab handle, ✕ at the top (scrolls away, so it never covers content), own scroll (the page behind stays still), drag down to close */
+.panel{position:relative;background:var(--card);width:100%;max-width:520px;border-radius:22px 22px 0 0;padding:22px 16px calc(16px + env(safe-area-inset-bottom));
+  max-height:90vh;max-height:90dvh;overflow:auto;overscroll-behavior:contain;box-shadow:0 -10px 40px rgba(2,6,23,.18);animation:up .32s cubic-bezier(.2,.9,.25,1);transition:transform .2s ease}
+.panel:before{content:"";position:sticky;display:block;top:-18px;margin:-18px auto 10px;width:40px;height:5px;border-radius:99px;background:var(--line);z-index:2}
+.panel.drag{transition:none}
+.pclose{position:absolute;top:16px;right:14px;width:34px;height:34px;border-radius:50%;border:0;background:var(--bg);color:var(--muted);display:grid;place-items:center;font-size:18px;cursor:pointer;z-index:3}
+.pclose:active{transform:scale(.92)}
+.panel>h3,.panel>.pd-top,.panel>.rep-per{padding-right:42px}
+@media (min-width:560px){.overlay{align-items:center}.panel{border-radius:24px;max-height:86vh}}
+[hidden]{display:none !important} /* hidden always wins over a component's own display */
+body.locked{overflow:hidden;overscroll-behavior:none}
+.drawer,.menu-bd,.overlay{overscroll-behavior:contain;touch-action:pan-y}
+@keyframes fadeIn{from{opacity:0}}
+@keyframes up{from{transform:translateY(100%)}}
 .panel h3{margin:0 0 2px;font-size:16px}.panel p{margin:0 0 12px;color:var(--muted);font-size:12.5px}
 .fld{margin-bottom:10px}.fld label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
 .fld select,.fld input,.fld textarea{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--text);border-radius:12px;padding:10px 12px;font:400 14px Inter,sans-serif}
@@ -294,20 +438,31 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .opt{border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px;cursor:pointer;background:var(--bg)}
 .opt.on{border-color:var(--brand);background:var(--card);box-shadow:0 0 0 1px var(--brand)}
 .err{color:var(--red);font-size:12px;margin-top:4px}
-.login{position:fixed;inset:0;background:var(--bg);z-index:40;display:flex;align-items:center;justify-content:center;padding:20px}
+.login{position:fixed;inset:0;background:var(--bg);z-index:90;display:flex;align-items:safe center;justify-content:center;padding:20px;overflow-y:auto;overscroll-behavior:contain}
 .login[hidden]{display:none}
 .login-box{width:100%;max-width:340px;text-align:center}
 .lg-av{width:60px;height:60px;border-radius:18px;background:var(--brand);color:var(--brand-ink);display:grid;place-items:center;margin:0 auto 14px;font-weight:700;font-size:20px}
 .lg-av.known{border-radius:50%;background:var(--brand-bg,#E6F4F1);color:var(--brand)}[data-mode="dark"] .lg-av.known{background:#12302d;color:var(--accent)}
-.lg-dots{display:flex;gap:12px;justify-content:center;margin:18px 0 6px;min-height:16px}
-.lg-dots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--faint);transition:all .12s}.lg-dots i.on{background:var(--brand);border-color:var(--brand)}
+.lg-dots{display:flex;gap:14px;justify-content:center;margin:22px 0 4px;min-height:18px}
+.lg-dots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--line);transition:transform .15s ease,background .15s ease,border-color .15s ease}
+.lg-dots i.on{background:var(--brand);border-color:var(--brand);transform:scale(1.12)}
+.lg-dots.bad i{border-color:var(--red)}.lg-dots.bad i.on{background:var(--red)}
+.lg-dots.ok i{background:var(--green);border-color:var(--green)}
+.lg-num{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--card);border-radius:16px;padding:4px 14px;margin:6px 0 4px}
+.lg-num:focus-within{border-color:var(--brand)}
+.lg-num span{font:600 17px Inter,sans-serif;color:var(--muted);padding-right:10px;border-right:1px solid var(--line)}
+.login-box .lg-num input{border:0;background:none;margin:0;padding:12px 0;text-align:left;font:600 19px Inter,sans-serif;letter-spacing:.5px;outline:none}
+.lg-cont{width:100%;padding:14px;margin-top:10px;justify-content:center;font-size:15px}
+.lg-step-b{border:0;background:none;color:var(--brand);font:600 13px Inter,sans-serif;cursor:pointer;padding:0}
 [data-mode="dark"] .lg-dots i.on{background:var(--accent);border-color:var(--accent)}
 .lg-dots.busy i.on{animation:lgPulse .8s infinite alternate}@keyframes lgPulse{to{opacity:.35}}
 .lg-dots.shake{animation:lgShake .35s}@keyframes lgShake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
-.lg-pad{display:grid;grid-template-columns:repeat(3,72px);gap:14px 26px;justify-content:center;margin-top:14px}
-.lg-pad button{width:72px;height:72px;border-radius:50%;border:0;background:var(--card);color:var(--text);font:500 26px Inter,sans-serif;box-shadow:var(--shadow);cursor:pointer}
-.lg-pad button:active{transform:scale(.94);background:var(--line)}.lg-pad button i{font-size:24px}
-.lg-pad .lg-go{background:var(--brand);color:var(--brand-ink)}
+.lg-pad{display:grid;grid-template-columns:repeat(3,76px);gap:14px 28px;justify-content:center;margin-top:18px}
+.lg-pad button{width:76px;height:76px;border-radius:50%;border:0;background:var(--card);color:var(--text);font:500 28px Inter,sans-serif;
+  box-shadow:0 1px 2px rgba(2,6,23,.06),0 3px 10px rgba(2,6,23,.05);cursor:pointer;transition:transform .08s,background .08s;-webkit-tap-highlight-color:transparent}
+.lg-pad button:active{transform:scale(.92);background:var(--line)}.lg-pad button i{font-size:26px}
+.lg-pad .lg-k2{background:none;box-shadow:none;color:var(--muted)}
+.lg-pad #lgBio{color:var(--brand)}.lg-pad #lgBio.off{visibility:hidden}
 .lg-links{display:flex;justify-content:center;gap:18px;margin-top:20px}.lg-links button{border:0;background:none;color:var(--brand);font:600 13px Inter,sans-serif;cursor:pointer}
 [data-mode="dark"] .lg-links button{color:var(--accent)}
 .boot{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#FFFFFF;transition:opacity .3s}
@@ -316,7 +471,7 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .lg-av:not(.known){background:none;width:auto;height:auto;margin-bottom:18px}
 .oword{display:block;margin:0 auto;color:var(--text);flex:none}
 .lg-brand[hidden]{display:none}.lg-brand{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:22px;color:var(--muted);font-size:12px}.lg-brand .oword{margin:0;color:var(--muted)}.lg-brand .omark{width:16px;height:16px}
-.login-box h2{margin:0;font-size:22px}.login-box p{color:var(--muted);font-size:13px;margin:4px 0 18px}
+.login-box h2{margin:0;font-size:22px;text-wrap:balance}.login-box p{color:var(--muted);font-size:13px;margin:4px 0 18px}
 .pf-phone{display:flex;align-items:center;justify-content:center;gap:6px;font-weight:600;font-size:15px;margin:4px 0 2px}.pf-phone i{color:var(--muted);font-size:18px}
 .login-box .pf-note{font-size:11.5px;margin:0 0 12px}
 .login-box select,.login-box input{width:100%;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:14px;padding:13px 14px;font:400 15px Inter,sans-serif;margin-bottom:10px;text-align:center}
@@ -351,10 +506,6 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 /* speed + touch */
 button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 .btn:active,.chip:active,.tile[data-go]:active,.card[data-go]:active,.act:active,.opt:active,.seg button:active,.nav button:active{transform:scale(.97);transition:transform .08s}
-.sync{position:fixed;top:0;left:0;right:0;height:3px;z-index:50;overflow:hidden;opacity:0;transition:opacity .2s}
-.sync.on{opacity:1}
-.sync:before{content:"";position:absolute;inset:0;width:40%;background:var(--brand);animation:sync 1s ease-in-out infinite}
-@keyframes sync{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
 .chips.wrapc{flex-wrap:wrap;margin:0 0 6px;padding:0}
 .tl-sheet .tl{border-top:0;padding-top:4px;margin-top:0}
 </style>
@@ -371,14 +522,15 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="ordiG" x1="160" y1="160" x2="864" y2="864" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#0BD460"/><stop offset="0.55" stop-color="#05C58A"/><stop offset="1" stop-color="#00A8A0"/></linearGradient><linearGradient id="ordiGw" x1="0" y1="-32" x2="164" y2="132" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#0BD460"/><stop offset="0.55" stop-color="#05C58A"/><stop offset="1" stop-color="#00A8A0"/></linearGradient></defs><symbol id="ordiMark" viewBox="180 180 664 664"><path d="M575.75 239.35A280 280 0 1 0 784.65 448.25" fill="none" stroke="url(#ordiG)" stroke-width="96" stroke-linecap="round"/><circle cx="709.99" cy="314.01" r="72" fill="url(#ordiG)"/></symbol><symbol id="ordiWord" viewBox="-2 -34 411 168"><path d="M97.94 -18.16A70 70 0 1 0 150.16 34.06" fill="none" stroke="url(#ordiGw)" stroke-width="24" stroke-linecap="round"/><circle cx="131.5" cy="0.5" r="18" fill="url(#ordiGw)"/><g fill="currentColor" stroke="currentColor" stroke-width="6" stroke-linejoin="round" fill-rule="evenodd"><path d="M185 3H228A30 30 0 0 1 228 63H185ZM198 16H228A17 17 0 0 1 228 50H198Z"/><path d="M185 3H198V97H185Z"/><path d="M216 58H232L259 97H243Z"/><path d="M284 3H319A47 47 0 0 1 319 97H284ZM297 16H319A34 34 0 0 1 319 84H297Z"/><path d="M391 3H404V97H391Z"/></g></symbol></svg>
 <!-- Launch screen: right after Android's own splash (app icon only), the full ORDI wordmark -->
 <div class="boot" id="boot"><svg class="oword" style="height:72px;width:176px" aria-label="ORDI"><use href="#ordiWord"/></svg><small id="bootStore">Every Home</small></div>
-<div class="sync" id="sync"></div>
 <div class="wrap">
-  <div class="top">
+  <div class="top" id="top">
     <button class="icon-btn" id="btnMenu" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
     <div class="hello"><b id="greet">Welcome</b><span id="upd">Every Home</span></div>
     <button class="icon-btn" id="btnBell" aria-label="Notifications"><i class="ti ti-bell"></i><span class="bell-dot" id="bellDot" hidden></span></button>
     <button class="icon-btn" id="btnRefresh" aria-label="Refresh"><i class="ti ti-refresh"></i></button>
   </div>
+  <button class="swarn" id="swarn" hidden></button>
+  <div class="offbar" id="offbar" hidden><i class="ti ti-wifi-off"></i><span id="offtxt">Offline · showing saved data</span></div>
 
   <section id="tab-home">
     <div class="pbar"><button class="pbtn" id="hPeriod"><i class="ti ti-calendar"></i><span>This month</span><i class="ti ti-chevron-down"></i></button><button class="pbtn" id="hCourier"><i class="ti ti-truck"></i><span>All couriers</span><i class="ti ti-chevron-down"></i></button></div>
@@ -433,14 +585,14 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 </div>
 
 <div class="nav"><div>
-  <button class="on" data-tab="home"><i class="ti ti-home"></i>Home</button>
-  <button data-tab="parcels"><i class="ti ti-package"></i>Parcels</button>
-  <button data-tab="ndr"><i class="ti ti-headset"></i>NDR<span class="badge" id="badge" style="display:none"></span></button>
-  <button data-tab="returns"><i class="ti ti-scan"></i>Returns<span class="badge" id="rbadge" style="display:none;background:var(--amber)"></span></button>
-  <button data-tab="cash"><i class="ti ti-wallet"></i>Cash</button>
+  <button class="on" data-tab="home"><span class="nv-i"><i class="ti ti-home-2"></i></span>Home</button>
+  <button data-tab="parcels"><span class="nv-i"><i class="ti ti-package"></i></span>Parcels</button>
+  <button data-tab="ndr"><span class="nv-i"><i class="ti ti-headset"></i><span class="badge" id="badge" style="display:none"></span></span>NDR</button>
+  <button data-tab="returns"><span class="nv-i"><i class="ti ti-truck-return"></i><span class="badge soft" id="rbadge" style="display:none"></span></span>Returns</button>
+  <button data-tab="cash"><span class="nv-i"><i class="ti ti-wallet"></i></span>Cash</button>
 </div></div>
 <div class="toast" id="toast"></div>
-<button class="totop" id="totop" aria-label="Back to top"><i class="ti ti-arrow-up"></i>Top</button>
+<button class="totop" id="totop" aria-label="Back to top" title="Back to top"><i class="ti ti-arrow-up"></i></button>
 <!-- ☰ menu: performance reports, courier escalations, app settings; the header opens My profile (Change PIN inside) -->
 <div class="drawer" id="drawer"><div class="dr-panel">
   <button class="dr-user" id="drUser"><svg class="omark" aria-hidden="true"><use href="#ordiMark"/></svg><div><b id="drName">Every Home</b><small id="drStore">My profile · PIN</small></div><i class="ti ti-chevron-right" style="margin-left:auto;color:var(--faint)"></i></button>
@@ -453,17 +605,29 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   <button class="dr-i" data-rep="couriercity"><i class="ti ti-route"></i>Courier by city</button>
   <button class="dr-i" data-rep="cities"><i class="ti ti-map-pin"></i>Top cities</button>
   <button class="dr-i" data-rep="products"><i class="ti ti-shopping-bag"></i>Top products</button>
-  <button class="dr-i" data-rep="reasons"><i class="ti ti-alert-triangle"></i>Why deliveries fail</button>
+  <button class="dr-i" data-rep="reasons"><i class="ti ti-alert-triangle"></i>Delivery failure reasons</button>
   <div class="dr-h">Couriers</div>
   <button class="dr-i" data-rep="escalations"><i class="ti ti-headset"></i>Courier escalations</button>
   <div class="dr-h">App</div>
   <button class="dr-i" id="btnPush" hidden><i class="ti ti-bell-off"></i>Notifications · Off</button>
+  <button class="dr-i" id="btnSync"><i class="ti ti-activity"></i>Data status</button>
+  <button class="dr-i" id="btnBio" hidden><i class="ti ti-fingerprint"></i>Fingerprint login</button>
+  <button class="dr-i" id="btnLock"><i class="ti ti-lock"></i>App lock · Off</button>
   <button class="dr-i" id="btnMode"><i class="ti ti-moon"></i>Dark mode</button>
   <button class="dr-i" id="btnInstall" hidden><i class="ti ti-download"></i>Install app</button>
   <button class="dr-i" id="btnOut"><i class="ti ti-logout"></i>Log out</button>
   <div class="dr-ver" id="drVer"></div>
 </div></div>
+<div class="page" id="page" hidden>
+  <div class="pg-top"><button class="pg-back" id="pgBack" aria-label="Back"><i class="ti ti-chevron-left"></i></button>
+    <div class="pg-t"><b id="pgTitle"></b><small id="pgSub"></small></div><span id="pgTag"></span></div>
+  <div class="pg-body" id="pgBody"></div>
+  <div class="pg-bar" id="pgBar"></div>
+</div>
 <div class="overlay" id="overlay"><div class="panel" id="panel"></div></div>
+<div class="ptr" id="ptr"><i class="ti ti-refresh"></i></div>
+<button class="newpill" id="newpill" hidden></button>
+<div class="menu-bd" id="menuBd" hidden><div class="menu" id="menu"></div></div>
 
 <!-- My profile: the user edits only their name (and PIN); the phone number is the login and only the admin changes it -->
 <div class="login" id="profbox" hidden>
@@ -486,9 +650,9 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
     <svg class="omark" style="width:56px;height:56px;margin:0 auto 14px" aria-hidden="true"><use href="#ordiMark"/></svg>
     <h2 id="pbTitle">Change PIN</h2>
     <p id="pbSub">Enter your current PIN, then your new PIN twice</p>
-    <input id="pbOld" type="password" inputmode="numeric" maxlength="8" placeholder="Current PIN" autocomplete="current-password">
-    <input id="pbNew" type="password" inputmode="numeric" maxlength="8" placeholder="New PIN (6–8 digits)" autocomplete="new-password">
-    <input id="pbNew2" type="password" inputmode="numeric" maxlength="8" placeholder="Repeat new PIN" autocomplete="new-password">
+    <input id="pbOld" type="text" inputmode="numeric" maxlength="8" placeholder="Current PIN" autocomplete="off">
+    <input id="pbNew" type="text" inputmode="numeric" maxlength="6" placeholder="New PIN (6 digits)" autocomplete="off">
+    <input id="pbNew2" type="text" inputmode="numeric" maxlength="6" placeholder="Repeat new PIN" autocomplete="off">
     <div class="err" id="pbErr"></div>
     <button class="btn pri" id="pbGo" style="width:100%;padding:12px;margin-top:6px">Save PIN</button>
     <button class="btn" id="pbCancel" style="width:100%;padding:12px;margin-top:8px">Cancel</button>
@@ -502,16 +666,24 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
     <div id="lgAv" class="lg-av">EH</div>
     <h2 id="lgTitle">Every Home</h2>
     <p id="lgSub">Enter your phone number and PIN</p>
-    <input id="lgName" type="tel" placeholder="Phone number (03xx xxxxxxx)" inputmode="tel" autocomplete="tel" maxlength="20">
-    <div class="lg-dots" id="lgDots"></div>
-    <div class="err" id="lgErr"></div>
-    <div class="lg-pad" id="lgPad">
-      <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
-      <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
-      <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
-      <button data-k="del" aria-label="Delete"><i class="ti ti-backspace"></i></button><button data-k="0">0</button><button data-k="go" class="lg-go" id="lgGo" aria-label="Log in"><i class="ti ti-arrow-right"></i></button>
+    <!-- step 1 (new phone): the number -->
+    <div id="lgStepNum">
+      <div class="lg-num"><span>+92</span><input id="lgName" type="tel" placeholder="300 1234567" inputmode="numeric" autocomplete="tel-national" maxlength="13"></div>
+      <div class="err" id="lgNumErr"></div>
+      <button class="btn pri lg-cont" id="lgCont" type="button">Continue</button>
     </div>
-    <div class="lg-links"><button id="lgSwitch" hidden>Switch user</button><button id="lgForgot">Forgot PIN?</button></div>
+    <!-- step 2: the PIN -->
+    <div id="lgStepPin">
+      <div class="lg-dots" id="lgDots"></div>
+      <div class="err" id="lgErr"></div>
+      <div class="lg-pad" id="lgPad">
+        <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+        <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+        <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+        <button data-k="bio" class="lg-k2" id="lgBio" aria-label="Fingerprint / Face ID"><i class="ti ti-fingerprint"></i></button><button data-k="0">0</button><button data-k="del" class="lg-k2" aria-label="Delete"><i class="ti ti-backspace"></i></button>
+      </div>
+    </div>
+    <div class="lg-links"><button id="lgForgot">Forgot PIN?</button><button id="lgSwitch" hidden>Switch user</button></div>
     <div class="lg-brand" id="lgBrand" hidden><svg class="oword" style="height:16px;width:39px" aria-label="ORDI"><use href="#ordiWord"/></svg><span id="lgBrandTx">· Every Home</span></div>
   </div>
 </div>
@@ -568,20 +740,37 @@ function snap(key, data) { if (data === undefined) { try { return JSON.parse(sto
 
 // Server calls: adds the token, shows the sync bar, sends to login on LOGIN_REQUIRED.
 var busy = 0;
-function syncBar(d) { busy = Math.max(0, busy + d); el('sync').classList.toggle('on', busy > 0); }
+function topSpace() { var t = el('top'); if (t && !t.classList.contains('compact')) document.documentElement.style.setProperty('--toph', t.offsetHeight + 'px'); }
+addEventListener('load', topSpace); addEventListener('resize', topSpace); setTimeout(topSpace, 0);
+// One loading sign only: the refresh button spins while data is coming (no bar across the top)
+function syncBar(d) { busy = Math.max(0, busy + d); el('btnRefresh').classList.toggle('busy', busy > 0); }
+(function () {
+  var lastY = 0;
+  addEventListener('scroll', function () {
+    var y = window.scrollY, top = el('top');
+    top.classList.toggle('scrolled', y > 4);
+    // compact from 90 px down, large again only near the top (a gap, so it never flips back and forth)
+    if (y > 90) top.classList.add('compact'); else if (y < 30) top.classList.remove('compact');
+    if (y < 80) top.classList.remove('hide');                 // near the top: always there
+    else if (y > lastY + 6) top.classList.add('hide');        // scrolling down: out of the way
+    else if (y < lastY - 6) top.classList.remove('hide');     // scrolling up: back (compact)
+    if (Math.abs(y - lastY) > 6) lastY = y;
+  }, { passive: true });
+})();
 function api(fn, args, ok, fail) {
   syncBar(1);
-  var r = google.script.run.withSuccessHandler(function (d) { syncBar(-1); ok && ok(d); })
+  var r = google.script.run.withSuccessHandler(function (d) { syncBar(-1); if (LOAD_NAMES[fn]) LOADED[LOAD_NAMES[fn]] = Date.now(); if (!el('offbar').hidden) offlineOff(); ok && ok(d); })
     .withFailureHandler(function (e) {
       syncBar(-1); if (authFail(e)) return;
       if (/NOT_ALLOWED/.test(e && e.message)) { if (fail) fail(e); return; } // not in this user's role: nothing to show
+      if (navigator.onLine === false || /Failed to fetch|NetworkError|network|Load failed/i.test(e && e.message)) { offlineOn(); if (fail) fail(e); return; }
       fail ? fail(e) : toast((e && e.message) || 'Something went wrong');
     });
   r[fn].apply(r, args);
 }
 function authFail(e) {
   if (!e || !/LOGIN_REQUIRED/.test(e.message || e)) return false;
-  TOKEN = ''; store('eh_token', ''); showLogin(); return true;
+  TOKEN = ''; store('eh_token', ''); LOCKED = false; showLogin(); return true;
 }
 
 var animated = {};
@@ -607,23 +796,124 @@ function growBars(box) {
     }, 30);
   });
 }
-// Header: "Hi, Zuhaib" on top, "Good afternoon · 4:19 PM" below — each on one line.
-var lastUpdated = '';
-function greet() {
-  var h = new Date().getHours();
-  el('greet').textContent = 'Hi' + (USER ? ', ' + USER.split(' ')[0] : '');
-  el('upd').textContent = (h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening') + (lastUpdated ? ' · ' + lastUpdated : '');
+// Greeting "Good morning" (by the hour in Pakistan; never "Good night", it means goodbye),
+// "Welcome" / "Welcome back" for the first minutes after a first open or 3+ days away, special days from W1 Store Settings.
+// Header: line 1 = full name, line 2 = greeting · date · sync age (to-dos are on Home itself, never repeated here).
+var lastUpdated = '', WELCOME = '', WELCOME_UNTIL = 0;
+(function () {
+  var prev = Number(store('eh_seen') || 0);
+  if (!prev || Date.now() - prev > 3 * 86400000) { WELCOME = prev ? 'Welcome back' : 'Welcome'; WELCOME_UNTIL = Date.now() + 10 * 60000; }
+})();
+function specialDay(ymd) {
+  var md = ymd.slice(5);
+  if (md === '08-14') return 'Happy Independence Day';
+  if (md === '01-01') return 'Happy New Year';
+  var hit = '';
+  String(store('eh_days') || '').split(';').forEach(function (part) {
+    var m = part.match(/^\s*(.+?)\s*:\s*(\d{4}-\d{2}-\d{2})(?:\s*to\s*(\d{4}-\d{2}-\d{2}))?\s*$/);
+    if (m && !hit && ymd >= m[2] && ymd <= (m[3] || m[2])) hit = m[1];
+  });
+  return hit;
 }
+function hello() {
+  var now = new Date(), parts = {};
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Karachi', year: 'numeric', month: '2-digit', day: '2-digit', hour: 'numeric', hourCycle: 'h23' })
+    .formatToParts(now).forEach(function (p) { parts[p.type] = p.value; });
+  var h = Number(parts.hour), special = specialDay(parts.year + '-' + parts.month + '-' + parts.day);
+  if (special) return special;
+  if (WELCOME && Date.now() < WELCOME_UNTIL) return WELCOME;
+  return h >= 5 && h < 12 ? 'Good morning' : h >= 12 && h < 17 ? 'Good afternoon' : h >= 17 && h < 22 ? 'Good evening' : 'Hello';
+}
+function greet() {
+  // Line 1 = the full name (in Pakistan the first name alone feels too casual), line 2 = greeting · date · sync age.
+  // ("Good afternoon, Zuhaib Razzaq" in one line does not fit a small phone; the phone's own clock shows the time.)
+  var g = el('greet'); g.textContent = USER ? USER.trim() : 'Welcome';
+  g.classList.remove('long'); if (g.scrollWidth > g.clientWidth) g.classList.add('long'); // a long name: smaller text before it would be cut
+  var day = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Karachi', weekday: 'short', day: 'numeric', month: 'short' }).format(new Date());
+  el('upd').innerHTML = esc(hello() + ' · ' + day) + syncMark();
+}
+setInterval(function () { if (TOKEN) { greet(); drawSyncWarn(); } }, 30000); // the clock, the "3m" and the not-syncing strip stay current
+
+// ---------- Data status: when the system last updated each part, and this phone's data ----------
+var SYNCD = null;            // { now, jobs: [{ job, name, ms, ok, note, cycle }] } from W1 _SYNC_STATUS
+var LOADED = {};             // this phone: tab → when its data last came from the server
+var LOAD_NAMES = { getAppHomeData: 'Home', getAppParcels: 'Parcels', getAppNdr: 'NDR', getAppReturns: 'Returns', getAppCash: 'Cash' };
+function ago(ms) {
+  var s = Math.max(0, (Date.now() - ms) / 1000);
+  return s < 60 ? 'now' : s < 3600 ? Math.floor(s / 60) + 'm' : s < 172800 ? Math.floor(s / 3600) + 'h' : Math.floor(s / 86400) + 'd';
+}
+function cycleText(min) { return !min ? '' : min >= 1440 ? 'daily' : min >= 60 ? (min / 60) + 'h' : min + 'm'; }
+// A job is late when it has not run for two of its cycles (plus 5 min); failed when its last run hit an error
+function jobState(j) {
+  if (!j.ok) return 'failed';
+  return j.cycle && j.ms && Date.now() - j.ms > (j.cycle * 2 + 5) * 60000 ? 'late' : '';
+}
+function syncMark() {
+  if (!SYNCD || !SYNCD.jobs.length) return '';
+  var bad = SYNCD.jobs.filter(jobState)[0];
+  if (bad) return ' · <span class="sstat bad"><i class="ti ti-alert-circle"></i></span>'; // details in the strip below the header
+  var o = SYNCD.jobs.filter(function (j) { return j.job === 'orders'; })[0] || SYNCD.jobs[0];
+  return ' · <span class="sstat"><i class="ti ti-refresh"></i>' + ago(o.ms) + '</span>';
+}
+function drawSyncWarn() {
+  var bad = SYNCD ? SYNCD.jobs.filter(jobState) : [];
+  el('swarn').hidden = !bad.length;
+  if (bad.length) el('swarn').innerHTML = '<i class="ti ti-alert-circle"></i><span><b>' + esc(bad.map(function (j) { return j.name; }).join(', ')) + '</b> ' +
+    (bad.length === 1 && jobState(bad[0]) === 'failed' ? 'failed' : 'not syncing') + ' · data may be old</span><i class="ti ti-chevron-right"></i>';
+}
+el('swarn').onclick = function () { openSyncStatus(); };
+function loadSync() {
+  api('getAppSyncStatus', [TOKEN], function (d) {
+    SYNCD = d; greet(); drawSyncWarn();
+    if (el('syncBox')) drawSyncStatus();
+  }, function () {});
+}
+function openSyncStatus() {
+  el('panel').innerHTML = '<h3>Data status</h3><p>Last run · how often</p><div id="syncBox"></div>' +
+    '<div class="btns" style="margin-top:10px"><button class="btn" id="sxClose">Close</button><button class="btn pri" id="sxRefresh"><i class="ti ti-refresh"></i>Refresh</button></div>';
+  openPanel();
+  drawSyncStatus();
+  el('sxClose').onclick = closePanel;
+  el('sxRefresh').onclick = function () {
+    if (can('home.view')) loadHome(true);
+    if (can('ndr.view')) loadNdr(true);
+    if (can('parcels.view')) loadParcels(true);
+    if (can('returns.view')) loadReturns(true);
+    if (can('cash.view')) loadCash(true);
+    loadSync();
+  };
+  loadSync();
+}
+function drawSyncStatus() {
+  var box = el('syncBox'); if (!box) return;
+  var jobs = (SYNCD && SYNCD.jobs) || [];
+  var exact = function (ms) { return ms ? new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Karachi', weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true }).format(new Date(ms)) : '—'; };
+  // this phone: only said when the screen is old (the app refreshes by itself, so usually nothing to say)
+  var seen = Object.keys(LOADED).map(function (k) { return LOADED[k]; }), oldest = seen.length ? Math.min.apply(null, seen) : 0;
+  var stale = oldest && Date.now() - oldest > 10 * 60000;
+  box.innerHTML = (jobs.length ? '<div class="card sx-card"><div class="sx-h"><span>System</span><span>Last</span><span>Cycle</span></div>' + jobs.map(function (j, i) {
+    var st = jobState(j), fill = j.cycle && j.ms ? Math.min(100, 100 * (Date.now() - j.ms) / (j.cycle * 60000)) : 0;
+    return '<div class="sx-r' + (st ? ' bad' : '') + '" data-sx="' + i + '"><span>' + esc(j.name) + '</span><b class="num">' + (j.ms ? ago(j.ms) : '—') +
+      (st ? ' <em>' + st + '</em>' : '') + '</b><small>' + cycleText(j.cycle) + '</small>' +
+      '<i class="sx-bar"><u style="width:' + (st ? 100 : fill) + '%"></u></i>' +
+      '<div class="sx-more" hidden>' + esc(exact(j.ms)) + (j.note ? ' · ' + esc(j.note) : '') + '</div></div>';
+  }).join('') + '</div>' : '<div class="card empty"><i class="ti ti-clock"></i>System times appear after the next sync (≤5 min)</div>') +
+    (stale ? '<div class="sx-old"><i class="ti ti-clock"></i>Your screen is ' + ago(oldest) + ' old · tap Refresh</div>' : '');
+  box.querySelectorAll('[data-sx]').forEach(function (r) { r.onclick = function () { var m = r.querySelector('.sx-more'); m.hidden = !m.hidden; }; });
+}
+el('upd').onclick = function () { if (TOKEN) openSyncStatus(); };
 
 // ---------- role: what this user may see (W1 sheet 00_App_Roles; the server checks every call as well) ----------
 var PERMS = null; try { PERMS = JSON.parse(store('eh_perms') || 'null'); } catch (e) {}
 var ROLE = store('eh_role') || '';
 var TAB_PERM = { home: 'home.view', parcels: 'parcels.view', ndr: 'ndr.view', returns: 'returns.view', cash: 'cash.view' };
-var KIND_PERM = { ndr: 'ndr.view', back: 'returns.view', late: 'parcels.view', nocn: 'parcels.view', brief: 'home.view' };
+var KIND_PERM = { ndr: 'ndr.view', back: 'returns.view', late: 'parcels.view', nocn: 'parcels.view', brief: 'home.view', sync: 'home.view', cash: 'cash.view' };
 function can(p) { return !PERMS || PERMS.indexOf(p) !== -1; } // not known yet (old login): show all until the server answers
 function canTab(t) { return can(TAB_PERM[t]); }
 function firstTab() { return ['home', 'parcels', 'ndr', 'returns', 'cash'].filter(canTab)[0] || ''; }
 function setPerms(r) {
+  if (r && r.token) { TOKEN = r.token; store('eh_token', TOKEN); } // sliding login: renewed by the server
+  if (r && typeof r.days === 'string') { store('eh_days', r.days); greet(); } // special-day greetings (W1 Store Settings)
   if (!r || !Array.isArray(r.perms)) return;
   var changed = JSON.stringify(r.perms) !== JSON.stringify(PERMS);
   PERMS = r.perms; ROLE = r.role || ''; store('eh_perms', JSON.stringify(PERMS)); store('eh_role', ROLE);
@@ -642,7 +932,7 @@ function applyPerms() {
     for (var n = h.nextElementSibling; n && !n.classList.contains('dr-h'); n = n.nextElementSibling) if (n.classList.contains('dr-i') && !n.hidden) any = true;
     h.hidden = !any;
   });
-  if (!canTab(curTab)) { var ft = firstTab(); if (ft) showTab(ft, true); else toast('Your role has no screens yet · ask the admin'); }
+  if (!canTab(curTab)) { var ft = firstTab(); if (ft) showTab(ft, true); else toast('No screens are assigned to your role · contact your admin'); }
 }
 // Data for the tabs this role has (the first one now, the others in the background)
 function loadAllowed() {
@@ -659,7 +949,9 @@ function loadAllowed() {
 var curTab = 'home';
 var TABS = { home: 'tab-home', parcels: 'tab-parcels', ndr: 'tab-ndr', cash: 'tab-cash', returns: 'tab-returns' };
 function showTab(t, fromBack) {
-  if (!canTab(t)) { toast('Not part of your role'); return; }
+  if (!canTab(t)) { toast('You don\'t have access to this'); return; }
+  FROM_MENU = false; SHEET_BACK = null;
+  if (el('drawer').classList.contains('show')) closeDrawer(); // a sheet from the menu led to a tab
   if (!fromBack && t !== curTab) navPush(t);
   curTab = t;
   document.querySelectorAll('.nav button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-tab') === t); });
@@ -724,7 +1016,7 @@ function openTrack(cn) {
   });
 }
 // "Top" button once you have scrolled down a long way.
-addEventListener('scroll', function () { el('totop').classList.toggle('show', window.scrollY > 1200); }, { passive: true });
+addEventListener('scroll', function () { el('totop').classList.toggle('show', window.scrollY > Math.max(900, innerHeight * 1.5)); }, { passive: true });
 el('totop').onclick = function () { window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
 // ---------- long lists: PAGE rows at a time; the "more" button loads itself when it scrolls into view ----------
@@ -741,6 +1033,80 @@ function autoMore(id, shown) {
   var io = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { io.disconnect(); b.click(); } }, { rootMargin: '200px' });
   io.observe(b);
 }
+
+// ---------- pull to refresh (lists: from the top of any tab) ----------
+(function () {
+  var y0 = null, dy = 0, ptr = el('ptr'), MAX = 90, GO = 64;
+  addEventListener('touchstart', function (e) {
+    if (window.scrollY > 0 || document.body.classList.contains('locked') || e.touches.length > 1) { y0 = null; return; }
+    y0 = e.touches[0].clientY; dy = 0; ptr.classList.remove('go');
+  }, { passive: true });
+  addEventListener('touchmove', function (e) {
+    if (y0 == null) return;
+    dy = Math.max(0, e.touches[0].clientY - y0);
+    if (window.scrollY > 0) { y0 = null; return; }
+    var d = Math.min(MAX, dy * 0.5);
+    ptr.style.opacity = Math.min(1, d / GO); ptr.style.transform = 'translateY(' + d + 'px) rotate(' + (d * 4) + 'deg)';
+  }, { passive: true });
+  addEventListener('touchend', function () {
+    if (y0 == null) return;
+    y0 = null; ptr.classList.add('go');
+    if (dy * 0.5 >= GO) {
+      ptr.style.transform = 'translateY(' + GO + 'px)'; ptr.classList.add('spin');
+      try { navigator.vibrate && navigator.vibrate(10); } catch (e) {}
+      el('btnRefresh').click();
+      var done = setInterval(function () { if (!busy) { clearInterval(done); ptr.classList.remove('spin'); ptr.style.opacity = 0; ptr.style.transform = 'translateY(0)'; } }, 200);
+    } else { ptr.style.opacity = 0; ptr.style.transform = 'translateY(0)'; }
+  });
+})();
+
+// ---------- "↑ 3 new" pill: new items arrived while you were down the list ----------
+function newPill(n, label, tab) {
+  if (!n || curTab !== tab || window.scrollY < 200) return false;
+  var b = el('newpill');
+  b.innerHTML = '<i class="ti ti-arrow-up"></i>' + n + ' new ' + label + (n > 1 ? 's' : '');
+  b.hidden = false; b.dataset.tab = tab;
+  return true;
+}
+el('newpill').onclick = function () { el('newpill').hidden = true; window.scrollTo({ top: 0, behavior: 'smooth' }); };
+addEventListener('scroll', function () { if (window.scrollY < 120) el('newpill').hidden = true; }, { passive: true });
+
+// ---------- offline: keep showing the saved data, say so quietly, refresh when back ----------
+function offlineOn() {
+  var seen = Object.keys(LOADED).map(function (k) { return LOADED[k]; }), last = seen.length ? Math.max.apply(null, seen) : 0;
+  el('offtxt').textContent = 'Offline · showing saved data' + (last ? ' from ' + new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Karachi', hour: 'numeric', minute: '2-digit' }).format(new Date(last)) : '');
+  el('offbar').hidden = false;
+}
+function offlineOff() {
+  if (el('offbar').hidden) return;
+  el('offbar').hidden = true;
+  if (TOKEN) el('btnRefresh').click(); // back online: fresh data for this screen
+}
+addEventListener('offline', offlineOn);
+addEventListener('online', offlineOff);
+if (navigator.onLine === false) setTimeout(offlineOn, 0);
+
+// ---------- full page (details) ----------
+// openPage({ title, sub, tag, body, bar }): body / bar are HTML. A sheet that was open under it is hidden and shown again
+// when the page closes, so "list → parcel → Back" lands on the same list.
+var PAGE_SHEET = false;
+function openPage(o) {
+  el('pgTitle').textContent = o.title || ''; el('pgSub').textContent = o.sub || '';
+  el('pgTag').innerHTML = o.tag || ''; el('pgBody').innerHTML = '<div class="pg-in">' + (o.body || '') + '</div>'; el('pgBar').innerHTML = o.bar || '';
+  if (el('page').hidden) {
+    PAGE_SHEET = el('overlay').classList.contains('show');
+    if (PAGE_SHEET) el('overlay').classList.remove('show');
+    try { google.script.history.push({ tab: curTab, page: 1 }, null, curTab); } catch (e) {}
+  }
+  el('page').hidden = false; el('pgBody').scrollTop = 0;
+  pageLock();
+}
+function closePage() {
+  el('page').hidden = true; el('pgBody').innerHTML = ''; el('pgBar').innerHTML = '';
+  if (PAGE_SHEET) { PAGE_SHEET = false; el('overlay').classList.add('show'); }
+  pageLock();
+}
+el('pgBack').onclick = closePage;
 
 // ---------- parcel detail: tap any parcel (Parcels, NDR, Cash, Returns) ----------
 // Everything known about one parcel in one sheet: order, customer, money, NDR case, then the courier timeline.
@@ -779,7 +1145,7 @@ function dispatchDays() {
 function pickedUp(p) { return ['pending', 'confirmed', 'booked'].indexOf(p.stage) === -1; }
 function openDispatchLog(day) {
   if (!P.data) {
-    el('panel').innerHTML = '<h3>Dispatch log</h3><div class="sk" style="height:160px"></div>'; openPanel();
+    el('panel').innerHTML = '<h3>Dispatch log</h3><div class="sk" style="height:160px"></div>'; openPanel(true);
     return api('getAppParcels', [{ token: TOKEN }], function (d) { P.data = d; snap('parcels', d); openDispatchLog(day); });
   }
   var days = dispatchDays(), keys = Object.keys(days).sort().reverse(), today = pkDay(new Date()), yday = addDays(today, -1);
@@ -820,57 +1186,76 @@ function openDispatchLog(day) {
               '<div class="prow-2"><span>' + esc(p.cn) + ' · ' + esc(p.city) + '</span><span class="st" style="--c:' + st[1] + '">' + st[0] + '</span></div></div></div>';
           }).join('') + '</div>';
       }).join('') +
-      '<div class="btns" style="margin-top:10px"><button class="btn" id="dlBack"><i class="ti ti-arrow-left"></i>All days</button><button class="btn" id="dlClose">Close</button></div>';
+      '<div class="btns" style="margin-top:10px"><button class="btn" id="dlBack" data-back><i class="ti ti-arrow-left"></i>All days</button><button class="btn" id="dlClose">Close</button></div>';
   }
   el('panel').innerHTML = h;
-  if (!el('overlay').classList.contains('show')) openPanel();
+  openPanel(true);
   el('panel').scrollTop = 0;
   el('dlClose').onclick = closePanel;
   if (el('dlBack')) el('dlBack').onclick = function () { openDispatchLog(); };
   el('panel').querySelectorAll('[data-dl]').forEach(function (r) { r.onclick = function () { openDispatchLog(r.getAttribute('data-dl')); }; });
 }
+// Stage → where the parcel is on its way (delivery path or return path)
+var PP_FWD = ['Booked', 'Picked up', 'In transit', 'Out for delivery', 'Delivered'];
+var PP_BACK = ['Booked', 'Delivery failed', 'Returning', 'Returned'];
+var PP_POS = { pending: [PP_FWD, -1], confirmed: [PP_FWD, -1], booked: [PP_FWD, 0], picked: [PP_FWD, 1], transit: [PP_FWD, 2], atdest: [PP_FWD, 2], ofd: [PP_FWD, 3],
+  ndr: [PP_FWD, 3], delivered: [PP_FWD, 4], returning: [PP_BACK, 2], rtoback: [PP_BACK, 2], returned: [PP_BACK, 3] };
+function ppSteps(stage, color) {
+  var pos = PP_POS[stage] || [PP_FWD, -1], steps = pos[0], at = pos[1];
+  return '<div class="pp-steps" style="--sc:' + color + '">' + steps.map(function (s, i) {
+    return '<div class="pp-step' + (i <= at ? ' done' : '') + (i === at ? ' now' : '') + '"><i></i>' + s + '</div>';
+  }).join('') + '</div>';
+}
 function openParcel(key) {
   var p = findParcel(key);
   if (!p && !P.data) { // Parcels not loaded yet: load once, then open
-    el('panel').innerHTML = '<h3>Parcel</h3><div class="sk" style="height:160px"></div>'; openPanel();
+    openPage({ title: 'Parcel', body: '<div class="sk" style="height:220px"></div>' });
     return api('getAppParcels', [{ token: TOKEN }], function (d) { P.data = d; snap('parcels', d); openParcel(key); });
   }
-  if (!p) { toast('Parcel not found'); return; }
+  if (!p) { if (!el('page').hidden && el('pgTitle').textContent === 'Parcel') closePage(); toast('Parcel not found'); return; }
   var s = STAGE[p.stage] || ['', 'var(--line)'];
   var cash = C.data && (C.data.parcels || []).filter(function (x) { return p.cn && x.cn === p.cn; })[0];
   var ndr = N.data && (N.data.cases || []).filter(function (x) { return p.cn && x.cn === p.cn; })[0];
   var row = function (k, v) { return v || v === 0 ? '<div class="pd-r"><span>' + k + '</span><b>' + v + '</b></div>' : ''; };
-  var h = '<div class="pd-top"><div><h3>' + esc(p.ref) + ' · ' + esc(p.name) + '</h3><p>' + (p.cn ? esc(p.courier) + ' · ' + esc(p.cn) : 'Not booked yet') + '</p></div>' +
-    '<span class="st" style="--c:' + s[1] + '">' + s[0] + '</span></div>' +
-    ((p.flags || []).length ? '<div style="margin:-4px 0 8px">' + p.flags.map(function (f) { return '<span class="flag">' + esc(f) + '</span>'; }).join('') + '</div>' : '') +
+  var card = function (title, inner, extra) { return inner ? '<div class="pp-card"><div class="pp-h"><span>' + title + '</span>' + (extra || '') + '</div><div class="pd">' + inner + '</div></div>' : ''; };
+  var body =
+    // where it is, and the money at stake
+    '<div class="pp-hero">' + ppSteps(p.stage, s[1]) +
+    '<div class="pp-cod"><b class="num">' + rs(p.total) + '</b><span>' + (p.cn ? esc(p.courier) + ' · ' + esc(p.cn) : 'Not booked yet') + '</span></div></div>' +
+    ((p.flags || []).length ? '<div style="margin:-2px 0 10px">' + p.flags.map(function (f) { return '<span class="flag">' + esc(f) + '</span>'; }).join('') + '</div>' : '') +
     histBlock(p) +
-    '<div class="pd">' +
-    row('Order date', esc(p.ordered || p.date)) + (p.dispatched ? row('Shipped', esc(p.dispatched)) : '') + row('COD', rs(p.total)) + row('Items', esc(p.items)) +
-    row('Phone', esc(phoneText(p.phone))) + row('City', esc(p.city)) + row('Address', esc(p.address)) +
-    (p.attempts ? row('Delivery attempts', p.attempts) : '') + (p.charge ? row('Courier charge', rs(p.charge)) : '') +
-    (p.reason || p.lastRaw ? row('Last update', esc(p.reason || p.lastRaw)) : '') +
-    (cash ? row('Settlement', esc(cash.note || cash.cat)) + row(cash.returned ? 'Charges' : 'Net to us', rs(cash.returned ? cash.charges : cash.net)) + (cash.over ? row('Above rate card', rs(cash.over)) : '') : '') +
-    (ndr ? row('NDR case', esc(ndr.type)) + (ndr.outcome && ndr.outcome !== 'Not called yet' ? row('Call result', esc(ndr.outcome)) : '') + (ndr.says ? row('Customer says', esc(ndr.says)) : '') : '') +
-    '</div>' +
-    '<div class="btns" style="margin:10px 0">' + (p.phone ? '<a class="btn"' + (ndr ? ' data-call="' + esc(ndr.cn) + '"' : '') + ' href="' + telHref(p.phone) + '"><i class="ti ti-phone"></i>Call</a>' : '') +
+    (ndr ? card('Delivery problem', row('NDR case', esc(ndr.type)) + (ndr.outcome && ndr.outcome !== 'Not called yet' ? row('Call result', esc(ndr.outcome)) : '') + (ndr.says ? row('Customer says', esc(ndr.says)) : '') +
+      (p.attempts ? row('Delivery attempts', p.attempts) : '')) : '') +
+    card('Customer', row('Name', esc(p.name)) + row('Phone', esc(phoneText(p.phone))) + row('City', esc(p.city)) + row('Address', esc(p.address))) +
+    card('Order', row('Order date', esc(p.ordered || p.date)) + (p.dispatched ? row('Shipped', esc(p.dispatched)) : '') + row('Items', esc(p.items)) +
+      (!ndr && p.attempts ? row('Delivery attempts', p.attempts) : '') + (p.reason || p.lastRaw ? row('Last update', esc(p.reason || p.lastRaw)) : '')) +
+    card('Money', row('COD', rs(p.total)) + (p.charge ? row('Courier fees', rs(p.charge) + chargeParts(p.cb)) : '') + (p.cb && (p.cb[5] + p.cb[6]) ? row('Taxes (WHT + SST)', rs(p.cb[5] + p.cb[6])) : '') +
+      (cash ? row('Settlement', esc(cash.note || cash.cat)) + row(cash.returned ? 'Courier fees' : 'Net payout', rs(cash.returned ? cash.charges : cash.net)) + (cash.over ? row('Above rate card', rs(cash.over)) : '') : ''),
+      cash ? '<button class="pp-more" style="width:auto;padding:0" data-ppr="' + esc(p.cn) + '">Receipt ›</button>' : '') +
+    (p.rcv ? '<button class="btn" data-rh="' + esc(p.cn) + '" style="width:100%;padding:12px;margin-bottom:12px"><i class="ti ti-history"></i>Return history</button>' : '') +
+    (p.cn ? '<div class="pp-card"><div class="pp-h"><span>Tracking</span></div><div class="tl-sheet" id="pdtl" style="margin-bottom:8px"><div class="sk" style="height:100px"></div></div></div>' : '');
+  // the actions stay at the bottom, within thumb reach
+  var bar = (p.phone ? '<a class="btn"' + (ndr ? ' data-call="' + esc(ndr.cn) + '"' : '') + ' href="' + telHref(p.phone) + '"><i class="ti ti-phone"></i>Call</a>' : '') +
     (p.wa ? '<a class="btn wa" target="_blank" href="' + waLink(p.wa, custWaText(p)) + '"><i class="ti ti-brand-whatsapp"></i>WhatsApp</a>' : '') +
-    (p.track ? '<a class="btn" target="_blank" href="' + esc(p.track) + '"><i class="ti ti-external-link"></i>Courier site</a>' : '') + '</div>' +
-    (ndr ? '<button class="btn pri" id="pdNdr" style="width:100%;padding:12px;margin-bottom:10px"><i class="ti ti-pencil"></i>Update NDR case</button>' : '') +
-    (p.cn ? '<div class="sl-h" style="margin:4px 0 6px">Tracking</div><div class="tl-sheet" id="pdtl"><div class="sk" style="height:100px"></div></div>' : '') +
-    '<div class="btns" style="margin-top:10px"><button class="btn" id="pdClose">Close</button></div>';
-  el('panel').innerHTML = h;
-  openPanel();
-  el('pdClose').onclick = closePanel;
-  if (el('pdNdr')) el('pdNdr').onclick = function () { closePanel(); setTimeout(function () { openNdrForm(ndr.cn); }, 250); };
-  // Tracking: the saved events first (instant), then the courier's own live list replaces them.
+    (ndr && can('ndr.work') ? '<button class="btn pri" id="pdNdr"><i class="ti ti-pencil"></i>Update</button>'
+      : p.track ? '<a class="btn" target="_blank" href="' + esc(p.track) + '"><i class="ti ti-external-link"></i>Track</a>' : '');
+  openPage({ title: p.ref, sub: p.name || '', tag: '<span class="st" style="--c:' + s[1] + '">' + s[0] + '</span>', body: body, bar: bar });
+  if (el('pdNdr')) el('pdNdr').onclick = function () { openNdrForm(ndr.cn); };
+  el('pgBody').querySelectorAll('[data-ppr]').forEach(function (b) { b.onclick = function () { openCashReceipt(b.getAttribute('data-ppr')); }; });
+  // Tracking: the saved events first (instant), then the courier's own live list replaces them; long lists start short.
   var live = false;
   var drawTl = function (ev, label) {
     if (!el('pdtl')) return;
-    el('pdtl').innerHTML = (label ? '<div class="tl-src">' + label + '</div>' : '') + '<div class="tl">' + (ev.length ? ev.map(function (x) {
+    var all = ev.length > 4 && !el('pdtl').getAttribute('data-all');
+    el('pdtl').innerHTML = (label ? '<div class="tl-src">' + label + '</div>' : '') + '<div class="tl">' + (ev.length ? ev.slice(0, all ? 4 : ev.length).map(function (x) {
       return '<div class="tl-i"><div class="tl-d"></div><div><b>' + esc(x.status) + '</b><small>' + esc(x.when) + (x.place ? ' · ' + esc(x.place) : '') + (x.note ? ' · ' + esc(x.note) : '') + '</small></div></div>';
-    }).join('') : '<small style="color:var(--muted)">No courier scans yet</small>') + '</div>';
+    }).join('') : '<small style="color:var(--muted)">No courier scans yet</small>') + '</div>' +
+      (all ? '<button class="pp-more" id="tlAll">Show all ' + ev.length + ' scans</button>' : '');
+    if (el('tlAll')) el('tlAll').onclick = function () { el('pdtl').setAttribute('data-all', '1'); drawTl(ev, label); };
   };
-  if (p.cn) {
+  if (p.cn && p.rcv) { // return received: tracking stopped, the saved scans only
+    api('getAppParcelTimeline', [p.cn, TOKEN], function (ev) { drawTl(ev, '<i class="ti ti-lock"></i>Return received · tracking stopped'); });
+  } else if (p.cn) {
     api('getAppParcelTimeline', [p.cn, TOKEN], function (ev) { if (!live) drawTl(ev, '<i class="ti ti-loader-2 spin"></i>Checking ' + esc(p.courier || 'courier') + ' for the latest…'); });
     api('appLiveTrack', [TOKEN, p.cn, p.courier], function (r) {
       if (r && r.ok) { live = true; drawTl(r.events, '<i class="ti ti-broadcast"></i>Live from ' + esc(r.courier) + ' · ' + esc(r.at)); }
@@ -878,12 +1263,92 @@ function openParcel(key) {
     }, function () { if (el('pdtl')) { var s = el('pdtl').querySelector('.tl-src'); if (s) s.innerHTML = '<i class="ti ti-clock"></i>Saved tracking (updates every 15 min)'; } });
   }
 }
-// Opening a sheet is a history step too, so Back closes it (even on Home).
-function openPanel() {
-  if (!el('overlay').classList.contains('show')) { try { google.script.history.push({ tab: curTab, panel: 1 }, null, curTab); } catch (e) {} }
-  el('overlay').classList.add('show');
+// ---------- a received return's history (saved once in W1; the parcel is not tracked any more) ----------
+document.addEventListener('click', function (e) {
+  var b = e.target.closest('[data-rh]'); if (!b) return;
+  e.preventDefault(); openReturnHistory(b.getAttribute('data-rh'));
+});
+function openReturnHistory(key) {
+  el('panel').innerHTML = '<h3>Return history</h3><div class="sk" style="height:200px"></div>'; openPanel(true);
+  api('getAppReturnHistory', [TOKEN, key], function (d) {
+    if (!el('overlay').classList.contains('show')) return;
+    if (!d) {
+      el('panel').innerHTML = '<h3>Return history</h3><div class="card empty"><i class="ti ti-clock"></i>Being saved · the history is written a few minutes after the scan</div>' +
+        '<div class="btns" style="margin-top:10px"><button class="btn" id="rhClose">Close</button></div>';
+      openPanel(true); el('rhClose').onclick = closePanel; return;
+    }
+    var step = function (icon, c, title, when, lines) {
+      return '<div class="rh-s" style="--c:' + c + '"><span class="rh-i"><i class="ti ti-' + icon + '"></i></span><div><b>' + title + '</b>' +
+        (when ? '<small>' + esc(when) + '</small>' : '') + (lines && lines.length ? '<ul>' + lines.map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('') + '</ul>' : '') + '</div></div>';
+    };
+    el('panel').innerHTML = '<div class="pd-top"><div><h3>' + esc(d.order) + ' · ' + esc(d.name) + '</h3><p>' + esc(d.courier) + ' · ' + esc(d.cn) + ' · ' + esc(d.city) + ' · ' + rs(d.cod) + '</p></div>' +
+      '<span class="st" style="--c:var(--muted)">Tracking stopped</span></div>' +
+      '<div class="rh">' +
+      step('truck-delivery', 'var(--brand)', 'Dispatched', d.dispatched) +
+      step('alert-triangle', 'var(--amber)', 'Return reason' + (d.attempts ? ' · ' + d.attempts + ' attempt' + (d.attempts > 1 ? 's' : '') : ''), '', d.why) +
+      step('headset', 'var(--brand)', 'Actions taken', '', d.did) +
+      step('arrow-back-up', 'var(--red)', 'Return started', d.rtoStart || 'Not recorded') +
+      (d.rtoDone ? step('building-warehouse', 'var(--red)', 'Returned by courier', d.rtoDone) : '') +
+      step('package-import', 'var(--green)', 'Received at warehouse', d.received, [d.by ? 'By ' + d.by : '', d.condition].filter(Boolean)) +
+      '</div>' +
+      (d.scans.length ? '<div class="sl-h" style="margin:10px 0 6px">Courier scans (saved)</div><div class="tl-sheet"><div class="tl">' + d.scans.map(function (x) {
+        return '<div class="tl-i"><div class="tl-d"></div><div><b>' + esc(x.status) + '</b><small>' + esc(x.when) + (x.place ? ' · ' + esc(x.place) : '') + (x.note ? ' · ' + esc(x.note) : '') + '</small></div></div>';
+      }).join('') + '</div></div>' : '') +
+      '<div class="btns" style="margin-top:10px"><button class="btn" id="rhClose">Close</button></div>';
+    openPanel(true); el('rhClose').onclick = closePanel;
+  }, function () { closePanel(); toast('You don\'t have access to this'); });
 }
-function closePanel() { el('overlay').classList.remove('show'); }
+
+// Opening a sheet is a history step too, so Back closes it (even on Home).
+// openPanel(true) = full page: a top bar with ‹ and the title (taken from the first heading). ‹ goes one step back
+// inside the page when it has its own back button ([data-back], e.g. a report's list), otherwise it closes the page.
+function openPanel(full) {
+  if (!el('overlay').classList.contains('show')) { try { google.script.history.push({ tab: curTab, panel: 1 }, null, curTab); } catch (e) {} }
+  var p = el('panel');
+  el('overlay').classList.toggle('full', !!full);
+  var old = p.querySelector(':scope > .fs-top'); if (old) old.remove();
+  if (full) {
+    var h = p.querySelector('h3'), title = h ? h.textContent : '';
+    if (h) h.classList.add('fs-hide');
+    p.insertAdjacentHTML('afterbegin', '<div class="fs-top"><button class="pg-back fs-back" type="button" aria-label="Back"><i class="ti ti-chevron-left"></i></button><b>' + esc(title) + '</b></div>');
+  }
+  if (!p.querySelector(':scope > .pclose')) p.insertAdjacentHTML('afterbegin', '<button class="pclose" type="button" aria-label="Close"><i class="ti ti-x"></i></button>');
+  p.style.transform = ''; p.scrollTop = 0;
+  el('overlay').classList.add('show');
+  pageLock();
+}
+// A sheet opened from the ☰ menu opens on top of it; the menu stays open underneath, so closing the sheet
+// (✕, Close, tap outside, Back) simply shows the menu again. Going to a tab from the sheet closes the menu.
+var FROM_MENU = false;
+function fromMenu(fn) { return function () { FROM_MENU = true; fn.apply(null, arguments); }; }
+var SHEET_BACK = null; // set when a sheet was opened from another sheet: closing it reopens that one
+function closePanel() {
+  el('overlay').classList.remove('show'); el('overlay').classList.remove('full');
+  pageLock();
+  var back = SHEET_BACK; SHEET_BACK = null;
+  if (back) { setTimeout(function () { if (!el('overlay').classList.contains('show')) back(); }, 320); return; }
+  FROM_MENU = false; // the menu (if it was open) is still there
+}
+el('panel').addEventListener('click', function (e) {
+  if (e.target.closest('.pclose')) closePanel();
+  if (e.target.closest('.fs-back')) { var b = el('panel').querySelector('[data-back]'); if (b) b.click(); else closePanel(); }
+});
+// Drag the sheet down (from its top, when it is not scrolled) to close it
+(function () {
+  var p = el('panel'), y0 = null, dy = 0;
+  p.addEventListener('touchstart', function (e) { if (p.scrollTop > 0 || e.touches.length > 1 || el('overlay').classList.contains('full')) { y0 = null; return; } y0 = e.touches[0].clientY; dy = 0; }, { passive: true });
+  p.addEventListener('touchmove', function (e) {
+    if (y0 == null) return;
+    dy = e.touches[0].clientY - y0;
+    if (dy > 0 && p.scrollTop <= 0) { p.classList.add('drag'); p.style.transform = 'translateY(' + dy + 'px)'; }
+  }, { passive: true });
+  p.addEventListener('touchend', function () {
+    if (y0 == null) return;
+    p.classList.remove('drag');
+    if (dy > 110) closePanel(); else p.style.transform = '';
+    y0 = null;
+  });
+})();
 
 // ---------- ☰ menu ----------
 function openDrawer() {
@@ -893,12 +1358,21 @@ function openDrawer() {
   el('drVer').textContent = BRAND + ' · ' + STORE + (window.EH_BUILD ? ' · version ' + window.EH_BUILD : '');
   if (!el('drawer').classList.contains('show')) { try { google.script.history.push({ tab: curTab, drawer: 1 }, null, curTab); } catch (e) {} }
   el('drawer').classList.add('show');
+  pageLock();
 }
-function closeDrawer() { el('drawer').classList.remove('show'); }
+function closeDrawer() { el('drawer').classList.remove('show'); pageLock(); }
+// The page behind stays still while the ☰ menu, a dropdown or a sheet is open (their own scroll never spills into it)
+function pageLock() {
+  var open = el('drawer').classList.contains('show') || el('overlay').classList.contains('show') || !el('menuBd').hidden || !el('page').hidden ||
+    ['login', 'profbox', 'pinbox', 'scanner'].some(function (id) { return !el(id).hidden; });
+  document.body.classList.toggle('locked', open);
+}
+// full-screen layers (login / lock, My profile, Change PIN, scanner) are shown in many places: watch them instead of calling pageLock everywhere
+['login', 'profbox', 'pinbox', 'scanner'].forEach(function (id) { new MutationObserver(pageLock).observe(el(id), { attributes: true, attributeFilter: ['hidden'] }); });
 el('btnMenu').onclick = openDrawer;
 el('drawer').onclick = function (e) {
   if (e.target === el('drawer')) return closeDrawer();
-  var r = e.target.closest('[data-rep]'); if (r) { closeDrawer(); return openReport(r.getAttribute('data-rep')); }
+  var r = e.target.closest('[data-rep]'); if (r) return fromMenu(openReport)(r.getAttribute('data-rep'));
   var g = e.target.closest('[data-go]'); if (g) { closeDrawer(); return go(g.getAttribute('data-go')); }
   if (e.target.closest('a')) closeDrawer();
 };
@@ -910,8 +1384,14 @@ function navPush(t) { try { google.script.history.push({ tab: t }, null, t); } c
 try {
   google.script.history.replace({ tab: 'home' }, null, 'home');
   google.script.history.setChangeHandler(function (e) {
+    if (!el('menuBd').hidden) { closeMenu(); return; } // Back with a dropdown open: close it
+    if (el('overlay').classList.contains('show')) {
+      var ib = el('overlay').classList.contains('full') && el('panel').querySelector('[data-back]');
+      if (ib) { ib.click(); try { google.script.history.push({ tab: curTab, panel: 1 }, null, curTab); } catch (e) {} return; } // one step back inside the page
+      closePanel(); return; // Back with a sheet open: close the sheet (the menu / a page may be under it)
+    }
+    if (!el('page').hidden) { closePage(); return; } // Back on a detail page: back to where it was opened
     if (el('drawer').classList.contains('show')) { closeDrawer(); return; } // Back with the menu open: close it
-    if (el('overlay').classList.contains('show')) { closePanel(); return; } // Back with a sheet open: close the sheet
     var t = (e && e.state && e.state.tab) || 'home';
     if (TABS[t] && t !== curTab) showTab(t, true);
   });
@@ -965,6 +1445,42 @@ function setPbar(prefix, sel, months, latest) {
   el(prefix + 'Period').querySelector('span').textContent = periodLabel(sel, months, latest);
   el(prefix + 'Courier').querySelector('span').textContent = COURIERS.filter(function (c) { return c[0] === sel.courier; })[0][1];
 }
+var PICK_ANCHOR = null, PICK_MODE = '';
+document.addEventListener('pointerdown', function (e) {
+  if (e.target.closest('#menu')) return;
+  var a = e.target.closest('.pbtn, .pchip, button');
+  PICK_ANCHOR = a ? { el: a, t: Date.now() } : null;
+}, true);
+// title / sub only show in the sheet form; list = '<div class="sheet-list" id="…">…</div>'; onClick handles taps in it
+function showPick(title, sub, list, onClick) {
+  var a = PICK_ANCHOR && Date.now() - PICK_ANCHOR.t < 1500 && document.contains(PICK_ANCHOR.el) ? PICK_ANCHOR.el : null;
+  PICK_ANCHOR = null;
+  if (!a) {
+    PICK_MODE = 'sheet';
+    el('panel').innerHTML = '<h3>' + esc(title) + '</h3>' + (sub ? '<p>' + esc(sub) + '</p>' : '') + list;
+    openPanel();
+  } else {
+    PICK_MODE = 'menu';
+    var m = el('menu'), r = a.getBoundingClientRect(), vw = innerWidth, vh = innerHeight, nav = 76;
+    m.innerHTML = list;
+    var w = Math.min(Math.max(r.width, 230), vw - 24), left = Math.min(Math.max(r.left, 12), vw - w - 12);
+    var below = vh - r.bottom - nav - 12, above = r.top - 16;
+    m.style.width = w + 'px'; m.style.left = left + 'px'; m.style.top = m.style.bottom = '';
+    if (below >= 220 || below >= above) { m.className = 'menu'; m.style.top = (r.bottom + 6) + 'px'; m.style.maxHeight = Math.max(160, below) + 'px'; }
+    else { m.className = 'menu up'; m.style.bottom = (vh - r.top + 6) + 'px'; m.style.maxHeight = above + 'px'; }
+    el('menuBd').hidden = false; m.scrollTop = 0; pageLock();
+    var on = m.querySelector('.sl.on'); if (on && on.offsetTop > m.clientHeight - 60) m.scrollTop = on.offsetTop - 60;
+    try { google.script.history.push({ tab: curTab, menu: 1 }, null, curTab); } catch (e) {}
+  }
+  var box = PICK_MODE === 'menu' ? el('menu') : el('panel');
+  box.querySelector('.sheet-list').onclick = onClick;
+}
+function closeMenu() { el('menuBd').hidden = true; el('menu').innerHTML = ''; pageLock(); }
+function closePick() { if (PICK_MODE === 'menu') closeMenu(); else closePanel(); PICK_MODE = ''; }
+el('menuBd').addEventListener('click', function (e) { if (e.target === el('menuBd')) closeMenu(); });
+addEventListener('keydown', function (e) { if (e.key === 'Escape' && !el('menuBd').hidden) closeMenu(); });
+addEventListener('resize', function () { if (!el('menuBd').hidden && document.activeElement.tagName !== 'INPUT') closeMenu(); });
+
 function openPeriodSheet(sel, months, latest, done) {
   var active = sel.range ? '' : sel.month === 'this' || sel.month === 'last' ? sel.month : (sel.month || latest);
   var row = function (attr, label, on, sub) {
@@ -973,7 +1489,7 @@ function openPeriodSheet(sel, months, latest, done) {
   // This month and Last month always mean the current ones (also before the month's first order).
   var cm = curMonth(), lm = lastMonth();
   var others = months.filter(function (m) { return m.key !== cm && m.key !== lm; });
-  el('panel').innerHTML = '<h3>Period</h3><p>Parcels shipped in…</p><div class="sheet-list" id="psheet">' +
+  showPick('Period', 'Parcels shipped in…', '<div class="sheet-list" id="psheet">' +
     '<div class="sl-h">Quick</div>' + quickRanges().map(function (q) {
       return row('data-q="' + q[0] + '"', q[1], sel.range && sel.range.q === q[0], q[2] === q[3] ? niceDay(q[2]) : niceDay(q[2]) + ' – ' + niceDay(q[3]));
     }).join('') +
@@ -982,22 +1498,22 @@ function openPeriodSheet(sel, months, latest, done) {
     row('data-m="all"', 'All time', active === 'all') +
     row('data-m="reset"', 'Reset to default', false, 'This month · all couriers') +
     row('data-q="custom"', 'Custom range…', sel.range && sel.range.q === 'custom', sel.range && sel.range.q === 'custom' ? niceDay(sel.range.from) + ' – ' + niceDay(sel.range.to) : '') +
-    '</div>';
-  openPanel();
-  el('psheet').onclick = function (e) {
+    '</div>', function (e) {
     var b = e.target.closest('.sl'); if (!b) return;
-    if (b.getAttribute('data-m') === 'reset') { sel.month = sel === C ? 'all' : 'this'; sel.range = null; sel.courier = 'all'; closePanel(); return done(); }
-    if (b.hasAttribute('data-m')) { sel.month = b.getAttribute('data-m'); sel.range = null; closePanel(); return done(); }
+    if (b.getAttribute('data-m') === 'reset') { sel.month = sel === C ? 'all' : 'this'; sel.range = null; sel.courier = 'all'; closePick(); return done(); }
+    if (b.hasAttribute('data-m')) { sel.month = b.getAttribute('data-m'); sel.range = null; closePick(); return done(); }
     var q = b.getAttribute('data-q');
     if (q !== 'custom') {
       var r = quickRanges().filter(function (x) { return x[0] === q; })[0];
-      sel.range = { from: r[2], to: r[3], q: q }; closePanel(); return done();
+      sel.range = { from: r[2], to: r[3], q: q }; closePick(); return done();
     }
+    if (PICK_MODE === 'menu') closeMenu();
     openCustom(sel, done);
-  };
+  });
 }
 function openCustom(sel, done) {
   var today = pkDay(new Date()), cur = sel.range || { from: addDays(today, -6), to: today };
+  setTimeout(openPanel, 0);
   el('panel').innerHTML = '<h3>Custom range</h3><p>Choose the order dates to show</p>' +
     '<div class="grid" style="margin-bottom:6px"><div class="fld"><label>From</label><input id="pFrom" type="date" max="' + today + '" value="' + cur.from + '"></div>' +
     '<div class="fld"><label>To</label><input id="pTo" type="date" max="' + today + '" value="' + cur.to + '"></div></div>' +
@@ -1018,18 +1534,15 @@ function fbar(kind, label, count, ctxLabel) {
 }
 // opts: [[key, label, count]]; options with 0 are dimmed but still shown (except hidden ones the caller leaves out).
 function openFilterSheet(title, opts, cur, pick) {
-  el('panel').innerHTML = '<h3>' + esc(title) + '</h3><div class="sheet-list" id="fsheet">' + opts.map(function (o) {
+  showPick(title, '', '<div class="sheet-list" id="fsheet">' + opts.map(function (o) {
     var on = o[0] === cur;
     return '<div class="sl' + (on ? ' on' : '') + '" data-k="' + esc(o[0]) + '"' + (o[2] ? '' : ' style="opacity:.45"') + '><span>' + esc(o[1]) + '</span><b class="num">' + o[2] + '</b>' + (on ? '<i class="ti ti-check" style="margin-left:8px"></i>' : '') + '</div>';
-  }).join('') + '</div>';
-  openPanel();
-  el('fsheet').onclick = function (e) { var b = e.target.closest('.sl'); if (!b) return; closePanel(); pick(b.getAttribute('data-k')); };
+  }).join('') + '</div>', function (e) { var b = e.target.closest('.sl'); if (!b) return; closePick(); pick(b.getAttribute('data-k')); });
 }
 function openCourierSheet(sel, done) {
-  el('panel').innerHTML = '<h3>Courier</h3><p>Show parcels and money for…</p><div class="sheet-list" id="csheet">' +
-    COURIERS.map(function (c) { return '<div class="sl' + (sel.courier === c[0] ? ' on' : '') + '" data-c="' + c[0] + '"><span>' + c[1] + '</span>' + (sel.courier === c[0] ? '<i class="ti ti-check"></i>' : '') + '</div>'; }).join('') + '</div>';
-  openPanel();
-  el('csheet').onclick = function (e) { var b = e.target.closest('.sl'); if (!b) return; sel.courier = b.getAttribute('data-c'); closePanel(); done(); };
+  showPick('Courier', 'Show parcels and money for…', '<div class="sheet-list" id="csheet">' +
+    COURIERS.map(function (c) { return '<div class="sl' + (sel.courier === c[0] ? ' on' : '') + '" data-c="' + c[0] + '"><span>' + c[1] + '</span>' + (sel.courier === c[0] ? '<i class="ti ti-check"></i>' : '') + '</div>'; }).join('') + '</div>',
+    function (e) { var b = e.target.closest('.sl'); if (!b) return; sel.courier = b.getAttribute('data-c'); closePick(); done(); });
 }
 
 var H = { month: 'this', range: null, courier: 'all', data: null, mem: {} };
@@ -1037,13 +1550,13 @@ function homeKey() { return H.range ? 'home_' + rangeKey(H.range) + '_' + H.cour
 function loadHome(fresh) {
   var key = homeKey();
   var cached = H.mem[key] || snap(key);
-  if (cached) { H.data = cached; renderHome(cached); }
+  if (cached) { H.data = cached; renderHome(cached); if (REP_AFTER) openReport(REP_AFTER); }
   else el('view').innerHTML = el('view').innerHTML.indexOf('sk') > -1 ? el('view').innerHTML : '<div class="sk" style="height:170px;margin-bottom:12px"></div><div class="sk" style="height:220px"></div>';
   api('getAppHomeData', [{ month: H.range ? '' : monthOf(H), range: H.range, courier: H.courier, fresh: !!fresh, token: TOKEN }], function (d) {
     H.mem[key] = d; snap(key, d); if (d && d.courierList) setCouriers(d.courierList);
     if (homeKey() !== key) return; // user switched meanwhile
     H.data = d; renderHome(d);
-    if (fresh) toast('Updated');
+    if (REP_AFTER) { var rk = REP_AFTER; REP_AFTER = ''; openReport(rk); }
   }, function (e) { if (!cached) el('view').innerHTML = '<div class="card empty"><i class="ti ti-cloud-off" style="color:var(--red)"></i>Could not load. Tap refresh.<br><small>' + esc(e && e.message) + '</small></div>'; });
 }
 function delta(cur, prev) {
@@ -1062,9 +1575,9 @@ function cashHero(label, s, paidAttr, dueAttr, k) {
   return '<div class="hero fade"><div class="hero-top"><small>' + esc(label) + '</small></div>' +
     '<div class="big num" data-k="' + k + '_net" data-n="' + s.net + '" data-rs>' + rs(s.net) + '</div>' +
     '<div class="hero-bar"><i style="width:0" data-w="' + got + '"></i></div>' +
-    '<div class="hero-top"><small>' + got + '% of the amount received</small></div>' +
-    '<div class="hero-row"><div ' + paidAttr + ' style="cursor:pointer"><span>Received ›</span><b class="num" data-k="' + k + '_rec" data-n="' + s.received + '" data-rs>' + rs(s.received) + '</b><em>' + (s.paidDelivered || 0) + ' parcels paid</em></div>' +
-    '<div ' + dueAttr + ' style="cursor:pointer"><span>Pending ›</span><b class="num" data-k="' + k + '_due" data-n="' + s.pending + '" data-rs>' + rs(s.pending) + '</b><em>' + (s.pendingDelivered || 0) + ' unpaid' + (s.overdue ? ' · <i class="late">' + s.overdue + ' late</i>' : '') + '</em></div></div>' +
+    '<div class="hero-top"><small>' + got + '% paid out</small></div>' +
+    '<div class="hero-row"><div ' + paidAttr + ' style="cursor:pointer"><span>Paid out ›</span><b class="num" data-k="' + k + '_rec" data-n="' + s.received + '" data-rs>' + rs(s.received) + '</b><em>' + (s.paidDelivered || 0) + ' parcels paid</em></div>' +
+    '<div ' + dueAttr + ' style="cursor:pointer"><span>Outstanding ›</span><b class="num" data-k="' + k + '_due" data-n="' + s.pending + '" data-rs>' + rs(s.pending) + '</b><em>' + (s.pendingDelivered || 0) + ' unpaid' + (s.overdue ? ' · <i class="late">' + s.overdue + ' late</i>' : '') + '</em></div></div>' +
     (later ? '<div class="hero-later"><i class="ti ti-clock"></i>In transit: ' + (s.movingCod ? '~' + rs(s.movingCod) + ' COD · ' : '') + later + ' with courier' + '</div>' : '') + '</div>';
 }
 function renderHome(d) {
@@ -1080,7 +1593,7 @@ function renderHome(d) {
     (acts.length ? (showAll ? acts : acts.slice(0, 3)).map(function (a) {
       return '<div class="act" data-go="' + esc(a.go || 'ndr') + '" style="cursor:pointer"><div class="ic t-' + a.tone + '"><i class="ti ti-' + a.icon + '"></i></div><div><b>' + esc(a.title) + '</b><small>' + esc(a.sub) + '</small></div><i class="ti ti-chevron-right go"></i></div>';
     }).join('') + (showAll ? '' : '<button class="btn more" id="actsAll">See all ' + acts.length + ' action items</button>') : '<div class="empty"><i class="ti ti-circle-check"></i>Nothing pending</div>') + '</div>';
-  h += cashHero('Net COD · ' + d.monthLabel, c, 'data-go="cash:paid"', 'data-go="cash:due"', 'h');
+  h += cashHero('Net payout · ' + d.monthLabel, c, 'data-go="cash:paid"', 'data-go="cash:due"', 'h');
   // Parcel journey: every parcel counted once, at the stage it is at now. Tap a stage to see those parcels.
   var jmax = Math.max.apply(null, JOURNEY.map(function (s) { return jr[s[0]] || 0; }).concat([1]));
   var cx = d.cancelled || { total: 0, reasons: {} };
@@ -1145,7 +1658,7 @@ function renderHome(d) {
       '<div data-go="parcels:returned"><b class="num down">' + (jr.returned || 0) + '</b><small>Returned</small></div>' +
       '<div><b class="num">' + pct(k.success) + '</b><small>Success</small></div></div>' +
       '<div class="jr-sep" style="margin-left:0">Returns</div><div class="jr-list">' +
-      jrow(stg('returned'), ['Received back', 'Scanned by us']) + jrow(stg('rtoback'), ['Returned by courier · not scanned', 'Check and scan in Returns']) + jrow(stg('returning'), ['Return in transit', 'Parcel on its way back to us']) + '</div>' +
+      jrow(stg('returned'), ['Received back', 'Received & scanned']) + jrow(stg('rtoback'), ['Returned by courier · not scanned', 'Check and scan in Returns']) + jrow(stg('returning'), ['Return in transit', 'Returning to warehouse']) + '</div>' +
       (still ? '<div class="oc-warn" data-go="parcels:moving"><i class="ti ti-alert-triangle"></i><span>' + still + ' parcel' + (still > 1 ? 's' : '') + ' still with courier · check</span><i class="ti ti-chevron-right"></i></div>' : '') +
       (never ? '<div class="oc-warn" data-go="parcels:' + (jr.pending ? 'pending' : 'confirmed') + '"><i class="ti ti-alert-triangle"></i><span>' + never + ' order' + (never > 1 ? 's' : '') + ' never booked</span><i class="ti ti-chevron-right"></i></div>' : '') +
       cancelLine + nowLine + '</div>';
@@ -1156,25 +1669,28 @@ function renderHome(d) {
 }
 // ---------- reports (☰ menu): same period + courier as Home, shown in a sheet ----------
 var REPORT = {};
-var REPORT_TITLE = { success: 'Delivery success', cod: 'COD breakdown', couriers: 'Courier comparison', months: 'Monthly report', couriercity: 'Courier by city', cities: 'Top cities', products: 'Top products', reasons: 'Why deliveries fail', dispatched: 'Shipped · last 14 days', payments: 'Courier payments' };
+var REPORT_TITLE = { success: 'Delivery success', cod: 'COD breakdown', couriers: 'Courier comparison', months: 'Monthly report', couriercity: 'Courier by city', cities: 'Top cities', products: 'Top products', reasons: 'Delivery failure reasons', dispatched: 'Shipped · last 14 days', payments: 'Courier payments' };
 REPORT.success = function (d) {
-  var k = d.kpis, p = d.prev, h = '';
-  var succ = k.success == null ? 0 : k.success;
-  h += '<div class="card fade"><div class="h"><b>Delivery success</b><b class="num" style="font-size:18px">' + pct(k.success) + '</b></div>' +
-    '<div class="bar"><i style="width:0;background:var(--green)" data-w="' + (succ * 100) + '"></i></div>' +
-    '<div class="legend" style="justify-content:space-between"><span style="--c:transparent;margin-left:-14px">Delivered ÷ (delivered + returned)</span>' +
-    (p && p.success != null && k.success != null ? '<span style="--c:transparent;margin-left:-14px" class="' + (k.success >= p.success ? 'up' : 'down') + '">' + (k.success >= p.success ? '↑ ' : '↓ ') + Math.abs(Math.round((k.success - p.success) * 1000) / 10) + ' pts</span>' : '') + '</div></div>';
-  return h;
+  var k = d.kpis, p = d.prev, fin = k.delivered + k.returned;
+  var dp = fin ? k.delivered / fin : 0, rp = fin ? k.returned / fin : 0;
+  var cmp = p && p.success != null && k.success != null ? '<span class="' + (k.success >= p.success ? 'up' : 'down') + '">' + (k.success >= p.success ? '↑ ' : '↓ ') + Math.abs(Math.round((k.success - p.success) * 1000) / 10) + ' pts vs ' + esc(d.prevLabel || 'before') + '</span>' : '';
+  if (!fin) return '<div class="card empty"><i class="ti ti-hourglass"></i>No finished parcels in this period yet' + (k.onTheWay ? '<br><small>' + k.onTheWay + ' still with the courier</small>' : '') + '</div>';
+  return '<div class="card fade"><div class="sx">' +
+    '<div data-go="parcels:delivered"><small>Delivered</small><b class="num up">' + pct(dp) + '</b><span>' + k.delivered + ' parcels · ' + rs(k.deliveredValue) + '</span></div>' +
+    '<div data-go="parcels:returned"><small>Returned</small><b class="num down">' + pct(rp) + '</b><span>' + k.returned + ' parcels</span></div></div>' +
+    '<div class="bar sxbar"><i style="width:0;background:var(--green)" data-w="' + (dp * 100) + '"></i><i style="width:0;background:var(--red)" data-w="' + (rp * 100) + '"></i></div>' +
+    '<div class="legend" style="justify-content:space-between"><span style="--c:transparent;margin-left:-14px">' + fin + ' finished' + (k.onTheWay ? ' · ' + k.onTheWay + ' still on the way' : '') + '</span>' + cmp + '</div></div>' +
+    '<small class="mnote">Only finished parcels count (delivered + returned). Change the dates above to compare any period.</small>';
 };
 REPORT.cod = function (d) {
   var c = d.cash, h = '';
   h += '<div class="card fade" data-go="cash:due" style="cursor:pointer"><div class="h"><b>COD breakdown ›</b><span>' + c.paidParcels + ' settled · ' + c.pendingParcels + ' outstanding</span></div>' +
     '<div class="row"><span>COD collected</span><b class="num">' + rs(c.cod) + '</b></div>' +
-    '<div class="row"><span>Courier charges</span><b class="num">− ' + rs(c.charges) + '</b></div>' +
-    '<div class="row"><span>Tax (2% WHT + 2% SST)</span><b class="num">− ' + rs(c.tax) + '</b></div>' +
-    (c.over >= 1 ? '<div class="row"><span>Overcharged vs rate card (FAF)</span><b class="num down">' + rs(c.over) + '</b></div>' : '') +
-    '<div class="row"><span>Received</span><b class="num up">' + rs(c.received) + '</b></div>' +
-    '<div class="row"><span>Pending</span><b class="num" style="color:var(--amber)">' + rs(c.pending) + '</b></div></div>';
+    '<div class="row"><span>Courier fees</span><b class="num">− ' + rs(c.charges) + '</b></div>' +
+    '<div class="row"><span>Taxes (WHT + SST)</span><b class="num">− ' + rs(c.tax) + '</b></div>' +
+    (c.over >= 1 ? '<div class="row"><span>Overcharges (FAF)</span><b class="num down">' + rs(c.over) + '</b></div>' : '') +
+    '<div class="row"><span>Paid out</span><b class="num up">' + rs(c.received) + '</b></div>' +
+    '<div class="row"><span>Outstanding</span><b class="num" style="color:var(--amber)">' + rs(c.pending) + '</b></div></div>';
   return h;
 };
 REPORT.couriers = function (d) {
@@ -1258,35 +1774,70 @@ REPORT.products = function (d) {
 };
 // Courier by city: who delivers best and fastest where (last 6 months, all couriers) — to pick the courier per city
 var CC = { q: '' };
-function ccLine(c) {
+function ccLine(c, attr) {
   var succ = c.success == null ? null : Math.round(100 * c.success);
   var col = succ == null ? 'var(--faint)' : succ >= 85 ? 'var(--green)' : succ >= 70 ? 'var(--amber)' : 'var(--red)';
-  var eta = c.typical == null ? 'no deliveries yet' : '~' + c.typical + ' days' + (c.most != null && c.most > c.typical ? ' · most within ' + Math.ceil(c.most) : '');
-  return '<div class="ccl"><div class="ccl-1"><b>' + esc(c.name) + (c.best ? ' <span class="ccbest">★ Best</span>' : '') + '</b>' +
-    '<span class="num" style="color:' + col + '">' + (succ == null ? '—' : succ + '% delivered') + '</span></div>' +
-    '<div class="ccl-2"><span>' + c.shipped + ' sent · ' + c.delivered + ' delivered · ' + c.returned + ' returned</span><span><i class="ti ti-clock"></i>' + eta + '</span></div>' +
-    (c.finished < 5 ? '<div class="ccl-3">Too few finished parcels to judge</div>' : '') + '</div>';
+  return '<div class="ccl"' + (attr || '') + '><div class="ccl-1"><b>' + esc(c.name) + (c.best ? ' <span class="ccbest">★ Best</span>' : '') + '</b>' +
+    '<span class="num" style="color:' + col + '">' + (succ == null ? '—' : succ + '%') + '</span></div>' +
+    '<div class="ccl-2"><span>' + c.shipped + ' sent · ' + c.delivered + ' delivered · ' + c.returned + ' returned</span>' +
+    (c.typical != null ? '<span><i class="ti ti-clock"></i>~' + c.typical + ' days</span>' : '') + (attr ? '<i class="ti ti-chevron-right" style="color:var(--faint)"></i>' : '') + '</div></div>';
 }
 REPORT.couriercity = function (d) {
   var cc = d.insights && d.insights.courierCity;
   if (!cc || !cc.cities.length) return '<div class="empty">No parcels booked in the last 6 months</div>';
   var q = CC.q.toLowerCase().trim();
   var list = cc.cities.filter(function (c) { return !q || c.city.toLowerCase().indexOf(q) !== -1; });
-  return '<div class="card"><div class="h"><b>All cities</b><span>last ' + Math.round(cc.days / 30) + ' months</span></div>' + cc.overall.map(ccLine).join('') + '</div>' +
+  return '<div class="card"><div class="h"><b>All cities</b><span>' + esc(d.monthLabel) + '</span></div>' + cc.overall.map(function (c) { return ccLine(c); }).join('') + '</div>' +
     '<div class="search" style="margin:4px 0 10px"><i class="ti ti-search"></i><input id="ccq" placeholder="Find a city" value="' + esc(CC.q) + '"></div>' +
     (list.length ? list.map(function (c) {
-      return '<div class="card ccity"><div class="h"><b>' + esc(c.city) + '</b><span>' + c.total + ' parcels</span></div>' + c.couriers.map(ccLine).join('') + '</div>';
+      var ci = cc.cities.indexOf(c);
+      return '<div class="card ccity"><div class="h" data-ccity="' + ci + '" style="cursor:pointer"><b>' + esc(c.city) + '</b><span>' + c.total + ' parcels ›</span></div>' +
+        c.couriers.map(function (x, j) { return ccLine(x, ' data-ccity="' + ci + '|' + j + '" style="cursor:pointer"'); }).join('') + '</div>';
     }).join('') : '<div class="empty">No city matches</div>') +
-    '<small class="mnote">Delivered % counts finished parcels (delivered + returned). Days = booking to delivery: "~" is the usual time, "most within" covers 8 of 10 deliveries — use it as the estimate for customers. ★ Best = highest delivered % (faster on a tie), shown when two couriers have ' + cc.min + '+ finished parcels in that city.</small>';
+    '<small class="mnote">% = delivered out of finished parcels. Days = usual time from booking to delivery. ★ Best = best % in that city. Tap a city or courier to see its parcels.</small>';
 };
+// A list of parcels behind a report number; Back returns to the report
+var CC_ST = { D: ['Delivered', 'var(--green)'], R: ['Returned', 'var(--red)'], O: ['On the way', 'var(--blue)'] };
+function openRepList(key, title, sub, rows) {
+  el('panel').innerHTML = '<button class="btn mini" id="rlBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>' + esc(REPORT_TITLE[key]) + '</button>' +
+    '<h3>' + esc(title) + '</h3><p>' + esc(sub) + '</p>' +
+    (rows.length ? '<div class="plist-box">' + rows.map(function (r) {
+      var st = CC_ST[r.st] || CC_ST.O;
+      return '<div class="prow" data-rl="' + esc(r.order) + '" style="--c:' + st[1] + '"><span class="prow-d"></span><div class="prow-m">' +
+        '<div class="prow-1"><b>' + esc(r.order) + '</b><span class="st" style="--c:' + st[1] + '">' + st[0] + '</span></div>' +
+        '<div class="prow-2"><span>' + [esc(r.courier || ''), esc(r.cn || ''), esc(r.city || ''), esc(r.date || '')].filter(Boolean).join(' · ') + '</span></div>' +
+        (r.note ? '<div class="prow-2"><span style="color:var(--muted)">' + esc(r.note) + '</span></div>' : '') + '</div></div>';
+    }).join('') + '</div>' : '<div class="card empty">No parcels</div>') +
+    '<div class="btns" style="margin-top:10px"><button class="btn" id="rlClose">Close</button></div>';
+  openPanel(true);
+  el('rlBack').onclick = function () { openReport(key); };
+  el('rlClose').onclick = closePanel;
+  el('panel').querySelectorAll('[data-rl]').forEach(function (x) {
+    x.onclick = function () { if (!can('parcels.view')) return; openParcel(x.getAttribute('data-rl')); };
+  });
+}
+function openCcList(key, ci, j) {
+  var c = H.data.insights.courierCity.cities[ci]; if (!c) return;
+  var couriers = j < 0 ? c.couriers : [c.couriers[j]];
+  var rows = [];
+  couriers.forEach(function (x) { (x.list || []).forEach(function (r) { rows.push({ order: r[0], cn: r[1], st: r[2], date: r[3], courier: x.name }); }); });
+  var n = { D: 0, R: 0, O: 0 }; rows.forEach(function (r) { n[r.st]++; });
+  openRepList(key, (j < 0 ? '' : couriers[0].name + ' · ') + c.city, rows.length + (rows.length === 1 ? ' parcel · ' : ' parcels · ') + n.D + ' delivered · ' + n.R + ' returned · ' + n.O + ' on the way · ' + H.data.monthLabel, rows);
+}
+function openReasonList(key, reason) {
+  var list = ((H.data.insights || {}).reasonList || {})[reason] || [];
+  var rows = list.map(function (r) { return { order: r[0], cn: r[1], courier: r[2], city: r[3], st: r[4], note: r[5] }; });
+  var n = { D: 0, R: 0, O: 0 }; rows.forEach(function (r) { n[r.st]++; });
+  openRepList(key, reason, rows.length + (rows.length === 1 ? ' parcel' : ' parcels') + ' · after the failed attempt: ' + n.D + ' delivered · ' + n.R + ' returned · ' + n.O + ' still open', rows);
+}
 REPORT.reasons = function (d) {
   var r = (d.insights && d.insights.reasons) || {}, n = (d.insights && d.insights.failed) || 0;
   if (!n) return '<div class="empty"><i class="ti ti-circle-check"></i>No failed deliveries in this period</div>';
   var keys = Object.keys(r).sort(function (a, b) { return r[b] - r[a]; });
   return '<div class="card"><div class="h"><b>' + n + ' parcels had a failed delivery</b></div>' + keys.map(function (k) {
     var p = Math.round(100 * r[k] / n);
-    return '<div class="rbar"><div><span>' + esc(k) + '</span><b class="num">' + r[k] + ' · ' + p + '%</b></div><i><u style="width:0" data-w="' + p + '"></u></i></div>';
-  }).join('') + '<small class="mnote">From the courier\'s reason on each failed attempt. Tap NDR to act on open cases.</small></div>';
+    return '<div class="rbar" data-rsn="' + esc(k) + '" style="cursor:pointer"><div><span>' + esc(k) + ' ›</span><b class="num">' + r[k] + ' · ' + p + '%</b></div><i><u style="width:0" data-w="' + p + '"></u></i></div>';
+  }).join('') + '<small class="mnote">From the courier\'s reason on each failed attempt. Tap a reason to see its parcels.</small></div>';
 };
 REPORT.dispatched = function (d) {
   var h = '';
@@ -1310,14 +1861,27 @@ REPORT.payments = function (d) {
   }
   return h;
 };
+// Reports that follow a period: a picker on top (any month, quick range or custom dates, also old ones)
+var REP_PERIOD = { success: 1, cod: 1, couriers: 1, couriercity: 1, cities: 1, products: 1, reasons: 1 };
+var REP_AFTER = '';
 function openReport(key) {
   if (key === 'escalations') return openEscalations();
   var d = H.data;
   if (!d) { toast('Loading…'); return; }
-  el('panel').innerHTML = '<h3>' + REPORT_TITLE[key] + '</h3><p>' + esc(d.monthLabel) + (H.courier !== 'all' ? ' · ' + esc(H.courier.charAt(0).toUpperCase() + H.courier.slice(1)) : '') + '</p>' +
+  var cName = (COURIERS.filter(function (c) { return c[0] === H.courier; })[0] || COURIERS[0])[1];
+  el('panel').innerHTML = '<h3>' + REPORT_TITLE[key] + '</h3>' +
+    (REP_PERIOD[key] ? '<div class="rep-per"><button class="pchip" id="repPer"><i class="ti ti-calendar"></i><span>' + esc(d.monthLabel) + '</span><i class="ti ti-chevron-down"></i></button>' +
+      '<button class="pchip" id="repCour"><i class="ti ti-truck"></i><span>' + esc(cName) + '</span><i class="ti ti-chevron-down"></i></button></div>' : '<p>' + esc(d.monthLabel) + '</p>') +
     '<div class="rep" id="repBox">' + REPORT[key](d) + '</div><div class="btns" style="margin-top:10px"><button class="btn" id="repClose">Close</button></div>';
-  openPanel();
+  openPanel(true);
   el('repClose').onclick = closePanel;
+  var reload = function () {
+    homePbar(); REP_AFTER = key;
+    el('panel').innerHTML = '<h3>' + REPORT_TITLE[key] + '</h3><div class="sk" style="height:200px"></div>'; openPanel(true);
+    loadHome(false);
+  };
+  if (el('repPer')) el('repPer').onclick = function () { var ms = (H.data && H.data.months) || []; openPeriodSheet(H, ms, ms[0] && ms[0].key, reload); };
+  if (el('repCour')) el('repCour').onclick = function () { openCourierSheet(H, reload); };
   el('repBox').querySelectorAll('[data-n]').forEach(countUp);
   growBars(el('repBox'));
   el('repBox').oninput = function (e) {
@@ -1335,6 +1899,10 @@ function openReport(key) {
   el('repBox').onclick = function (e) {
     var mr = e.target.closest('[data-mr]');
     if (mr) { MR.mode = mr.getAttribute('data-mr'); el('repBox').innerHTML = REPORT[key](H.data); growBars(el('repBox')); return; }
+    var cc = e.target.closest('[data-ccity]');
+    if (cc) { var ci = cc.getAttribute('data-ccity').split('|'); return openCcList(key, Number(ci[0]), ci[1] === undefined ? -1 : Number(ci[1])); }
+    var rsn = e.target.closest('[data-rsn]');
+    if (rsn) return openReasonList(key, rsn.getAttribute('data-rsn'));
     var city = e.target.closest('[data-city]');
     if (city) { var cp = city.querySelector('.cprods'); cp.hidden = !cp.hidden; city.classList.toggle('open', !cp.hidden); return; }
     var col = e.target.closest('.col, .mrow'); if (col) { H.month = col.getAttribute('data-m'); H.range = null; closePanel(); loadHome(false); window.scrollTo(0, 0); return; }
@@ -1399,10 +1967,10 @@ var JOURNEY = [
   ['atdest', 'At destination city', 'At courier office in customer city', 'map-pin', 'var(--brand)'],
   ['ofd', 'Out for delivery', 'With delivery rider', 'motorbike', 'var(--brand)'],
   ['ndr', 'Delivery failed', 'Rider could not deliver · call customer', 'phone-x', 'var(--amber)'],
-  ['returning', 'Return in transit', 'Parcel on its way back to us', 'arrow-back-up', 'var(--red)'],
+  ['returning', 'Return in transit', 'Returning to warehouse', 'arrow-back-up', 'var(--red)'],
   ['rtoback', 'Returned by courier · not scanned', 'Check the parcel and scan it in Returns', 'package-export', 'var(--amber)'],
   ['delivered', 'Delivered', 'Completed', 'circle-check', 'var(--green)'],
-  ['returned', 'Returned', 'Received and scanned by us', 'package-import', 'var(--red)']
+  ['returned', 'Returned', 'Received & scanned', 'package-import', 'var(--red)']
 ];
 var MOVING = ['booked', 'picked', 'transit', 'atdest', 'ofd', 'ndr']; // same as the server's APP_MOVING_STAGES
 var BACK = ['returning', 'rtoback']; // on the way back to us, or handed back by the courier but not scanned yet
@@ -1417,9 +1985,10 @@ function loadParcels(fresh) {
   if (!fresh && Date.now() - pAt < 60000) return;
   pAt = Date.now();
   api('getAppParcels', [{ fresh: !!fresh, token: TOKEN }], function (d) {
+    var had = P.data ? new Set((P.data.parcels || []).map(function (p) { return p.id; })) : null;
     P.data = d; snap('parcels', d);
+    if (had) newPill((d.parcels || []).filter(function (p) { return !had.has(p.id); }).length, 'parcel', 'parcels');
     if (curTab === 'parcels') renderParcels();
-    if (fresh) toast('Parcels updated');
   });
 }
 function renderParcels() {
@@ -1545,18 +2114,33 @@ function caseKey(c) { return c.cn + '|' + c.type.slice(0, 12); }
 function seenSet() { try { return JSON.parse(store('eh_ndr_seen') || '[]'); } catch (e) { return []; } }
 function markNdrSeen() { if (N.data) store('eh_ndr_seen', JSON.stringify(N.data.cases.map(caseKey))); updateBadge(); }
 function newCases() { var s = seenSet(); return N.data ? N.data.cases.filter(function (c) { return s.indexOf(caseKey(c)) === -1; }) : []; }
-function isTodo(c) { return !c.outcome || c.outcome === 'Not called yet'; }
+// To do = needs a call now: never called · no answer and the last call was 3+ hours ago · the courier's new attempt failed.
+// The NDR badge, the app icon number and the TO DO list all count exactly these.
+var CALL_AGAIN_HOURS = 3;
+function isTodo(c) {
+  if (!c.outcome || c.outcome === 'Not called yet') return true;
+  if (c.sent === 'Attempt failed') return true;
+  return /no answer|phone off/i.test(c.outcome) && c.lastCallMs > 0 && Date.now() - c.lastCallMs > CALL_AGAIN_HOURS * 3600000;
+}
+var badgeSeenNew = 0;
 function updateBadge() {
   var b = el('badge'); if (!N.data) return;
-  var open = N.data.cases.filter(isTodo).length, fresh = curTab === 'ndr' ? 0 : newCases().length;
-  b.textContent = fresh ? fresh + ' new' : open; b.style.display = (fresh || open) ? '' : 'none';
+  var todo = N.data.cases.filter(isTodo).length, fresh = curTab === 'ndr' ? 0 : newCases().length;
+  // the number is always "to do"; new cases make it pop once
+  if (fresh > badgeSeenNew) { b.classList.remove('fresh'); void b.offsetWidth; b.classList.add('fresh'); }
+  badgeSeenNew = fresh;
+  b.textContent = todo > 99 ? '99+' : String(todo); b.style.display = todo ? '' : 'none';
+  b.title = todo + ' to call' + (fresh ? ' · ' + fresh + ' new' : '');
+  // installed app: the same number on the phone's app icon
+  try { if (navigator.setAppBadge) { if (todo && can('ndr.view')) navigator.setAppBadge(todo); else navigator.clearAppBadge(); } } catch (e) {}
 }
 function loadNdr(fresh) {
   api('getAppNdr', [TOKEN, !!fresh], function (d) {
     var before = N.data ? newCases().map(function (c) { return c.cn; }) : null;
     N.data = d; snap('ndr', d);
     var fr = newCases();
-    if (before && fr.some(function (c) { return before.indexOf(c.cn) === -1; })) alertNew(fr[0]);
+    var added = before ? fr.filter(function (c) { return before.indexOf(c.cn) === -1; }) : [];
+    if (added.length && !newPill(added.length, 'case', 'ndr')) alertNew(added[0]);
     updateBadge();
     if (curTab === 'ndr') { renderNdr(); markNdrSeen(); }
   }, function () { if (fresh) toast('Could not load NDR'); });
@@ -1625,10 +2209,10 @@ function taskSteps(c) {
   var call = none ? '' : noAns ? 'warn' : 'ok';
   var ans = none || noAns ? '' : 'ok';
   var needsCourier = c.next === 'Escalate to courier' || /reattempt|address|later date|rider never/i.test(o);
-  var cour = !ans ? '' : !needsCourier ? 'ok' : c.sent === 'Courier confirmed' ? 'ok' : c.sent === 'Sent' ? 'warn' : '';
+  var cour = !ans ? '' : !needsCourier ? 'ok' : c.sent === 'Courier confirmed' ? 'ok' : c.sent === 'Sent' || c.sent === 'Queued' ? 'warn' : '';
   var lab = [call === 'warn' ? 'No answer' : call ? 'Called' : 'Call',
     ans ? (/refus|cancel/i.test(o) ? 'Refused' : /money/i.test(o) ? 'Cash not ready' : 'Answered') : 'Answer',
-    !ans ? 'Courier' : !needsCourier ? 'No courier step' : c.sent === 'Courier confirmed' ? 'Courier acted' : c.sent === 'Sent' ? 'Waiting ' + c.courier : 'Send to courier'];
+    !ans ? 'Courier' : !needsCourier ? 'No courier step' : c.sent === 'Courier confirmed' ? 'Courier acted' : c.sent === 'Sent' ? 'Waiting ' + c.courier : c.sent === 'Queued' ? 'In ' + c.courier + ' list' : 'Send to courier'];
   return '<div class="tsteps">' + [call, ans, cour].map(function (s) { return '<i class="' + s + '"></i>'; }).join('') + '</div>' +
     '<div class="tsteps-l">' + lab.map(function (l, i) { return '<span class="' + [call, ans, cour][i] + '">' + esc(l) + '</span>'; }).join('') + '</div>';
 }
@@ -1649,29 +2233,176 @@ function taskCard(c, seen) {
     (c.wa ? '<a class="btn sq wa" target="_blank" href="' + waLink(c.wa, c.waText) + '" aria-label="WhatsApp"><i class="ti ti-brand-whatsapp"></i></a>' : '') +
     '<button class="btn' + (todo ? '' : ' pri grow') + '" data-rec="' + esc(c.cn) + '"><i class="ti ti-pencil"></i>' + (todo ? 'Update' : 'Update case') + '</button></div></div>';
 }
+// W1 writes results in Roman Urdu for the courier's sheet; the app shows them in English
+var TICKET_WORDS = [[/Amal nahi hua/, 'No action'], [/Amal hua/, 'Acted'], [/Intezar/, 'Waiting'], [/Deliver ho gaya/, 'Delivered'],
+  [/Return shuru – reattempt nahi hua/, 'Return started · not reattempted'], [/Return shuru ho gaya/, 'Return started'], [/Return ho gaya/, 'Returned'],
+  [/Attempt hua – phir fail/, 'Attempted · failed again'], [/Claim – courier ne jawab diya/, 'Claim · courier replied'], [/Courier ne jawab diya/, 'Courier replied'],
+  [/DOBARA – (\d+h), amal nahi/, 'Follow-up · no action in $1'], [/Case band/, 'Case closed'], [/Outbox/, 'Not sent yet']];
+function ticketResult(s) { s = String(s || ''); TICKET_WORDS.forEach(function (w) { s = s.replace(w[0], w[1]); }); return s; }
 function ticketLine(c) {
   var co = N.data.couriers && N.data.couriers[c.courier], t = co && co.tickets[c.cn];
   if (!t) return '';
-  var res = String(t.result).replace('Amal hua', 'Acted').replace('Amal nahi hua', 'No action').replace('Intezar', 'Waiting').replace('Deliver ho gaya', 'Delivered').replace('Return ho gaya', 'Returned');
+  var res = ticketResult(t.result);
   var cls = /Acted|Delivered/.test(res) ? 'ok' : /No action/.test(res) ? 'bad' : '';
-  return '<div class="tk ' + cls + '"><b>Ticket ' + esc(t.id) + (t.round > 1 ? ' · follow-up' : '') + ':</b> ' + esc(res) +
-    (t.status || t.reply ? '<br>' + c.courier + ': ' + esc([t.status, t.reply].filter(Boolean).join(' – ')) : '<br>Awaiting reply from ' + c.courier) + '</div>';
+  if (!t.channel) return '<div class="tk"><b><i class="ti ti-inbox"></i> In ' + esc(c.courier) + ' list</b>' + (/DOBARA/.test(t.result) ? ' · 🔴 no action in 24h, goes again' : ' · not sent yet') + '</div>';
+  var via = t.channel === 'WhatsApp' ? '📱 WhatsApp' : '📄 Sheet';
+  return '<div class="tk ' + cls + '"><b>' + via + ' · ' + esc(t.id) + (t.round > 1 ? ' · follow-up' : '') + ':</b> ' + esc(res) +
+    (t.sentAt ? '<br><small>Sent ' + esc(t.sentAt) + (t.by ? ' · ' + esc(t.by) : '') + '</small>' : '') +
+    (t.status || t.reply ? '<br>' + c.courier + ': ' + esc([t.status, t.reply].filter(Boolean).join(' – ')) : '<br>Awaiting reply from ' + c.courier) +
+    (t.channel === 'WhatsApp' ? '<br><button class="btn mini" data-wr="' + esc(t.id) + '" data-wc="' + esc(c.courier) + '"><i class="ti ti-message-reply"></i>Courier replied</button>' : '') + '</div>';
 }
 function renderCourierCards() {
   var cs = N.data.couriers || {};
-  el('ncour').innerHTML = '<div class="cstrip">' + Object.keys(cs).map(function (name) {
+  el('ncour').innerHTML = outboxHtml() + '<div class="cstrip">' + Object.keys(cs).map(function (name) {
     var s = cs[name];
     return '<button class="cs-line" data-cour="' + esc(name) + '"><b>' + esc(name) + '</b><span>' + s.open + ' open · ' + s.replied + ' replied' +
       (s.notActed ? ' · <i class="down">' + s.notActed + ' no action</i>' : '') + '</span><i class="ti ti-chevron-right"></i></button>';
   }).join('') + '</div>';
 }
-el('ncour').onclick = function (e) { var b = e.target.closest('[data-cour]'); if (b) openEscalations(b.getAttribute('data-cour')); };
+el('ncour').onclick = function (e) {
+  var o = e.target.closest('[data-ob]'); if (o) return openOutbox(o.getAttribute('data-ob'));
+  var b = e.target.closest('[data-cour]'); if (b) openEscalations(b.getAttribute('data-cour'));
+};
+
+// ---------- courier list (outbox): cases cleared one by one gather here; send each kind by WhatsApp or sheet ----------
+var OB_KINDS = [['reattempt', '🔁', 'Reattempt', 'DOBARA DELIVER KAREIN'], ['return', '↩️', 'Return to us', 'WAPAS BHEJ DEIN'], ['claim', '📝', 'Claim', 'CLAIM']];
+var OB_REPLIES = ['Reattempt tomorrow', 'Rider assigned', 'Return dispatched', 'Customer issue', 'Claim noted'];
+function outboxOf(name) { var b = (N.data.outbox || {})[name]; return b || { reattempt: [], return: [], claim: [] }; }
+function outboxCount(name) { var b = outboxOf(name); return b.reattempt.length + b.return.length + b.claim.length; }
+function outboxHtml() {
+  var names = Object.keys(N.data.outbox || {}).filter(function (n) { return outboxCount(n); });
+  if (!names.length || !can('ndr.work')) return '';
+  return '<div class="obox"><div class="obox-h"><i class="ti ti-inbox"></i><b>Courier list</b><span>ready to send</span></div>' + names.map(function (n) {
+    var b = outboxOf(n);
+    return '<button class="ob-line" data-ob="' + esc(n) + '"><b>' + esc(n) + '</b><span>' + OB_KINDS.map(function (k) { return b[k[0]].length ? b[k[0]].length + ' ' + k[2].toLowerCase() : ''; }).filter(Boolean).join(' · ') +
+      '</span><span class="ob-go">Send <i class="ti ti-chevron-right"></i></span></button>';
+  }).join('') + '</div>';
+}
+function courierPrefix(name) { var c = CLIST.filter(function (x) { return x.name === name; })[0]; return (c && c.prefix) || name.slice(0, 2).toUpperCase(); }
+// One WhatsApp message per kind, laid out like a formal request: heading (store, request, date, count, ref), one line on
+// what we ask, then each parcel as a short block — CN (bold, own line, easy to copy) · city · COD, the courier's remark,
+// what the customer said, our request. Customer phone / address only when they changed (the courier already has them;
+// a group chat should carry as little personal data as possible). Blank lines between blocks; WhatsApp *bold* / _italic_.
+var OB_MSG = {
+  reattempt: ['Reattempt Request', 'Customers se baat ho chuki hai. Barah-e-karam neeche diye gaye parcels *dobara deliver* karwa dein.', 'Dobara deliver karein'],
+  return: ['Return Request', 'Barah-e-karam neeche diye gaye parcels *hamein wapas bhej dein*.', 'Wapas bhej dein'],
+  claim: ['Claim Request', 'Neeche diye gaye parcels kharab / adhoore wapas aaye hain. Barah-e-karam *claim note* kar lein.', 'Claim note karein']
+};
+function waSafe(s) { return String(s || '').replace(/[*_~`]/g, '').replace(/\s+/g, ' ').trim(); } // their own * or _ would break our bold / italic
+function obMessage(name, kind, items, batch, part) {
+  var m = OB_MSG[kind], day = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Karachi', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }).format(new Date());
+  var head = ['*' + STORE.toUpperCase() + ' · ' + m[0] + '*' + (part ? ' (' + part + ')' : ''),
+    '*' + day + '*  ·  ' + items.length + ' parcel' + (items.length > 1 ? 's' : '') + '  ·  ' + name,
+    '_Ref: ' + batch + '_', '', m[1]].join('\n');
+  var body = items.map(function (it, i) {
+    var lines = ['*' + (i + 1) + ')  ' + waSafe(it.cn) + '*' + (it.dobara || it.round > 1 ? '   🔴 *DOBARA*' : ''),
+      '📍 *' + (waSafe(it.city) || '—') + '*' + (kind !== 'claim' && it.cod ? '  ·  COD Rs ' + n0(it.cod) : '') + (it.order ? '  ·  ' + waSafe(it.order) : '')];
+    if (kind === 'claim') {
+      lines.push('📝 Issue: _' + (waSafe(it.claimText) || 'Claim') + '_');
+    } else {
+      if (it.reason) lines.push('🚚 Courier: _' + waSafe(it.reason) + '_' + (it.attempts ? ' (' + it.attempts + ' attempt' + (it.attempts > 1 ? 's' : '') + ')' : ''));
+      // the NDR form's words (English sentences, not a quote); a new address already has its own 🆕 line
+      var says = waSafe(it.says), info = waSafe(it.newInfo);
+      if (says && !(info && says.indexOf(info) !== -1)) lines.push('🗣 Customer: _' + says + '_');
+      if (kind === 'reattempt' && it.newInfo) lines.push('🆕 *Naya pata / phone:* ' + waSafe(it.newInfo) + (it.name ? ' (' + waSafe(it.name) + (it.phone ? ', ' + phoneText(it.phone) : '') + ')' : ''));
+      if (kind === 'reattempt' && it.premature) lines.push('⛔ *Return rokein*, abhi 2 attempts nahi hue');
+    }
+    lines.push('✅ *Request: ' + m[2] + (kind === 'reattempt' && it.reattempt ? ' · ' + waSafe(it.reattempt) : '') + '*');
+    return lines.join('\n');
+  }).join('\n\n');
+  var foot = ['Jawab mein parcel ka number likhein, jaise: _"1 done, 2 kal"_', '', 'Shukriya 🙏', '_' + STORE + ' · Operations_'].join('\n');
+  var sep = '──────────────';
+  return head + '\n\n' + sep + '\n\n' + body + '\n\n' + sep + '\n\n' + foot;
+}
+function openOutbox(name) {
+  var b = outboxOf(name);
+  var now = new Date(), batch = courierPrefix(name) + '-' + now.getDate() + ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][now.getMonth()] + '-' + ('0' + now.getHours()).slice(-2) + ('0' + now.getMinutes()).slice(-2);
+  var sec = OB_KINDS.map(function (k) {
+    var items = b[k[0]];
+    if (!items.length) return '';
+    return '<div class="card obk" data-k="' + k[0] + '"><div class="h"><b>' + k[1] + ' ' + k[2] + '</b><span>' + items.length + '</span></div>' +
+      items.map(function (it, i) {
+        return '<label class="ob-it"><input type="checkbox" checked data-i="' + i + '"><div><b>' + esc(it.order || it.cn) + ' · ' + esc(it.name || '') + '</b><small>' +
+          [esc(it.city || ''), it.newInfo ? '🆕 new address / phone' : '', it.dobara || it.round > 1 ? '🔴 DOBARA' : '', k[0] === 'claim' ? esc(it.claimText || '') : ''].filter(Boolean).join(' · ') + '</small></div></label>';
+      }).join('') +
+      '<div class="btns" style="margin-top:8px"><button class="btn wa" data-send="WhatsApp"><i class="ti ti-brand-whatsapp"></i>WhatsApp</button><button class="btn" data-send="Sheet"><i class="ti ti-table"></i>Sheet</button></div></div>';
+  }).join('');
+  el('panel').innerHTML = '<h3>' + esc(name) + ' · courier list</h3><p>Send each kind on its own · batch ' + esc(batch) + '</p>' +
+    (sec || '<div class="card empty"><i class="ti ti-circle-check"></i>Everything is sent</div>') +
+    '<div class="btns" style="margin-top:10px"><button class="btn" id="obClose">Close</button></div>';
+  openPanel(true);
+  el('obClose').onclick = closePanel;
+  el('panel').querySelectorAll('.obk').forEach(function (card) {
+    var kind = card.getAttribute('data-k');
+    card.querySelectorAll('[data-send]').forEach(function (btn) {
+      btn.onclick = function () {
+        var picked = [].slice.call(card.querySelectorAll('input[data-i]')).filter(function (x) { return x.checked; }).map(function (x) { return b[kind][Number(x.getAttribute('data-i'))]; });
+        if (!picked.length) { toast('Tick at least one parcel'); return; }
+        if (btn.getAttribute('data-send') === 'Sheet') return obSend(name, kind, picked, 'Sheet', batch);
+        obWhatsApp(name, kind, picked, batch, 0);
+      };
+    });
+  });
+}
+// WhatsApp: share the message (the user picks the group), then confirm it went; up to 10 parcels per message
+function obWhatsApp(name, kind, picked, batch, from) {
+  var part = picked.slice(from, from + 10), parts = Math.ceil(picked.length / 10), pn = Math.floor(from / 10) + 1;
+  var msg = obMessage(name, kind, part, batch, parts > 1 ? pn + '/' + parts : '');
+  var ask = function () {
+    el('panel').innerHTML = '<h3>Sent to the ' + esc(name) + ' group?</h3><p>' + part.length + ' parcels · ' + esc(OB_KINDS.filter(function (k) { return k[0] === kind; })[0][2]) + (parts > 1 ? ' · message ' + pn + ' of ' + parts : '') + '</p>' +
+      '<div class="msgprev"><div>' + esc(msg).replace(/\n/g, '<br>') + '</div></div>' +
+      '<div class="btns" style="margin-top:10px"><button class="btn" id="obNo">Not sent</button><button class="btn pri" id="obYes"><i class="ti ti-check"></i>Yes, sent</button></div>' +
+      '<button class="btn" id="obAgain" style="width:100%;margin-top:8px"><i class="ti ti-brand-whatsapp"></i>Open WhatsApp again</button>';
+    openPanel(true);
+    el('obNo').onclick = function () { openOutbox(name); };
+    el('obAgain').onclick = share;
+    el('obYes').onclick = function () {
+      obSend(name, kind, part, 'WhatsApp', batch, function () { if (from + 10 < picked.length) obWhatsApp(name, kind, picked, batch, from + 10); });
+    };
+  };
+  var share = function () {
+    if (navigator.share) navigator.share({ text: msg }).then(ask, ask);
+    else { window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank'); setTimeout(ask, 400); }
+  };
+  share();
+}
+function obSend(name, kind, items, channel, batch, then) {
+  var list = items.map(function (it) { return { type: kind, cn: it.cn }; });
+  // optimistic: out of the list now; the server records channel, batch, who and when (W1 within 5 min)
+  var box = outboxOf(name);
+  box[kind] = box[kind].filter(function (it) { return items.indexOf(it) === -1; });
+  if (N.data.outbox) N.data.outbox[name] = box;
+  snap('ndr', N.data); renderNdr();
+  toast(channel === 'WhatsApp' ? '✅ Recorded as sent on WhatsApp' : '📄 Going to the ' + name + ' sheet (≤5 min)');
+  api('appCourierSend', [TOKEN, list, channel, batch], function () { if (then) then(); else openOutbox(name); loadNdr(true); },
+    function (e) { toast('❌ Not recorded: ' + ((e && e.message) || 'try again')); loadNdr(true); });
+}
+// A courier answered in the WhatsApp group: note it on the ticket
+document.addEventListener('click', function (e) {
+  var b = e.target.closest('[data-wr]'); if (!b) return;
+  e.preventDefault(); e.stopPropagation();
+  var id = b.getAttribute('data-wr'), cour = b.getAttribute('data-wc');
+  el('panel').innerHTML = '<h3>' + esc(cour) + ' replied</h3><p>Ticket ' + esc(id) + ' · what did they say on WhatsApp?</p>' +
+    '<div class="chips wrapc" id="wrChips">' + OB_REPLIES.map(function (x) { return '<button class="chip" type="button" data-v="' + esc(x) + '">' + esc(x) + '</button>'; }).join('') + '</div>' +
+    '<textarea id="wrText" rows="2" placeholder="Their words (optional)" style="margin-top:8px"></textarea><div class="err" id="wrErr"></div>' +
+    '<div class="btns" style="margin-top:10px"><button class="btn" id="wrCancel">Cancel</button><button class="btn pri" id="wrSave">Save</button></div>';
+  openPanel();
+  var pick = '';
+  el('wrChips').onclick = function (ev) { var c = ev.target.closest('[data-v]'); if (!c) return; pick = c.classList.contains('on') ? '' : c.getAttribute('data-v'); el('wrChips').querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x === c && !!pick); }); };
+  el('wrCancel').onclick = closePanel;
+  el('wrSave').onclick = function () {
+    var t = el('wrText').value.trim();
+    if (!pick && !t) { el('wrErr').textContent = 'Pick or write what they said'; return; }
+    closePanel(); toast('Saving reply…');
+    api('appCourierReply', [TOKEN, id, pick, t], function () { toast('✅ Reply noted'); loadNdr(true); });
+  };
+}, true);
 // Full courier escalation cards (sheet link, WhatsApp to the group) in a sheet; one courier or all.
 function openEscalations(only) {
   if (!N.data) { toast('Loading NDR…'); return; }
   el('panel').innerHTML = '<h3>Courier escalations</h3><p>Cases sent to the couriers\' issue sheets</p>' + courierCardsHtml(only) +
     '<div class="btns" style="margin-top:10px"><button class="btn" id="escClose">Close</button></div>';
-  openPanel();
+  openPanel(true);
   el('escClose').onclick = closePanel;
 }
 function courierCardsHtml(only) {
@@ -1726,7 +2457,9 @@ function openNdrForm(cn, afterCall) {
     // not reached
     '<div id="fNo" hidden><div class="fld"><label>What happened? · call ' + ((c.calls || 0) + 1) + (c.calls + 1 >= 3 ? '' : ' of 3') + '</label>' + chips('fNoWhy', NDR_NOT_REACHED) + '</div>' +
     (c.wa ? '<a class="btn wa" target="_blank" href="' + waLink(c.wa, c.waText) + '" style="margin-bottom:10px"><i class="ti ti-brand-whatsapp"></i>Send WhatsApp to ' + esc(first) + '</a>' : '') +
-    ((c.calls || 0) + 1 >= 3 ? '<div class="tk" style="margin:0 0 10px">3 calls without an answer. If ' + esc(first) + ' does not reply on WhatsApp either, let the parcel return.</div>' : '') + '</div>' +
+    ((c.calls || 0) + 1 >= 3 ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-arrow-back-up"></i> ' + ((c.calls || 0) + 1) + ' calls without an answer. Ask ' + esc(c.courier) + ' to return the parcel?</div>' : '') +
+    // return request: offered from the first call, suggested after 3 (the decision stays with us)
+    '<button class="btn' + ((c.calls || 0) + 1 >= 3 ? ' pri' : '') + '" id="fRet" type="button" style="width:100%;padding:11px;margin-bottom:10px"><i class="ti ti-arrow-back-up"></i>Ask ' + esc(c.courier) + ' to return it</button></div>' +
     // reached
     '<div id="fYes" hidden><div class="fld"><label>What does ' + esc(first) + ' want?</label><div class="ogrid" id="fWant">' +
     NDR_FLOW.map(function (f) { return '<button type="button" class="og" data-k="' + f.k + '"><i class="ti ti-' + f.icon + '"></i>' + esc(f.label) + '</button>'; }).join('') + '</div></div>' +
@@ -1742,7 +2475,7 @@ function openNdrForm(cn, afterCall) {
     '<div class="err" id="fErr"></div>' +
     '<button class="btn pri" id="fGo" style="width:100%;padding:12px;margin-top:6px" hidden></button>' +
     '<div class="btns" style="margin-top:8px"><button class="btn" id="fCancel">Cancel</button><button class="btn" id="fSaveOnly" hidden>Save only</button></div>';
-  openPanel();
+  openPanel(true);
 
   var st = { reach: '', why: '', want: null, day: '', time: '', reason: '' };
   var pickChip = function (box, key) {
@@ -1788,7 +2521,7 @@ function openNdrForm(cn, afterCall) {
       m = 'Customer gave a new ' + (a && p ? 'address and phone' : p ? 'phone' : 'address') + ': ' + [a, p].filter(Boolean).join(', ') + '.' + (when ? ' Deliver ' + when + '.' : '');
     }
     if (w.k === 'cash') m = 'Customer will have the cash' + (when ? ' ' + when : '') + '.';
-    if (w.k === 'refuse') m = 'Customer does not want the parcel' + (st.reason ? ': ' + st.reason.toLowerCase() : '') + '.';
+    if (w.k === 'refuse') m = 'Customer does not want the parcel' + (st.reason ? ': ' + st.reason.toLowerCase() : '') + '. Please return the parcel to us.';
     if (w.k === 'other') m = note ? note.replace(/[.\s]*$/, '.') : '';
     else if (note) m += ' ' + note.replace(/[.\s]*$/, '.');
     if (m && !w.noSend) m += (when && w.k === 'other' ? ' Please come ' + when + '.' : '') + ' Please reattempt again.';
@@ -1803,13 +2536,15 @@ function openNdrForm(cn, afterCall) {
     var msg = message(), send = !!(w && !w.noSend);
     el('fPrev').hidden = !(send && msg); el('fPrevT').textContent = msg;
     el('fGo').hidden = !(no || w);
-    el('fGo').innerHTML = send ? '<i class="ti ti-send"></i>Send to ' + esc(c.courier) : w && w.noSend ? '<i class="ti ti-arrow-back-up"></i>Save · let it return' : '<i class="ti ti-device-floppy"></i>Save';
-    el('fSaveOnly').hidden = !send;
+    el('fGo').innerHTML = send ? '<i class="ti ti-inbox"></i>Add to ' + esc(c.courier) + ' list' : w && w.noSend ? '<i class="ti ti-arrow-back-up"></i>Ask ' + esc(c.courier) + ' to return it' : '<i class="ti ti-device-floppy"></i>Save · call again later';
+    el('fSaveOnly').hidden = !(send || (w && w.noSend));
+    el('fPrev').hidden = !((send || (w && w.noSend)) && msg);
   };
   draw();
   el('fCancel').onclick = closePanel;
-  var save = function (send) {
+  var save = function (send, ret) {
     var w = st.want, msg = message();
+    if (ret && st.reach === 'no') msg = (c.calls || 0) + 1 + ' calls, no answer' + (st.why && !/no answer/i.test(st.why) ? ' (' + st.why.toLowerCase() + ')' : '') + '. Please return the parcel to us.';
     if (!st.reach) { el('fErr').textContent = 'Did you reach the customer?'; return; }
     if (st.reach === 'no' && !st.why) { el('fErr').textContent = 'Pick what happened'; return; }
     if (st.reach === 'yes' && !w) { el('fErr').textContent = 'Pick what the customer wants'; return; }
@@ -1820,21 +2555,29 @@ function openNdrForm(cn, afterCall) {
     // Optimistic: close and update the card now, save in the background.
     var before = JSON.stringify(c);
     c.outcome = outcome; c.says = msg; c.calls = (c.calls || 0) + 1; c.lastCall = 'just now';
-    if (send) { c.next = 'Escalate to courier'; if (!c.sent || c.sent === 'Not sent') c.sent = 'Sent'; }
+    if (send) { c.next = 'Escalate to courier'; if (!c.sent || c.sent === 'Not sent') c.sent = 'Queued'; }
+    if (ret) { c.next = 'Let it return (RTO)'; if (!c.sent || c.sent === 'Not sent') c.sent = 'Queued'; }
     closePanel(); renderNdr(); updateBadge();
-    toast(send ? '📨 Sending to ' + c.courier + '…' : 'Saving…');
+    toast(send || ret ? '📥 Adding to ' + c.courier + ' list…' : 'Saving…');
     api('saveAppNdrOutcome', [{ token: TOKEN, cn: c.cn, outcome: outcome, next: '', updated: updated, reattempt: st.day || el('fDate').value,
-      sent: c.sent || 'Not sent', notes: el('fNotes').value, says: msg, send: send, call: true }], function (r) {
+      sent: c.sent || 'Not sent', notes: el('fNotes').value, says: msg, send: send, ret: !!ret, call: true }], function (r) {
       c.next = r.next; snap('ndr', N.data);
-      toast(send ? '✅ Sent to ' + c.courier + ' (≤5 min)' : '✅ Saved');
+      toast(send || ret ? '✅ In ' + c.courier + ' list · send it from the top of NDR' : '✅ Saved');
       loadNdr(true);
     }, function (e) {
       Object.assign(c, JSON.parse(before)); renderNdr(); updateBadge();
       toast('❌ Not saved: ' + ((e && e.message) || 'try again'));
     });
   };
-  el('fGo').onclick = function () { save(!!(st.reach === 'yes' && st.want && !st.want.noSend)); };
+  el('fGo').onclick = function () {
+    if (st.reach === 'yes' && st.want && st.want.noSend) return save(false, true); // doesn't want it → return request
+    save(!!(st.reach === 'yes' && st.want && !st.want.noSend));
+  };
   el('fSaveOnly').onclick = function () { save(false); };
+  el('fRet').onclick = function () {
+    if (!st.why) { el('fErr').textContent = 'Pick what happened on the call'; return; }
+    save(false, true);
+  };
 }
 
 // ---------- Cash ----------
@@ -1849,6 +2592,7 @@ function loadCash(fresh) {
     C.mem[key] = d; snap(key, d);
     if (cashKey() !== key) return;
     C.data = d; if (curTab === 'cash') renderCash();
+    openPayIfReady(); // opened from a payment notification
   });
 }
 var CASH_F = [
@@ -1883,8 +2627,8 @@ function renderCash() {
     fbar('bf', bfc[0] === 'all' ? 'All payments' : bfc[1], shown.length) +
     (shown.length ? shown.slice(0, C.blim || 5).map(function (x) {
       var b = x.b, k = rank(b);
-      var st = k === 0 ? ['Not transferred', 'var(--red)'] : k === 1 ? ['Check in bank', 'var(--amber)'] : k === 3 ? ['Matched', 'var(--green)'] : [b.matched || 'Gap', 'var(--red)'];
-      return '<div class="prow in" style="--c:' + st[1] + '"><span class="prow-d"></span><div class="prow-m">' +
+      var st = k === 0 ? ['Not transferred', 'var(--red)'] : k === 1 ? ['Verify in bank', 'var(--amber)'] : k === 3 ? ['Matched', 'var(--green)'] : [b.matched || 'Gap', 'var(--red)'];
+      return '<div class="prow in" data-bt="' + x.i + '" style="--c:' + st[1] + '"><span class="prow-d"></span><div class="prow-m">' +
         '<div class="prow-1"><b>' + esc(b.courier) + ' · ' + esc(b.ref) + '</b><span class="num">' + rs(b.net) + '</span></div>' +
         '<div class="prow-2"><span>' + [esc(b.date), b.parcels + ' parcels', b.bank != null ? 'bank ' + rs(b.bank) : ''].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + st[1] + '">' + esc(st[0]) + '</span></div></div>' +
         (b.transferred ? '<button class="btn prow-btn" data-bank="' + x.i + '">' + (b.bank == null ? '<i class="ti ti-building-bank"></i>Record' : 'Edit') + '</button>' : '') + '</div>';
@@ -1895,6 +2639,19 @@ function renderCash() {
   renderCashParcels();
   if (C.scrollTo) { scrollToCard(C.scrollTo); C.scrollTo = null; }
 }
+// Courier charges and tax, each with what they are made of (tap = the period's receipt)
+function cashCostRows(s, row) {
+  var b = s.bd, ch = b[0] + b[1] + b[2] + b[3] + b[4], tax = b[5] + b[6];
+  // just the name and the amount; the parts open on tap
+  return row('Courier fees ›', '', '− ' + rs(ch), 'down', 'data-cfb="1"') +
+    row('Taxes (WHT + SST) ›', '', '− ' + rs(tax), 'down', 'data-cfb="1"') +
+    (s.returns && s.returns.n ? row('Returns ›', s.returns.n + ' parcels · COD not collected', rs(s.returns.value), 'muted', 'data-pf="ret"') : '');
+}
+function openCashTotals() {
+  var s = C.data.stats;
+  el('panel').innerHTML = '<h3>Courier fees &amp; taxes</h3><p>' + esc(C.data.periodLabel || '') + (s.delivered || 0) + ' delivered · ' + (s.returned || 0) + ' returned</p>' + receiptLines(s.cod || 0, s.bd, s.net || 0, false);
+  openPanel();
+}
 // The money's path for the period: what the couriers collected, what they kept, what reached us, what is still owed
 function cashFlow(s, bankOk, label) {
   var ded = Math.max(0, (s.cod || 0) - (s.net || 0));
@@ -1902,17 +2659,18 @@ function cashFlow(s, bankOk, label) {
   var row = function (lbl, sub, val, cls, attr) {
     return '<div class="cf-r' + (attr ? ' tap' : '') + '"' + (attr ? ' ' + attr : '') + '><div><span>' + lbl + '</span>' + (sub ? '<small>' + sub + '</small>' : '') + '</div><b class="num ' + (cls || '') + '">' + val + '</b></div>';
   };
-  return '<div class="card fade cflow"><div class="h"><b>Where the money is</b><span>' + esc(label) + '</span></div>' +
-    row('Couriers collected', (s.delivered || 0) + ' delivered', rs(s.cod)) +
-    (s.charges != null && s.tax != null && Math.abs(s.charges + s.tax - ded) < 5
-      ? row('Courier charges', s.returned ? 'incl. ' + s.returned + ' returns' : '', '− ' + rs(s.charges), 'down') + row('Tax (2% WHT + 2% SST)', '', '− ' + rs(s.tax), 'down')
-      : row('Courier charges &amp; tax', s.returned ? 'incl. ' + s.returned + ' returns' : '', '− ' + rs(ded), 'down')) +
-    (s.over >= 1 ? row('Overcharged vs rate card ›', 'courier charged above our rates', rs(s.over), 'down', 'data-pf="over"') : '') +
-    row('<b>Net for us</b>', '', '<b>' + rs(s.net) + '</b>', '', '') +
-    '<div class="hero-bar" style="margin:4px 0 2px"><i style="width:0" data-w="' + got + '"></i></div><small class="cf-pct">' + got + '% received</small>' +
-    row('Received ›', (s.paidDelivered || 0) + ' parcels paid' + (bankOk ? ' · ' + rs(bankOk) + ' checked in bank' : ''), rs(s.received), 'up', 'data-pf="paid"') +
-    row('Pending with couriers ›', (s.pendingDelivered || 0) + ' unpaid' + (s.overdue ? ' · <i class="late">' + s.overdue + ' overdue</i>' : ''), rs(s.pending), s.overdue ? 'down' : '', 'data-pf="due"') +
-    (s.moving ? '<div class="hero-later"><i class="ti ti-clock"></i>Still in transit: ~' + rs(s.movingCod) + ' COD · ' + s.moving + ' parcels</div>' : '') + '</div>';
+  return '<div class="card fade cflow"><div class="h"><b>Settlement summary</b><span>' + esc(label) + '</span></div>' +
+    row('COD collected', (s.delivered || 0) + ' delivered', rs(s.cod)) +
+    (s.bd ? cashCostRows(s, row)
+      : s.charges != null && s.tax != null && Math.abs(s.charges + s.tax - ded) < 5
+      ? row('Courier fees', s.returned ? 'incl. ' + s.returned + ' returns' : '', '− ' + rs(s.charges), 'down') + row('Taxes (WHT + SST)', '', '− ' + rs(s.tax), 'down')
+      : row('Courier fees &amp; taxes', s.returned ? 'incl. ' + s.returned + ' returns' : '', '− ' + rs(ded), 'down')) +
+    (s.over >= 1 ? row('Overcharges ›', 'above the agreed rate card', rs(s.over), 'down', 'data-pf="over"') : '') +
+    row('<b>Net payout</b>', '', '<b>' + rs(s.net) + '</b>', '', '') +
+    '<div class="hero-bar" style="margin:4px 0 2px"><i style="width:0" data-w="' + got + '"></i></div><small class="cf-pct">' + got + '% paid out</small>' +
+    row('Paid out ›', (s.paidDelivered || 0) + ' parcels paid' + (bankOk ? ' · ' + rs(bankOk) + ' verified in bank' : ''), rs(s.received), 'up', 'data-pf="paid"') +
+    row('Outstanding ›', (s.pendingDelivered || 0) + ' unpaid' + (s.overdue ? ' · <i class="late">' + s.overdue + ' overdue</i>' : ''), rs(s.pending), s.overdue ? 'down' : '', 'data-pf="due"') +
+    (s.moving ? '<div class="hero-later"><i class="ti ti-clock"></i>In transit: ~' + rs(s.movingCod) + ' COD · ' + s.moving + ' parcels</div>' : '') + '</div>';
 }
 // Each courier: what it owes us now, how many parcels, how old the oldest is (tap = those parcels)
 function owesCard(d) {
@@ -1947,15 +2705,107 @@ function renderCashParcels() {
   renderCashList(list, f);
   el('cq').oninput = function () { C.q = el('cq').value; C.plim = PAGE; var pos = el('cq').selectionStart; renderCashParcels(); el('cq').focus(); el('cq').setSelectionRange(pos, pos); };
 }
+// "Charges 186 · W 120 · Fuel 30 · FAF 10 · GST 26 · Tax 68" (one line under a Cash parcel)
+function chargeLine(p) {
+  var b = p.b; if (!b) return '';
+  var r0 = function (x) { return Math.round(x || 0); };
+  var ch = b[0] + b[1] + b[2] + b[3] + b[4], tax = b[5] + b[6];
+  if (!ch && !tax) return '';
+  var parts = [b[0] ? 'W ' + r0(b[0]) : '', b[1] ? 'Fuel ' + r0(b[1]) : '', b[2] ? 'FAF ' + r0(b[2]) : '', b[3] ? 'Cash ' + r0(b[3]) : '', b[4] ? 'GST ' + r0(b[4]) : '', tax ? 'Tax ' + r0(tax) : ''];
+  return '<div class="prow-3">' + parts.filter(Boolean).join(' · ') + (p.est ? ' · est.' : '') + '</div>';
+}
+// Under 'Courier charge' in the parcel sheet: what it is made of
+function chargeParts(b) {
+  if (!b) return '';
+  var r0 = function (x) { return Math.round(x || 0); };
+  var parts = [b[0] ? 'Weight ' + r0(b[0]) : '', b[1] ? 'Fuel ' + r0(b[1]) : '', b[2] ? 'FAF ' + r0(b[2]) : '', b[3] ? 'Cash ' + r0(b[3]) : '', b[4] ? 'GST ' + r0(b[4]) : ''].filter(Boolean);
+  return parts.length ? '<small class="pd-sub">' + parts.join(' · ') + '</small>' : '';
+}
+// Receipt: COD → each charge → taxes → what reaches us (lines add up to the net)
+var PCT = function (x) { return Math.round((x || 0) * 1000) / 10 + '%'; };
+function receiptLines(cod, b, net, est) {
+  var tp = (C.data && C.data.taxPct) || [0.02, 0.02, 0.16];
+  var L = [['COD collected', cod, 'plus']];
+  [['Weight charges', b[0]], ['Fuel surcharge', b[1]], ['FAF (extra fuel)', b[2]], ['Cash handling', b[3]], ['GST ' + PCT(tp[2]) + ' on charges', b[4]],
+    ['WHT ' + PCT(tp[0]) + ' (income tax)', b[5]], ['SST ' + PCT(tp[1]) + ' (sales tax)', b[6]]].forEach(function (x) { if (x[1]) L.push([x[0], x[1], 'minus']); });
+  var sum = cod - b.reduce(function (a, x) { return a + (x || 0); }, 0);
+  if (Math.abs(sum - net) >= 1) L.push([sum > net ? 'Other deductions' : 'Other additions', Math.abs(sum - net), sum > net ? 'minus' : 'plus']);
+  return '<div class="rcpt">' + L.map(function (x) {
+    return '<div class="rc-l' + (x[2] === 'plus' && x[0] === 'COD collected' ? ' rc-cod' : '') + '"><span>' + (x[2] === 'minus' ? '− ' : '') + esc(x[0]) + '</span><b class="num">' + rs(x[1]) + '</b></div>';
+  }).join('') + '<div class="rc-l rc-net"><span>' + (net < 0 ? 'Payable to courier' : 'Net payout') + '</span><b class="num">' + rs(Math.abs(net)) + '</b></div></div>' +
+    (est ? '<small class="mnote">Estimated until the courier\'s statement (their API does not send every charge).</small>' : '');
+}
+function openCashReceipt(cn) {
+  var p = (C.data.parcels || []).filter(function (x) { return x.cn === cn; })[0]; if (!p) return;
+  el('panel').innerHTML = '<h3>' + esc(p.order) + (p.returned ? ' · returned' : '') + '</h3><p>' + esc(p.courier) + ' · ' + esc(p.cn) + ' · ' + esc(p.note || '') + '</p>' +
+    receiptLines(p.returned ? 0 : (p.cod || 0), p.b || [0, 0, 0, 0, 0, 0, 0], p.net, p.est) +
+    (p.exp ? '<div class="rc-card">Rate card charges ' + rs(p.exp) + (p.over ? ' · <b class="down">' + rs(p.over) + ' extra</b>' : ' · matches') + '</div>' : '') +
+    '<div class="btns" style="margin-top:12px"><button class="btn" id="rcClose">Close</button>' + (can('parcels.view') ? '<button class="btn" id="rcOpen"><i class="ti ti-package"></i>Parcel</button>' : '') + '</div>';
+  openPanel();
+  el('rcClose').onclick = closePanel;
+  if (el('rcOpen')) el('rcOpen').onclick = function () { openParcel(p.cn); };
+}
+// A courier payment: its parcels added up, what the courier sent, what reached the bank
+function openBatchReceipt(i) {
+  var x = C.data.batches[i]; if (!x) return;
+  var ps = (C.data.parcels || []).filter(function (p) { return (p.refs || []).indexOf(x.ref) !== -1; });
+  var b = [0, 0, 0, 0, 0, 0, 0], cod = 0, net = 0;
+  ps.forEach(function (p) { (p.b || []).forEach(function (v, k) { b[k] += v || 0; }); cod += p.returned ? 0 : (p.cod || 0); net += p.net || 0; });
+  var gap = x.bank != null ? x.bank - x.net : null;
+  el('panel').innerHTML = '<h3>' + esc(x.courier) + ' payment · ' + esc(x.ref) + '</h3><p>' + esc(x.date) + ' · ' + x.parcels + ' parcels</p>' +
+    (ps.length ? receiptLines(cod, b, net, ps.some(function (p) { return p.est; })) : '<div class="card empty">Parcel details are in the selected period only</div>') +
+    '<div class="rcpt" style="margin-top:10px"><div class="rc-l"><span>Courier transfer</span><b class="num">' + rs(x.net) + '</b></div>' +
+    '<div class="rc-l"><span>Received in bank</span><b class="num">' + (x.bank == null ? 'not recorded' : rs(x.bank)) + '</b></div>' +
+    (gap != null && Math.abs(gap) >= 1 ? '<div class="rc-l rc-net"><span>' + (gap < 0 ? 'Short' : 'Extra') + '</span><b class="num ' + (gap < 0 ? 'down' : 'up') + '">' + rs(Math.abs(gap)) + '</b></div>' : '') + '</div>' +
+    (ps.length ? '<div class="pday"><span>PARCELS</span><span class="num">' + ps.length + '</span></div><div class="plist-box">' + ps.map(function (p) {
+      return '<div class="prow" data-brc="' + esc(p.cn) + '" style="--c:' + (p.returned ? 'var(--red)' : 'var(--green)') + '"><span class="prow-d"></span><div class="prow-m"><div class="prow-1"><b>' + esc(p.order) + (p.returned ? ' · returned' : '') + '</b><span class="num">' + rs(p.net) + '</span></div>' + chargeLine(p) + '</div></div>';
+    }).join('') + '</div>' : '') +
+    '<div class="btns" style="margin-top:12px"><button class="btn" id="brClose">Close</button>' + (x.transferred && can('cash.edit') ? '<button class="btn pri" id="brRec"><i class="ti ti-building-bank"></i>' + (x.bank == null ? 'Record' : 'Edit') + '</button>' : '') + '</div>';
+  openPanel();
+  el('brClose').onclick = closePanel;
+  if (el('brRec')) el('brRec').onclick = function () { openRecord(i, function () { openBatchReceipt(i); }); };
+  el('panel').querySelectorAll('[data-brc]').forEach(function (r) {
+    r.onclick = function () { openCashReceipt(r.getAttribute('data-brc')); SHEET_BACK = function () { openBatchReceipt(i); }; };
+  });
+}
+// Record what reached the bank: Enter / Done saves; the field is a plain amount (no password-manager prompt)
+function openRecord(i, back) {
+  var x = C.data.batches[i];
+  el('panel').innerHTML = '<h3>' + esc(x.courier) + ' · ' + esc(x.ref) + '</h3><p>' + esc(x.date) + ' · expected ' + rs(x.net) + '</p>' +
+    '<label class="mini-l" for="bAmt">Received in bank</label><div class="inrow"><span class="pre">Rs</span><input id="bAmt" name="bank-amount" type="text" inputmode="decimal" enterkeyhint="done" autocomplete="off" data-lpignore="true" data-1p-ignore value="' + (x.bank == null ? '' : x.bank) + '" placeholder="' + Math.round(x.net) + '">' +
+    '<button class="btn pri" id="bSave">Save</button></div><div class="err" id="bErr"></div>';
+  openPanel();
+  if (back) SHEET_BACK = back;
+  var save = function () {
+    var v = el('bAmt').value.replace(/[^0-9.]/g, '');
+    if (v === '') { el('bErr').textContent = 'Enter the amount'; return; }
+    el('bSave').disabled = true;
+    api('saveAppBankReceived', [{ token: TOKEN, courier: x.courier, ref: x.ref, amount: v }], function (r) {
+      x.bank = Number(v); x.matched = r.matched; C.mem = {};
+      closePanel(); toast(r.matched); renderCash();
+    }, function (er) { el('bSave').disabled = false; el('bErr').textContent = (er && er.message) || 'Not saved'; });
+  };
+  el('bSave').onclick = save;
+  el('bAmt').onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); save(); } };
+  setTimeout(function () { el('bAmt').focus(); }, 80);
+}
+var PAY_OPEN = ''; // a payment to open once Cash has its data (from a "💰 payment" notification)
+function openPayIfReady() {
+  if (!PAY_OPEN || !C.data) return;
+  var i = C.data.batches.map(function (b) { return b.ref; }).indexOf(PAY_OPEN);
+  PAY_OPEN = '';
+  if (i >= 0) openBatchReceipt(i); else toast('Payment not in this period');
+}
 function renderCashList(list, f) {
   var lim = C.plim || PAGE;
   el('clist').innerHTML = list.length ? list.slice(0, lim).map(function (p) {
     var tone = p.cat === 'late' ? 'down' : p.cat === 'paid' ? 'up' : '';
     var c = p.cat === 'paid' ? 'var(--green)' : p.cat === 'late' ? 'var(--red)' : 'var(--amber)';
-    var stx = f[0] === 'over' ? 'charged ' + rs(p.charges) : p.cat === 'paid' ? 'Received' + (p.paidOn ? ' ' + p.paidOn : '') : p.cat === 'late' ? 'Overdue' : 'Pending';
-    return '<div class="prow in" data-p="' + esc(p.cn || p.order) + '" style="--c:' + c + '"><span class="prow-d"></span><div class="prow-m">' +
+    var stx = f[0] === 'over' ? 'charged ' + rs(p.charges) : p.cat === 'paid' ? 'Paid' + (p.paidOn ? ' ' + p.paidOn : '') : p.cat === 'late' ? 'Overdue' : 'Pending';
+    return '<div class="prow in" data-cr="' + esc(p.cn) + '" style="--c:' + c + '"><span class="prow-d"></span><div class="prow-m">' +
       '<div class="prow-1"><b>' + esc(p.order) + (p.returned ? ' · returned' : '') + '</b><span class="num ' + (f[0] === 'over' ? 'down' : tone) + '">' + (f[0] === 'over' ? '+' + rs(p.over) : rs(p.net)) + '</span></div>' +
-      '<div class="prow-2"><span>' + [esc(p.courier), esc(p.note)].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + c + '">' + esc(stx) + '</span></div></div></div>';
+      '<div class="prow-2"><span>' + [esc(p.courier), esc(p.note)].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + c + '">' + esc(stx) + '</span></div>' +
+      chargeLine(p) + '</div></div>';
   }).join('') + moreBtn('cmore', Math.min(lim, list.length), list.length) +
     (f[0] === 'over' && C.data.diffLink ? '<a class="btn" target="_blank" href="' + esc(C.data.diffLink) + '" style="margin-top:8px"><i class="ti ti-table"></i>Full overcharge report</a>' : '')
     : '<div class="empty"><i class="ti ti-circle-check"></i>' + (f[0] === 'due' ? 'Fully settled' : 'Nothing here') + '</div>';
@@ -1986,20 +2836,11 @@ el('cview').onclick = function (e) {
   if (ow) { C.q = ow.getAttribute('data-owe'); C.pf = 'due'; C.plim = PAGE; renderCashParcels(); el('cparcels').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
   if (e.target.closest('#bmore')) { C.blim = 1000; renderCash(); return; }
   var bf = e.target.closest('[data-bf]'); if (bf) { C.bf = bf.getAttribute('data-bf'); renderCash(); return; }
-  var b = e.target.closest('[data-bank]'); if (!b) return;
-  var x = C.data.batches[Number(b.getAttribute('data-bank'))];
-  el('panel').innerHTML = '<h3>' + esc(x.courier) + ' · ' + esc(x.ref) + '</h3><p>' + esc(x.date) + ' · expected ' + rs(x.net) + '</p>' +
-    '<div class="fld"><label>Amount received in bank (Rs)</label><input id="bAmt" type="number" inputmode="decimal" value="' + (x.bank == null ? '' : x.bank) + '" placeholder="' + Math.round(x.net) + '"></div><div class="err" id="bErr"></div>' +
-    '<div class="btns"><button class="btn" id="bCancel">Cancel</button><button class="btn pri" id="bSave">Save</button></div>';
-  openPanel();
-  el('bCancel').onclick = closePanel;
-  el('bSave').onclick = function () {
-    if (el('bAmt').value === '') { el('bErr').textContent = 'Enter the amount'; return; }
-    el('bSave').disabled = true;
-    api('saveAppBankReceived', [{ token: TOKEN, courier: x.courier, ref: x.ref, amount: el('bAmt').value }], function (r) {
-      closePanel(); toast(r.matched); x.bank = Number(el('bAmt').value); x.matched = r.matched; renderCash(); C.mem = {};
-    }, function (er) { el('bSave').disabled = false; el('bErr').textContent = (er && er.message) || 'Not saved'; });
-  };
+  var b = e.target.closest('[data-bank]');
+  if (b) return openRecord(Number(b.getAttribute('data-bank')));
+  var bt = e.target.closest('[data-bt]'); if (bt) return openBatchReceipt(Number(bt.getAttribute('data-bt')));
+  var cr = e.target.closest('[data-cr]'); if (cr) return openCashReceipt(cr.getAttribute('data-cr'));
+  if (e.target.closest('[data-cfb]')) return openCashTotals();
 };
 
 // ---------- Returns ----------
@@ -2040,7 +2881,7 @@ function renderReturns() {
     '<div class="pday"><span>RECENTLY SCANNED</span><span class="num">' + d.recent.length + '</span></div>' +
     (d.recent.length ? '<div class="plist-box">' + d.recent.slice(0, R.rlim || 10).map(function (r) {
       var c = r.good ? 'var(--green)' : 'var(--red)';
-      return '<div class="prow" data-p="' + esc(r.order) + '" style="--c:' + c + '"><span class="prow-d"></span><div class="prow-m">' +
+      return '<div class="prow" data-rh="' + esc(r.cn || r.order) + '" style="--c:' + c + '"><span class="prow-d"></span><div class="prow-m">' +
         '<div class="prow-1"><b>' + esc(r.name || r.order) + '</b></div>' +
         '<div class="prow-2"><span>' + [esc(r.order), esc(r.when), esc(r.by)].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + c + '">' + esc(r.condition.split(' –')[0]) + '</span></div></div></div>';
     }).join('') + '</div>' + (d.recent.length > (R.rlim || 10) ? '<button class="btn more" id="rmore">See more scans</button>' : '') : '<div class="card empty">No scans yet</div>');
@@ -2156,7 +2997,7 @@ el('scanPhoto').onclick = function () { stopScan(); el('rcam').click(); };
 // ---------- header ----------
 el('btnRefresh').onclick = function () {
   if (curTab === 'parcels') loadParcels(true);
-  else if (curTab === 'ndr') { loadNdr(true); toast('Refreshing NDR…'); }
+  else if (curTab === 'ndr') loadNdr(true);
   else if (curTab === 'cash') { C.mem = {}; loadCash(true); }
   else if (curTab === 'returns') loadReturns(true);
   else { H.mem = {}; loadHome(true); }
@@ -2171,6 +3012,7 @@ if (root.getAttribute('data-mode') === 'dark') el('btnMode').innerHTML = '<i cla
 el('btnOut').onclick = function () {
   closeDrawer();
   if (!confirm('Log out ' + (USER || '') + '?')) return;
+  var bs = bioClear(); if (bs) google.script.run.withFailureHandler(function () {}).appBioOff(bs); // Log out ends fingerprint login here
   var bye = function () { TOKEN = ''; store('eh_token', ''); store('eh_perms', ''); store('eh_role', ''); location.reload(); };
   var pt = store('eh_push');
   if (!pt) return bye();
@@ -2178,8 +3020,68 @@ el('btnOut').onclick = function () {
   google.script.run.withSuccessHandler(bye).withFailureHandler(bye).appRemovePush(TOKEN, pt);
 };
 
+// ---------- Morning brief (the 10 am notification opens it): each number opens its parcels ----------
+var BRIEF = { day: '', data: null };
+function openBrief(day) {
+  if (!can('home.view')) return;
+  SHEET_BACK = null; // the brief itself: closing it goes Home
+  if (!BRIEF.data || BRIEF.day !== (day || '')) {
+    el('panel').innerHTML = '<h3>Morning brief</h3><div class="sk" style="height:220px"></div>'; openPanel(true);
+    return api('getAppBrief', [TOKEN, day || ''], function (d) { BRIEF = { day: day || '', data: d }; openBrief(day); },
+      function (e) { el('panel').innerHTML = '<h3>Morning brief</h3><div class="card empty">Could not load · ' + esc((e && e.message) || '') + '</div>'; });
+  }
+  var d = BRIEF.data;
+  var line = function (k, icon, color, label, n, sub) {
+    return '<div class="bf-l" data-bf="' + k + '"><span class="bf-i" style="color:' + color + '"><i class="ti ti-' + icon + '"></i></span><div><b>' + label + '</b>' +
+      (sub ? '<small>' + sub + '</small>' : '') + '</div><b class="num">' + n + '</b><i class="ti ti-chevron-right" style="color:var(--faint)"></i></div>';
+  };
+  var sum = function (l) { return rs(l.reduce(function (a, x) { return a + (x.cod || 0); }, 0)); };
+  el('panel').innerHTML = '<h3>Good morning ☀️</h3><p>' + esc(d.label) + ' · daily summary</p>' +
+    '<div class="plist-box">' +
+    line('shipped', 'truck-delivery', 'var(--brand)', 'Shipped', d.shipped.length, d.shipped.length ? sum(d.shipped) + ' COD' : '') +
+    line('delivered', 'circle-check', 'var(--green)', 'Delivered', d.delivered.length, d.delivered.length ? sum(d.delivered) : '') +
+    line('returned', 'arrow-back-up', 'var(--red)', 'Returned', d.returned.length, '') + '</div>' +
+    '<div class="pday"><span>NOW</span></div><div class="plist-box">' +
+    line('ndr', 'headset', 'var(--amber)', 'NDR cases open', d.ndr, 'Open the NDR tab') +
+    line('waiting', 'clock', 'var(--amber)', 'Orders to confirm', d.waiting.length, 'Last 14 days, not booked yet') +
+    line('cash', 'wallet', 'var(--brand)', 'Outstanding with couriers', rs(d.pending), d.overdue ? d.overdue + ' parcels overdue' : 'Cash tab') + '</div>' +
+    '<div class="btns" style="margin-top:10px"><button class="btn" id="bfClose">Close</button></div>';
+  openPanel(true);
+  el('bfClose').onclick = closePanel;
+  el('panel').querySelectorAll('[data-bf]').forEach(function (x) {
+    x.onclick = function () {
+      var k = x.getAttribute('data-bf');
+      if (k === 'ndr') { closePanel(); return showTab('ndr'); }
+      if (k === 'cash') { closePanel(); return can('cash.view') ? go('cash:due') : null; }
+      openBriefList(day, k);
+    };
+  });
+}
+function openBriefList(day, k) {
+  var d = BRIEF.data, list = d[k] || [];
+  var title = { shipped: 'Shipped', delivered: 'Delivered', returned: 'Returned', waiting: 'Orders to confirm' }[k];
+  el('panel').innerHTML = '<button class="btn mini" id="bfBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Morning brief</button>' +
+    '<h3>' + title + ' · ' + list.length + '</h3><p>' + esc(d.label) + (list.length ? ' · ' + rs(list.reduce(function (a, x) { return a + (x.cod || 0); }, 0)) : '') + '</p>' +
+    (list.length ? '<div class="plist-box">' + list.map(function (r) {
+      return '<div class="prow" data-bp="' + esc(r.ref) + '" style="--c:var(--brand)"><span class="prow-d"></span><div class="prow-m">' +
+        '<div class="prow-1"><b>' + esc(r.ref) + (r.name ? ' · ' + esc(r.name) : '') + '</b><span class="num">' + rs(r.cod) + '</span></div>' +
+        '<div class="prow-2"><span>' + [esc(r.courier), esc(r.cn), esc(r.city), esc(r.date || '')].filter(Boolean).join(' · ') + '</span></div></div></div>';
+    }).join('') + '</div>' : '<div class="card empty">None</div>') +
+    '<div class="btns" style="margin-top:10px"><button class="btn" id="bfClose2">Close</button></div>';
+  openPanel(true);
+  SHEET_BACK = function () { openBrief(day); }; // ✕ / tap outside on a list = back to the brief
+  el('bfBack').onclick = function () { openBrief(day); };
+  el('bfClose2').onclick = function () { openBrief(day); }; // Close a list = back to the brief; closing the brief = Home
+  el('panel').querySelectorAll('[data-bp]').forEach(function (x) {
+    x.onclick = function () {
+      if (!can('parcels.view')) return;
+      openParcel(x.getAttribute('data-bp')); // the page opens over this list; Back returns to it
+    };
+  });
+}
+
 // ---------- 🔔 notification list (everything W1 sent; the dot = new since you last opened it) ----------
-var ALERT_ICON = { ndr: ['headset', 'var(--red)'], back: ['arrow-back-up', 'var(--amber)'], late: ['clock-exclamation', 'var(--amber)'], nocn: ['barcode-off', 'var(--amber)'], brief: ['sun', 'var(--brand)'], test: ['bell', 'var(--muted)'] };
+var ALERT_ICON = { cash: ['cash-banknote', 'var(--green)'], sync: ['alert-circle', 'var(--text)'], ndr: ['headset', 'var(--red)'], back: ['arrow-back-up', 'var(--amber)'], late: ['clock-exclamation', 'var(--amber)'], nocn: ['barcode-off', 'var(--amber)'], brief: ['sun', 'var(--brand)'], test: ['bell', 'var(--muted)'] };
 var alertsData = null;
 function loadAlerts(open) {
   api('getAppAlerts', [TOKEN], function (list) {
@@ -2198,12 +3100,20 @@ function drawAlerts() {
         '<b>' + esc(a.title) + '</b><small>' + esc(a.body).replace(/\n/g, '<br>') + '</small><em>' + esc(a.when) + '</em></div></div>';
     }).join('') + '</div>' : '<div class="empty"><i class="ti ti-bell-off"></i>No notifications yet</div>') +
     '<div class="btns" style="margin-top:10px"><button class="btn" id="alClose">Close</button></div>';
-  if (!el('overlay').classList.contains('show')) openPanel();
+  openPanel(true);
   el('alClose').onclick = closePanel;
   el('panel').querySelectorAll('[data-al]').forEach(function (r) {
     r.onclick = function () {
       var a = alertsData[Number(r.getAttribute('data-al'))];
       if (a.p) { closePanel(); setTimeout(function () { openParcel(a.p); }, 250); return; }
+      if (a.kind === 'sync') { closePanel(); setTimeout(openSyncStatus, 250); return; }
+      var pr = (String(a.url).match(/pay=([^&]+)/) || [])[1];
+      if (pr) { PAY_OPEN = decodeURIComponent(pr); closePanel(); showTab('cash'); openPayIfReady(); return; }
+      if (a.kind === 'brief') {
+        // the brief sent on day D is about D-1 (older log rows have no ?brief= in their link)
+        var bd = (String(a.url).match(/brief=([\d-]{10})/) || [])[1] || (a.ms ? pkDay(new Date(a.ms - 86400000)) : '');
+        closePanel(); setTimeout(function () { openBrief(bd); }, 250); return;
+      }
       var tab = (String(a.url).match(/tab=(\w+)/) || [])[1];
       closePanel(); if (tab && TABS[tab]) showTab(tab);
     };
@@ -2212,7 +3122,7 @@ function drawAlerts() {
   el('bellDot').hidden = true;
 }
 el('btnBell').onclick = function () {
-  el('panel').innerHTML = '<h3>Notifications</h3><div class="sk" style="height:140px"></div>'; openPanel();
+  el('panel').innerHTML = '<h3>Notifications</h3><div class="sk" style="height:140px"></div>'; openPanel(true);
   loadAlerts(true);
 };
 
@@ -2258,10 +3168,12 @@ function drawPushBtn() {
   var b = el('btnPush'); b.hidden = !pushSupported();
   b.innerHTML = '<i class="ti ti-bell' + (pushIsOn() ? '-ringing' : '-off') + '"></i>Notifications · ' + (pushIsOn() ? 'On' : 'Off');
 }
-el('btnPush').onclick = function () { closeDrawer(); if (pushIsOn()) openPushPrefs(); else pushOn(false); };
+el('btnPush').onclick = function () { if (pushIsOn()) fromMenu(openPushPrefs)(); else { closeDrawer(); pushOn(false); } };
 // What this phone gets: each kind on / off (saved in W1 _APP_PUSH "Types"), or notifications off altogether
-var PUSH_KINDS = [['ndr', 'NDR cases', 'Failed delivery, refused, stuck with courier'], ['back', 'Returns back', 'A return reached our city · collect and scan'],
-  ['late', 'Late parcels', '8+ days since dispatch, not delivered'], ['nocn', 'Missing tracking', 'Booked but no tracking number'], ['brief', 'Morning brief', '10 am · yesterday and today in one message']];
+var PUSH_KINDS = [['ndr', 'NDR cases', 'Failed delivery, refused, stuck with courier'], ['back', 'Returns back', 'A return reached the local courier office · collect and scan'],
+  ['late', 'Late parcels', '8+ days since dispatch, not delivered'], ['nocn', 'Missing tracking', 'Booked but no tracking number'], ['brief', 'Morning brief', '10 am · yesterday and today in one message'],
+  ['sync', 'System alerts', 'A sync stopped or failed · and when it is back'],
+  ['cash', 'Courier payments', 'A courier sent money · check the bank and Record']];
 function openPushPrefs() {
   var kinds = PUSH_KINDS.filter(function (k) { return can(KIND_PERM[k[0]]); }); // only what this role gets
   var cur = store('eh_push_types'), on = cur == null || cur === '' ? kinds.map(function (k) { return k[0]; }) : cur === 'none' ? [] : cur.split(',');
@@ -2293,45 +3205,168 @@ function showLogin() {
   var known = !!USER && !!store('eh_login'); // remembered login (phone number) on this phone
   el('lgAv').innerHTML = known ? esc(initials(USER)) : '<svg class="oword" style="height:64px;width:157px" aria-label="ORDI"><use href="#ordiWord"/></svg>';
   el('lgAv').classList.toggle('known', known);
-  el('lgTitle').textContent = known ? 'Welcome back, ' + USER.split(' ')[0] : '';
+  el('lgTitle').textContent = known ? 'Welcome back, ' + USER.trim() : '';
   el('lgTitle').hidden = !known; // a new phone sees the ORDI wordmark instead of a title
-  el('lgSub').textContent = known ? 'Enter your PIN' : STORE + ' · Enter your phone number and PIN';
+  el('lgSub').textContent = known ? 'Enter your PIN' : STORE + ' · Enter your phone number';
   el('lgBrand').hidden = !known; el('lgBrandTx').textContent = '· ' + STORE;
+  el('lgStepNum').hidden = known; el('lgStepPin').hidden = !known;
   el('lgName').hidden = known;
   el('lgSwitch').hidden = !known;
-  el('lgSwitch').textContent = known ? 'Not ' + USER.split(' ')[0] + '? Switch user' : '';
+  el('lgSwitch').textContent = known ? 'Not ' + USER.trim() + '?' : '';
   lgPin = ''; drawDots(); el('lgErr').textContent = '';
+  var bio = known && store('eh_bio_id') && store('eh_bio_tok') && store('eh_bio_login') === store('eh_login');
+  el('lgBio').classList.toggle('off', !bio); // the keypad's left key: fingerprint when it is on for this user
+  el('lgDots').classList.remove('bad', 'ok');
+  if (bio && !BIO_ASKED) { BIO_ASKED = true; setTimeout(bioLogin, 350); }
 }
+// 6 digits for everyone; a phone that remembers an older longer PIN keeps its length until it is changed
+function pinLen() { var n = Number(store('eh_pinlen')); return n >= 7 && n <= 8 ? n : 6; }
 function drawDots() {
-  var n = Math.max(6, lgPin.length);
+  var n = Math.max(pinLen() || 6, lgPin.length);
   el('lgDots').innerHTML = Array.from({ length: n }, function (_, i) { return '<i' + (i < lgPin.length ? ' class="on"' : '') + '></i>'; }).join('');
 }
+// ---------- fingerprint / Face ID (WebAuthn on the phone; the server gets this phone's device secret) ----------
+var BIO_ASKED = false, BIO_OFFER = false;
+// ---------- app lock (optional, per phone, ☰ App lock: Off / 5 / 30 / 60 min; Off by default — the phone's own screen lock,
+// 14-day login and admin 'Log out from all phones' already cover a lost phone): back after that long away → fingerprint / PIN ----------
+var LOCKED = false, LOCK_OPTS = [[0, 'Off'], [5, 'After 5 minutes'], [30, 'After 30 minutes'], [60, 'After 1 hour']];
+function lockMin() { return Number(store('eh_lockmin') || 0); }
+function drawLockBtn() { var m = lockMin(); el('btnLock').innerHTML = '<i class="ti ti-lock' + (m ? '' : '-open') + '"></i>App lock · ' + (m ? (m < 60 ? m + ' min' : '1 hour') : 'Off'); }
+el('btnLock').onclick = fromMenu(function () {
+  var cur = lockMin();
+  showPick('App lock', 'Ask for fingerprint / PIN when the app was closed for…', '<div class="sheet-list">' + LOCK_OPTS.map(function (o) {
+    return '<div class="sl' + (o[0] === cur ? ' on' : '') + '" data-m="' + o[0] + '"><span>' + o[1] + '</span>' + (o[0] === cur ? '<i class="ti ti-check"></i>' : '') + '</div>';
+  }).join('') + '</div>', function (e) {
+    var b = e.target.closest('.sl'); if (!b) return;
+    store('eh_lockmin', b.getAttribute('data-m')); markActive(); drawLockBtn(); closePick();
+    toast('App lock · ' + b.querySelector('span').textContent);
+  });
+});
+drawLockBtn();
+function markActive() { if (TOKEN && !LOCKED) store('eh_active', String(Date.now())); }
+function lockIfAway() {
+  var last = Number(store('eh_active') || 0);
+  if (!TOKEN || LOCKED || !lockMin() || !last || Date.now() - last < lockMin() * 60000 || !store('eh_login')) return false;
+  LOCKED = true; BIO_ASKED = false;
+  showLogin();
+  el('lgSub').textContent = 'Locked · unlock to continue';
+  return true;
+}
+function unlocked() { LOCKED = false; markActive(); el('login').hidden = true; }
+document.addEventListener('visibilitychange', function () { if (document.hidden) markActive(); else lockIfAway(); });
+setInterval(markActive, 60000);
+function b64u(buf) { return btoa(String.fromCharCode.apply(null, new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+function unb64u(s) { s = s.replace(/-/g, '+').replace(/_/g, '/'); var b = atob(s), a = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; }
+function rnd(n) { var a = new Uint8Array(n); crypto.getRandomValues(a); return a; }
+function bioAvailable() {
+  if (!window.PublicKeyCredential || !PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) return Promise.resolve(false);
+  return PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().catch(function () { return false; });
+}
+function bioClear() { var s = store('eh_bio_tok'); store('eh_bio_id', ''); store('eh_bio_tok', ''); store('eh_bio_login', ''); return s; }
+function bioLogin() {
+  var id = store('eh_bio_id'), sec = store('eh_bio_tok'); if (!id || !sec || lgBusy) return;
+  navigator.credentials.get({ publicKey: { challenge: rnd(32), allowCredentials: [{ type: 'public-key', id: unb64u(id), transports: ['internal'] }], userVerification: 'required', timeout: 60000 } })
+    .then(function () {
+      lgBusy = true; el('lgDots').classList.add('busy');
+      google.script.run.withSuccessHandler(function (r) {
+        lgBusy = false; el('lgDots').classList.remove('busy');
+        TOKEN = r.token; USER = r.name; store('eh_token', TOKEN); store('eh_user', USER); store('eh_phone', r.phone || '');
+        PERMS = r.perms || null; ROLE = r.role || ''; store('eh_perms', PERMS ? JSON.stringify(PERMS) : ''); store('eh_role', ROLE);
+        if (LOCKED) { lgPin = ''; unlocked(); return; }
+        el('login').hidden = true; lgPin = ''; start();
+      }).withFailureHandler(function (e) {
+        lgBusy = false; el('lgDots').classList.remove('busy');
+        if (/BIO_ENDED/.test(e && e.message)) { bioClear(); el('lgBio').classList.add('off'); el('lgErr').textContent = 'Fingerprint sign-in ended · enter your PIN'; }
+        else el('lgErr').textContent = (e && e.message) || 'Login failed';
+      }).appBioLogin(sec);
+    }, function () { /* cancelled on the phone: the PIN pad stays */ });
+}
+// After a PIN login on a phone that can do it: offer fingerprint / Face ID for next time (once per login)
+function bioOffer() {
+  if (!BIO_OFFER || store('eh_bio_id') || store('eh_bio_never') === store('eh_login')) return;
+  BIO_OFFER = false;
+  bioAvailable().then(function (ok) {
+    if (!ok) return;
+    el('panel').innerHTML = '<h3>Faster login</h3><p>Use your fingerprint or Face ID next time instead of the PIN</p>' +
+      '<div class="bio-art"><i class="ti ti-fingerprint"></i><i class="ti ti-face-id"></i></div>' +
+      '<div class="btns" style="margin-top:12px"><button class="btn" id="bioNo">Not now</button><button class="btn pri" id="bioYes">Turn on</button></div>';
+    openPanel();
+    el('bioNo').onclick = function () { store('eh_bio_never', store('eh_login') || ''); closePanel(); };
+    el('bioYes').onclick = function () { closePanel(); bioEnroll(); };
+  });
+}
+function bioEnroll() {
+  var login = store('eh_login') || '';
+  navigator.credentials.create({ publicKey: {
+    challenge: rnd(32), rp: { name: 'ORDI' },
+    user: { id: rnd(16), name: login, displayName: USER || login },
+    pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+    authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required', residentKey: 'preferred' }, timeout: 60000
+  } }).then(function (cred) {
+    google.script.run.withSuccessHandler(function (r) {
+      store('eh_bio_id', b64u(cred.rawId)); store('eh_bio_tok', r.secret); store('eh_bio_login', login);
+      toast('✅ Fingerprint / Face ID is on for this phone'); drawBioBtn();
+    }).withFailureHandler(function (e) { toast('Not turned on: ' + ((e && e.message) || 'try again')); }).appBioEnroll(TOKEN, navigator.userAgent.slice(0, 80));
+  }, function () { toast('Fingerprint / Face ID not turned on'); });
+}
+function drawBioBtn() {
+  bioAvailable().then(function (ok) {
+    el('btnBio').hidden = !ok;
+    el('btnBio').innerHTML = '<i class="ti ti-fingerprint"></i>Fingerprint login · ' + (store('eh_bio_id') ? 'On' : 'Off');
+  });
+}
+// (the fingerprint key is in the keypad: lgKey('bio'))
+
 function lgShake(msg) {
   el('lgErr').textContent = msg;
+  el('lgDots').classList.add('bad');
+  try { navigator.vibrate && navigator.vibrate([40, 40, 40]); } catch (e) {}
   el('lgDots').classList.remove('shake'); void el('lgDots').offsetWidth; el('lgDots').classList.add('shake');
   lgPin = ''; drawDots();
 }
 function lgKey(k) {
   if (lgBusy) return;
-  el('lgErr').textContent = '';
+  if (k === 'bio') return bioLogin();
+  el('lgErr').textContent = ''; el('lgDots').classList.remove('bad');
+  try { navigator.vibrate && navigator.vibrate(6); } catch (e) {}
   if (k === 'del') lgPin = lgPin.slice(0, -1);
   else if (k === 'go') return lgSubmit();
-  else if (lgPin.length < 8) lgPin += k;
+  else if (lgPin.length < pinLen()) lgPin += k;
   drawDots();
-  if (lgPin.length === 8) lgSubmit(); // the longest PIN logs in by itself; shorter ones with →
+  if (lgPin.length === pinLen()) lgSubmit(); // the last digit logs in by itself
 }
+// Step 1 → 2: a Pakistani mobile number, shown as 300 1234567
+function lgNumClean() { var d = el('lgName').value.replace(/\D/g, '').replace(/^92/, '').replace(/^0/, ''); return d; }
+el('lgName').addEventListener('input', function () {
+  var d = lgNumClean().slice(0, 10);
+  el('lgName').value = d.length > 3 ? d.slice(0, 3) + ' ' + d.slice(3) : d;
+  el('lgNumErr').textContent = '';
+});
+el('lgCont').onclick = function () {
+  var d = lgNumClean();
+  if (!/^3\d{9}$/.test(d)) { el('lgNumErr').textContent = 'Enter a mobile number like 300 1234567'; el('lgName').focus(); return; }
+  el('lgStepNum').hidden = true; el('lgStepPin').hidden = false;
+  el('lgTitle').hidden = false; el('lgTitle').textContent = 'Enter your PIN';
+  el('lgSub').innerHTML = '0' + d.slice(0, 3) + '-' + d.slice(3) + ' · <button class="lg-step-b" id="lgEdit" type="button">Change</button>';
+  el('lgEdit').onclick = function () { el('lgStepPin').hidden = true; el('lgStepNum').hidden = false; el('lgTitle').hidden = true; el('lgSub').textContent = STORE + ' · Enter your phone number'; lgPin = ''; drawDots(); el('lgName').focus(); };
+  el('lgName').blur(); lgPin = ''; drawDots();
+};
 function lgSubmit() {
   var known = !el('lgName').hidden ? '' : store('eh_login');
-  var n = known || el('lgName').value.replace(/\s+/g, ' ').trim();
-  if (!n) { el('lgErr').textContent = 'Enter your phone number'; el('lgName').focus(); return; }
-  if (lgPin.length < 4) { lgShake('Enter your PIN'); return; }
+  var n = known || ('0' + lgNumClean());
+  if (!known && !/^03\d{9}$/.test(n)) { el('lgErr').textContent = 'Enter your phone number'; return; }
+  if (lgPin.length < 6) { lgShake('Enter your PIN'); return; }
   var p = lgPin;
   lgBusy = true; el('lgDots').classList.add('busy');
   google.script.run.withSuccessHandler(function (r) {
     lgBusy = false; el('lgDots').classList.remove('busy');
     TOKEN = r.token; USER = r.name; store('eh_token', TOKEN); store('eh_user', USER); store('eh_login', r.login); store('eh_phone', r.phone || '');
+    store('eh_pinlen', String(p.length)); // only the length, never the PIN
+    if (LOCKED) { el('lgDots').classList.add('ok'); setTimeout(unlocked, 200); return; }
+    BIO_OFFER = true;
     PERMS = r.perms || null; ROLE = r.role || ''; store('eh_perms', PERMS ? JSON.stringify(PERMS) : ''); store('eh_role', ROLE);
-    el('login').hidden = true; lgPin = ''; el('lgName').value = '';
+    el('lgDots').classList.add('ok'); el('lgName').value = '';
+    setTimeout(function () { el('login').hidden = true; lgPin = ''; el('lgDots').classList.remove('ok'); }, 260);
     // First login: the user writes their name; then, with a PIN given by the admin, a new PIN is suggested (Later is allowed)
     var next = function () { if (r.mustChange) showPinBox(true, p); else start(); };
     if (r.needName) showProfile(true, next); else next();
@@ -2345,9 +3380,9 @@ document.addEventListener('keydown', function (e) {
   if (el('login').hidden || document.activeElement === el('lgName')) return;
   if (/^\d$/.test(e.key)) lgKey(e.key); else if (e.key === 'Backspace') lgKey('del'); else if (e.key === 'Enter') lgKey('go');
 });
-el('lgName').onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); el('lgName').blur(); } };
+el('lgName').onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); el('lgCont').click(); } };
 el('lgName').oninput = function () { el('lgErr').textContent = ''; };
-el('lgSwitch').onclick = function () { USER = ''; store('eh_user', ''); store('eh_login', ''); store('eh_phone', ''); showLogin(); el('lgName').focus(); };
+el('lgSwitch').onclick = function () { if (LOCKED) { LOCKED = false; TOKEN = ''; store('eh_token', ''); } USER = ''; store('eh_user', ''); store('eh_login', ''); store('eh_phone', ''); store('eh_pinlen', ''); showLogin(); el('lgName').focus(); };
 el('lgForgot').onclick = function () { el('lgErr').textContent = 'Ask the admin to set a new PIN for you. You can change it after you log in.'; };
 
 // ---------- remembered filters ----------
@@ -2374,32 +3409,40 @@ loadFilters();
 
 // ---------- change PIN (menu) / set your own PIN (after a temporary PIN) ----------
 var pinForced = false;
+function pinFields(on) {
+  [['pbOld', 'current-password'], ['pbNew', 'new-password'], ['pbNew2', 'new-password']].forEach(function (x) {
+    var i = el(x[0]); if (!on) i.value = ''; i.type = on ? 'password' : 'text'; i.autocomplete = on ? x[1] : 'off';
+  });
+}
+function hidePinBox() { el('pinbox').hidden = true; pinFields(false); }
 function showPinBox(forced, currentPin) {
   pinForced = !!forced;
+  pinFields(true);
   el('pbTitle').textContent = forced ? 'Set your own PIN' : 'Change PIN';
-  el('pbSub').textContent = forced ? 'Your PIN was given by the admin. We suggest choosing a new PIN only you know. You can also do this later from the menu.' : 'Enter your current PIN, then your new PIN twice';
+  el('pbSub').textContent = forced ? 'Choose a new 6-digit PIN only you know. You can also do this later from the menu.' : 'Enter your current PIN, then your new PIN twice';
   el('pbOld').value = currentPin || ''; el('pbOld').hidden = !!currentPin;
   el('pbNew').value = ''; el('pbNew2').value = ''; el('pbErr').textContent = '';
   el('pbCancel').textContent = forced ? 'Later' : 'Cancel';
   el('pinbox').hidden = false;
   setTimeout(function () { (currentPin ? el('pbNew') : el('pbOld')).focus(); }, 50);
 }
-el('pbCancel').onclick = function () { el('pinbox').hidden = true; if (pinForced) { pinForced = false; start(); } }; // Later: just use the app
+el('pbCancel').onclick = function () { hidePinBox(); if (pinForced) { pinForced = false; start(); } }; // Later: just use the app
 el('pbGo').onclick = function () {
   var o = el('pbOld').value.trim(), n = el('pbNew').value.trim(), n2 = el('pbNew2').value.trim();
   if (!/^\d{4,8}$/.test(o)) { el('pbErr').textContent = 'Enter your current PIN'; return; }
-  if (!/^\d{6,8}$/.test(n)) { el('pbErr').textContent = 'New PIN must be 6 to 8 digits'; return; }
+  if (!/^\d{6}$/.test(n)) { el('pbErr').textContent = 'New PIN must be 6 digits'; return; }
   if (n !== n2) { el('pbErr').textContent = 'The two new PINs do not match'; return; }
   el('pbGo').disabled = true; el('pbGo').textContent = 'Saving…';
   google.script.run.withSuccessHandler(function (r) {
-    TOKEN = r.token; store('eh_token', TOKEN);
+    TOKEN = r.token; store('eh_token', TOKEN); store('eh_pinlen', String(n.length));
+    bioClear(); // fingerprint sign-in was tied to the old PIN
     el('pbGo').disabled = false; el('pbGo').textContent = 'Save PIN';
-    el('pinbox').hidden = true;
+    hidePinBox();
     toast('PIN changed · other phones are logged out');
     if (pinForced) start();
   }).withFailureHandler(function (e) {
     el('pbGo').disabled = false; el('pbGo').textContent = 'Save PIN';
-    if (/LOGIN_REQUIRED/.test(e && e.message)) { el('pinbox').hidden = true; authFail(e); return; }
+    if (/LOGIN_REQUIRED/.test(e && e.message)) { hidePinBox(); authFail(e); return; }
     el('pbErr').textContent = (e && e.message) || 'Could not change PIN';
   }).appChangePin(TOKEN, o, n);
 };
@@ -2417,11 +3460,20 @@ function showProfile(forced, next) {
   el('pfErr').textContent = '';
   el('profbox').hidden = false;
   if (forced) setTimeout(function () { el('pfName').focus(); }, 50);
-  else google.script.run.withSuccessHandler(function (p) { store('eh_phone', p.phone || ''); el('pfPhone').textContent = p.phone || 'Not set yet · ask the admin'; })
+  else google.script.run.withSuccessHandler(function (p) { store('eh_phone', p.phone || ''); el('pfPhone').textContent = p.phone || 'Not set · contact your admin'; })
     .withFailureHandler(function (e) { if (/LOGIN_REQUIRED/.test(e && e.message)) { el('profbox').hidden = true; authFail(e); } }).appGetProfile(TOKEN);
 }
 el('drUser').onclick = function () { closeDrawer(); showProfile(false); };
-el('btnDispatch').onclick = function () { closeDrawer(); openDispatchLog(); };
+el('btnDispatch').onclick = fromMenu(function () { openDispatchLog(); });
+el('btnSync').onclick = fromMenu(function () { openSyncStatus(); });
+el('btnBio').onclick = function () {
+  closeDrawer();
+  if (store('eh_bio_id')) {
+    if (!confirm('Turn off fingerprint / Face ID login on this phone?')) return;
+    var s = bioClear(); drawBioBtn(); toast('Fingerprint login is off');
+    if (s) google.script.run.withFailureHandler(function () {}).appBioOff(s);
+  } else { store('eh_bio_never', ''); bioEnroll(); }
+};
 // Install: Chrome offers it once the app qualifies; the menu shows the button only then (not when already installed)
 var installEv = null;
 addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); installEv = e; el('btnInstall').hidden = false; });
@@ -2449,20 +3501,26 @@ el('pfGo').onclick = function () {
 // ---------- start ----------
 var started = false;
 function start() {
+  store('eh_seen', String(Date.now()));
   greet();
   drawPushBtn(); pushRefresh(); loadAlerts(false);
   // Opened from a notification: ?tab=ndr / returns / parcels
-  var qs = new URLSearchParams(location.search), qt = qs.get('tab'), qp = qs.get('p');
+  var qs = new URLSearchParams(location.search), qt = qs.get('tab'), qp = qs.get('p'), qb = qs.get('brief');
+  if (qb) setTimeout(function () { showTab('home'); openBrief(/^\d{4}-\d{2}-\d{2}$/.test(qb) ? qb : ''); }, 600);
+  var qsy = qs.get('sync'), qpay = qs.get('pay');
+  if (qpay) { PAY_OPEN = qpay; setTimeout(function () { showTab('cash'); openPayIfReady(); }, 700); }
+  if (qsy) setTimeout(openSyncStatus, 600);
   applyPerms();
   if (qt && TABS[qt] && canTab(qt)) showTab(qt);
   if (qp && can('parcels.view')) setTimeout(function () { openParcel(qp); }, 600);
-  if (qt || qp) { try { history.replaceState(history.state, '', location.pathname + location.hash); } catch (e) {} }
+  if (qt || qp || qb || qsy || qpay) { try { history.replaceState(history.state, '', location.pathname + location.hash); } catch (e) {} }
   // Warm the other tabs in the background so switching is instant.
   loadAllowed();
   google.script.run.withSuccessHandler(setPerms).withFailureHandler(function (e) { authFail(e); }).appGetProfile(TOKEN);
-  if (!started) { started = true; setInterval(function () { if (TOKEN) { if (can('ndr.view')) loadNdr(false); loadAlerts(false); } }, 120000); }
+  loadSync(); drawBioBtn(); setTimeout(bioOffer, 1500);
+  if (!started) { started = true; setInterval(function () { if (TOKEN) { if (can('ndr.view')) loadNdr(false); loadAlerts(false); loadSync(); } }, 120000); }
 }
-if (TOKEN) start(); else showLogin();
+if (TOKEN) { start(); lockIfAway(); } else showLogin();
 // Launch screen stays at least 1 s from opening, then fades into the app.
 (function () {
   el('bootStore').textContent = STORE;
