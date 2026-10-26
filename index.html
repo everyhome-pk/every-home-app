@@ -611,6 +611,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   <button class="dr-i" data-rep="cities"><i class="ti ti-map-pin"></i>Top cities</button>
   <button class="dr-i" data-rep="products"><i class="ti ti-shopping-bag"></i>Top products</button>
   <button class="dr-i" data-rep="reasons"><i class="ti ti-alert-triangle"></i>Delivery failure reasons</button>
+  <button class="dr-i" id="btnAds"><i class="ti ti-speakerphone"></i>Ads performance</button>
   <div class="dr-h">Couriers</div>
   <button class="dr-i" data-rep="escalations"><i class="ti ti-headset"></i>Courier escalations</button>
   <div class="dr-h">Finance</div>
@@ -927,7 +928,7 @@ function drawSyncStatus() {
 }
 el('upd').onclick = function () { if (TOKEN) openSyncStatus(); };
 
-// ---------- role: what this user may see (W1 sheet 00_App_Roles; the server checks every call as well) ----------
+// ---------- role: what this user may see (W1 sheet Roles & Permissions; the server checks every call as well) ----------
 var PERMS = null; try { PERMS = JSON.parse(store('eh_perms') || 'null'); } catch (e) {}
 var ROLE = store('eh_role') || '';
 var TAB_PERM = { home: 'home.view', parcels: 'parcels.view', ndr: 'ndr.view', returns: 'returns.view', cash: 'cash.view' };
@@ -955,6 +956,7 @@ function applyPerms() {
   el('btnPnl').hidden = !can('finance.view');
   el('btnAcct').hidden = !can('finance.view');
   el('btnTeam').hidden = !can('users.manage');
+  el('btnAds').hidden = !(can('reports.view') || can('finance.view'));
   // a menu heading goes when nothing under it is left
   document.querySelectorAll('.dr-h').forEach(function (h) {
     var any = false;
@@ -2104,7 +2106,7 @@ function renderParcels() {
   saveFilters();
 }
 // Courier wording → short plain English for the team (the raw text stays in the parcel's tracking)
-// Courier reason words → plain English. Built from the real Trax / Leopards texts in W1 (06_Tracking_Normalized,
+// Courier reason words → plain English. Built from the real Trax / Leopards texts in W1 (Tracking Events,
 // Oct 2026): Trax "Consignee Refused / Unavailable", "Address Untraceable / Closed", "Hold on consignee's request",
 // "Due To Uncertain Weather", "Non-Service Area", statuses "Shipper Advise Requested", "Reason Validation Required",
 // "Delivery Unsuccessful", "Not Attempted", "On Hold (for Self Collection)"; Leopards "CONSIGNEE REFUSED / NOT AVAILABLE",
@@ -3587,6 +3589,7 @@ function openStockAdjust(sku) {
     var q = Number(String(el('saQty').value).replace(/[^0-9.\-]/g, ''));
     if (!q) { el('saErr').textContent = 'Enter the quantity'; return; }
     var qty = why[2] === 0 ? q : why[2] * Math.abs(q), note = [why[0], el('saNote').value.trim()].filter(Boolean).join(' · ');
+    el('saGo').disabled = true;
     stkSave([{ type: why[1], sku: sku, qty: why[1] === 'Damaged' ? Math.abs(q) : qty, note: note }], function () { openStockItem(sku); });
   };
 }
@@ -3716,7 +3719,7 @@ function openReceipt(id) {
   }, function () { toast('Receipt not found'); renderExpenses(); });
 }
 function openAddExpense() {
-  var d = FN.data, st = { type: 'Expense', cat: '', from: 'Business account' };
+  var d = FN.data, st = { type: 'Expense', cat: '', from: d.from[0] };
   var draw = function () {
     el('aeCats').innerHTML = (st.type === 'Income' ? ['Other income'] : d.cats[st.type] || []).map(function (c) { return '<button class="chip' + (st.cat === c ? ' on' : '') + '" type="button" data-v="' + esc(c) + '">' + esc(c) + '</button>'; }).join('');
   };
@@ -3792,6 +3795,35 @@ el('btnExp').onclick = fromMenu(function () { openExpenses(''); });
 el('btnPnl').onclick = fromMenu(function () { openPnl(''); });
 el('btnAcct').onclick = fromMenu(function () { openAccounts(); });
 el('btnTeam').onclick = fromMenu(function () { openTeam(); });
+el('btnAds').onclick = fromMenu(function () { openAds(3); });
+
+// ---------- Ads performance (Meta ad sets from W1 Ad Sets) with scale / kill verdicts and the store's own orders ----------
+var ADV = { Scale: 'var(--green)', Kill: 'var(--red)', Watch: 'var(--amber)', 'Too early': 'var(--blue)' };
+function openAds(n) {
+  el('panel').innerHTML = '<h3>Ads performance</h3><div class="sk" style="height:240px"></div>'; openPanel(true);
+  api('getAppAds', [TOKEN, n], function (d) {
+    var r2 = function (x) { return x == null ? '—' : x; };
+    var chip = function (k, l) { return '<button class="chip' + (d.days === k ? ' on' : '') + '" type="button" data-ad="' + k + '">' + l + '</button>'; };
+    el('panel').innerHTML = '<h3>Ads performance</h3><p>Meta ad sets' + (d.last ? ' · data till ' + esc(niceDay(d.last)) : '') + ' · verdict on the last 3 days</p>' +
+      '<div class="chips">' + chip(1, 'Today') + chip(3, '3 days') + chip(7, '7 days') + chip(14, '14 days') + chip(30, '30 days') + '</div>' +
+      (d.sets.length ? '<div class="card" style="padding:0">' +
+        '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><b>Ads spend</b><b class="num">' + rs(d.total.spend) + '</b></div><div class="prow-2"><span>' + d.total.buys + ' purchases (Meta) · ROAS ' + r2(d.total.roas) + '</span></div></div></div>' +
+        '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><b>Store orders</b><b class="num">' + d.store.orders + '</b></div><div class="prow-2"><span>' + rs(d.store.sales) + (d.store.perOrder ? ' · ads cost per order ' + rs(d.store.perOrder) : '') + (d.store.perRupee ? ' · Rs ' + d.store.perRupee + ' orders per Rs 1 of ads' : '') + '</span></div></div></div></div>' +
+        '<div class="card" style="padding:0">' + d.sets.map(function (s) {
+          var c = ADV[s.verdict] || 'var(--line)';
+          return '<div class="prow" style="cursor:default;--c:' + c + '"><span class="prow-d"></span><div class="prow-m"><div class="prow-1"><b>' + esc(s.name) + '</b><span class="num">' + rs(s.p.spend) + '</span></div>' +
+            '<div class="prow-2"><span>' + esc(s.campaign) + '</span>' + (s.verdict ? '<span class="st" style="--c:' + c + '">' + s.verdict + '</span>' : '<span class="st">' + esc(String(s.status).toLowerCase()) + '</span>') + '</div>' +
+            '<div class="prow-2"><span>' + [s.p.buys + ' purch', 'ROAS ' + r2(s.p.roas), 'CPR ' + (s.p.cpr != null ? rs(s.p.cpr) : '—'), 'CTR ' + r2(s.p.ctr) + '%', 'CPC ' + (s.p.cpc != null ? 'Rs ' + s.p.cpc : '—'), s.p.atc ? s.p.atc + ' ATC' : ''].filter(Boolean).join(' · ') + '</span></div>' +
+            (d.days !== 3 ? '<div class="prow-2"><span style="color:var(--muted)">3 days: ' + rs(s.d3.spend) + ' · ' + s.d3.buys + ' purch · ROAS ' + r2(s.d3.roas) + (s.budget ? ' · budget ' + rs(s.budget) + '/day' : '') + '</span></div>' : (s.budget ? '<div class="prow-2"><span style="color:var(--muted)">budget ' + rs(s.budget) + '/day</span></div>' : '')) +
+            '</div></div>';
+        }).join('') + '</div><small class="mnote" style="display:block;margin:0 0 10px">Scale: 3-day ROAS ≥ ' + d.scale + ' · Kill: 3-day cost per purchase above ' + rs(d.kill) + ' · Too early: under Rs 300 spent (W1 Store Settings)</small>'
+        : '<div class="card empty">No ad data yet · connect Meta in W1 menu Setup & keys → Meta Ads connection</div>') +
+      '<div class="btns" style="margin-top:10px"><button class="btn" id="adClose">Close</button></div>';
+    openPanel(true);
+    el('adClose').onclick = closePanel;
+    el('panel').querySelectorAll('[data-ad]').forEach(function (b) { b.onclick = function () { openAds(Number(b.getAttribute('data-ad'))); }; });
+  }, function () { closePanel(); toast('You don\'t have access to this'); });
+}
 
 // ---------- Team: the owner adds people, gives roles, resets PINs (server checks users.manage and Owner rules) ----------
 var TM = { data: null };
@@ -3807,7 +3839,7 @@ function renderTeam() {
       return '<div class="prow" data-tu="' + k + '"><div class="prow-m"><div class="prow-1"><b>' + esc(u.name || '(name at first login)') + (u.id === d.meId ? ' · you' : '') + '</b><span class="st" style="--c:' + (u.role === 'Owner' ? 'var(--brand)' : 'var(--blue)') + '">' + esc(u.role) + '</span></div>' +
         '<div class="prow-2"><span>' + esc([u.phone, u.must ? 'temporary PIN' : '', u.added ? 'since ' + u.added : ''].filter(Boolean).join(' · ')) + '</span></div></div></div>';
     }).join('') + '</div>' +
-    '<div class="card"><div class="h"><b>Roles</b></div><p style="margin:0;color:var(--muted);font-size:12.5px">What each role may see and do is set on W1 sheet 00_App_Roles (tick boxes). Owner always has everything.</p></div>' +
+    '<div class="card"><div class="h"><b>Roles</b></div><p style="margin:0;color:var(--muted);font-size:12.5px">What each role may see and do is set on W1 sheet Roles & Permissions (tick boxes). Owner always has everything.</p></div>' +
     '<div class="btns" style="margin-top:10px"><button class="btn" id="tmClose">Close</button></div>';
   openPanel(true);
   el('tmClose').onclick = closePanel;
@@ -3856,7 +3888,9 @@ function openAccounts() {
 function acMoney(n) { return (n < 0 ? '− ' : '') + rs(Math.abs(n)); }
 function renderAccounts() {
   var d = AC.data, total = d.accounts.reduce(function (a, x) { return a + x.balance; }, 0), pk = Object.keys(d.drawn || {});
+  var unk = Object.keys(d.unknown || {});
   el('panel').innerHTML = '<h3>Accounts & payouts</h3><p>Money in the business, like a bank book</p>' +
+    (unk.length ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-alert-triangle"></i> ' + unk.map(function (k) { return d.unknown[k] + ' entr' + (d.unknown[k] > 1 ? 'ies' : 'y') + ' on "' + esc(k) + '"'; }).join(', ') + ' · this account is not in W1 Store Settings "Money Accounts", so it is not counted. Add the name back there.</div>' : '') +
     '<div class="card" style="padding:0">' + d.accounts.map(function (a) {
       var c = a.check, off = c && c.diff;
       return '<div class="prow" data-acc="' + esc(a.name) + '"><div class="prow-m"><div class="prow-1"><b>' + esc(a.name) + '</b><b class="num">' + acMoney(a.balance) + '</b></div>' +
@@ -4265,10 +4299,10 @@ function openReceive(p) {
   };
 }
 function openPayPurchase(p) {
-  var st = { from: 'Business account', receipt: '' };
+  var acc = (PUR.data && PUR.data.from) || ['Business account', 'Cash', 'Own pocket'], st = { from: acc[0], receipt: '' };
   el('panel').innerHTML = '<button class="btn mini" id="ppBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>' + esc(p.po) + '</button><h3>Pay ' + esc(p.supplier) + '</h3><p>To pay ' + rs(p.toPay) + '</p>' +
     '<div class="fld"><label>Amount (PKR)</label><input id="ppAmt" type="text" inputmode="decimal" value="' + Math.round(p.toPay) + '"></div>' +
-    '<div class="fld"><label>Paid from</label><div class="chips wrapc" id="ppFrom">' + ['Business account', 'Cash', 'Own pocket'].map(function (x) { return '<button class="chip' + (x === st.from ? ' on' : '') + '" type="button" data-v="' + x + '">' + (x === 'Own pocket' ? 'My own pocket' : x) + '</button>'; }).join('') + '</div></div>' +
+    '<div class="fld"><label>Paid from</label><div class="chips wrapc" id="ppFrom">' + acc.map(function (x) { return '<button class="chip' + (x === st.from ? ' on' : '') + '" type="button" data-v="' + x + '">' + (x === 'Own pocket' ? 'My own pocket' : x) + '</button>'; }).join('') + '</div></div>' +
     '<div class="fld"><label>Receipt photo (optional)</label><input id="ppFile" type="file" accept="image/*" capture="environment" hidden><button class="btn" id="ppPhoto" type="button" style="width:100%"><i class="ti ti-camera"></i>Add a photo</button><img id="ppThumb" alt="" hidden style="display:block;max-width:100%;max-height:160px;margin-top:8px;border-radius:12px"></div>' +
     '<div class="err" id="ppErr"></div><button class="btn pri" id="ppGo" style="width:100%;padding:12px">Save payment</button>';
   openPanel(true);
