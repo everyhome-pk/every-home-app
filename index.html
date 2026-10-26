@@ -3891,7 +3891,29 @@ function openNewPurchase(opt) {
     var it = d.items.filter(function (i) { return i.sku === x.sku; })[0], last = purLast(x.sku, st.supplier);
     if (it) st.lines.push({ sku: x.sku, name: it.name, unit: it.unit, qty: x.qty || 0, price: last ? last.price : 0 });
   });
-  var supOpts = function () { return '<option value="">Choose a supplier…</option>' + d.suppliers.map(function (s) { return '<option value="' + esc(s.name) + '"' + (s.name === st.supplier ? ' selected' : '') + '>' + esc(s.name) + (s.city ? ' · ' + esc(s.city) : '') + '</option>'; }).join('') + '<option value="__new">+ New supplier</option>'; };
+  // suppliers linked to the products in this order come first (⭐ main, their rate); the rest below
+  var supLinked = function () {
+    var skus = st.lines.map(function (l) { return l.sku; }), out = {};
+    (d.links || []).forEach(function (l) { if (skus.indexOf(l.sku) !== -1) { var o = out[l.supplier] = out[l.supplier] || { n: 0, main: false, rate: [] }; o.n++; o.main = o.main || l.main; if (l.quoted || l.lastPrice) o.rate.push(rs2(l.quoted || l.lastPrice)); } });
+    return out;
+  };
+  var supOpts = function () {
+    var lk = supLinked(), opt = function (s) {
+      var x = lk[s.name];
+      return '<option value="' + esc(s.name) + '"' + (s.name === st.supplier ? ' selected' : '') + '>' + (x && x.main ? '⭐ ' : '') + esc(s.name) + (s.city ? ' · ' + esc(s.city) : '') + (x && x.rate.length && st.lines.length === 1 ? ' · ' + x.rate[0] : '') + '</option>';
+    };
+    var mine = d.suppliers.filter(function (s) { return lk[s.name]; }).sort(function (a, b) { return (lk[b.name].main ? 1 : 0) - (lk[a.name].main ? 1 : 0) || lk[b.name].n - lk[a.name].n; });
+    var rest = d.suppliers.filter(function (s) { return !lk[s.name]; });
+    return '<option value="">Choose a supplier…</option>' + (mine.length ? '<optgroup label="Supplies ' + (st.lines.length === 1 ? 'this product' : 'these products') + '">' + mine.map(opt).join('') + '</optgroup><optgroup label="Other suppliers">' + rest.map(opt).join('') + '</optgroup>' : rest.map(opt).join('')) + '<option value="__new">+ New supplier</option>';
+  };
+  // only one supplier is linked to the products: choose it
+  var supAuto = function () {
+    if (st.supplier || !st.lines.length) return;
+    var lk = supLinked(), names = Object.keys(lk).filter(function (n) { return lk[n].n === st.lines.length && d.suppliers.some(function (s) { return s.name === n; }); });
+    var main = names.filter(function (n) { return lk[n].main; });
+    var pick = main.length === 1 ? main[0] : names.length === 1 ? names[0] : '';
+    if (pick) { st.supplier = pick; st.lines.forEach(function (l) { var last = purLast(l.sku, pick); if (last && !l.edited) l.price = last.price; }); }
+  };
   var itemOpts = function () { return '<option value="">' + (st.lines.length ? '+ Add another product…' : 'Choose a product…') + '</option>' + d.items.map(function (i) { return '<option value="' + esc(i.sku) + '">' + esc(i.name) + (i.isNew ? ' (new)' : '') + '</option>'; }).join('') + '<option value="__newp">+ New product (not on the store yet)</option>'; };
   el('panel').innerHTML = '<button class="btn mini" id="npBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>' + (opt.back ? 'Back' : 'Purchases') + '</button><h3>New purchase</h3><p>Product, then supplier · prices fill in from the last order</p>' +
     '<div class="fld"><label>Product</label></div><div id="npLines"></div><div class="fld"><select id="npAdd">' + itemOpts() + '</select></div>' +
@@ -3928,6 +3950,7 @@ function openNewPurchase(opt) {
     }).join('');
     drawTotal();
     el('npAdd').innerHTML = itemOpts();
+    if (el('npSup') && el('npSup').value !== '__new') { var before = st.supplier; supAuto(); el('npSup').innerHTML = supOpts(); if (st.supplier !== before) draw(); }
     el('npLines').querySelectorAll('[data-q]').forEach(function (x) { x.oninput = function () { st.lines[+x.getAttribute('data-q')].qty = Number(x.value) || 0; drawTotal(); }; });
     el('npLines').querySelectorAll('[data-pr]').forEach(function (x) { x.oninput = function () { var k = +x.getAttribute('data-pr'), l = st.lines[k]; l.price = Number(x.value) || 0; l.edited = true; drawTotal(); el('npLines').querySelector('[data-pd="' + k + '"]').innerHTML = purDiff(l, purLast(l.sku, st.supplier)); }; });
     el('npLines').querySelectorAll('[data-pk]').forEach(function (x) { x.onchange = function () { var l = st.lines[+x.getAttribute('data-pk')], n = Number(x.value) || 1; if (n !== (l.pack || 1)) { if (l.price && (l.pack || 1) === 1) l.price = Math.round(l.price * n * 100) / 100; l.pack = n; draw(); } }; });
