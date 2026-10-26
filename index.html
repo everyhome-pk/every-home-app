@@ -1703,6 +1703,21 @@ function renderHome(d) {
   }
   el('view').innerHTML = h;
   animateBox(el('view'), 'home');
+  homeStock();
+}
+// Home: "Stock · n low · n out · n to order" under the action items, for people who see stock
+function homeStock() {
+  if (!can('inventory.view') || !el('todo')) return;
+  var draw = function () {
+    var d = STK.data; if (!d || !d.ready || !d.started || !el('todo') || el('hstock')) return;
+    var it = d.items.filter(function (i) { return i.kind === 'Item'; });
+    var low = it.filter(function (i) { return i.status === 'Low'; }).length, out = it.filter(function (i) { return i.status === 'Out'; }).length, pl = (d.plan || []).length;
+    var txt = [out ? out + ' out' : '', low ? low + ' low' : '', pl ? pl + ' to order' : ''].filter(Boolean).join(' · ');
+    el('todo').insertAdjacentHTML('afterend', '<div class="oc-warn" id="hstock" style="margin:0 0 12px;cursor:pointer"><i class="ti ti-packages"></i><span><b>Stock</b> · ' + (txt || 'all fine') + '</span><i class="ti ti-chevron-right"></i></div>');
+    el('hstock').onclick = function () { openStock(''); };
+  };
+  if (STK.data && Date.now() - (STK.at || 0) < 600000) return draw();
+  api('getAppStock', [TOKEN], function (d) { STK.data = d; STK.at = Date.now(); draw(); }, function () {});
 }
 // ---------- reports (☰ menu): same period + courier as Home, shown in a sheet ----------
 var REPORT = {};
@@ -3250,8 +3265,32 @@ var STK_ST = { OK: ['OK', 'var(--green)'], Low: ['Low', 'var(--amber)'], Out: ['
 function stkQty(n, unit) { return (Math.round((Number(n) || 0) * 10) / 10).toLocaleString('en-IN') + (unit === 'ft' ? ' ft' : ''); }
 function openStock(sku) {
   el('panel').innerHTML = '<h3>Stock</h3><div class="sk" style="height:220px"></div>'; openPanel(true);
-  api('getAppStock', [TOKEN], function (d) { STK.data = d; if (sku) openStockItem(sku); else renderStock(); },
+  api('getAppStock', [TOKEN], function (d) { STK.data = d; STK.at = Date.now(); if (sku) openStockItem(sku); else renderStock(); },
     function () { closePanel(); toast('You don\'t have access to this'); });
+}
+function stkDays(i) { return i.kind === 'Item' && i.perDay ? Math.floor(Math.max(0, i.available + (i.incoming || 0)) / i.perDay) : null; }
+function stkIsPart(i) { return /-CMP-/i.test(i.sku); }
+// the part that limits a bundle / clothes line (wire counted with its cut-off)
+function stkLimit(i) {
+  var d = STK.data, k = (d.kits || {})[i.sku]; if (!k) return null;
+  var by = {}; d.items.forEach(function (x) { by[x.sku] = x; });
+  var low = null;
+  k.forEach(function (c) {
+    var p = by[c[0]]; if (!p || p.kind !== 'Item') return;
+    var need = c[1] + (c[0] === 'EH-CMP-WIRE' ? (d.waste || 0) : 0), can = Math.floor(Math.max(0, p.available) / need);
+    if (!low || can < low.can) low = { name: p.name, can: can };
+  });
+  return low;
+}
+// unmatched order lines from W1: "order: product · variant ‖ gid ‖ sku", grouped by product
+function stkUnmatched() {
+  var g = {};
+  (STK.data.unmatched || []).forEach(function (u) {
+    var p = String(u).split(' ‖ '), m = p[0].match(/^([^:]+):\s*(.*)$/), text = m ? m[2] : p[0];
+    var k = text + '|' + (p[1] || '') + '|' + (p[2] || '');
+    (g[k] = g[k] || { text: text, gid: p[1] || '', sku: p[2] || '', n: 0 }).n++;
+  });
+  return Object.keys(g).map(function (k) { return g[k]; }).sort(function (a, b) { return b.n - a.n; });
 }
 function renderStock() {
   var d = STK.data, edit = can('inventory.edit');
@@ -3262,37 +3301,91 @@ function renderStock() {
   var list = d.items.filter(function (i) {
     if (STK.f === 'low' && i.status !== 'Low') return false;
     if (STK.f === 'out' && i.status !== 'Out') return false;
+    if (STK.f === 'parts' && (i.kind !== 'Item' || !stkIsPart(i))) return false;
     if (STK.f === 'kits' ? i.kind !== 'Kit' : STK.f === 'all' && i.kind === 'Kit') return false;
     return !q || (i.name + ' ' + i.sku).toLowerCase().indexOf(q) !== -1;
   });
+  // what needs attention first: Out, Low, then what runs out soonest
+  var rank = function (i) { return i.status === 'Out' ? 0 : i.status === 'Low' ? 1 : 2; };
+  list.sort(function (a, b) { var da = stkDays(a), db = stkDays(b); return rank(a) - rank(b) || (da == null ? 1e9 : da) - (db == null ? 1e9 : db) || String(a.name).localeCompare(b.name); });
+  var um = edit ? stkUnmatched() : [];
   var chip = function (k, l) { return '<button class="chip' + (STK.f === k ? ' on' : '') + '" type="button" data-sf="' + k + '">' + l + '</button>'; };
-  el('panel').innerHTML = '<h3>Stock</h3><p>' + items.length + ' products' + (d.started ? '' : ' · not counted yet') + '</p>' +
+  el('panel').innerHTML = '<h3>Stock</h3><p>' + (d.started ? 'Stock updates by itself from orders, returns and purchases' : 'Not counted yet') + '</p>' +
     (!d.started && edit ? '<div class="card" style="margin-bottom:12px"><div class="h"><b>Start: count your stock</b></div><p style="margin:0 0 10px;color:var(--muted);font-size:13px">Count what is on the shelf now (not parcels already with couriers). From then on sales, returns and purchases update the stock by themselves.</p><button class="btn pri" id="stCount0" style="width:100%"><i class="ti ti-list-numbers"></i>Count stock</button></div>' : '') +
-    (d.started ? '<div class="stk-top"><div><b>' + items.filter(function (i) { return i.status === 'OK'; }).length + '</b><small>In stock</small></div><div><b>' + low + '</b><small>Low</small></div><div><b>' + out + '</b><small>Out</small></div></div>' : '') +
+
     (d.pending.length ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-clock"></i> ' + d.pending.length + ' entr' + (d.pending.length > 1 ? 'ies' : 'y') + ' waiting · stock updates within 15 minutes</div>' : '') +
     (d.errors && d.errors.length && edit ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-alert-triangle"></i> Not posted: ' + d.errors.map(esc).join(' · ') + '</div>' : '') +
-    (edit ? '<div class="btns" style="margin:0 0 12px"><button class="btn pri" id="stPur"><i class="ti ti-shopping-cart"></i>Purchases</button><button class="btn" id="stIn"><i class="ti ti-truck-loading"></i>Stock in</button><button class="btn" id="stCount"><i class="ti ti-list-numbers"></i>Count</button></div>' : '') +
+    (d.value != null && d.started ? '<div class="psum" style="margin:0 0 10px"><span>Stock value</span><b class="num">' + rs(d.value) + '</b></div>' : '') +
+    (edit && items.some(function (i) { return i.countDue; }) ? '<div class="oc-warn" id="stDue" style="margin:0 0 10px;cursor:pointer"><i class="ti ti-list-numbers"></i><span><b>' + items.filter(function (i) { return i.countDue; }).length + ' to count</b> · quick check of fast movers</span><i class="ti ti-chevron-right"></i></div>' : '') +
+    ((d.plan || []).length ? '<div class="oc-warn" id="stPlan" style="margin:0 0 10px;cursor:pointer"><i class="ti ti-shopping-cart"></i><span><b>' + d.plan.length + ' to order soon</b> · ' + esc(d.plan.slice(0, 3).map(function (x) { return x.name; }).join(', ')) + (d.plan.length > 3 ? '…' : '') + '</span><i class="ti ti-chevron-right"></i></div>' : '') +
+    (edit ? '<div class="btns" style="margin:0 0 12px"><button class="btn pri" id="stNew"><i class="ti ti-plus"></i>New purchase</button><button class="btn" id="stPur"><i class="ti ti-list-details"></i>Orders</button><button class="btn" id="stSup"><i class="ti ti-users"></i>Suppliers</button></div>' : '') +
     '<div class="search"><i class="ti ti-search"></i><input id="stQ" placeholder="Find a product" value="' + esc(STK.q) + '"></div>' +
-    '<div class="chips">' + chip('all', 'Products') + chip('low', 'Low' + (low ? ' · ' + low : '')) + chip('out', 'Out' + (out ? ' · ' + out : '')) + chip('kits', 'Bundles & lines') + '</div>' +
+    '<div class="chips">' + chip('all', 'All · ' + items.length) + chip('low', 'Low · ' + low) + chip('out', 'Out · ' + out) + (d.items.some(stkIsPart) ? chip('parts', 'Parts') : '') + chip('kits', 'Bundles & lines') + '</div>' +
     '<div class="card" style="padding:0">' + (list.length ? list.map(function (i) {
       var st = STK_ST[i.status] || ['', 'var(--line)'];
       return '<div class="prow" data-sk="' + esc(i.sku) + '" style="--c:' + st[1] + '"><span class="prow-d"></span><div class="prow-m">' +
         '<div class="prow-1"><b>' + esc(i.name) + '</b><span class="num">' + stkQty(i.available, i.unit) + '</span></div>' +
-        '<div class="prow-2"><span>' + (i.kind === 'Kit' ? 'can make from parts' : 'on hand ' + stkQty(i.onHand, i.unit) + (i.committed ? ' · ' + stkQty(i.committed, i.unit) + ' for orders' : '')) + '</span>' +
+        '<div class="prow-2"><span>' + (i.kind === 'Kit' ? (function () { var l = stkLimit(i); return l ? 'can make ' + l.can + ' · limited by ' + l.name : 'made from parts'; })() :
+          (stkDays(i) != null ? '~' + stkDays(i) + ' days left' : 'on hand ' + stkQty(i.onHand, i.unit)) + (i.incoming ? ' · ' + stkQty(i.incoming, i.unit) + ' coming' : '') + (i.committed ? ' · ' + stkQty(i.committed, i.unit) + ' for orders' : '')) + '</span>' +
         (st[0] ? '<span class="st" style="--c:' + st[1] + '">' + st[0] + '</span>' : '') + '</div></div></div>';
     }).join('') : '<div class="empty">No products here</div>') + '</div>' +
-    (d.unmatched && d.unmatched.length && edit ? '<div class="card"><div class="h"><b>Order lines without a product</b><span>' + d.unmatched.length + '</span></div><p style="margin:0 0 6px;color:var(--muted);font-size:12.5px">Stock is not taken for these. Add the SKU or Shopify variant ID on W1 sheet 20_Products.</p>' +
-      d.unmatched.slice(0, 8).map(function (u) { return '<div style="font-size:12.5px;padding:3px 0">' + esc(u) + '</div>'; }).join('') + '</div>' : '') +
-    '<div class="btns" style="margin-top:10px"><button class="btn" id="stClose">Close</button></div>';
+    (um.length ? '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>Order lines without a product</b><span>' + um.length + '</span></div><p style="margin:0 14px 6px;color:var(--muted);font-size:12.5px">Stock is not taken for these. Link each one to your product once.</p>' +
+      um.slice(0, 12).map(function (u, k) {
+        return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span>' + esc(u.text) + '</span><span class="num" style="color:var(--muted)">' + u.n + ' order' + (u.n > 1 ? 's' : '') + '</span></div></div>' +
+          (u.gid || u.sku ? '<button class="btn prow-btn" data-ul="' + k + '"><i class="ti ti-link"></i>Link</button>' : '') + '</div>';
+      }).join('') + '</div>' : '') +
+    '<div class="btns" style="margin-top:10px">' + (edit && d.started ? '<button class="btn" id="stCount"><i class="ti ti-list-numbers"></i>Count stock</button>' : '') + '<button class="btn" id="stClose">Close</button></div>';
   openPanel(true);
   el('stClose').onclick = closePanel;
+  if (el('stPlan')) el('stPlan').onclick = function () { openPurchases(); };
+  el('panel').querySelectorAll('[data-ul]').forEach(function (b) { b.onclick = function () { openLinkLine(um[+b.getAttribute('data-ul')]); }; });
+  if (el('stSup')) el('stSup').onclick = function () { if (PUR.data) openSuppliers(); else purReload(openSuppliers); };
   el('stQ').oninput = function (e) { STK.q = e.target.value; var p = e.target.selectionStart; renderStock(); var n = el('stQ'); n.focus(); try { n.setSelectionRange(p, p); } catch (x) {} };
   el('panel').querySelectorAll('[data-sf]').forEach(function (b) { b.onclick = function () { STK.f = b.getAttribute('data-sf'); renderStock(); }; });
   el('panel').querySelectorAll('[data-sk]').forEach(function (r) { r.onclick = function () { openStockItem(r.getAttribute('data-sk')); }; });
-  if (el('stIn')) el('stIn').onclick = function () { openStockIn(''); };
+  if (el('stNew')) el('stNew').onclick = function () { var go = function () { openNewPurchase({ back: renderStock }); }; if (PUR.data) go(); else purReload(go); };
   if (el('stPur')) el('stPur').onclick = function () { openPurchases(); };
-  if (el('stCount')) el('stCount').onclick = openStockCount;
-  if (el('stCount0')) el('stCount0').onclick = openStockCount;
+  if (el('stCount')) el('stCount').onclick = function () { openStockCount(false); };
+  if (el('stCount0')) el('stCount0').onclick = function () { openStockCount(false); };
+  if (el('stDue')) el('stDue').onclick = function () { openStockCount(true); };
+}
+// Low stock alert level of one product (W1 sends the Low alert when Available falls to it)
+function openReorderEdit(i) {
+  el('panel').innerHTML = '<button class="btn mini" id="reBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>' + esc(i.name) + '</button><h3>Low stock alert</h3>' +
+    '<p>Alert when available stock falls to this · now ' + stkQty(i.available, i.unit) + '</p>' +
+    '<div class="fld"><label>Alert at (' + (i.unit === 'ft' ? 'feet' : 'pieces') + ')</label><input id="reQty" type="text" inputmode="decimal" value="' + (i.reorder != null ? i.reorder : '') + '"></div>' +
+    (i.perDay ? '<small class="mnote" style="display:block;margin:-6px 0 10px">Sells about ' + stkQty(i.perDay, i.unit) + ' a day · ' + stkQty(Math.ceil(i.perDay * 10), i.unit) + ' lasts about 10 days</small>' : '') +
+    '<div class="err" id="reErr"></div><button class="btn pri" id="reGo" style="width:100%;padding:12px">Save</button>';
+  openPanel(true);
+  el('reBack').onclick = function () { openStockItem(i.sku); };
+  el('reGo').onclick = function () {
+    var n = Number(String(el('reQty').value).replace(/[^0-9.]/g, ''));
+    if (el('reQty').value.trim() === '' || !(n >= 0)) { el('reErr').textContent = 'Write a number'; return; }
+    el('reGo').disabled = true;
+    api('appSetReorder', [TOKEN, i.sku, n], function () {
+      i.reorder = n; if (i.available > 0) i.status = i.available <= n ? 'Low' : 'OK';
+      toast('✅ Low stock alert at ' + stkQty(n, i.unit)); openStockItem(i.sku);
+    }, function (e) { el('reGo').disabled = false; el('reErr').textContent = (e && e.message) || 'Not saved'; });
+  };
+}
+// Link a Shopify order line to our product (once): its orders then take stock
+function openLinkLine(u) {
+  var d = STK.data;
+  el('panel').innerHTML = '<button class="btn mini" id="lkBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Stock</button><h3>Link order line</h3><p>' + esc(u.text) + ' · ' + u.n + ' order' + (u.n > 1 ? 's' : '') + '</p>' +
+    '<div class="fld"><label>This is our product</label><select id="lkSku"><option value="">Choose…</option>' + d.items.map(function (i) { return '<option value="' + esc(i.sku) + '">' + esc(i.name) + (i.kind === 'Kit' ? ' (bundle / line)' : '') + '</option>'; }).join('') + '</select></div>' +
+    '<div class="fld"><label>How many of it in one order line</label><input id="lkPer" type="text" inputmode="numeric" value="1"></div>' +
+    '<small class="mnote" style="display:block;margin:-6px 0 10px">e.g. a "2 pack" listing = 2 of the single product</small>' +
+    '<div class="err" id="lkErr"></div><button class="btn pri" id="lkGo" style="width:100%;padding:12px">Link</button>';
+  openPanel(true);
+  el('lkBack').onclick = renderStock;
+  el('lkGo').onclick = function () {
+    var sku = el('lkSku').value; if (!sku) { el('lkErr').textContent = 'Choose your product'; return; }
+    el('lkGo').disabled = true;
+    api('appLinkProduct', [TOKEN, { sku: sku, gid: u.gid, lineSku: u.sku, name: u.text, per: Number(el('lkPer').value) || 1 }], function () {
+      STK.data.unmatched = (STK.data.unmatched || []).filter(function (x) { var p = String(x).split(' ‖ '); return !((u.gid && p[1] === u.gid) || (u.sku && p[2] === u.sku)); });
+      toast('✅ Linked · stock updates within 15 minutes'); renderStock();
+    }, function (e) { el('lkGo').disabled = false; el('lkErr').textContent = (e && e.message) || 'Not linked'; });
+  };
 }
 function openStockItem(sku) {
   var d = STK.data, i = d.items.filter(function (x) { return x.sku === sku; })[0];
@@ -3305,7 +3398,9 @@ function openStockItem(sku) {
     '<div class="card" style="padding:0">' + row('Available', stkQty(i.available, i.unit)) +
     (i.kind === 'Item' ? row('On hand', stkQty(i.onHand, i.unit)) + row('For orders (not booked yet)', stkQty(i.committed, i.unit)) +
       (i.incoming ? row('On the way (ordered)', stkQty(i.incoming, i.unit)) : '') +
-      (i.perDay ? row('Sells per day (30 days)', stkQty(i.perDay, i.unit)) + row('Lasts about', Math.floor(Math.max(0, i.available + (i.incoming || 0)) / i.perDay) + ' days') : '') + row('Reorder at', stkQty(i.reorder, i.unit)) +
+      (i.perDay ? row('Sells per day (30 days)', stkQty(i.perDay, i.unit)) + row('Lasts about', Math.floor(Math.max(0, i.available + (i.incoming || 0)) / i.perDay) + ' days') : '') +
+      (i.lastCount ? row('Last counted', esc(i.lastCount) + ' · every ' + (i.countEvery === 7 ? 'week' : i.countEvery === 30 ? 'month' : '3 months') + (i.countDue ? ' · <b style="color:var(--amber)">due</b>' : '')) : '') +
+      (edit ? '<div class="prow" id="siRe"><div class="prow-m"><div class="prow-1"><span>Low stock alert at</span><b class="num">' + stkQty(i.reorder, i.unit) + ' <i class="ti ti-pencil" style="color:var(--muted)"></i></b></div></div></div>' : row('Low stock alert at', stkQty(i.reorder, i.unit))) +
       (i.cost != null ? row('Average cost', rs(i.cost)) + row('Stock value', rs(i.value)) : '') : '') + '</div>' +
     (edit ? '<div class="btns" style="margin:0 0 12px"><button class="btn pri" id="siIn"><i class="ti ti-truck-loading"></i>Stock in</button><button class="btn" id="siAdj"><i class="ti ti-adjustments"></i>Adjust</button></div>' : '') +
     (can('inventory.edit') ? '<button class="btn' + (i.kind === 'Kit' ? ' pri' : '') + '" id="siBuy" style="width:100%;margin:0 0 12px"><i class="ti ti-shopping-cart-plus"></i>Order more' + (i.kind === 'Kit' ? ' (its parts)' : '') + '</button>' : '') +
@@ -3318,6 +3413,7 @@ function openStockItem(sku) {
   el('siBack').onclick = renderStock;
   if (el('siIn')) el('siIn').onclick = function () { openStockIn(sku); };
   if (el('siAdj')) el('siAdj').onclick = function () { openStockAdjust(sku); };
+  if (el('siRe')) el('siRe').onclick = function () { openReorderEdit(i); };
   if (el('siBuy')) el('siBuy').onclick = function () {
     // a Kit is bought as its parts (2-pack → the single item; clothes line → wire, hooks, U clamps: remove what is in stock)
     var leaf = [], walk = function (s, n) { var k = (d.kits || {})[s]; if (k && n < 4) k.forEach(function (c) { walk(c[0], n + 1); }); else if (leaf.indexOf(s) < 0) leaf.push(s); };
@@ -3398,39 +3494,56 @@ function openStockIn(sku) {
   };
 }
 // Correction (+/-) or damaged / lost (taken out), always with a reason
+// adjustment reasons (reason codes): [label, entry type, sign: +1 add / -1 take out / 0 either]
+var STK_WHY = [['Damaged', 'Damaged', -1], ['Lost / missing', 'Adjust', -1], ['Found extra', 'Adjust', 1], ['Sample / gift', 'Adjust', -1], ['Own use', 'Adjust', -1], ['Count correction', 'Adjust', 0]];
 function openStockAdjust(sku) {
   var i = STK.data.items.filter(function (x) { return x.sku === sku; })[0], kind = 'Adjust';
   el('panel').innerHTML = '<button class="btn mini" id="saBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>' + esc(i.name) + '</button><h3>Adjust stock</h3><p>On hand now ' + stkQty(i.onHand, i.unit) + '</p>' +
-    '<div class="fld"><div class="seg2" id="saKind"><button type="button" class="on" data-k="Adjust"><i class="ti ti-adjustments"></i>Correction</button><button type="button" data-k="Damaged"><i class="ti ti-trash"></i>Damaged / lost</button></div></div>' +
-    '<div class="fld"><label id="saQL">Change (+ add, − take out)</label><input id="saQty" type="text" inputmode="decimal" placeholder="e.g. -2 or 5"></div>' +
-    '<div class="fld"><label>Reason</label><input id="saNote" placeholder="e.g. recount, broken in packing"></div><div class="err" id="saErr"></div>' +
+    '<div class="fld"><label>Why</label><div class="chips wrapc" id="saWhy">' + STK_WHY.map(function (w, k) { return '<button class="chip" type="button" data-w="' + k + '">' + w[0] + '</button>'; }).join('') + '</div></div>' +
+    '<div class="fld"><label id="saQL">How many</label><input id="saQty" type="text" inputmode="decimal" placeholder="' + (i.unit === 'ft' ? 'feet' : 'pieces') + '"></div>' +
+    '<div class="fld"><label>Note (optional)</label><input id="saNote" placeholder="e.g. broken in packing"></div><div class="err" id="saErr"></div>' +
     '<button class="btn pri" id="saGo" style="width:100%;padding:12px">Save</button>';
   openPanel(true);
   el('saBack').onclick = function () { openStockItem(sku); };
-  el('saKind').onclick = function (e) {
-    var b = e.target.closest('[data-k]'); if (!b) return; kind = b.getAttribute('data-k');
-    el('saKind').querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); });
-    el('saQL').textContent = kind === 'Damaged' ? 'How many damaged / lost' : 'Change (+ add, − take out)';
+  var why = null;
+  el('saWhy').onclick = function (e) {
+    var b = e.target.closest('[data-w]'); if (!b) return; why = STK_WHY[+b.getAttribute('data-w')];
+    el('saWhy').querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x === b); });
+    el('saQL').textContent = why[2] === 0 ? 'Change (+ add, − take out)' : why[2] > 0 ? 'How many to add' : 'How many to take out';
+    el('saQty').placeholder = why[2] === 0 ? 'e.g. -2 or 5' : (i.unit === 'ft' ? 'feet' : 'pieces');
   };
   el('saGo').onclick = function () {
+    if (!why) { el('saErr').textContent = 'Pick why'; return; }
     var q = Number(String(el('saQty').value).replace(/[^0-9.\-]/g, ''));
     if (!q) { el('saErr').textContent = 'Enter the quantity'; return; }
-    if (!el('saNote').value.trim()) { el('saErr').textContent = 'Write the reason'; return; }
-    stkSave([{ type: kind, sku: sku, qty: kind === 'Damaged' ? Math.abs(q) : q, note: el('saNote').value.trim() }], function () { openStockItem(sku); });
+    var qty = why[2] === 0 ? q : why[2] * Math.abs(q), note = [why[0], el('saNote').value.trim()].filter(Boolean).join(' · ');
+    stkSave([{ type: why[1], sku: sku, qty: why[1] === 'Damaged' ? Math.abs(q) : qty, note: note }], function () { openStockItem(sku); });
   };
 }
 // Count: what is on the shelf now, product by product (empty = not counted). The first count starts inventory.
-function openStockCount() {
-  var items = STK.data.items.filter(function (i) { return i.kind === 'Item'; });
+function openStockCount(dueOnly) {
+  var all = STK.data.items.filter(function (i) { return i.kind === 'Item'; }), due = all.filter(function (i) { return i.countDue; });
+  var items = dueOnly && due.length ? due : all, blind = !can('users.manage');
   el('panel').innerHTML = '<button class="btn mini" id="scBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Stock</button><h3>Count stock</h3>' +
-    '<p>Write what is on the shelf now. Leave empty what you did not count. Parcels already with couriers are not counted.</p>' +
+    '<p>' + (dueOnly && due.length ? due.length + ' due today · ' : '') + 'Write what is on the shelf now. Do not count booked / packed parcels. Leave empty what you did not count.</p>' +
+    (dueOnly && due.length ? '<button class="btn mini" id="scAll" type="button" style="margin:0 0 10px">Show all ' + all.length + ' products</button>' : '') +
     '<div class="card">' + items.map(function (i) {
-      return '<div class="stk-in"><div><b style="font-size:13.5px">' + esc(i.name) + '</b><small>' + esc(i.sku) + (i.onHand != null && STK.data.started ? ' · system ' + stkQty(i.onHand, i.unit) : '') + (i.unit === 'ft' ? ' · in feet' : '') + '</small></div>' +
-        '<input type="text" inputmode="decimal" data-cs="' + esc(i.sku) + '" placeholder="' + (i.unit === 'ft' ? 'ft' : 'pcs') + '"></div>';
+      return '<div class="stk-in"><div><b style="font-size:13.5px">' + esc(i.name) + '</b><small>' + esc(i.sku) + (i.onHand != null && STK.data.started && !blind ? ' · system ' + stkQty(i.onHand, i.unit) : '') + (i.lastCount ? ' · counted ' + esc(i.lastCount) : '') + (i.unit === 'ft' ? ' · in feet' : '') + '</small></div>' +
+        '<input type="text" inputmode="decimal" data-cs="' + esc(i.sku) + '" placeholder="' + (i.unit === 'ft' ? 'ft' : 'pcs') + '"></div>' +
+        (STK.data.started && i.onHand != null && !blind ? '<small class="mnote" data-cd="' + esc(i.sku) + '" style="display:block;text-align:right;margin:-4px 0 6px"></small>' : '');
     }).join('') + '</div><div class="err" id="scErr"></div>' +
     '<button class="btn pri" id="scGo" style="width:100%;padding:12px">Save count</button>';
   openPanel(true);
   el('scBack').onclick = renderStock;
+  if (el('scAll')) el('scAll').onclick = function () { openStockCount(false); };
+  el('panel').querySelectorAll('[data-cs]').forEach(function (x) {
+    x.oninput = function () {
+      var sku = x.getAttribute('data-cs'), out = el('panel').querySelector('[data-cd="' + sku + '"]'), i = items.filter(function (y) { return y.sku === sku; })[0];
+      if (!out || !i) return;
+      var v = String(x.value).trim(), n = Number(v.replace(/[^0-9.]/g, '')), dif = Math.round((n - i.onHand) * 100) / 100;
+      out.innerHTML = v === '' ? '' : !dif ? '<span style="color:var(--green)">matches the system</span>' : '<b style="color:' + (dif < 0 ? 'var(--red)' : 'var(--amber)') + '">' + (dif > 0 ? '+' : '') + stkQty(dif, i.unit) + '</b> vs system ' + stkQty(i.onHand, i.unit);
+    };
+  });
   el('scGo').onclick = function () {
     var list = [].slice.call(el('panel').querySelectorAll('[data-cs]')).filter(function (x) { return String(x.value).trim() !== ''; })
       .map(function (x) { return { type: 'Count', sku: x.getAttribute('data-cs'), qty: Number(String(x.value).replace(/[^0-9.]/g, '')) || 0, note: 'stock count' }; });
@@ -3641,7 +3754,7 @@ function purCall(s) { if (!s || !s.phone) { toast('No phone saved for this suppl
 // Suppliers: list, add / edit, what each one supplies (quoted price, ⭐ main supplier of a product), recent orders
 function openSuppliers() {
   var d = PUR.data;
-  el('panel').innerHTML = '<button class="btn mini" id="slBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Purchases</button><h3>Suppliers</h3><p>Who supplies what, and at what rate</p>' +
+  el('panel').innerHTML = '<button class="btn mini" id="slBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Stock</button><h3>Suppliers</h3><p>Who supplies what, and at what rate</p>' +
     '<button class="btn pri" id="slAdd" style="width:100%;padding:12px;margin:0 0 12px"><i class="ti ti-user-plus"></i>Add supplier</button>' +
     '<div class="card" style="padding:0">' + (d.suppliers.length ? d.suppliers.map(function (s, k) {
       var n = (d.links || []).filter(function (l) { return l.supplier === s.name; }).length;
@@ -3649,24 +3762,32 @@ function openSuppliers() {
         '<div class="prow-2"><span>' + esc([s.contact, s.city, n ? n + ' product' + (n > 1 ? 's' : '') : 'no products yet'].filter(Boolean).join(' · ')) + '</span></div></div></div>';
     }).join('') : '<div class="empty">No suppliers yet</div>') + '</div>';
   openPanel(true);
-  el('slBack').onclick = renderPurchases;
+  el('slBack').onclick = function () { if (STK.data) renderStock(); else openStock(''); };
   el('slAdd').onclick = function () { openSupplierForm(null, openSuppliers); };
   el('panel').querySelectorAll('[data-sl]').forEach(function (r) { r.onclick = function () { openSupplier(d.suppliers[+r.getAttribute('data-sl')].name); }; });
 }
 function openSupplierForm(s, back) {
   el('panel').innerHTML = '<button class="btn mini" id="sfBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Back</button><h3>' + (s ? 'Edit supplier' : 'Add supplier') + '</h3><p>' + (s ? esc(s.name) : 'Saved for every purchase') + '</p>' +
-    (s ? '' : '<div class="fld"><label>Shop / company name</label><input id="sfName" placeholder="e.g. Tanveer Traders"></div>') +
+    '<div class="fld"><label>Shop / company name</label><input id="sfName" value="' + esc(s ? s.name : '') + '" placeholder="e.g. Tanveer Traders"></div>' +
     '<div class="fld"><label>Person\'s name</label><input id="sfContact" value="' + esc(s ? s.contact : '') + '" placeholder="e.g. Tanveer Ahmed"></div>' +
     '<div class="fld"><label>Phone</label><input id="sfPhone" type="tel" value="' + esc(s ? s.phone : '') + '" placeholder="0300 1234567"></div>' +
     '<div class="fld"><label>City</label><input id="sfCity" value="' + esc(s ? s.city : '') + '" placeholder="e.g. Gujranwala"></div>' +
     '<div class="fld"><label>Usually delivers in (days, optional)</label><input id="sfLead" type="text" inputmode="numeric" value="' + (s && s.lead ? s.lead : '') + '" placeholder="learned from the first delivery"></div>' +
-    '<div class="err" id="sfErr"></div><button class="btn pri" id="sfGo" style="width:100%;padding:12px">Save supplier</button>';
+    '<div class="err" id="sfErr"></div><button class="btn pri" id="sfGo" style="width:100%;padding:12px">Save supplier</button>' +
+    (s ? '<button class="btn" id="sfDel" style="width:100%;margin-top:8px;color:var(--red)"><i class="ti ti-trash"></i>Delete supplier</button>' : '');
   openPanel(true);
   el('sfBack').onclick = back;
+  if (el('sfDel')) el('sfDel').onclick = function () {
+    var used = PUR.data.pos.some(function (p) { return p.supplier === s.name; });
+    if (!confirm(used ? s.name + ' has purchases, so their history stays. Hide this supplier from the lists?' : 'Delete ' + s.name + '?')) return;
+    el('sfDel').disabled = true;
+    api('appDeleteSupplier', [TOKEN, s.name], function (r) { toast(r.hidden ? '✅ Supplier hidden · purchases kept' : '✅ Supplier deleted'); purReload(openSuppliers); },
+      function (e) { el('sfDel').disabled = false; el('sfErr').textContent = (e && e.message) || 'Not deleted'; });
+  };
   el('sfGo').onclick = function () {
-    var n = s ? s.name : el('sfName').value.trim(); if (!n) { el('sfErr').textContent = 'Write the shop / company name'; return; }
+    var n = el('sfName').value.trim(); if (!n) { el('sfErr').textContent = 'Write the shop / company name'; return; }
     el('sfGo').disabled = true;
-    api('appSaveSupplier', [TOKEN, { name: n, edit: !!s, contact: el('sfContact').value.trim(), phone: el('sfPhone').value.trim(), city: el('sfCity').value.trim(), lead: Number(el('sfLead').value) || 0 }], function (r) {
+    api('appSaveSupplier', [TOKEN, { name: s ? s.name : n, newName: s && n !== s.name ? n : '', edit: !!s, contact: el('sfContact').value.trim(), phone: el('sfPhone').value.trim(), city: el('sfCity').value.trim(), lead: Number(el('sfLead').value) || 0 }], function (r) {
       toast(r.existed ? 'This supplier is already saved' : '✅ Supplier saved'); purReload(function () { openSupplier(r.name); });
     }, function (e) { el('sfGo').disabled = false; el('sfErr').textContent = (e && e.message) || 'Not saved'; });
   };
@@ -3724,7 +3845,7 @@ function openSupplierProduct(sup, sku, back) {
   if (el('spRm')) el('spRm').onclick = function () { send({ supplier: sup, sku: sku, remove: true }); };
 }
 function openPurchases() {
-  el('panel').innerHTML = '<h3>Purchases</h3><div class="sk" style="height:220px"></div>'; openPanel(true);
+  el('panel').innerHTML = '<h3>Purchase orders</h3><div class="sk" style="height:220px"></div>'; openPanel(true);
   api('getAppPurchases', [TOKEN], function (d) { PUR.data = d; renderPurchases(); }, function () { toast('You don\'t have access to this'); openStock(''); });
 }
 var PUR_ST = { 'Ordered': 'var(--amber)', 'Partly received': 'var(--blue)', 'Received': 'var(--green)' };
@@ -3732,8 +3853,8 @@ function renderPurchases() {
   var d = PUR.data, open = d.pos.filter(function (p) { return p.status !== 'Received' || p.toPay > 0; });
   var list = PUR.f === 'open' ? open : d.pos;
   var owe = d.suppliers.filter(function (s) { return s.toPay > 0; });
-  el('panel').innerHTML = '<button class="btn mini" id="puBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Stock</button><h3>Purchases</h3><p>Order → receive → pay</p>' +
-    '<div class="btns" style="margin:0 0 12px"><button class="btn pri" id="puNew" style="padding:12px"><i class="ti ti-plus"></i>New purchase</button><button class="btn" id="puSup" style="padding:12px"><i class="ti ti-users"></i>Suppliers · ' + d.suppliers.length + '</button></div>' +
+  el('panel').innerHTML = '<button class="btn mini" id="puBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Stock</button><h3>Purchase orders</h3><p>Order → receive → pay</p>' +
+    '<button class="btn pri" id="puNew" style="width:100%;padding:12px;margin:0 0 12px"><i class="ti ti-plus"></i>New purchase</button>' +
     ((d.plan || []).length ? '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>Order soon</b><button class="btn mini" id="puPlan" type="button">Order these</button></div>' +
       d.plan.map(function (x, k) {
         return '<div class="prow" data-plan="' + k + '" style="--c:' + (x.daysLeft != null && x.daysLeft <= x.lead ? 'var(--red)' : 'var(--amber)') + '"><span class="prow-d"></span><div class="prow-m"><div class="prow-1"><b>' + esc(x.name) + '</b><span class="num">' + stkQty(x.suggest, x.unit) + '</span></div>' +
@@ -3750,7 +3871,6 @@ function renderPurchases() {
   openPanel(true);
   el('puBack').onclick = function () { openStock(''); };
   el('puNew').onclick = function () { openNewPurchase(); };
-  el('puSup').onclick = openSuppliers;
   var planBuy = function (list) {
     var sups = list.map(function (x) { return x.supplier; }).filter(function (s, k, a) { return s && a.indexOf(s) === k; });
     openNewPurchase({ lines: list.map(function (x) { return { sku: x.sku, qty: x.suggest }; }), supplier: sups.length === 1 ? sups[0] : '' });
@@ -3865,7 +3985,7 @@ function openNewPurchase(opt) {
 function openPurchase(po) {
   var p = PUR.data.pos.filter(function (x) { return x.po === po; })[0]; if (!p) return renderPurchases();
   var share = p.goods ? (p.cargo + p.other) / p.goods : 0, row = function (l, v) { return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span>' + l + '</span><b class="num">' + v + '</b></div></div></div>'; };
-  el('panel').innerHTML = '<button class="btn mini" id="poBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Purchases</button><h3>' + esc(p.supplier) + '</h3><p>' + esc(p.po) + ' · ' + esc(p.date) + ' · ' + esc(p.status) + '</p>' +
+  el('panel').innerHTML = '<button class="btn mini" id="poBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Orders</button><h3>' + esc(p.supplier) + '</h3><p>' + esc(p.po) + ' · ' + esc(p.date) + ' · ' + esc(p.status) + '</p>' +
     '<div class="card" style="padding:0">' + p.lines.map(function (l) {
       return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><b>' + esc(l.name) + '</b><span class="num">' + rs(l.qty * l.price) + '</span></div>' +
         '<div class="prow-2"><span>' + l.qty + ' × ' + rs(l.price) + (share ? ' · landed ' + rs(l.price * (1 + share)) : '') + ' · received ' + l.received + (l.rejected ? ' (' + l.rejected + ' rejected)' : '') + '</span></div></div></div>';
