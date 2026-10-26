@@ -2763,7 +2763,7 @@ function renderCash() {
   cashPbar();
   // Cash = where the money is (Home already shows the Net COD card): the flow, who owes us, payments, parcels.
   var bankOk = d.batches.filter(function (b) { return /✅/.test(b.matched); }).reduce(function (a, b) { return a + (b.bank || 0); }, 0);
-  var h = cashFlow(s, bankOk, periodLabel(C, months, 'all')) + owesCard(d);
+  var h = cashFlow(s, bankOk, periodLabel(C, months, 'all')) + advCard(d) + owesCard(d);
   var bfc = BATCH_F.filter(function (x) { return x[0] === C.bf; })[0] || BATCH_F[0];
   // Payments that need someone first: not transferred, then not checked in the bank, then a gap, then matched
   var rank = function (b) { return !b.transferred ? 0 : b.bank == null ? 1 : /✅/.test(b.matched) ? 3 : 2; };
@@ -2817,6 +2817,17 @@ function cashFlow(s, bankOk, label) {
     row('Paid out ›', (s.paidDelivered || 0) + ' parcels paid' + (bankOk ? ' · ' + rs(bankOk) + ' verified in bank' : ''), rs(s.received), 'up', 'data-pf="paid"') +
     row('Outstanding ›', (s.pendingDelivered || 0) + ' unpaid' + (s.overdue ? ' · <i class="late">' + s.overdue + ' overdue</i>' : ''), rs(s.pending), s.overdue ? 'down' : '', 'data-pf="due"') +
     (s.moving ? '<div class="hero-later"><i class="ti ti-clock"></i>In transit: ~' + rs(s.movingCod) + ' COD · ' + s.moving + ' parcels</div>' : '') + '</div>';
+}
+// Advance payments: money the customer paid before delivery (Shopify or recorded in the app) — not part of the courier's COD
+function advCard(d) {
+  var a = d.advances;
+  if (!a || !a.n) return '';
+  return '<div class="card"><div class="h"><b>Advance payments</b><span>' + rs(a.total) + '</span></div>' +
+    '<p style="margin:-4px 0 6px;color:var(--muted);font-size:12.5px">' + a.n + ' order' + (a.n > 1 ? 's' : '') + (a.prepaid ? ' · ' + a.prepaid + ' fully prepaid' : '') + ' · paid before delivery, not in the courier\'s COD</p>' +
+    a.list.slice(0, 8).map(function (x) {
+      return '<div class="prow" data-p="' + esc(x.ref) + '"><div class="prow-m"><div class="prow-1"><b>' + esc(x.ref) + '</b><span class="num">' + rs(x.amount) + '</span></div>' +
+        '<div class="prow-2"><span>' + esc([x.date, x.method, x.via === 'App' ? 'recorded in the app' : 'paid in Shopify'].filter(Boolean).join(' · ')) + '</span>' + (x.prepaid ? '<span class="st" style="--c:var(--green)">Prepaid</span>' : '') + '</div></div></div>';
+    }).join('') + (a.n > 8 ? '<small class="mnote">+ ' + (a.n - 8) + ' more in Finance → Expenses (Money in)</small>' : '') + '</div>';
 }
 // Courier receivables: per courier, the COD still to be paid out, how many parcels, how old the oldest is (tap = those parcels)
 function owesCard(d) {
@@ -3441,7 +3452,7 @@ function openPnl(m) {
     var exp = Object.keys(p.expenses).sort(function (a, b) { return p.expenses[b] - p.expenses[a]; });
     el('panel').innerHTML = '<h3>Profit & loss</h3><p>Orders of the month · delivered and returned</p>' + fnNav('pl', p.month) +
       '<div class="card" style="padding:0">' +
-      line('Sales (delivered COD)', rs(p.sales), '', p.delivered + ' delivered · ' + p.returned + ' returned') +
+      line('Sales (delivered orders)', rs(p.sales), '', p.delivered + ' delivered · ' + p.returned + ' returned' + (p.advanceSales ? ' · incl. ' + rs(p.advanceSales) + ' paid in advance' : '')) +
       line('Courier fees', minus(p.fees), '', 'delivery + return charges, GST') +
       line('Taxes (WHT + SST)', minus(p.taxes)) +
       line('Cost of goods', minus(p.cogs), '', p.stockStarted ? 'from stock: average cost of what was sent' : 'starts after the stock count') +
