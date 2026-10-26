@@ -1144,7 +1144,7 @@ el('pgBack').onclick = closePage;
 // Everything known about one parcel in one sheet: order, customer, money, NDR case, then the courier timeline.
 document.addEventListener('click', function (e) {
   var card = e.target.closest('[data-p]');
-  if (!card || e.target.closest('a, button, input, textarea, select, .chip, [data-rec], [data-pick], [data-track]')) return;
+  if (!card || e.target.closest('a, button, input, textarea, select, .chip, [data-rec], [data-pick], [data-rask], [data-track]')) return;
   openParcel(card.getAttribute('data-p'));
 });
 function findParcel(key) {
@@ -2300,17 +2300,27 @@ var TICKET_WORDS = [[/Amal nahi hua/, 'No action'], [/Amal hua/, 'Acted'], [/Int
   [/DOBARA – (\d+h), amal nahi/, 'Follow-up · no action in $1'], [/Case band/, 'Case closed'], [/Outbox/, 'Not sent yet'],
   [/Done \(marked in sheet\)/, 'Done (marked in sheet)'], [/Done \(WhatsApp\)/, 'Done (WhatsApp)']];
 function ticketResult(s) { s = String(s || ''); TICKET_WORDS.forEach(function (w) { s = s.replace(w[0], w[1]); }); return s; }
+var REQ_KIND = { reattempt: 'Reattempt', return: 'Return', claim: 'Claim', check: 'Status check' };
+var SENT_NOW = {}; // type|cn → { channel, at } sent from this phone, until W1 records it
+function inOutbox(c) {
+  var b = (N.data.outbox || {})[c.courier] || {}, k = Object.keys(b).filter(function (x) { return (b[x] || []).some(function (it) { return it.cn === c.cn; }); })[0];
+  return k || '';
+}
 function ticketLine(c) {
   var co = N.data.couriers && N.data.couriers[c.courier], t = co && co.tickets[c.cn];
-  if (!t) return '';
+  var ob = inOutbox(c), now = t ? SENT_NOW[t.type + '|' + c.cn] : Object.keys(SENT_NOW).filter(function (k) { return k.split('|')[1] === c.cn; }).map(function (k) { return SENT_NOW[k]; })[0];
+  if (c.next === 'Let it return (RTO)' && c.shipStatus === 'RTO_INITIATED' && !ob) return '<div class="tk ok"><b><i class="ti ti-arrow-back-up"></i> ' + esc(c.courier) + ' is already returning it</b> · no request needed</div>';
+  if (ob) return '<div class="tk"><b><i class="ti ti-inbox"></i> ' + REQ_KIND[ob] + ' request in ' + esc(c.courier) + ' list</b> · not sent yet</div>';
+  if (now && !(t && t.channel)) return '<div class="tk ok"><b>' + (now.channel === 'WhatsApp' ? '📱 Sent on WhatsApp' : '📄 Sent to Sheet') + '</b> · ' + REQ_KIND[now.type] + ' · just now</div>';
+  if (!t) return c.sent === 'Queued' ? '<div class="tk"><b><i class="ti ti-inbox"></i> Request in ' + esc(c.courier) + ' list</b> · not sent yet</div>' : '';
   var res = ticketResult(t.result);
   var cls = /Acted|Delivered/.test(res) ? 'ok' : /No action/.test(res) ? 'bad' : '';
   if (!t.channel) return '<div class="tk"><b><i class="ti ti-inbox"></i> In ' + esc(c.courier) + ' list</b>' + (/DOBARA/.test(t.result) ? ' · 🔴 no action in 24h, goes again' : ' · not sent yet') + '</div>';
-  var via = t.channel === 'WhatsApp' ? '📱 WhatsApp' : '📄 Sheet';
+  var via = (t.channel === 'Sheet + WhatsApp' ? '📄 Sheet + 📱 WhatsApp' : t.channel === 'WhatsApp' ? '📱 WhatsApp' : '📄 Sheet') + ' · ' + (REQ_KIND[t.type] || 'Request');
   return '<div class="tk ' + cls + '"><b>' + via + ' · ' + esc(t.id) + (t.round > 1 ? ' · follow-up' : '') + ':</b> ' + esc(res) +
     (t.sentAt ? '<br><small>Sent ' + esc(t.sentAt) + (t.by ? ' · ' + esc(t.by) : '') + '</small>' : '') +
     (t.status || t.reply ? '<br>' + c.courier + ': ' + esc([t.status, t.reply].filter(Boolean).join(' – ')) : '<br>Awaiting reply from ' + c.courier) +
-    (t.channel === 'WhatsApp' ? '<br><button class="btn mini" data-wr="' + esc(t.id) + '" data-wc="' + esc(c.courier) + '"><i class="ti ti-message-reply"></i>Courier replied</button>' : '') + '</div>';
+    (/WhatsApp/.test(t.channel) ? '<br><button class="btn mini" data-wr="' + esc(t.id) + '" data-wc="' + esc(c.courier) + '"><i class="ti ti-message-reply"></i>Courier replied</button>' : '') + '</div>';
 }
 function renderCourierCards() {
   var cs = N.data.couriers || {};
@@ -2330,15 +2340,19 @@ var OB_KINDS = [['reattempt', '🔁', 'Reattempt', 'DOBARA DELIVER KAREIN'], ['r
 var OB_REPLIES = ['Reattempt tomorrow', 'Rider assigned', 'Delivered', 'POD shared', 'Location shared', 'Proof shared', 'Return dispatched', 'Claim noted', 'Customer issue'];
 var OB_DONE_REPLIES = ['Delivered', 'POD shared', 'Return dispatched', 'Claim noted']; // these usually finish the request
 function outboxOf(name) { var b = (N.data.outbox || {})[name] || {}; OB_KINDS.forEach(function (k) { b[k[0]] = b[k[0]] || []; }); return b; }
+function onSheetOf(name) { var b = (N.data.onSheet || {})[name] || {}; OB_KINDS.forEach(function (k) { b[k[0]] = b[k[0]] || []; }); return b; }
+function onSheetCount(name) { var b = onSheetOf(name); return OB_KINDS.reduce(function (a, k) { return a + b[k[0]].length; }, 0); }
 function outboxCount(name) { var b = outboxOf(name); return OB_KINDS.reduce(function (a, k) { return a + b[k[0]].length; }, 0); }
 // how this store sends courier requests (W1 Store Settings "Courier Requests Via"): WhatsApp, Sheet or both
 function courierChannels() { var c = N.data && N.data.options && N.data.options.channels; return c && c.length ? c : ['WhatsApp', 'Sheet']; }
 function outboxHtml() {
-  var names = Object.keys(N.data.outbox || {}).filter(function (n) { return outboxCount(n); });
+  var wa = courierChannels().indexOf('WhatsApp') !== -1;
+  var names = Object.keys(N.data.outbox || {}).concat(Object.keys(N.data.onSheet || {})).filter(function (n, i, a) { return a.indexOf(n) === i && (outboxCount(n) || (wa && onSheetCount(n))); });
   if (!names.length || !can('ndr.work')) return '';
   return '<div class="obox"><div class="obox-h"><i class="ti ti-inbox"></i><b>Courier list</b><span>ready to send</span></div>' + names.map(function (n) {
     var b = outboxOf(n);
-    return '<button class="ob-line" data-ob="' + esc(n) + '"><b>' + esc(n) + '</b><span>' + OB_KINDS.map(function (k) { return b[k[0]].length ? b[k[0]].length + ' ' + k[2].toLowerCase() : ''; }).filter(Boolean).join(' · ') +
+    var sh = wa ? onSheetCount(n) : 0;
+    return '<button class="ob-line" data-ob="' + esc(n) + '"><b>' + esc(n) + '</b><span>' + OB_KINDS.map(function (k) { return b[k[0]].length ? b[k[0]].length + ' ' + k[2].toLowerCase() : ''; }).concat(sh ? [sh + ' on sheet'] : []).filter(Boolean).join(' · ') +
       '</span><span class="ob-go">Send <i class="ti ti-chevron-right"></i></span></button>';
   }).join('') + '</div>';
 }
@@ -2395,11 +2409,29 @@ function openOutbox(name) {
       '<div class="btns" style="margin-top:8px">' + (courierChannels().indexOf('WhatsApp') !== -1 ? '<button class="btn wa" data-send="WhatsApp"><i class="ti ti-brand-whatsapp"></i>WhatsApp</button>' : '') +
       (courierChannels().indexOf('Sheet') !== -1 ? '<button class="btn" data-send="Sheet"><i class="ti ti-table"></i>Sheet</button>' : '') + '</div></div>';
   }).join('');
+  var os = onSheetOf(name), wa = courierChannels().indexOf('WhatsApp') !== -1;
+  var sec2 = !wa ? '' : OB_KINDS.map(function (k) {
+    var items = os[k[0]];
+    if (!items.length) return '';
+    return '<div class="card obs" data-k="' + k[0] + '"><div class="h"><b>📄 On the sheet · ' + k[2] + '</b><span>' + items.length + '</span></div>' +
+      '<small class="mnote" style="display:block;margin:-4px 0 6px">Already in the ' + esc(name) + ' sheet, no action yet. Send on WhatsApp too; it leaves the sheet for Done once ' + esc(name) + ' acts.</small>' +
+      items.map(function (it, i) {
+        return '<label class="ob-it"><input type="checkbox" data-i="' + i + '"><div><b>' + esc(it.order || it.cn) + ' · ' + esc(it.name || '') + '</b><small>' + [esc(it.city || ''), it.ticket ? esc(it.ticket) : ''].filter(Boolean).join(' · ') + '</small></div></label>';
+      }).join('') + '<div class="btns" style="margin-top:8px"><button class="btn wa" data-sendwa><i class="ti ti-brand-whatsapp"></i>Send on WhatsApp too</button></div></div>';
+  }).join('');
   el('panel').innerHTML = '<h3>' + esc(name) + ' · courier list</h3><p>Send each kind on its own · batch ' + esc(batch) + '</p>' +
-    (sec || '<div class="card empty"><i class="ti ti-circle-check"></i>Everything is sent</div>') +
+    (sec || '<div class="card empty"><i class="ti ti-circle-check"></i>Nothing new to send</div>') + sec2 +
     '<div class="btns" style="margin-top:10px"><button class="btn" id="obClose">Close</button></div>';
   openPanel(true);
   el('obClose').onclick = closePanel;
+  el('panel').querySelectorAll('.obs').forEach(function (card) {
+    var kind = card.getAttribute('data-k');
+    card.querySelector('[data-sendwa]').onclick = function () {
+      var picked = [].slice.call(card.querySelectorAll('input[data-i]')).filter(function (x) { return x.checked; }).map(function (x) { return os[kind][Number(x.getAttribute('data-i'))]; });
+      if (!picked.length) { toast('Tick at least one parcel'); return; }
+      obWhatsApp(name, kind, picked, batch, 0);
+    };
+  });
   el('panel').querySelectorAll('.obk').forEach(function (card) {
     var kind = card.getAttribute('data-k');
     card.querySelectorAll('[data-send]').forEach(function (btn) {
@@ -2426,6 +2458,7 @@ function obWhatsApp(name, kind, picked, batch, from) {
     el('obAgain').onclick = share;
     el('obYes').onclick = function () {
       obSend(name, kind, part, 'WhatsApp', batch, function () { if (from + 10 < picked.length) obWhatsApp(name, kind, picked, batch, from + 10); });
+      if (from + 10 >= picked.length) closePanel(); // done: the cards now say "Sent on WhatsApp"
     };
   };
   var share = function () {
@@ -2436,10 +2469,12 @@ function obWhatsApp(name, kind, picked, batch, from) {
 }
 function obSend(name, kind, items, channel, batch, then) {
   var list = items.map(function (it) { return { type: kind, cn: it.cn }; });
+  items.forEach(function (it) { SENT_NOW[kind + '|' + it.cn] = { channel: channel, type: kind }; });
   // optimistic: out of the list now; the server records channel, batch, who and when (W1 within 5 min)
   var box = outboxOf(name);
   box[kind] = box[kind].filter(function (it) { return items.indexOf(it) === -1; });
   if (N.data.outbox) N.data.outbox[name] = box;
+  var sb = onSheetOf(name); sb[kind] = sb[kind].filter(function (it) { return items.indexOf(it) === -1; }); if (N.data.onSheet) N.data.onSheet[name] = sb;
   snap('ndr', N.data); renderNdr();
   toast(channel === 'WhatsApp' ? '✅ Sent to ' + name + ' · WhatsApp · ' + items.length + ' parcel' + (items.length > 1 ? 's' : '') : '✅ Sent to ' + name + ' · Sheet · ' + items.length + ' parcel' + (items.length > 1 ? 's' : '') + ' (on the sheet within 5 min)');
   api('appCourierSend', [TOKEN, list, channel, batch], function () { if (then) then(); else if (channel === 'Sheet') sheetSent(name, kind, items.length); else openOutbox(name); loadNdr(true); },
@@ -2554,6 +2589,17 @@ function otherOrdersHtml(c) {
 var NDR_NOT_REACHED = ['No answer', 'Phone off', 'Wrong number'];
 var NDR_REASONS = ['Changed mind', 'Ordered by mistake', 'Delivery too late', 'Price', 'Other reason'];
 var NDR_TIMES = ['Morning', 'Afternoon', 'Evening'];
+// what already happened with this case's courier request (shown first so nobody makes it twice)
+function ndrReqBanner(c) {
+  var co = N.data.couriers && N.data.couriers[c.courier], t = co && co.tickets[c.cn], ob = inOutbox(c), w = 'style="margin:0 0 10px"';
+  var sentNow = t && SENT_NOW[t.type + '|' + c.cn];
+  if (c.shipStatus === 'RTO_INITIATED') return '<div class="tk ok" ' + w + '><i class="ti ti-arrow-back-up"></i> ' + esc(c.courier) + ' has already started the return of this parcel · a return request is not needed.</div>';
+  if (ob) return '<div class="tk" ' + w + '><i class="ti ti-inbox"></i> <b>' + REQ_KIND[ob] + ' request already made</b> · in the ' + esc(c.courier) + ' list, not sent yet. Send it from the top of NDR.</div>';
+  if (t && (t.channel || sentNow)) return '<div class="tk ok" ' + w + '><i class="ti ti-send"></i> <b>' + (REQ_KIND[t.type] || 'Request') + ' request sent</b> · ' + (t.channel || sentNow.channel) + (t.sentAt ? ' · ' + esc(t.sentAt) : '') +
+    (t.status || t.reply ? ' · ' + esc(c.courier) + ': ' + esc([t.status, t.reply].filter(Boolean).join(' – ')) : ' · waiting for ' + esc(c.courier)) + '. Saving the same answer again does not send it twice.</div>';
+  if (c.sent === 'Queued') return '<div class="tk" ' + w + '><i class="ti ti-inbox"></i> <b>Request already made</b> · in the ' + esc(c.courier) + ' list, not sent yet.</div>';
+  return '';
+}
 function openNdrForm(cn, afterCall) {
   var c = N.data.cases.filter(function (x) { return x.cn === cn; })[0]; if (!c) return;
   var o = N.data.options, first = String(c.name || '').split(' ')[0] || 'the customer';
@@ -2567,9 +2613,7 @@ function openNdrForm(cn, afterCall) {
     (c.reason || c.courierStatus ? '<div class="tsays" style="margin:0 0 10px"><i class="ti ti-truck"></i>' + esc(c.courier) + ' says: ' + esc(niceReason(c.reason || c.courierStatus)) +
       (c.attempts ? ' · ' + c.attempts + (c.attempts > 1 ? ' attempts' : ' attempt') : '') + '</div>' : '') +
     // a request already exists: say so first (saving again updates it, never makes a second one)
-    (c.sent === 'Queued' ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-inbox"></i> Request already in the ' + esc(c.courier) + ' list · not sent yet. Send it from the top of NDR.</div>' :
-      c.sent === 'Sent' ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-send"></i> Request sent to ' + esc(c.courier) + ' · waiting for their reply.</div>' :
-      c.sent === 'Courier confirmed' ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-circle-check"></i> ' + esc(c.courier) + ' replied to the request.</div>' : '') +
+    ndrReqBanner(c) +
     '<div class="fld"><label>Did you reach ' + esc(first) + '?</label><div class="seg2" id="fReach"><button type="button" data-r="yes"><i class="ti ti-phone-check"></i>Yes, reached</button><button type="button" data-r="no"><i class="ti ti-phone-off"></i>No</button></div></div>' +
     // not reached
     '<div id="fNo" hidden><div class="fld"><label>What happened? · call ' + ((c.calls || 0) + 1) + (c.calls + 1 >= 3 ? '' : ' of 3') + '</label>' + chips('fNoWhy', NDR_NOT_REACHED) + '</div>' +
@@ -2706,8 +2750,10 @@ function openNdrForm(cn, afterCall) {
     toast(send || ret || check ? '📥 Adding to ' + c.courier + ' list…' : 'Saving…');
     api('saveAppNdrOutcome', [{ token: TOKEN, cn: c.cn, outcome: outcome, next: '', updated: updated, reattempt: st.day || el('fDate').value,
       sent: c.sent || 'Not sent', notes: el('fNotes').value, says: msg, send: send, ret: !!ret, check: !!check, ask: ask, call: true }], function (r) {
-      c.next = r.next; snap('ndr', N.data);
-      toast(send || ret || check ? '✅ Request created · in the ' + c.courier + ' list (not sent yet)' : '✅ Saved');
+      c.next = r.next; if (r.sent) c.sent = r.sent; snap('ndr', N.data);
+      toast(r.returning ? '↩️ ' + c.courier + ' is already returning it · no request needed' :
+        r.already ? '✅ Saved · ' + (REQ_KIND[r.already.type] || '') + ' request already ' + (r.already.channel ? 'sent on ' + r.already.channel + (r.already.sentAt ? ' ' + r.already.sentAt : '') : 'in the ' + c.courier + ' list') + ' · not made twice' :
+        send || ret || check ? '✅ Request created · in the ' + c.courier + ' list (not sent yet)' : '✅ Saved');
       loadNdr(true);
     }, function (e) {
       Object.assign(c, JSON.parse(before)); renderNdr(); updateBadge();
@@ -3025,15 +3071,17 @@ function renderReturns() {
   var d = R.data;
   // Ready to collect = the courier has it in our city (handed back, or at the local office); on the way = still travelling
   var ready = d.waiting.filter(function (w) { return w.back || w.atOrigin; });
-  var onway = R.filter === 'back' ? [] : d.waiting.filter(function (w) { return !w.back && !w.atOrigin; });
+  var onway = R.filter === 'back' ? [] : d.waiting.filter(function (w) { return !w.back && !w.atOrigin && !w.late; });
+  var late = R.filter === 'back' ? [] : d.waiting.filter(function (w) { return w.late; });
   if (R.filter === 'back') ready = ready.filter(function (w) { return w.back; });
   var value = d.waiting.reduce(function (s, w) { return s + (Number(w.cod) || 0); }, 0);
   var row = function (w, act) {
-    var st = w.back ? ['Returned by courier', 'var(--red)'] : w.atOrigin ? ['At local office', 'var(--amber)'] : ['On the way back', 'var(--blue)'];
+    var st = w.back ? ['Returned by courier', 'var(--red)'] : w.atOrigin ? ['At local office', 'var(--amber)'] : w.late ? ['No update ' + w.days + 'd', 'var(--red)'] : ['On the way back', 'var(--blue)'];
     return '<div class="prow' + (act ? '' : ' dim') + '" data-p="' + esc(w.cn || w.order) + '" style="--c:' + st[1] + '"><span class="prow-d"></span><div class="prow-m">' +
       '<div class="prow-1"><b>' + esc(w.name || w.order) + '</b>' + (w.days != null ? '<span class="num" style="color:var(--muted);font-weight:500">' + w.days + 'd</span>' : '') + '</div>' +
       '<div class="prow-2"><span>' + [esc(w.order), esc(w.courier), esc(w.items)].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + st[1] + '">' + st[0] + '</span></div></div>' +
-      (act ? '<button class="btn prow-btn" data-pick="' + esc(w.cn) + '"><i class="ti ti-scan"></i>Receive</button>' : '') + '</div>';
+      (act ? '<button class="btn prow-btn" data-pick="' + esc(w.cn) + '"><i class="ti ti-scan"></i>Receive</button>' : '') +
+      (w.late ? '<button class="btn prow-btn" data-rask="' + esc(w.cn) + '"><i class="ti ti-brand-whatsapp"></i>Ask courier</button>' : '') + '</div>';
   };
   var lim = R.wlim || PAGE;
   var h = '<div class="psum"><span>Scanned today <b class="num">' + d.today.total + '</b>' + (d.today.total ? ' (' + d.today.good + ' good)' : '') + '</span><span><b class="num">' + rs(value) + '</b> goods coming back</span></div>' +
@@ -3041,6 +3089,7 @@ function renderReturns() {
     '<div id="rwait"><div class="pday"><span>READY TO COLLECT</span><span class="num">' + ready.length + '</span></div>' +
     (ready.length ? '<div class="plist-box">' + ready.slice(0, lim).map(function (w) { return row(w, true); }).join('') + '</div>' + moreBtn('wmore', Math.min(lim, ready.length), ready.length)
       : '<div class="card empty"><i class="ti ti-circle-check"></i>Nothing to collect</div>') + '</div>' +
+    (late.length ? '<div class="pday"><span>LATE · NO UPDATE</span><span class="num">' + late.length + '</span></div><div class="plist-box">' + late.map(function (w) { return row(w, false); }).join('') + '</div>' : '') +
     (onway.length ? '<div class="pday"><span>ON THE WAY BACK</span><span class="num">' + onway.length + '</span></div><div class="plist-box">' + onway.slice(0, R.olim || 10).map(function (w) { return row(w, false); }).join('') + '</div>' +
       (onway.length > (R.olim || 10) ? '<button class="btn more" id="omore">Show all ' + onway.length + '</button>' : '') : '') +
     '<div class="pday"><span>RECENTLY SCANNED</span><span class="num">' + d.recent.length + '</span></div>' +
@@ -3093,6 +3142,15 @@ el('rcode').onkeydown = function (e) { if (e.key === 'Enter') findReturn(el('rco
 el('rview').onclick = function (e) {
   var f = e.target.closest('[data-rf]');
   if (f) { R.filter = f.getAttribute('data-rf'); R.scrollTo = !!R.filter; renderReturns(); return; }
+  var a = e.target.closest('[data-rask]');
+  if (a) {
+    var w = R.data.waiting.filter(function (x) { return x.cn === a.getAttribute('data-rask'); })[0]; if (!w) return;
+    // WhatsApp status check for the courier's group (Roman Urdu, like all courier messages)
+    var msg = '*' + STORE + ' · Return Status Check*\n\n*CN ' + w.cn + '*\n📍 ' + [w.city, w.order].filter(Boolean).join(' · ') +
+      '\n\nYe return ' + w.days + ' din se aage nahi barha. Parcel ki current location batayen aur kab tak wapas pohnchega.\n\nShukriya\n' + STORE + ' · Operations';
+    if (navigator.share) navigator.share({ text: msg }).catch(function () {}); else window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+    return;
+  }
   var t = e.target.closest('[data-pick]'); if (t) { el('rcode').value = t.getAttribute('data-pick'); findReturn(t.getAttribute('data-pick')); window.scrollTo(0, 0); } };
 // A courier label has several barcodes (CN, order, QR): take the one shaped like a CN or our order number
 // Returns field: on a computer (scanner gun types into it) it is ready at once; on a phone the keyboard opens
