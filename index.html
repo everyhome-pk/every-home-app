@@ -616,9 +616,11 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   <div class="dr-h">Finance</div>
   <button class="dr-i" id="btnExp"><i class="ti ti-receipt"></i><span id="btnExpT">Expenses</span></button>
   <button class="dr-i" id="btnPnl"><i class="ti ti-report-money"></i>Profit & loss</button>
+  <button class="dr-i" id="btnAcct"><i class="ti ti-building-bank"></i>Accounts & payouts</button>
   <div class="dr-h">Inventory</div>
   <button class="dr-i" id="btnStock"><i class="ti ti-packages"></i>Stock</button>
   <div class="dr-h">App</div>
+  <button class="dr-i" id="btnTeam" hidden><i class="ti ti-users-group"></i>Team</button>
   <button class="dr-i" id="btnPush" hidden><i class="ti ti-bell-off"></i>Notifications · Off</button>
   <button class="dr-i" id="btnSync"><i class="ti ti-activity"></i>Data status</button>
   <button class="dr-i" id="btnBio" hidden><i class="ti ti-fingerprint"></i>Fingerprint login</button>
@@ -951,6 +953,8 @@ function applyPerms() {
   el('btnStock').hidden = !can('inventory.view');
   el('btnExp').hidden = !(can('finance.add') || can('finance.view') || can('finance.approve'));
   el('btnPnl').hidden = !can('finance.view');
+  el('btnAcct').hidden = !can('finance.view');
+  el('btnTeam').hidden = !can('users.manage');
   // a menu heading goes when nothing under it is left
   document.querySelectorAll('.dr-h').forEach(function (h) {
     var any = false;
@@ -1238,7 +1242,21 @@ function ppSteps(stage, color) {
     return '<div class="pp-step' + (i <= at ? ' done' : '') + (i === at ? ' now' : '') + '"><i></i>' + s + '</div>';
   }).join('') + '</div>';
 }
+function parcelItemsHtml(r) {
+  return '<div class="pp-h"><span>What\'s inside</span><span>' + r.pieces + ' piece' + (r.pieces === 1 ? '' : 's') + (r.value ? ' · ' + rs(r.value) : '') + '</span></div><div class="pd">' +
+    (r.lines.length ? r.lines.map(function (l) {
+      return '<div class="pd-r"><span>' + esc(l.name) + (l.variant ? ' · ' + esc(l.variant) : '') + '</span><b>' + l.qty + ' ×' + (l.price ? ' ' + rs(l.price) : '') + '</b></div>';
+    }).join('') : '<div class="pd-r"><span>No product lines</span></div>') + '</div>';
+}
+function openParcelLite(key) {
+  openPage({ title: 'Parcel', body: '<div class="sk" style="height:200px"></div>' });
+  api('getAppParcelItems', [TOKEN, key], function (r) {
+    openPage({ title: r.ref, sub: [r.courier, r.cn].filter(Boolean).join(' · '), tag: r.status ? '<span class="st" style="--c:var(--blue)">' + esc(r.status.replace(/_/g, ' ').toLowerCase()) + '</span>' : '',
+      body: '<div class="pp-card">' + parcelItemsHtml(r) + '</div>', bar: '' });
+  }, function (e) { closePage(); toast((e && e.message) || 'Parcel not found'); });
+}
 function openParcel(key) {
+  if (!can('parcels.view')) return openParcelLite(key);
   var p = findParcel(key);
   if (!p && !P.data) { // Parcels not loaded yet: load once, then open
     openPage({ title: 'Parcel', body: '<div class="sk" style="height:220px"></div>' });
@@ -1267,6 +1285,7 @@ function openParcel(key) {
       cash ? '<button class="pp-more" style="width:auto;padding:0" data-ppr="' + esc(p.cn) + '">Receipt ›</button>' : '') +
     (!p.done && can('cash.edit') && (p.due == null || p.due > 0) ? '<button class="btn" id="pdAdv" style="width:100%;padding:12px;margin-bottom:12px"><i class="ti ti-cash"></i>Record advance payment</button>' : '') +
     (p.rcv ? '<button class="btn" data-rh="' + esc(p.cn) + '" style="width:100%;padding:12px;margin-bottom:12px"><i class="ti ti-history"></i>Return history</button>' : '') +
+    '<div class="pp-card" id="pdIn" hidden></div>' +
     (p.cn ? '<div class="pp-card"><div class="pp-h"><span>Tracking</span></div><div class="tl-sheet" id="pdtl" style="margin-bottom:8px"><div class="sk" style="height:100px"></div></div></div>' : '');
   // the actions stay at the bottom, within thumb reach
   var bar = (p.phone ? '<a class="btn"' + (ndr ? ' data-call="' + esc(ndr.cn) + '"' : '') + ' href="' + telHref(p.phone) + '"><i class="ti ti-phone"></i>Call</a>' : '') +
@@ -1275,6 +1294,7 @@ function openParcel(key) {
       : p.track ? '<a class="btn" target="_blank" href="' + esc(p.track) + '"><i class="ti ti-external-link"></i>Track</a>' : '');
   openPage({ title: p.ref, sub: p.name || '', tag: '<span class="st" style="--c:' + s[1] + '">' + s[0] + '</span>', body: body, bar: bar });
   if (el('pdNdr')) el('pdNdr').onclick = function () { openNdrForm(ndr.cn); };
+  api('getAppParcelItems', [TOKEN, p.cn || p.ref], function (r) { if (el('pdIn')) { el('pdIn').innerHTML = parcelItemsHtml(r); el('pdIn').hidden = false; } }, function () {});
   if (el('pdAdv')) el('pdAdv').onclick = function () { openAdvance(p); };
   el('pgBody').querySelectorAll('[data-ppr]').forEach(function (b) { b.onclick = function () { openCashReceipt(b.getAttribute('data-ppr')); }; });
   // Tracking: the saved events first (instant), then the courier's own live list replaces them; long lists start short.
@@ -2193,6 +2213,7 @@ function newCases() { var s = seenSet(); return N.data ? N.data.cases.filter(fun
 // The NDR badge, the app icon number and the TO DO list all count exactly these.
 var CALL_AGAIN_HOURS = 3;
 function isTodo(c) {
+  if (c.next === 'Chase courier (late)' && c.sent !== 'Attempt failed') return false;
   if (!c.outcome || c.outcome === 'Not called yet') return true;
   if (c.sent === 'Attempt failed') return true;
   return /no answer|phone off/i.test(c.outcome) && c.lastCallMs > 0 && Date.now() - c.lastCallMs > CALL_AGAIN_HOURS * 3600000;
@@ -2306,7 +2327,8 @@ function taskCard(c, seen) {
     '<div class="tact">' + (todo && c.phone ? '<a class="btn pri grow" data-call="' + esc(c.cn) + '" href="' + telHref(c.phone) + '"><i class="ti ti-phone"></i>Call now</a>' : '') +
     (!todo && c.phone ? '<a class="btn sq" data-call="' + esc(c.cn) + '" href="' + telHref(c.phone) + '" aria-label="Call"><i class="ti ti-phone"></i></a>' : '') +
     (c.wa ? '<a class="btn sq wa" target="_blank" href="' + waLink(c.wa, c.waText) + '" aria-label="WhatsApp"><i class="ti ti-brand-whatsapp"></i></a>' : '') +
-    '<button class="btn' + (todo ? '' : ' pri grow') + '" data-rec="' + esc(c.cn) + '"><i class="ti ti-pencil"></i>' + (todo ? 'Update' : 'Update case') + '</button></div></div>';
+    (c.watch && can('ndr.work') && c.next !== 'Chase courier (late)' ? '<button class="btn pri grow" data-late="' + esc(c.cn) + '"><i class="ti ti-clock-exclamation"></i>Ask courier · late</button>' : '') +
+    '<button class="btn' + (todo && !c.watch ? '' : c.watch ? '' : ' pri grow') + '" data-rec="' + esc(c.cn) + '"><i class="ti ti-pencil"></i>' + (todo ? 'Update' : 'Update case') + '</button></div></div>';
 }
 // W1 writes results in Roman Urdu for the courier's sheet; the app shows them in English
 var TICKET_WORDS = [[/Amal nahi hua/, 'No action'], [/Amal hua/, 'Acted'], [/Intezar/, 'Waiting'], [/Deliver ho gaya/, 'Delivered'],
@@ -2315,7 +2337,7 @@ var TICKET_WORDS = [[/Amal nahi hua/, 'No action'], [/Amal hua/, 'Acted'], [/Int
   [/DOBARA – (\d+h), amal nahi/, 'Follow-up · no action in $1'], [/Case band/, 'Case closed'], [/Outbox/, 'Not sent yet'],
   [/Done \(marked in sheet\)/, 'Done (marked in sheet)'], [/Done \(WhatsApp\)/, 'Done (WhatsApp)']];
 function ticketResult(s) { s = String(s || ''); TICKET_WORDS.forEach(function (w) { s = s.replace(w[0], w[1]); }); return s; }
-var REQ_KIND = { reattempt: 'Reattempt', return: 'Return', claim: 'Claim', check: 'Status check' };
+var REQ_KIND = { reattempt: 'Reattempt', return: 'Return', claim: 'Claim', check: 'Status check', late: 'Late delivery' };
 var SENT_NOW = {}; // type|cn → { channel, at } sent from this phone, until W1 records it
 function inOutbox(c) {
   var b = (N.data.outbox || {})[c.courier] || {}, k = Object.keys(b).filter(function (x) { return (b[x] || []).some(function (it) { return it.cn === c.cn; }); })[0];
@@ -2351,7 +2373,7 @@ el('ncour').onclick = function (e) {
 };
 
 // ---------- courier list (outbox): cases cleared one by one gather here; send each kind by WhatsApp or sheet ----------
-var OB_KINDS = [['reattempt', '🔁', 'Reattempt', 'DOBARA DELIVER KAREIN'], ['return', '↩️', 'Return to origin', 'WAPAS BHEJ DEIN'], ['check', '🔍', 'Status check', 'STATUS CHECK'], ['claim', '📝', 'Claim', 'CLAIM']];
+var OB_KINDS = [['reattempt', '🔁', 'Reattempt', 'DOBARA DELIVER KAREIN'], ['return', '↩️', 'Return to origin', 'WAPAS BHEJ DEIN'], ['late', '⏰', 'Late delivery', 'TRACE KAREIN'], ['check', '🔍', 'Status check', 'STATUS CHECK'], ['claim', '📝', 'Claim', 'CLAIM']];
 var OB_REPLIES = ['Reattempt tomorrow', 'Rider assigned', 'Delivered', 'POD shared', 'Location shared', 'Proof shared', 'Return dispatched', 'Claim noted', 'Customer issue'];
 var OB_DONE_REPLIES = ['Delivered', 'POD shared', 'Return dispatched', 'Claim noted']; // these usually finish the request
 function outboxOf(name) { var b = (N.data.outbox || {})[name] || {}; OB_KINDS.forEach(function (k) { b[k[0]] = b[k[0]] || []; }); return b; }
@@ -2380,6 +2402,7 @@ var OB_MSG = {
   reattempt: ['Reattempt Request', 'Customers se baat ho chuki hai. Barah-e-karam neeche diye gaye parcels *dobara deliver* karwa dein.', 'Dobara deliver karein'],
   return: ['Return Request', 'Barah-e-karam neeche diye gaye parcels *hamein wapas bhej dein*.', 'Wapas bhej dein'],
   claim: ['Claim Request', 'Neeche diye gaye parcels kharab / adhoore wapas aaye hain. Barah-e-karam *claim note* kar lein.', 'Claim note karein'],
+  late: ['Late Delivery Request', 'Neeche diye gaye parcels ka kafi der se koi update nahi aaya / apne waqt se late hain. Barah-e-karam *trace kar ke jald deliver* karwayein.', 'Trace karein, jald deliver karein'],
   check: ['Status Check Request', 'Customers keh rahe hain parcel mil gaya, magar portal par return hai. Barah-e-karam *status confirm* kar dein.', 'Status confirm karein']
 };
 function waSafe(s) { return String(s || '').replace(/[*_~`]/g, '').replace(/\s+/g, ' ').trim(); } // their own * or _ would break our bold / italic
@@ -2393,6 +2416,8 @@ function obMessage(name, kind, items, batch, part) {
       '📍 *' + (waSafe(it.city) || '—') + '*' + (kind !== 'claim' && it.cod ? '  ·  COD Rs ' + n0(it.cod) : '') + (it.order ? '  ·  ' + waSafe(it.order) : '')];
     if (kind === 'claim') {
       lines.push('📝 Issue: _' + (waSafe(it.claimText) || 'Claim') + '_');
+    } else if (kind === 'late') {
+      lines.push('⏰ _' + (it.hours ? it.hours + ' ghante se koi update nahi' : 'late') + (it.now ? ' · abhi: ' + waSafe(String(it.now).replace(/_/g, ' ').toLowerCase()) : '') + '_');
     } else {
       if (it.reason) lines.push('🚚 Courier: _' + waSafe(niceReason(it.reason)) + '_' + (it.attempts ? ' (' + it.attempts + ' attempt' + (it.attempts > 1 ? 's' : '') + ')' : ''));
       // the NDR form's words (English sentences, not a quote); a new address already has its own 🆕 line
@@ -2403,6 +2428,7 @@ function obMessage(name, kind, items, batch, part) {
     }
     lines.push('✅ *Request: ' + m[2] + (kind === 'reattempt' && it.reattempt ? ' · ' + waSafe(it.reattempt) : '') + '*');
     if (kind === 'check') lines.push('• Delivered: POD share karein', '• Not delivered: parcel ki current location batayen');
+    if (kind === 'late') lines.push('• Parcel ki current location aur delivery ka din batayen');
     if (kind === 'reattempt' && it.ask) String(it.ask).split(';').forEach(function (a) { if (a.trim()) lines.push('• ' + waSafe(a)); });
     return lines.join('\n');
   }).join('\n\n');
@@ -2569,7 +2595,22 @@ el('nchips').onclick = function (e) {
   if (e.target.closest('[data-fx]')) { N.type = ''; return renderNdr(); }
   if (e.target.closest('[data-fs]')) openFilterSheet('Cases', N.opts, N.filter, function (k) { N.filter = k; N.limit = PAGE; renderNdr(); });
 };
-el('nlist').onclick = function (e) { var b = e.target.closest('[data-rec]'); if (b) openNdrForm(b.getAttribute('data-rec')); };
+el('nlist').onclick = function (e) {
+  var l = e.target.closest('[data-late]'); if (l) return askLate(l.getAttribute('data-late'));
+  var b = e.target.closest('[data-rec]'); if (b) openNdrForm(b.getAttribute('data-rec'));
+};
+// a stalled / late parcel: straight into the courier list as a Late request (no customer call)
+function askLate(cn) {
+  var c = N.data.cases.filter(function (x) { return x.cn === cn; })[0]; if (!c) return;
+  var before = JSON.stringify(c);
+  c.next = 'Chase courier (late)'; if (!c.sent || c.sent === 'Not sent') c.sent = 'Queued';
+  renderNdr(); updateBadge(); toast('📥 Adding to ' + c.courier + ' list…');
+  api('saveAppNdrOutcome', [{ token: TOKEN, cn: cn, outcome: c.outcome || 'Not called yet', next: '', updated: '', reattempt: '', sent: c.sent, notes: '', says: '', late: true, call: false }], function (r) {
+    if (r.sent) c.sent = r.sent; c.next = r.next; snap('ndr', N.data);
+    toast(r.already ? '✅ Late request already ' + (r.already.channel ? 'sent on ' + r.already.channel : 'in the ' + c.courier + ' list') : '✅ Late request in the ' + c.courier + ' list · send it from the top of NDR');
+    loadNdr(true);
+  }, function (e) { Object.assign(c, JSON.parse(before)); renderNdr(); updateBadge(); toast('❌ Not saved: ' + ((e && e.message) || 'try again')); });
+}
 
 // Update a case after the call: "Did you reach the customer?" → what they want → only the details that answer needs.
 // Each answer maps onto the W1 desk's Call Outcome list (matched by words, so the sheet's wording can change).
@@ -3334,7 +3375,7 @@ function renderStock() {
         return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span>' + esc(u.text) + '</span><span class="num" style="color:var(--muted)">' + u.n + ' order' + (u.n > 1 ? 's' : '') + '</span></div></div>' +
           (u.gid || u.sku ? '<button class="btn prow-btn" data-ul="' + k + '"><i class="ti ti-link"></i>Link</button>' : '') + '</div>';
       }).join('') + '</div>' : '') +
-    '<div class="btns" style="margin-top:10px">' + (edit && d.started ? '<button class="btn" id="stCount"><i class="ti ti-list-numbers"></i>Count stock</button>' : '') + '<button class="btn" id="stClose">Close</button></div>';
+    '<div class="btns" style="margin-top:10px">' + (d.started ? '<button class="btn" id="stDays"><i class="ti ti-calendar-stats"></i>Daily summary</button>' : '') + (edit && d.started ? '<button class="btn" id="stCount"><i class="ti ti-list-numbers"></i>Count stock</button>' : '') + '<button class="btn" id="stClose">Close</button></div>';
   openPanel(true);
   el('stClose').onclick = closePanel;
   if (el('stPlan')) el('stPlan').onclick = function () { openPurchases(); };
@@ -3348,6 +3389,7 @@ function renderStock() {
   if (el('stCount')) el('stCount').onclick = function () { openStockCount(false); };
   if (el('stCount0')) el('stCount0').onclick = function () { openStockCount(false); };
   if (el('stDue')) el('stDue').onclick = function () { openStockCount(true); };
+  if (el('stDays')) el('stDays').onclick = function () { openStockDays(); };
 }
 // Low stock alert level of one product (W1 sends the Low alert when Available falls to it)
 function openReorderEdit(i) {
@@ -3386,6 +3428,34 @@ function openLinkLine(u) {
       toast('✅ Linked · stock updates within 15 minutes'); renderStock();
     }, function (e) { el('lkGo').disabled = false; el('lkErr').textContent = (e && e.message) || 'Not linked'; });
   };
+}
+// Daily stock summary: each day what went out (sold), came back, came in, and each product's opening → closing
+function openStockDays() {
+  el('panel').innerHTML = '<button class="btn mini" id="sdBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Stock</button><h3>Daily stock summary</h3><div class="sk" style="height:240px"></div>';
+  openPanel(true);
+  el('sdBack').onclick = renderStock;
+  api('getAppStockDays', [TOKEN, 14], function (r) {
+    STK.days = r.days;
+    var q = function (n) { return Math.round(n * 100) / 100; };
+    el('panel').innerHTML = '<button class="btn mini" id="sdBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Stock</button><h3>Daily stock summary</h3><p>Last 14 days · tap a day for each product</p>' +
+      '<div class="card" style="padding:0">' + r.days.map(function (d, k) {
+        var any = d.rows.length;
+        return '<div class="prow' + (any ? '' : ' dim') + '" data-sday="' + k + '"' + (any ? '' : ' style="cursor:default"') + '><div class="prow-m"><div class="prow-1"><b>' + esc(niceDay(d.day)) + '</b><span class="num">' + (d.sold ? q(d.sold) + ' out' : '') + '</span></div>' +
+          '<div class="prow-2"><span>' + (any ? [d.rows.filter(function (x) { return x.sold; }).length + ' products sold', d.ret ? q(d.ret) + ' returned' : '', d.recv ? q(d.recv) + ' received' : '', d.other ? d.other + ' changed' : ''].filter(Boolean).join(' · ') : 'no stock moved') + '</span></div></div></div>';
+      }).join('') + '</div>';
+    el('sdBack').onclick = renderStock;
+    el('panel').querySelectorAll('[data-sday]').forEach(function (b) { b.onclick = function () { var d = STK.days[+b.getAttribute('data-sday')]; if (d.rows.length) openStockDay(d); }; });
+  }, function () { toast('Not loaded'); renderStock(); });
+}
+function openStockDay(d) {
+  var q = function (n, u) { return stkQty(Math.round(n * 100) / 100, u); };
+  el('panel').innerHTML = '<button class="btn mini" id="sdBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Daily summary</button><h3>' + esc(niceDay(d.day)) + '</h3><p>Opening → closing per product</p>' +
+    '<div class="card" style="padding:0">' + d.rows.map(function (x) {
+      return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><b>' + esc(x.name) + '</b><span class="num">' + q(x.open, x.unit) + ' → ' + q(x.close, x.unit) + '</span></div>' +
+        '<div class="prow-2"><span>' + [x.sold ? 'sold ' + q(x.sold, x.unit) : '', x.ret ? 'returned ' + q(x.ret, x.unit) : '', x.recv ? 'received ' + q(x.recv, x.unit) : '', x.other ? 'count / adjust ' + (x.other > 0 ? '+' : '') + q(x.other, x.unit) : ''].filter(Boolean).join(' · ') + '</span></div></div></div>';
+    }).join('') + '</div>';
+  openPanel(true);
+  el('sdBack').onclick = openStockDays;
 }
 function openStockItem(sku) {
   var d = STK.data, i = d.items.filter(function (x) { return x.sku === sku; })[0];
@@ -3648,11 +3718,12 @@ function openReceipt(id) {
 function openAddExpense() {
   var d = FN.data, st = { type: 'Expense', cat: '', from: 'Business account' };
   var draw = function () {
-    el('aeCats').innerHTML = (d.cats[st.type] || []).map(function (c) { return '<button class="chip' + (st.cat === c ? ' on' : '') + '" type="button" data-v="' + esc(c) + '">' + esc(c) + '</button>'; }).join('');
+    el('aeCats').innerHTML = (st.type === 'Income' ? ['Other income'] : d.cats[st.type] || []).map(function (c) { return '<button class="chip' + (st.cat === c ? ' on' : '') + '" type="button" data-v="' + esc(c) + '">' + esc(c) + '</button>'; }).join('');
   };
   el('panel').innerHTML = '<button class="btn mini" id="aeBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Expenses</button><h3>Add expense</h3>' +
     '<p>' + (d.canApprove && !can('users.manage') ? 'Another approver will check it' : can('users.manage') ? 'Your entries are approved at once' : 'Waits for approval') + '</p>' +
-    '<div class="fld"><label>Type</label><div class="chips wrapc" id="aeType">' + ['Expense', 'Inventory purchase', 'Income', 'Owner draw', 'Capital'].map(function (x) { return '<button class="chip' + (x === 'Expense' ? ' on' : '') + '" type="button" data-v="' + x + '">' + x + '</button>'; }).join('') + '</div></div>' +
+    '<div class="fld"><label>Type</label><div class="chips wrapc" id="aeType">' + [['Expense', 'Expense'], ['Income', 'Other income']].map(function (x) { return '<button class="chip' + (x[0] === 'Expense' ? ' on' : '') + '" type="button" data-v="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div></div>' +
+    '<small class="mnote" style="display:block;margin:-6px 0 10px">Stock is bought in Stock → New purchase. Payouts, transfers and money put in: ☰ Accounts & payouts.</small>' +
     '<div class="fld"><label>Amount (PKR)</label><input id="aeAmt" type="text" inputmode="decimal" placeholder="e.g. 2500"></div>' +
     '<div class="fld"><label>Category</label><div class="chips wrapc" id="aeCats"></div></div>' +
     '<div class="fld"><label>What was it for</label><input id="aeDesc" placeholder="e.g. Meta ads, office rent October"></div>' +
@@ -3707,7 +3778,7 @@ function openPnl(m) {
       line('Taxes (WHT + SST)', minus(p.taxes)) +
       line('Cost of goods', minus(p.cogs), '', p.stockStarted ? 'from stock: average cost of what was sent' : 'starts after the stock count') +
       line('Gross profit', rs(p.gross), 'b') +
-      line('Ads', minus(p.ads)) +
+      line('Ads', minus(p.ads), '', Object.keys(p.adSync || {}).map(function (k) { return k + ' ' + rs(p.adSync[k]) + ' (synced)'; }).concat(p.adsEntered ? ['entered ' + rs(p.adsEntered)] : []).join(' · ')) +
       exp.map(function (k) { return line(esc(k), minus(p.expenses[k])); }).join('') +
       line('Net profit', (p.net < 0 ? '− ' : '') + rs(Math.abs(p.net)), p.net < 0 ? 'neg' : 'b') + '</div>' +
       '<div class="card"><div class="h"><b>Cash this month</b></div>' + line('Money in', rs(p.cash.in)) + line('Money out', minus(p.cash.out), '', 'expenses, stock bought, owner draws') + '</div>' +
@@ -3719,6 +3790,152 @@ function openPnl(m) {
 }
 el('btnExp').onclick = fromMenu(function () { openExpenses(''); });
 el('btnPnl').onclick = fromMenu(function () { openPnl(''); });
+el('btnAcct').onclick = fromMenu(function () { openAccounts(); });
+el('btnTeam').onclick = fromMenu(function () { openTeam(); });
+
+// ---------- Team: the owner adds people, gives roles, resets PINs (server checks users.manage and Owner rules) ----------
+var TM = { data: null };
+function openTeam() {
+  el('panel').innerHTML = '<h3>Team</h3><div class="sk" style="height:220px"></div>'; openPanel(true);
+  api('getAppTeam', [TOKEN], function (d) { TM.data = d; renderTeam(); }, function () { closePanel(); toast('You don\'t have access to this'); });
+}
+function renderTeam() {
+  var d = TM.data;
+  el('panel').innerHTML = '<h3>Team</h3><p>' + d.users.length + ' people · each logs in with their own number and PIN</p>' +
+    '<button class="btn pri" id="tmAdd" style="width:100%;padding:12px;margin:0 0 12px"><i class="ti ti-user-plus"></i>Add person</button>' +
+    '<div class="card" style="padding:0">' + d.users.map(function (u, k) {
+      return '<div class="prow" data-tu="' + k + '"><div class="prow-m"><div class="prow-1"><b>' + esc(u.name || '(name at first login)') + (u.id === d.meId ? ' · you' : '') + '</b><span class="st" style="--c:' + (u.role === 'Owner' ? 'var(--brand)' : 'var(--blue)') + '">' + esc(u.role) + '</span></div>' +
+        '<div class="prow-2"><span>' + esc([u.phone, u.must ? 'temporary PIN' : '', u.added ? 'since ' + u.added : ''].filter(Boolean).join(' · ')) + '</span></div></div></div>';
+    }).join('') + '</div>' +
+    '<div class="card"><div class="h"><b>Roles</b></div><p style="margin:0;color:var(--muted);font-size:12.5px">What each role may see and do is set on W1 sheet 00_App_Roles (tick boxes). Owner always has everything.</p></div>' +
+    '<div class="btns" style="margin-top:10px"><button class="btn" id="tmClose">Close</button></div>';
+  openPanel(true);
+  el('tmClose').onclick = closePanel;
+  el('tmAdd').onclick = function () { openTeamForm(null); };
+  el('panel').querySelectorAll('[data-tu]').forEach(function (r) { r.onclick = function () { openTeamForm(d.users[+r.getAttribute('data-tu')]); }; });
+}
+function openTeamForm(u) {
+  var d = TM.data, st = { role: u ? u.role : (d.roles[1] || 'Owner') };
+  var roles = d.meOwner ? d.roles : d.roles.filter(function (r) { return r !== 'Owner'; });
+  var permOf = function (r) { var p = d.perms[r] || []; return d.permText.filter(function (x) { return p.indexOf(x[0]) !== -1; }).map(function (x) { return x[1].split(':')[0]; }); };
+  el('panel').innerHTML = '<button class="btn mini" id="tfBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Team</button><h3>' + (u ? esc(u.name || u.phone) : 'Add person') + '</h3><p>' + (u ? esc(u.phone) : 'They log in with this number and the PIN you set; the app asks them to pick their own PIN') + '</p>' +
+    (u ? '' : '<div class="fld"><label>Mobile number</label><input id="tfPhone" type="tel" placeholder="0300 1234567"></div><div class="fld"><label>Name (optional)</label><input id="tfName" placeholder="they can also write it at first login"></div>') +
+    '<div class="fld"><label>Role</label><div class="chips wrapc" id="tfRole">' + roles.map(function (r) { return '<button class="chip' + (r === st.role ? ' on' : '') + '" type="button" data-v="' + esc(r) + '">' + esc(r) + '</button>'; }).join('') + '</div></div>' +
+    '<small class="mnote" id="tfPerm" style="display:block;margin:-6px 0 12px"></small>' +
+    '<div class="fld"><label>' + (u ? 'New temporary PIN (only to reset it)' : 'Temporary PIN (6 digits)') + '</label><input id="tfPin" type="text" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="' + (u ? 'leave empty to keep their PIN' : 'e.g. 482915') + '"></div>' +
+    '<div class="err" id="tfErr"></div><button class="btn pri" id="tfGo" style="width:100%;padding:12px">' + (u ? 'Save' : 'Add person') + '</button>' +
+    (u && u.id !== d.meId ? '<div class="btns" style="margin-top:8px"><button class="btn" id="tfOut"><i class="ti ti-logout"></i>Log out all phones</button><button class="btn" id="tfDel" style="color:var(--red)"><i class="ti ti-trash"></i>Remove</button></div>' : '');
+  openPanel(true);
+  var perm = function () { var p = st.role === 'Owner' ? ['Everything'] : permOf(st.role); el('tfPerm').textContent = p.length ? p.join(' · ') : 'No permissions ticked for this role yet'; };
+  perm();
+  el('tfBack').onclick = renderTeam;
+  el('tfRole').onclick = function (e) { var b = e.target.closest('[data-v]'); if (!b) return; st.role = b.getAttribute('data-v'); el('tfRole').querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x === b); }); perm(); };
+  el('tfGo').onclick = function () {
+    var f = { id: u ? u.id : '', role: st.role, pin: el('tfPin').value.trim() };
+    if (!u) { f.phone = el('tfPhone').value.trim(); f.name = el('tfName').value.trim(); }
+    el('tfGo').disabled = true;
+    api('appTeamSave', [TOKEN, f], function (r) {
+      toast(r.added ? '✅ Added · give them the number and PIN' : f.pin ? '✅ Saved · new PIN, their phones are logged out' : '✅ Saved');
+      openTeam();
+    }, function (e) { el('tfGo').disabled = false; el('tfErr').textContent = (e && e.message) || 'Not saved'; });
+  };
+  var act = function (a, ask, done) {
+    if (!confirm(ask)) return;
+    api('appTeamAction', [TOKEN, u.id, a], function () { toast(done); openTeam(); }, function (e) { el('tfErr').textContent = (e && e.message) || 'Not done'; });
+  };
+  if (el('tfOut')) el('tfOut').onclick = function () { act('logout', 'Log ' + (u.name || u.phone) + ' out of every phone?', '✅ Logged out of all phones'); };
+  if (el('tfDel')) el('tfDel').onclick = function () { act('remove', 'Remove ' + (u.name || u.phone) + ' from the team?', '✅ Removed'); };
+}
+
+// ---------- Accounts & payouts: a bank book per money account, bank check, transfers, partner payouts ----------
+var AC = { data: null };
+function openAccounts() {
+  el('panel').innerHTML = '<h3>Accounts & payouts</h3><div class="sk" style="height:240px"></div>'; openPanel(true);
+  api('getAppAccounts', [TOKEN], function (d) { AC.data = d; renderAccounts(); }, function () { closePanel(); toast('You don\'t have access to this'); });
+}
+function acMoney(n) { return (n < 0 ? '− ' : '') + rs(Math.abs(n)); }
+function renderAccounts() {
+  var d = AC.data, total = d.accounts.reduce(function (a, x) { return a + x.balance; }, 0), pk = Object.keys(d.drawn || {});
+  el('panel').innerHTML = '<h3>Accounts & payouts</h3><p>Money in the business, like a bank book</p>' +
+    '<div class="card" style="padding:0">' + d.accounts.map(function (a) {
+      var c = a.check, off = c && c.diff;
+      return '<div class="prow" data-acc="' + esc(a.name) + '"><div class="prow-m"><div class="prow-1"><b>' + esc(a.name) + '</b><b class="num">' + acMoney(a.balance) + '</b></div>' +
+        '<div class="prow-2"><span>' + (a.opened ? 'this month in ' + rs(a.ins) + ' · out ' + rs(a.outs) : 'set the opening balance to start') + '</span>' +
+        (c ? '<span class="st" style="--c:' + (off ? 'var(--amber)' : 'var(--green)') + '">' + (off ? 'bank ' + (c.diff > 0 ? '+' : '−') + rs(Math.abs(c.diff)) : 'matches bank') + '</span>' : '') + '</div></div></div>';
+    }).join('') + '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><b>Total</b><b class="num">' + acMoney(total) + '</b></div></div></div></div>' +
+    (d.owner ? '<div class="btns" style="margin:0 0 8px"><button class="btn pri" id="acPay"><i class="ti ti-cash-banknote"></i>Partner payout</button><button class="btn" id="acBank"><i class="ti ti-building-bank"></i>Bank check</button></div>' +
+      '<div class="btns" style="margin:0 0 8px"><button class="btn" id="acAds"><i class="ti ti-speakerphone"></i>Ad account top-up</button></div>' +
+      '<div class="btns" style="margin:0 0 12px"><button class="btn" id="acMove"><i class="ti ti-arrows-exchange"></i>Transfer</button><button class="btn" id="acIn"><i class="ti ti-plus"></i>Money put in</button><button class="btn" id="acOpen"><i class="ti ti-flag"></i>Opening</button></div>' : '') +
+    (Object.keys(d.topups || {}).length ? '<div class="card"><div class="h"><b>Ad accounts topped up</b><span>' + esc(fnMonthName(d.month)) + '</span></div>' + Object.keys(d.topups).map(function (k) { return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span>' + esc(k) + '</span><b class="num">' + rs(d.topups[k]) + '</b></div></div></div>'; }).join('') + '<small class="mnote" style="display:block;padding:0 0 4px">Spend is in Profit & loss (synced from the platform)</small></div>' : '') +
+    '<div class="card"><div class="h"><b>Partner payouts</b><span>' + esc(fnMonthName(d.month)) + '</span></div>' +
+    (pk.length ? pk.map(function (k) { var p = d.drawn[k]; return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><b>' + esc(k) + '</b><span class="num">' + rs(p.month) + '</span></div><div class="prow-2"><span>this year ' + rs(p.year) + ' · all ' + rs(p.all) + '</span></div></div></div>'; }).join('')
+      : '<div class="empty">No payouts yet' + (d.partners.length ? '' : ' · add partner names in W1 Store Settings "Partners"') + '</div>') + '</div>' +
+    '<div class="btns" style="margin-top:10px"><button class="btn" id="acClose">Close</button></div>';
+  openPanel(true);
+  el('acClose').onclick = closePanel;
+  el('panel').querySelectorAll('[data-acc]').forEach(function (r) { r.onclick = function () { openLedger(r.getAttribute('data-acc')); }; });
+  if (el('acPay')) {
+    el('acPay').onclick = function () { openAcForm('payout'); }; el('acBank').onclick = function () { openAcForm('bank'); };
+    el('acMove').onclick = function () { openAcForm('transfer'); }; el('acAds').onclick = function () { openAcForm('ads'); }; el('acIn').onclick = function () { openAcForm('capital'); }; el('acOpen').onclick = function () { openAcForm('opening'); };
+  }
+}
+function openLedger(name) {
+  var a = AC.data.accounts.filter(function (x) { return x.name === name; })[0]; if (!a) return renderAccounts();
+  el('panel').innerHTML = '<button class="btn mini" id="lgBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Accounts</button><h3>' + esc(name) + '</h3><p>Balance ' + acMoney(a.balance) + (a.opened ? ' · since ' + esc(a.opened) : '') + '</p>' +
+    (a.check ? '<div class="tk' + (a.check.diff ? '' : ' ok') + '" style="margin:0 0 10px">' + (a.check.diff ? 'On ' + esc(a.check.day) + ' the bank showed ' + rs(a.check.bank) + ', the app ' + rs(a.check.app) + ' · difference ' + (a.check.diff > 0 ? '+' : '−') + rs(Math.abs(a.check.diff)) + '. Look for an entry not made, or add a correction.' : 'Matched the bank on ' + esc(a.check.day)) + '</div>' : '') +
+    '<div class="card" style="padding:0">' + (a.lines.length ? a.lines.map(function (l) {
+      return '<div class="prow" style="cursor:default;--c:' + (l.amt == null ? 'var(--line)' : l.amt < 0 ? 'var(--red)' : 'var(--green)') + '"><span class="prow-d"></span><div class="prow-m"><div class="prow-1"><span>' + esc(l.text) + '</span><b class="num">' + (l.amt == null ? '' : (l.amt > 0 ? '+' : '− ') + rs(Math.abs(l.amt))) + '</b></div>' +
+        '<div class="prow-2"><span>' + esc([l.day.slice(5), l.cat].filter(Boolean).join(' · ')) + '</span><span class="num">' + acMoney(l.bal) + '</span></div></div></div>';
+    }).join('') : '<div class="empty">No entries yet</div>') + '</div>';
+  openPanel(true);
+  el('lgBack').onclick = renderAccounts;
+}
+// one form for the five owner actions
+function openAcForm(kind) {
+  var d = AC.data, acc = d.accounts.map(function (a) { return a.name; }), st = { from: acc[0], to: kind === 'ads' ? d.platforms[0] : acc[1] || '', who: d.partners[0] || '', cat: 'Owner investment' };
+  var T = { ads: 'Ad account top-up', payout: 'Partner payout', bank: 'Bank check', transfer: 'Transfer between accounts', capital: 'Money put in', opening: 'Opening balance' }[kind];
+  var chips = function (id, list, cur) { return '<div class="chips wrapc" id="' + id + '">' + list.map(function (x) { return '<button class="chip' + (x === cur ? ' on' : '') + '" type="button" data-v="' + esc(x) + '">' + esc(x) + '</button>'; }).join('') + '</div>'; };
+  var a0 = function (n) { return (d.accounts.filter(function (x) { return x.name === n; })[0] || {}).balance || 0; };
+  el('panel').innerHTML = '<button class="btn mini" id="afBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Accounts</button><h3>' + T + '</h3>' +
+    '<p>' + { ads: 'Money paid into an ad account (it leaves the bank; the spend itself comes from the platform)', payout: 'Profit taken out by a partner', bank: 'What the bank / cash box shows now · the app compares', transfer: 'e.g. cash deposited in the bank', capital: 'Owner investment or a loan into the business', opening: 'The balance on the day you start' }[kind] + '</p>' +
+    (kind === 'payout' ? '<div class="fld"><label>Partner</label>' + (d.partners.length ? chips('afWho', d.partners, st.who) : '<input id="afWhoT" placeholder="Name">') + '</div>' : '') +
+    (kind === 'capital' ? '<div class="fld"><label>What</label>' + chips('afCat', ['Owner investment', 'Loan'], st.cat) + '</div>' : '') +
+    '<div class="fld"><label>' + (kind === 'transfer' ? 'From' : kind === 'payout' ? 'Paid from' : kind === 'capital' ? 'Into' : 'Account') + '</label>' + chips('afFrom', acc, st.from) + '</div>' +
+    (kind === 'transfer' ? '<div class="fld"><label>To</label>' + chips('afTo', acc, st.to) + '</div>' : '') +
+    (kind === 'ads' ? '<div class="fld"><label>Ad account</label>' + chips('afTo', d.platforms, st.to) + '</div>' : '') +
+    '<div class="fld"><label>' + (kind === 'bank' ? 'Balance the bank shows (PKR)' : kind === 'opening' ? 'Balance (PKR)' : 'Amount (PKR)') + '</label><input id="afAmt" type="text" inputmode="decimal"></div>' +
+    (kind === 'bank' ? '<div class="tk" id="afDiff" style="margin:0 0 10px">App balance ' + rs(a0(st.from)) + '</div>' : '') +
+    '<div class="fld"><label>Date</label><input id="afDate" type="date" value="' + pkDay(new Date()) + '"></div>' +
+    '<div class="fld"><label>Note (optional)</label><input id="afNote"></div><div class="err" id="afErr"></div>' +
+    '<button class="btn pri" id="afGo" style="width:100%;padding:12px">Save</button>' + (kind === 'bank' ? '<button class="btn" id="afFix" style="width:100%;margin-top:8px" hidden>Save and add a correction to match</button>' : '');
+  openPanel(true);
+  el('afBack').onclick = renderAccounts;
+  var diff = function () {
+    if (kind !== 'bank') return; var n = Number(String(el('afAmt').value).replace(/[^0-9.\-]/g, '')), app = a0(st.from), dd = Math.round(n - app);
+    el('afDiff').innerHTML = el('afAmt').value.trim() === '' ? 'App balance ' + rs(app) : !dd ? '✅ Matches the app (' + rs(app) + ')' : 'App ' + rs(app) + ' · bank ' + (dd > 0 ? 'has ' + rs(dd) + ' more' : 'has ' + rs(-dd) + ' less');
+    el('afFix').hidden = !dd || el('afAmt').value.trim() === '';
+  };
+  var pick = function (id, key) { if (!el(id)) return; el(id).onclick = function (e) { var b = e.target.closest('[data-v]'); if (!b) return; st[key] = b.getAttribute('data-v'); el(id).querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x === b); }); diff(); }; };
+  pick('afWho', 'who'); pick('afCat', 'cat'); pick('afFrom', 'from'); pick('afTo', 'to');
+  el('afAmt').oninput = diff;
+  var save = function (fix) {
+    var n = Number(String(el('afAmt').value).replace(/[^0-9.]/g, ''));
+    if (!(n > 0) && !(kind === 'opening' && el('afAmt').value.trim() === '0')) { el('afErr').textContent = 'Enter the amount'; return; }
+    var who = kind === 'payout' ? (el('afWhoT') ? el('afWhoT').value.trim() : st.who) : '';
+    if (kind === 'payout' && !who) { el('afErr').textContent = 'Choose the partner'; return; }
+    if (kind === 'transfer' && st.from === st.to) { el('afErr').textContent = 'Choose two different accounts'; return; }
+    var f = { ads: { type: 'Transfer', cat: 'Ad account top-up', desc: st.to + ' top-up', to: st.to }, payout: { type: 'Owner draw', cat: 'Profit share', desc: 'Payout · ' + who, by: who }, bank: { type: 'Balance', cat: 'Bank statement', desc: st.from + ' statement' },
+      transfer: { type: 'Transfer', cat: 'Between accounts', desc: st.from + ' → ' + st.to, to: st.to }, capital: { type: 'Capital', cat: st.cat, desc: st.cat }, opening: { type: 'Balance', cat: 'Opening balance', desc: st.from + ' opening balance' } }[kind];
+    f.amount = n; f.from = st.from; f.date = el('afDate').value; f.note = el('afNote').value.trim();
+    var calls = [f];
+    if (fix) { var dd = Math.round(n - a0(st.from)); calls.push({ type: 'Balance', cat: dd > 0 ? 'Correction (+)' : 'Correction (−)', desc: 'Match bank · ' + st.from, amount: Math.abs(dd), from: st.from, date: el('afDate').value, note: 'bank showed ' + n }); }
+    el('afGo').disabled = true;
+    var next = function () { var x = calls.shift(); if (!x) { toast('✅ Saved'); return openAccounts(); } api('appAddFinance', [TOKEN, x], next, function (e) { el('afGo').disabled = false; el('afErr').textContent = (e && e.message) || 'Not saved'; }); };
+    next();
+  };
+  el('afGo').onclick = function () { save(false); };
+  if (el('afFix')) el('afFix').onclick = function () { save(true); };
+}
 
 // ---------- Purchases: order from a supplier (last price offered) → receive (stock + cargo) → pay (Finance) ----------
 var PUR = { data: null, f: 'open' };
@@ -4571,7 +4788,7 @@ function start() {
   if (qsy) setTimeout(openSyncStatus, 600);
   applyPerms();
   if (qt && TABS[qt] && canTab(qt)) showTab(qt);
-  if (qp && can('parcels.view')) setTimeout(function () { openParcel(qp); }, 600);
+  if (qp && (can('parcels.view') || can('returns.view') || can('inventory.view') || can('ndr.view'))) setTimeout(function () { openParcel(qp); }, 600);
   if (qt || qp || qb || qsy || qpay || qst) { try { history.replaceState(history.state, '', location.pathname + location.hash); } catch (e) {} }
   // Warm the other tabs in the background so switching is instant.
   loadAllowed();
