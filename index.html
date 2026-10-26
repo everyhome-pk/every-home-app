@@ -178,6 +178,11 @@ body{overscroll-behavior-y:contain}
 .lg-bio{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:14px 0 0;border:1px solid var(--line);background:var(--card);
   border-radius:14px;padding:12px;font:600 14px Inter,sans-serif;color:var(--text);cursor:pointer}.lg-bio i{font-size:22px;color:var(--brand)}
 .bio-art{display:flex;justify-content:center;gap:18px;padding:14px 0 4px;font-size:44px;color:var(--brand)}
+/* Stock */
+.stk-top{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 12px}.stk-top div{background:var(--card);border-radius:14px;padding:10px 12px;box-shadow:var(--shadow)}
+.stk-top b{display:block;font-size:20px}.stk-top small{color:var(--muted);font-size:11.5px}
+.stk-in{display:grid;grid-template-columns:1fr 92px;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}.stk-in:first-child{border-top:0}
+.stk-in small{display:block;color:var(--muted);font-size:11.5px}.stk-in input{text-align:right}
 .menu-bd{position:fixed;inset:0;z-index:70}.menu-bd[hidden]{display:none}
 .menu{position:fixed;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:6px;overflow:auto;overscroll-behavior:contain;
   box-shadow:0 14px 36px rgba(2,6,23,.18),0 2px 6px rgba(2,6,23,.08);animation:menuIn .14s ease-out;transform-origin:top center}
@@ -608,6 +613,8 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   <button class="dr-i" data-rep="reasons"><i class="ti ti-alert-triangle"></i>Delivery failure reasons</button>
   <div class="dr-h">Couriers</div>
   <button class="dr-i" data-rep="escalations"><i class="ti ti-headset"></i>Courier escalations</button>
+  <div class="dr-h">Inventory</div>
+  <button class="dr-i" id="btnStock"><i class="ti ti-packages"></i>Stock</button>
   <div class="dr-h">App</div>
   <button class="dr-i" id="btnPush" hidden><i class="ti ti-bell-off"></i>Notifications · Off</button>
   <button class="dr-i" id="btnSync"><i class="ti ti-activity"></i>Data status</button>
@@ -919,7 +926,7 @@ el('upd').onclick = function () { if (TOKEN) openSyncStatus(); };
 var PERMS = null; try { PERMS = JSON.parse(store('eh_perms') || 'null'); } catch (e) {}
 var ROLE = store('eh_role') || '';
 var TAB_PERM = { home: 'home.view', parcels: 'parcels.view', ndr: 'ndr.view', returns: 'returns.view', cash: 'cash.view' };
-var KIND_PERM = { ndr: 'ndr.view', back: 'returns.view', late: 'parcels.view', nocn: 'parcels.view', brief: 'home.view', sync: 'users.manage', cash: 'cash.view' };
+var KIND_PERM = { ndr: 'ndr.view', back: 'returns.view', late: 'parcels.view', nocn: 'parcels.view', brief: 'home.view', sync: 'users.manage', cash: 'cash.view', stock: 'inventory.view' };
 function can(p) { return !PERMS || PERMS.indexOf(p) !== -1; } // not known yet (old login): show all until the server answers
 function canTab(t) { return can(TAB_PERM[t]); }
 function firstTab() { return ['home', 'parcels', 'ndr', 'returns', 'cash'].filter(canTab)[0] || ''; }
@@ -938,6 +945,7 @@ function applyPerms() {
     b.hidden = b.getAttribute('data-rep') === 'escalations' ? !can('ndr.view') : !(can('reports.view') && can('home.view'));
   });
   el('btnDispatch').hidden = !can('parcels.view');
+  el('btnStock').hidden = !can('inventory.view');
   // a menu heading goes when nothing under it is left
   document.querySelectorAll('.dr-h').forEach(function (h) {
     var any = false;
@@ -3158,6 +3166,151 @@ el('btnOut').onclick = function () {
   google.script.run.withSuccessHandler(bye).withFailureHandler(bye).appRemovePush(TOKEN, pt);
 };
 
+// ---------- Stock (W1 Inventory.js): what we have, what is low / out, stock in, count, adjust ----------
+// The app only adds entries (Purchase / Count / Adjust / Damaged); W1 posts them within 15 minutes.
+var STK = { data: null, q: '', f: 'all' };
+var STK_ST = { OK: ['OK', 'var(--green)'], Low: ['Low', 'var(--amber)'], Out: ['Out', 'var(--red)'], 'Not counted': ['Not counted', 'var(--muted)'], 'No parts': ['No parts', 'var(--muted)'] };
+function stkQty(n, unit) { return (Math.round((Number(n) || 0) * 10) / 10).toLocaleString('en-IN') + (unit === 'ft' ? ' ft' : ''); }
+function openStock(sku) {
+  el('panel').innerHTML = '<h3>Stock</h3><div class="sk" style="height:220px"></div>'; openPanel(true);
+  api('getAppStock', [TOKEN], function (d) { STK.data = d; if (sku) openStockItem(sku); else renderStock(); },
+    function () { closePanel(); toast('You don\'t have access to this'); });
+}
+function renderStock() {
+  var d = STK.data, edit = can('inventory.edit');
+  if (!d.ready) { el('panel').innerHTML = '<h3>Stock</h3><div class="card empty"><i class="ti ti-clock"></i>Stock is being set up · ready within 15 minutes</div>'; openPanel(true); return; }
+  var items = d.items.filter(function (i) { return i.kind === 'Item'; });
+  var low = items.filter(function (i) { return i.status === 'Low'; }).length, out = items.filter(function (i) { return i.status === 'Out'; }).length;
+  var q = STK.q.toLowerCase().trim();
+  var list = d.items.filter(function (i) {
+    if (STK.f === 'low' && i.status !== 'Low') return false;
+    if (STK.f === 'out' && i.status !== 'Out') return false;
+    if (STK.f === 'kits' ? i.kind !== 'Kit' : STK.f === 'all' && i.kind === 'Kit') return false;
+    return !q || (i.name + ' ' + i.sku).toLowerCase().indexOf(q) !== -1;
+  });
+  var chip = function (k, l) { return '<button class="chip' + (STK.f === k ? ' on' : '') + '" type="button" data-sf="' + k + '">' + l + '</button>'; };
+  el('panel').innerHTML = '<h3>Stock</h3><p>' + items.length + ' products' + (d.started ? '' : ' · not counted yet') + '</p>' +
+    (!d.started && edit ? '<div class="card" style="margin-bottom:12px"><div class="h"><b>Start: count your stock</b></div><p style="margin:0 0 10px;color:var(--muted);font-size:13px">Count what is on the shelf now (not parcels already with couriers). From then on sales, returns and purchases update the stock by themselves.</p><button class="btn pri" id="stCount0" style="width:100%"><i class="ti ti-list-numbers"></i>Count stock</button></div>' : '') +
+    (d.started ? '<div class="stk-top"><div><b>' + items.filter(function (i) { return i.status === 'OK'; }).length + '</b><small>In stock</small></div><div><b>' + low + '</b><small>Low</small></div><div><b>' + out + '</b><small>Out</small></div></div>' : '') +
+    (d.pending.length ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-clock"></i> ' + d.pending.length + ' entr' + (d.pending.length > 1 ? 'ies' : 'y') + ' waiting · stock updates within 15 minutes</div>' : '') +
+    (d.errors && d.errors.length && edit ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-alert-triangle"></i> Not posted: ' + d.errors.map(esc).join(' · ') + '</div>' : '') +
+    (edit ? '<div class="btns" style="margin:0 0 12px"><button class="btn pri" id="stIn"><i class="ti ti-truck-loading"></i>Stock in</button><button class="btn" id="stCount"><i class="ti ti-list-numbers"></i>Count</button></div>' : '') +
+    '<div class="search"><i class="ti ti-search"></i><input id="stQ" placeholder="Find a product" value="' + esc(STK.q) + '"></div>' +
+    '<div class="chips">' + chip('all', 'Products') + chip('low', 'Low' + (low ? ' · ' + low : '')) + chip('out', 'Out' + (out ? ' · ' + out : '')) + chip('kits', 'Bundles & lines') + '</div>' +
+    '<div class="card" style="padding:0">' + (list.length ? list.map(function (i) {
+      var st = STK_ST[i.status] || ['', 'var(--line)'];
+      return '<div class="prow" data-sk="' + esc(i.sku) + '" style="--c:' + st[1] + '"><span class="prow-d"></span><div class="prow-m">' +
+        '<div class="prow-1"><b>' + esc(i.name) + '</b><span class="num">' + stkQty(i.available, i.unit) + '</span></div>' +
+        '<div class="prow-2"><span>' + (i.kind === 'Kit' ? 'can make from parts' : 'on hand ' + stkQty(i.onHand, i.unit) + (i.committed ? ' · ' + stkQty(i.committed, i.unit) + ' for orders' : '')) + '</span>' +
+        (st[0] ? '<span class="st" style="--c:' + st[1] + '">' + st[0] + '</span>' : '') + '</div></div></div>';
+    }).join('') : '<div class="empty">No products here</div>') + '</div>' +
+    (d.unmatched && d.unmatched.length && edit ? '<div class="card"><div class="h"><b>Order lines without a product</b><span>' + d.unmatched.length + '</span></div><p style="margin:0 0 6px;color:var(--muted);font-size:12.5px">Stock is not taken for these. Add the SKU or Shopify variant ID on W1 sheet 20_Products.</p>' +
+      d.unmatched.slice(0, 8).map(function (u) { return '<div style="font-size:12.5px;padding:3px 0">' + esc(u) + '</div>'; }).join('') + '</div>' : '') +
+    '<div class="btns" style="margin-top:10px"><button class="btn" id="stClose">Close</button></div>';
+  openPanel(true);
+  el('stClose').onclick = closePanel;
+  el('stQ').oninput = function (e) { STK.q = e.target.value; var p = e.target.selectionStart; renderStock(); var n = el('stQ'); n.focus(); try { n.setSelectionRange(p, p); } catch (x) {} };
+  el('panel').querySelectorAll('[data-sf]').forEach(function (b) { b.onclick = function () { STK.f = b.getAttribute('data-sf'); renderStock(); }; });
+  el('panel').querySelectorAll('[data-sk]').forEach(function (r) { r.onclick = function () { openStockItem(r.getAttribute('data-sk')); }; });
+  if (el('stIn')) el('stIn').onclick = function () { openStockIn(''); };
+  if (el('stCount')) el('stCount').onclick = openStockCount;
+  if (el('stCount0')) el('stCount0').onclick = openStockCount;
+}
+function openStockItem(sku) {
+  var d = STK.data, i = d.items.filter(function (x) { return x.sku === sku; })[0];
+  if (!i) return renderStock();
+  var st = STK_ST[i.status] || ['', 'var(--line)'], edit = can('inventory.edit') && i.kind === 'Item';
+  var mv = d.moves.filter(function (m) { return m.sku === sku; }).slice(0, 20);
+  var row = function (l, v) { return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span>' + l + '</span><b class="num">' + v + '</b></div></div></div>'; };
+  el('panel').innerHTML = '<button class="btn mini" id="siBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Stock</button>' +
+    '<h3>' + esc(i.name) + '</h3><p>' + esc(i.sku) + (st[0] ? ' · <span class="st" style="--c:' + st[1] + '">' + st[0] + '</span>' : '') + '</p>' +
+    '<div class="card" style="padding:0">' + row('Available', stkQty(i.available, i.unit)) +
+    (i.kind === 'Item' ? row('On hand', stkQty(i.onHand, i.unit)) + row('For orders (not booked yet)', stkQty(i.committed, i.unit)) + row('Reorder at', stkQty(i.reorder, i.unit)) +
+      (i.cost != null ? row('Average cost', rs(i.cost)) + row('Stock value', rs(i.value)) : '') : '') + '</div>' +
+    (edit ? '<div class="btns" style="margin:0 0 12px"><button class="btn pri" id="siIn"><i class="ti ti-truck-loading"></i>Stock in</button><button class="btn" id="siAdj"><i class="ti ti-adjustments"></i>Adjust</button></div>' : '') +
+    (i.kind === 'Kit' ? '<p style="color:var(--muted);font-size:12.5px">A bundle / clothes line has no stock of its own: its parts go down when it is booked.</p>' : '') +
+    '<div class="card"><div class="h"><b>Recent changes</b></div>' + (mv.length ? mv.map(function (m) {
+      return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span>' + esc(m.type) + (m.ref && !/^ENT-/.test(m.ref) ? ' · ' + esc(m.ref) : '') + '</span><b class="num" style="color:' + (m.qty < 0 ? 'var(--red)' : 'var(--green)') + '">' + (m.qty > 0 ? '+' : '') + stkQty(m.qty, i.unit) + '</b></div>' +
+        '<div class="prow-2"><span>' + esc([m.at, m.by !== 'system' ? m.by : '', m.note].filter(Boolean).join(' · ')) + '</span></div></div></div>';
+    }).join('') : '<div class="empty">No changes yet</div>') + '</div>';
+  openPanel(true);
+  el('siBack').onclick = renderStock;
+  if (el('siIn')) el('siIn').onclick = function () { openStockIn(sku); };
+  if (el('siAdj')) el('siAdj').onclick = function () { openStockAdjust(sku); };
+}
+function stkItemOptions(sel) {
+  return STK.data.items.filter(function (i) { return i.kind === 'Item'; }).map(function (i) { return '<option value="' + esc(i.sku) + '"' + (i.sku === sel ? ' selected' : '') + '>' + esc(i.name) + '</option>'; }).join('');
+}
+function stkSave(list, back) {
+  api('appStockEntry', [TOKEN, list], function () {
+    toast('✅ Saved · stock updates within 15 minutes');
+    list.forEach(function (x) { STK.data.pending.push({ type: x.type, sku: x.sku, qty: x.qty }); });
+    back();
+  }, function (e) { toast('❌ Not saved: ' + ((e && e.message) || 'try again')); });
+}
+// Goods received from a supplier: quantity, rejected, unit price + extra cost per unit (freight, packing) → average cost
+function openStockIn(sku) {
+  var back = function () { if (sku) openStockItem(sku); else renderStock(); };
+  el('panel').innerHTML = '<button class="btn mini" id="sxBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Back</button><h3>Stock in</h3><p>Goods received</p>' +
+    '<div class="fld"><label>Product</label><select id="sxSku">' + stkItemOptions(sku) + '</select></div>' +
+    '<div class="fld"><label>Received</label><input id="sxQty" type="text" inputmode="decimal" placeholder="e.g. 100"></div>' +
+    '<div class="fld"><label>Rejected / damaged on arrival</label><input id="sxRej" type="text" inputmode="decimal" placeholder="0"></div>' +
+    '<div class="fld"><label>Price per unit (PKR)</label><input id="sxCost" type="text" inputmode="decimal" placeholder="e.g. 450"></div>' +
+    '<div class="fld"><label>Extra cost per unit · freight, packing (PKR)</label><input id="sxExtra" type="text" inputmode="decimal" placeholder="0"></div>' +
+    '<div class="fld"><label>Supplier</label><input id="sxSup" list="sxSupL" placeholder="Supplier name"><datalist id="sxSupL">' + (STK.data.suppliers || []).map(function (s) { return '<option value="' + esc(s) + '">'; }).join('') + '</datalist></div>' +
+    '<div class="fld"><label>Note (optional)</label><input id="sxNote" placeholder="e.g. bill #, batch"></div><div class="err" id="sxErr"></div>' +
+    '<button class="btn pri" id="sxGo" style="width:100%;padding:12px">Save stock in</button>';
+  openPanel(true);
+  el('sxBack').onclick = back;
+  el('sxGo').onclick = function () {
+    var n = function (id) { return Number(String(el(id).value).replace(/[^0-9.]/g, '')) || 0; };
+    if (!(n('sxQty') > 0)) { el('sxErr').textContent = 'Enter how many were received'; return; }
+    stkSave([{ type: 'Purchase', sku: el('sxSku').value, qty: n('sxQty'), rejected: n('sxRej'), cost: n('sxCost'), extra: n('sxExtra'), supplier: el('sxSup').value.trim(), note: el('sxNote').value.trim() }], back);
+  };
+}
+// Correction (+/-) or damaged / lost (taken out), always with a reason
+function openStockAdjust(sku) {
+  var i = STK.data.items.filter(function (x) { return x.sku === sku; })[0], kind = 'Adjust';
+  el('panel').innerHTML = '<button class="btn mini" id="saBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>' + esc(i.name) + '</button><h3>Adjust stock</h3><p>On hand now ' + stkQty(i.onHand, i.unit) + '</p>' +
+    '<div class="fld"><div class="seg2" id="saKind"><button type="button" class="on" data-k="Adjust"><i class="ti ti-adjustments"></i>Correction</button><button type="button" data-k="Damaged"><i class="ti ti-trash"></i>Damaged / lost</button></div></div>' +
+    '<div class="fld"><label id="saQL">Change (+ add, − take out)</label><input id="saQty" type="text" inputmode="decimal" placeholder="e.g. -2 or 5"></div>' +
+    '<div class="fld"><label>Reason</label><input id="saNote" placeholder="e.g. recount, broken in packing"></div><div class="err" id="saErr"></div>' +
+    '<button class="btn pri" id="saGo" style="width:100%;padding:12px">Save</button>';
+  openPanel(true);
+  el('saBack').onclick = function () { openStockItem(sku); };
+  el('saKind').onclick = function (e) {
+    var b = e.target.closest('[data-k]'); if (!b) return; kind = b.getAttribute('data-k');
+    el('saKind').querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); });
+    el('saQL').textContent = kind === 'Damaged' ? 'How many damaged / lost' : 'Change (+ add, − take out)';
+  };
+  el('saGo').onclick = function () {
+    var q = Number(String(el('saQty').value).replace(/[^0-9.\-]/g, ''));
+    if (!q) { el('saErr').textContent = 'Enter the quantity'; return; }
+    if (!el('saNote').value.trim()) { el('saErr').textContent = 'Write the reason'; return; }
+    stkSave([{ type: kind, sku: sku, qty: kind === 'Damaged' ? Math.abs(q) : q, note: el('saNote').value.trim() }], function () { openStockItem(sku); });
+  };
+}
+// Count: what is on the shelf now, product by product (empty = not counted). The first count starts inventory.
+function openStockCount() {
+  var items = STK.data.items.filter(function (i) { return i.kind === 'Item'; });
+  el('panel').innerHTML = '<button class="btn mini" id="scBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Stock</button><h3>Count stock</h3>' +
+    '<p>Write what is on the shelf now. Leave empty what you did not count. Parcels already with couriers are not counted.</p>' +
+    '<div class="card">' + items.map(function (i) {
+      return '<div class="stk-in"><div><b style="font-size:13.5px">' + esc(i.name) + '</b><small>' + esc(i.sku) + (i.onHand != null && STK.data.started ? ' · system ' + stkQty(i.onHand, i.unit) : '') + (i.unit === 'ft' ? ' · in feet' : '') + '</small></div>' +
+        '<input type="text" inputmode="decimal" data-cs="' + esc(i.sku) + '" placeholder="' + (i.unit === 'ft' ? 'ft' : 'pcs') + '"></div>';
+    }).join('') + '</div><div class="err" id="scErr"></div>' +
+    '<button class="btn pri" id="scGo" style="width:100%;padding:12px">Save count</button>';
+  openPanel(true);
+  el('scBack').onclick = renderStock;
+  el('scGo').onclick = function () {
+    var list = [].slice.call(el('panel').querySelectorAll('[data-cs]')).filter(function (x) { return String(x.value).trim() !== ''; })
+      .map(function (x) { return { type: 'Count', sku: x.getAttribute('data-cs'), qty: Number(String(x.value).replace(/[^0-9.]/g, '')) || 0, note: 'stock count' }; });
+    if (!list.length) { el('scErr').textContent = 'Write at least one count'; return; }
+    stkSave(list, renderStock);
+  };
+}
+el('btnStock').onclick = fromMenu(function () { openStock(''); });
+
 // ---------- Morning brief (the 10 am notification opens it): each number opens its parcels ----------
 var BRIEF = { day: '', data: null }, BRIEF_BACK = null; // BRIEF_BACK: where closing the brief returns (the 🔔 list), else Home
 function openBrief(day, back) {
@@ -3314,7 +3467,8 @@ el('btnPush').onclick = function () { if (pushIsOn()) fromMenu(openPushPrefs)();
 var PUSH_KINDS = [['ndr', 'NDR cases', 'Failed delivery, refused, stuck with courier'], ['back', 'Returns back', 'A return reached the local courier office · collect and scan'],
   ['late', 'Late parcels', '8+ days since dispatch, not delivered'], ['nocn', 'Missing tracking', 'Booked but no tracking number'], ['brief', 'Morning brief', '10 am · yesterday and today in one message'],
   ['sync', 'System alerts', 'A sync stopped or failed · and when it is back'],
-  ['cash', 'Courier payments', 'A courier sent money · check the bank and Record']];
+  ['cash', 'Courier payments', 'A courier sent money · check the bank and Record'],
+  ['stock', 'Low stock', 'A product is low or out of stock']];
 function openPushPrefs() {
   var kinds = PUSH_KINDS.filter(function (k) { return can(KIND_PERM[k[0]]); }); // only what this role gets
   var cur = store('eh_push_types'), on = cur == null || cur === '' ? kinds.map(function (k) { return k[0]; }) : cur === 'none' ? [] : cur.split(',');
@@ -3648,13 +3802,14 @@ function start() {
   // Opened from a notification: ?tab=ndr / returns / parcels
   var qs = new URLSearchParams(location.search), qt = qs.get('tab'), qp = qs.get('p'), qb = qs.get('brief');
   if (qb) setTimeout(function () { showTab('home'); openBrief(/^\d{4}-\d{2}-\d{2}$/.test(qb) ? qb : '', null); }, 600);
-  var qsy = qs.get('sync'), qpay = qs.get('pay');
+  var qsy = qs.get('sync'), qpay = qs.get('pay'), qst = qs.get('stock');
+  if (qst && can('inventory.view')) setTimeout(function () { openStock(qst); }, 600);
   if (qpay) { PAY_OPEN = qpay; setTimeout(function () { showTab('cash'); openPayIfReady(); }, 700); }
   if (qsy) setTimeout(openSyncStatus, 600);
   applyPerms();
   if (qt && TABS[qt] && canTab(qt)) showTab(qt);
   if (qp && can('parcels.view')) setTimeout(function () { openParcel(qp); }, 600);
-  if (qt || qp || qb || qsy || qpay) { try { history.replaceState(history.state, '', location.pathname + location.hash); } catch (e) {} }
+  if (qt || qp || qb || qsy || qpay || qst) { try { history.replaceState(history.state, '', location.pathname + location.hash); } catch (e) {} }
   // Warm the other tabs in the background so switching is instant.
   loadAllowed();
   google.script.run.withSuccessHandler(setPerms).withFailureHandler(function (e) { authFail(e); }).appGetProfile(TOKEN);
