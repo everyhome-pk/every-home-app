@@ -1253,7 +1253,8 @@ function openParcel(key) {
   var body =
     // where it is, and the money at stake
     '<div class="pp-hero">' + ppSteps(p.stage, s[1]) +
-    '<div class="pp-cod"><b class="num">' + rs(p.total) + '</b><span>' + (p.cn ? esc(p.courier) + ' · ' + esc(p.cn) : 'Not booked yet') + '</span></div></div>' +
+    // the amount to collect: total − advance ("Prepaid" when nothing is due on delivery)
+    '<div class="pp-cod"><b class="num">' + (p.adv ? (p.due > 0 ? rs(p.due) : 'Prepaid') : rs(p.total)) + '</b><span>' + (p.adv ? (p.due > 0 ? 'COD · ' + rs(p.adv) + ' paid in advance' : rs(p.adv) + ' paid in advance') + ' · ' : '') + (p.cn ? esc(p.courier) + ' · ' + esc(p.cn) : 'Not booked yet') + '</span></div></div>' +
     ((p.flags || []).length ? '<div style="margin:-2px 0 10px">' + p.flags.map(function (f) { return '<span class="flag">' + esc(f) + '</span>'; }).join('') + '</div>' : '') +
     histBlock(p) +
     (ndr ? card('Delivery problem', row('NDR case', esc(ndr.type)) + (ndr.outcome && ndr.outcome !== 'Not called yet' ? row('Call result', esc(ndr.outcome)) : '') + (ndr.says ? row('Customer says', esc(ndr.says)) : '') +
@@ -1261,9 +1262,10 @@ function openParcel(key) {
     card('Customer', row('Name', esc(p.name)) + row('Phone', esc(phoneText(p.phone))) + row('City', esc(p.city)) + row('Address', esc(p.address))) +
     card('Order', row('Order date', esc(p.ordered || p.date)) + (p.dispatched ? row('Shipped', esc(p.dispatched)) : '') + row('Items', esc(p.items)) +
       (!ndr && p.attempts ? row('Delivery attempts', p.attempts) : '') + (p.reason || p.lastRaw ? row('Last update', esc(p.reason || p.lastRaw)) : '')) +
-    card('Money', row('COD', rs(p.total)) + (p.charge ? row('Courier fees', rs(p.charge) + chargeParts(p.cb)) : '') + (p.cb && (p.cb[5] + p.cb[6]) ? row('Taxes (WHT + SST)', rs(p.cb[5] + p.cb[6])) : '') +
+    card('Money', (p.adv ? row('Order total', rs(p.total)) + row('Paid in advance', rs(p.adv) + (p.advMethod ? ' · ' + esc(p.advMethod) : '')) + row('COD to collect', p.due > 0 ? rs(p.due) : 'None (prepaid)') : row('COD', rs(p.total))) + (p.charge ? row('Courier fees', rs(p.charge) + chargeParts(p.cb)) : '') + (p.cb && (p.cb[5] + p.cb[6]) ? row('Taxes (WHT + SST)', rs(p.cb[5] + p.cb[6])) : '') +
       (cash ? row('Settlement', esc(cash.note || cash.cat)) + row(cash.returned ? 'Courier fees' : 'Net payout', rs(cash.returned ? cash.charges : cash.net)) + (cash.over ? row('Above rate card', rs(cash.over)) : '') : ''),
       cash ? '<button class="pp-more" style="width:auto;padding:0" data-ppr="' + esc(p.cn) + '">Receipt ›</button>' : '') +
+    (!p.done && can('cash.edit') && (p.due == null || p.due > 0) ? '<button class="btn" id="pdAdv" style="width:100%;padding:12px;margin-bottom:12px"><i class="ti ti-cash"></i>Record advance payment</button>' : '') +
     (p.rcv ? '<button class="btn" data-rh="' + esc(p.cn) + '" style="width:100%;padding:12px;margin-bottom:12px"><i class="ti ti-history"></i>Return history</button>' : '') +
     (p.cn ? '<div class="pp-card"><div class="pp-h"><span>Tracking</span></div><div class="tl-sheet" id="pdtl" style="margin-bottom:8px"><div class="sk" style="height:100px"></div></div></div>' : '');
   // the actions stay at the bottom, within thumb reach
@@ -1273,6 +1275,7 @@ function openParcel(key) {
       : p.track ? '<a class="btn" target="_blank" href="' + esc(p.track) + '"><i class="ti ti-external-link"></i>Track</a>' : '');
   openPage({ title: p.ref, sub: p.name || '', tag: '<span class="st" style="--c:' + s[1] + '">' + s[0] + '</span>', body: body, bar: bar });
   if (el('pdNdr')) el('pdNdr').onclick = function () { openNdrForm(ndr.cn); };
+  if (el('pdAdv')) el('pdAdv').onclick = function () { openAdvance(p); };
   el('pgBody').querySelectorAll('[data-ppr]').forEach(function (b) { b.onclick = function () { openCashReceipt(b.getAttribute('data-ppr')); }; });
   // Tracking: the saved events first (instant), then the courier's own live list replaces them; long lists start short.
   var live = false;
@@ -3315,6 +3318,31 @@ function openStockCount() {
   };
 }
 el('btnStock').onclick = fromMenu(function () { openStock(''); });
+
+// ---------- Advance payment (paid before delivery, not entered in Shopify): W1 writes it to Shopify within 5 minutes ----------
+function openAdvance(p) {
+  var st = { method: '' };
+  el('panel').innerHTML = '<h3>Advance payment</h3><p>' + esc(p.ref) + ' · total ' + rs(p.total) + (p.adv ? ' · ' + rs(p.adv) + ' already paid' : '') + '</p>' +
+    '<div class="fld"><label>Amount received (PKR)</label><input id="avAmt" type="text" inputmode="decimal" placeholder="e.g. 500 or ' + Math.round(p.due != null ? p.due : p.total) + '"></div>' +
+    '<div class="fld"><label>Paid by</label><div class="chips wrapc" id="avM">' + ['JazzCash', 'EasyPaisa', 'Bank transfer', 'Cash', 'Other'].map(function (m) { return '<button class="chip" type="button" data-v="' + m + '">' + m + '</button>'; }).join('') + '</div></div>' +
+    '<div class="fld"><label>Transaction ID (optional)</label><input id="avRef" placeholder="e.g. TID 1234567"></div><div class="err" id="avErr"></div>' +
+    '<p style="color:var(--muted);font-size:12.5px;margin:0 0 10px">Also written into Shopify (as a payment) and into Finance. COD on delivery becomes the rest.</p>' +
+    '<div class="btns"><button class="btn" id="avNo">Cancel</button><button class="btn pri" id="avGo">Save</button></div>';
+  openPanel();
+  el('avM').onclick = function (e) { var b = e.target.closest('[data-v]'); if (!b) return; st.method = b.getAttribute('data-v'); el('avM').querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x === b); }); };
+  el('avNo').onclick = closePanel;
+  el('avGo').onclick = function () {
+    var a = Number(String(el('avAmt').value).replace(/[^0-9.]/g, ''));
+    if (!(a > 0)) { el('avErr').textContent = 'Enter the amount'; return; }
+    if (!st.method) { el('avErr').textContent = 'Pick how it was paid'; return; }
+    el('avGo').disabled = true;
+    api('appRecordAdvance', [TOKEN, { ref: p.ref, amount: a, method: st.method, refNo: el('avRef').value.trim() }], function () {
+      p.adv = (p.adv || 0) + a; p.due = Math.max(0, (Number(p.total) || 0) - p.adv); p.advMethod = st.method;
+      toast('✅ Advance saved · COD now ' + (p.due > 0 ? rs(p.due) : 'none'));
+      closePanel(); openParcel(p.cn || p.ref); loadParcels(true);
+    }, function (e) { el('avGo').disabled = false; el('avErr').textContent = (e && e.message) || 'Not saved'; });
+  };
+}
 
 // ---------- Finance (W3 "Transactions"): expenses with maker–checker approval, money owed to people, profit & loss ----------
 var FN = { month: '', data: null };
