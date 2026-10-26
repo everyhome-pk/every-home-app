@@ -692,7 +692,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 (function () {
   if (window.google && google.script) return;
   window.EH_PWA = true; // installed app: notifications are possible
-  window.EH_BUILD = '2026-10-25'; // shown at the bottom of the menu
+  window.EH_BUILD = '2026-10-26'; // shown at the bottom of the menu
   var API = "https://script.google.com/macros/s/AKfycbyqtyrClenCG1_iqTSDK5KhtFItfX6rUsYdIexwQ3qPFbSv9d1n8jy06ItjvWXXtB-I/exec";
   function call(fn, args, ok, fail) {
     fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: fn, args: args }) })
@@ -773,12 +773,18 @@ function authFail(e) {
   TOKEN = ''; store('eh_token', ''); LOCKED = false; showLogin(); return true;
 }
 
-var animated = {};
+// Numbers count up and bars grow only the FIRST time a screen is shown after the app opens (a real start: closed and
+// opened again). Refreshes, coming back to the screen, period / filter changes and minimise → maximise just show the
+// final values (the page keeps running when minimised, so ANIM_DONE stays). User asked 2026-10-26.
+var ANIM_DONE = {};
+function animateBox(box, name) {
+  var first = !ANIM_DONE[name]; ANIM_DONE[name] = 1;
+  if (!first) box.querySelectorAll('.fade').forEach(function (c) { c.classList.remove('fade'); }); // cards fade in once too
+  box.querySelectorAll('[data-n]').forEach(function (n) { if (first) countUp(n); else n.textContent = n.hasAttribute('data-rs') ? rs(Number(n.getAttribute('data-n'))) : n0(Number(n.getAttribute('data-n'))); });
+  growBars(box, !first);
+}
 function countUp(node) {
   var end = Number(node.getAttribute('data-n')), money = node.hasAttribute('data-rs');
-  var id = node.getAttribute('data-k');
-  if (id && animated[id] === end) { node.textContent = money ? rs(end) : n0(end); return; } // no re-animation on refresh
-  if (id) animated[id] = end;
   var t0 = null, dur = 700;
   function step(t) {
     if (!t0) t0 = t;
@@ -788,7 +794,12 @@ function countUp(node) {
   }
   requestAnimationFrame(step);
 }
-function growBars(box) {
+function growBars(box, still) {
+  if (still) { // no animation: bars at their size at once
+    box.querySelectorAll('[data-w]').forEach(function (x) { x.style.transition = 'none'; x.style.width = x.getAttribute('data-w') + '%'; });
+    box.querySelectorAll('[data-h]').forEach(function (x) { x.style.transition = 'none'; x.style.height = x.getAttribute('data-h') + '%'; });
+    return;
+  }
   requestAnimationFrame(function () {
     setTimeout(function () {
       box.querySelectorAll('[data-w]').forEach(function (x) { x.style.width = x.getAttribute('data-w') + '%'; });
@@ -844,22 +855,23 @@ function ago(ms) {
 }
 function cycleText(min) { return !min ? '' : min >= 1440 ? 'daily' : min >= 60 ? (min / 60) + 'h' : min + 'm'; }
 // A job is late when it has not run for two of its cycles (plus 5 min); failed when its last run hit an error
-function jobState(j) {
-  if (!j.ok) return 'failed';
-  return j.cycle && j.ms && Date.now() - j.ms > (j.cycle * 2 + 5) * 60000 ? 'late' : '';
-}
+// the server's rule (W1 syncJobState_): '' / key / failed / late — a one-off failure that heals itself is ''
+function jobState(j) { return j.state === undefined ? (j.ok ? '' : 'failed') : j.state; }
+// Home (header mark + strip): only admins, only real problems; staff never see sync trouble there
+function homeJobState(j) { return can('users.manage') ? jobState(j) : ''; }
 function syncMark() {
   if (!SYNCD || !SYNCD.jobs.length) return '';
-  var bad = SYNCD.jobs.filter(jobState)[0];
+  var bad = SYNCD.jobs.filter(homeJobState)[0];
   if (bad) return ' · <span class="sstat bad"><i class="ti ti-alert-circle"></i></span>'; // details in the strip below the header
   var o = SYNCD.jobs.filter(function (j) { return j.job === 'orders'; })[0] || SYNCD.jobs[0];
   return ' · <span class="sstat"><i class="ti ti-refresh"></i>' + ago(o.ms) + '</span>';
 }
 function drawSyncWarn() {
-  var bad = SYNCD ? SYNCD.jobs.filter(jobState) : [];
+  var bad = SYNCD ? SYNCD.jobs.filter(homeJobState) : [];
   el('swarn').hidden = !bad.length;
+  var word = { key: 'login refused', failed: 'needs a look', late: 'not updating' };
   if (bad.length) el('swarn').innerHTML = '<i class="ti ti-alert-circle"></i><span><b>' + esc(bad.map(function (j) { return j.name; }).join(', ')) + '</b> ' +
-    (bad.length === 1 && jobState(bad[0]) === 'failed' ? 'failed' : 'not syncing') + ' · data may be old</span><i class="ti ti-chevron-right"></i>';
+    (bad.length === 1 ? word[jobState(bad[0])] : 'not updating') + '</span><i class="ti ti-chevron-right"></i>';
 }
 el('swarn').onclick = function () { openSyncStatus(); };
 function loadSync() {
@@ -894,7 +906,7 @@ function drawSyncStatus() {
   box.innerHTML = (jobs.length ? '<div class="card sx-card"><div class="sx-h"><span>System</span><span>Last</span><span>Cycle</span></div>' + jobs.map(function (j, i) {
     var st = jobState(j), fill = j.cycle && j.ms ? Math.min(100, 100 * (Date.now() - j.ms) / (j.cycle * 60000)) : 0;
     return '<div class="sx-r' + (st ? ' bad' : '') + '" data-sx="' + i + '"><span>' + esc(j.name) + '</span><b class="num">' + (j.ms ? ago(j.ms) : '—') +
-      (st ? ' <em>' + st + '</em>' : '') + '</b><small>' + cycleText(j.cycle) + '</small>' +
+      (st ? ' <em>' + ({ key: 'login refused', failed: 'failing', late: 'late' }[st] || st) + '</em>' : '') + '</b><small>' + cycleText(j.cycle) + '</small>' +
       '<i class="sx-bar"><u style="width:' + (st ? 100 : fill) + '%"></u></i>' +
       '<div class="sx-more" hidden>' + esc(exact(j.ms)) + (j.note ? ' · ' + esc(j.note) : '') + '</div></div>';
   }).join('') + '</div>' : '<div class="card empty"><i class="ti ti-clock"></i>System times appear after the next sync (≤5 min)</div>') +
@@ -907,7 +919,7 @@ el('upd').onclick = function () { if (TOKEN) openSyncStatus(); };
 var PERMS = null; try { PERMS = JSON.parse(store('eh_perms') || 'null'); } catch (e) {}
 var ROLE = store('eh_role') || '';
 var TAB_PERM = { home: 'home.view', parcels: 'parcels.view', ndr: 'ndr.view', returns: 'returns.view', cash: 'cash.view' };
-var KIND_PERM = { ndr: 'ndr.view', back: 'returns.view', late: 'parcels.view', nocn: 'parcels.view', brief: 'home.view', sync: 'home.view', cash: 'cash.view' };
+var KIND_PERM = { ndr: 'ndr.view', back: 'returns.view', late: 'parcels.view', nocn: 'parcels.view', brief: 'home.view', sync: 'users.manage', cash: 'cash.view' };
 function can(p) { return !PERMS || PERMS.indexOf(p) !== -1; } // not known yet (old login): show all until the server answers
 function canTab(t) { return can(TAB_PERM[t]); }
 function firstTab() { return ['home', 'parcels', 'ndr', 'returns', 'cash'].filter(canTab)[0] || ''; }
@@ -1035,29 +1047,36 @@ function autoMore(id, shown) {
 }
 
 // ---------- pull to refresh (lists: from the top of any tab) ----------
+// The circle shows only for a real pull down at the very top (12 px dead zone, so the start of a normal scroll never
+// shows it), and every way a pull can end — finger up, the page starting to scroll, touch cancelled — hides it again.
 (function () {
-  var y0 = null, dy = 0, ptr = el('ptr'), MAX = 90, GO = 64;
+  var y0 = null, dy = 0, ptr = el('ptr'), MAX = 90, GO = 64, DEAD = 12;
+  function hide() { ptr.classList.add('go'); ptr.style.opacity = 0; ptr.style.transform = 'translateY(0)'; }
+  function cancel() { if (y0 == null) return; y0 = null; dy = 0; hide(); }
   addEventListener('touchstart', function (e) {
     if (window.scrollY > 0 || document.body.classList.contains('locked') || e.touches.length > 1) { y0 = null; return; }
     y0 = e.touches[0].clientY; dy = 0; ptr.classList.remove('go');
   }, { passive: true });
   addEventListener('touchmove', function (e) {
     if (y0 == null) return;
-    dy = Math.max(0, e.touches[0].clientY - y0);
-    if (window.scrollY > 0) { y0 = null; return; }
+    if (window.scrollY > 0 || e.touches.length > 1) return cancel(); // it became a normal scroll
+    dy = Math.max(0, e.touches[0].clientY - y0 - DEAD);
     var d = Math.min(MAX, dy * 0.5);
-    ptr.style.opacity = Math.min(1, d / GO); ptr.style.transform = 'translateY(' + d + 'px) rotate(' + (d * 4) + 'deg)';
+    ptr.style.opacity = d ? Math.min(1, d / GO) : 0; ptr.style.transform = 'translateY(' + d + 'px) rotate(' + (d * 4) + 'deg)';
   }, { passive: true });
   addEventListener('touchend', function () {
     if (y0 == null) return;
-    y0 = null; ptr.classList.add('go');
-    if (dy * 0.5 >= GO) {
-      ptr.style.transform = 'translateY(' + GO + 'px)'; ptr.classList.add('spin');
+    var pulled = dy * 0.5 >= GO && window.scrollY === 0;
+    y0 = null; dy = 0; ptr.classList.add('go');
+    if (pulled) {
+      ptr.style.opacity = 1; ptr.style.transform = 'translateY(' + GO + 'px)'; ptr.classList.add('spin');
       try { navigator.vibrate && navigator.vibrate(10); } catch (e) {}
       el('btnRefresh').click();
-      var done = setInterval(function () { if (!busy) { clearInterval(done); ptr.classList.remove('spin'); ptr.style.opacity = 0; ptr.style.transform = 'translateY(0)'; } }, 200);
-    } else { ptr.style.opacity = 0; ptr.style.transform = 'translateY(0)'; }
+      var done = setInterval(function () { if (!busy) { clearInterval(done); ptr.classList.remove('spin'); hide(); } }, 200);
+    } else hide();
   });
+  addEventListener('touchcancel', cancel);
+  addEventListener('scroll', function () { if (window.scrollY > 0 && !ptr.classList.contains('spin')) cancel(); }, { passive: true });
 })();
 
 // ---------- "↑ 3 new" pill: new items arrived while you were down the list ----------
@@ -1191,7 +1210,7 @@ function openDispatchLog(day) {
   el('panel').innerHTML = h;
   openPanel(true);
   el('panel').scrollTop = 0;
-  el('dlClose').onclick = closePanel;
+  el('dlClose').onclick = closeStep; // a day → all days; all days → closed
   if (el('dlBack')) el('dlBack').onclick = function () { openDispatchLog(); };
   el('panel').querySelectorAll('[data-dl]').forEach(function (r) { r.onclick = function () { openDispatchLog(r.getAttribute('data-dl')); }; });
 }
@@ -1329,9 +1348,12 @@ function closePanel() {
   if (back) { setTimeout(function () { if (!el('overlay').classList.contains('show')) back(); }, 320); return; }
   FROM_MENU = false; // the menu (if it was open) is still there
 }
+// Back / Close always go ONE step back (user rule 2026-10-26): a view that is a step inside another (report → its parcel
+// list, brief → list, dispatch log → a day, courier list → WhatsApp confirm) carries a [data-back] control; ‹, ✕, the
+// view's own Close button and the phone's Back all use it, and only the first step closes the page.
+function closeStep() { var b = el('panel').querySelector('[data-back]'); if (b) b.click(); else closePanel(); }
 el('panel').addEventListener('click', function (e) {
-  if (e.target.closest('.pclose')) closePanel();
-  if (e.target.closest('.fs-back')) { var b = el('panel').querySelector('[data-back]'); if (b) b.click(); else closePanel(); }
+  if (e.target.closest('.pclose') || e.target.closest('.fs-back')) closeStep();
 });
 // Drag the sheet down (from its top, when it is not scrolled) to close it
 (function () {
@@ -1664,8 +1686,7 @@ function renderHome(d) {
       cancelLine + nowLine + '</div>';
   }
   el('view').innerHTML = h;
-  el('view').querySelectorAll('[data-n]').forEach(countUp);
-  growBars(el('view'));
+  animateBox(el('view'), 'home');
 }
 // ---------- reports (☰ menu): same period + courier as Home, shown in a sheet ----------
 var REPORT = {};
@@ -1811,7 +1832,7 @@ function openRepList(key, title, sub, rows) {
     '<div class="btns" style="margin-top:10px"><button class="btn" id="rlClose">Close</button></div>';
   openPanel(true);
   el('rlBack').onclick = function () { openReport(key); };
-  el('rlClose').onclick = closePanel;
+  el('rlClose').onclick = closeStep; // back to the report, not out of it
   el('panel').querySelectorAll('[data-rl]').forEach(function (x) {
     x.onclick = function () { if (!can('parcels.view')) return; openParcel(x.getAttribute('data-rl')); };
   });
@@ -1882,8 +1903,7 @@ function openReport(key) {
   };
   if (el('repPer')) el('repPer').onclick = function () { var ms = (H.data && H.data.months) || []; openPeriodSheet(H, ms, ms[0] && ms[0].key, reload); };
   if (el('repCour')) el('repCour').onclick = function () { openCourierSheet(H, reload); };
-  el('repBox').querySelectorAll('[data-n]').forEach(countUp);
-  growBars(el('repBox'));
+  animateBox(el('repBox'), 'rep_' + key);
   el('repBox').oninput = function (e) {
     if (e.target.id !== 'ccq') return;
     CC.q = e.target.value; var pos = e.target.selectionStart;
@@ -1893,12 +1913,12 @@ function openReport(key) {
     if (e.target.id === 'mrFrom' || e.target.id === 'mrTo') {
       MR.from = el('mrFrom').value; MR.to = el('mrTo').value;
       if (MR.from > MR.to) { var x = MR.from; MR.from = MR.to; MR.to = x; }
-      el('repBox').innerHTML = REPORT[key](H.data); growBars(el('repBox'));
+      el('repBox').innerHTML = REPORT[key](H.data); animateBox(el('repBox'), 'rep_' + key);
     }
   };
   el('repBox').onclick = function (e) {
     var mr = e.target.closest('[data-mr]');
-    if (mr) { MR.mode = mr.getAttribute('data-mr'); el('repBox').innerHTML = REPORT[key](H.data); growBars(el('repBox')); return; }
+    if (mr) { MR.mode = mr.getAttribute('data-mr'); el('repBox').innerHTML = REPORT[key](H.data); animateBox(el('repBox'), 'rep_' + key); return; }
     var cc = e.target.closest('[data-ccity]');
     if (cc) { var ci = cc.getAttribute('data-ccity').split('|'); return openCcList(key, Number(ci[0]), ci[1] === undefined ? -1 : Number(ci[1])); }
     var rsn = e.target.closest('[data-rsn]');
@@ -2033,18 +2053,42 @@ function renderParcels() {
   saveFilters();
 }
 // Courier wording → short plain English for the team (the raw text stays in the parcel's tracking)
+// Courier reason words → plain English. Built from the real Trax / Leopards texts in W1 (06_Tracking_Normalized,
+// Oct 2026): Trax "Consignee Refused / Unavailable", "Address Untraceable / Closed", "Hold on consignee's request",
+// "Due To Uncertain Weather", "Non-Service Area", statuses "Shipper Advise Requested", "Reason Validation Required",
+// "Delivery Unsuccessful", "Not Attempted", "On Hold (for Self Collection)"; Leopards "CONSIGNEE REFUSED / NOT AVAILABLE",
+// "REFUSED WITH NO REASON", "NEED HOUSE/FLAT #", "CASH NOT AVAILABLE". Order matters (Address Closed is not "incomplete").
+var REASONS = [
+  [/LIVE API SCAN/, '', ''],
+  [/REFUSED WITH NO REASON/, 'Refused · no reason given', 'norefuse'],
+  [/REFUS/, 'Courier says customer refused', 'norefuse'],
+  [/CASH|AMOUNT|MONEY/, 'Customer did not have the cash', ''],
+  [/NOT AVAILABLE|UNAVAILABLE|NOT AT HOME|\bCNA\b/, 'Customer not available', 'home'],
+  [/ADDRESS CLOSED|AREA CLOSED|CLOSED AREA|RESTRICTED/, 'Area / address closed', 'area'],
+  [/UNTRACEABLE|NOT FOUND|WRONG ADDRESS/, 'Address not found', 'addr'],
+  [/HOUSE|FLAT|INCOMPLETE/, 'House / flat number needed', 'addr'],
+  [/PHONE|NOT RESPOND|NO RESPONSE|NOT ANSWER|POWERED OFF|SWITCH/, 'Phone not answered', 'nocall'],
+  [/CONSIGNEE'?S REQUEST|FUTURE|RESCHEDUL/, 'On hold · customer asked for later', ''],
+  [/SELF COLLECTION/, 'Held for self collection', ''],
+  [/NON.?SERVICE|OUT OF (AREA|ZONE)/, 'Out of delivery area', ''],
+  [/WEATHER|STRIKE|RAIN|HOLIDAY/, 'Weather / holiday delay', ''],
+  [/SHIPPER ADVISE/, 'Courier asks for our instruction', ''],
+  [/REASON VALIDATION/, 'Courier is checking the reason', ''],
+  [/NOT ATTEMPTED/, 'Not attempted', 'never'],
+  [/DELIVERY UNSUCCESSFUL/, 'Delivery failed', ''],
+  [/ON HOLD/, 'On hold', ''],
+  [/CLOSED/, 'Place was closed', 'area']
+];
+function reasonRule(r) { var u = String(r || '').toUpperCase(); return REASONS.filter(function (x) { return x[0].test(u); })[0] || null; }
 function niceReason(r) {
-  var t = String(r || '').trim(), u = t.toUpperCase();
+  var t = String(r || '').trim().replace(/^(Shipment|Return)\s*-\s*/i, '').replace(/^Ready for Return\s*-\s*/i, '');
   if (!t) return '';
-  if (/NOT AVAILABLE|NOT AT HOME|CNA\b/.test(u)) return 'Customer not available';
-  if (/REFUS/.test(u)) return 'Courier says customer refused';
-  if (/HOUSE|FLAT|INCOMPLETE|ADDRESS/.test(u)) return 'Address incomplete';
-  if (/PHONE|NOT RESPOND|NO RESPONSE|NOT ANSWER|POWERED OFF|SWITCH/.test(u)) return 'Phone not answered';
-  if (/CLOSED/.test(u)) return 'Place was closed';
-  if (/OUT OF (AREA|ZONE)|NON.?SERVICE/.test(u)) return 'Out of delivery area';
-  if (/CASH|AMOUNT|MONEY/.test(u)) return 'Customer did not have the cash';
+  var m = reasonRule(t);
+  if (m) return m[1];
   return t.charAt(0) + t.slice(1).toLowerCase();
 }
+// the "Courier's reason is wrong" chip that answers this excuse (preselected in the NDR form)
+function reasonChip(r) { var m = reasonRule(r); return m ? m[2] : ''; }
 // One parcel = one line: who and how much, then order · city · courier and the stage; a third line only for a problem
 // Customer record (same phone number, all other orders): COD risk before confirming, booking or calling
 // returns ≥ deliveries → high risk (red) · some returns → amber · 2+ cancelled → amber · only deliveries → trusted (green)
@@ -2208,7 +2252,7 @@ function taskSteps(c) {
   var o = c.outcome || '', none = !o || o === 'Not called yet', noAns = /no answer|phone off/i.test(o);
   var call = none ? '' : noAns ? 'warn' : 'ok';
   var ans = none || noAns ? '' : 'ok';
-  var needsCourier = c.next === 'Escalate to courier' || /reattempt|address|later date|rider never/i.test(o);
+  var needsCourier = c.next === 'Escalate to courier' || c.next === 'Verify with courier' || /reattempt|address|later date|rider never|already received/i.test(o);
   var cour = !ans ? '' : !needsCourier ? 'ok' : c.sent === 'Courier confirmed' ? 'ok' : c.sent === 'Sent' || c.sent === 'Queued' ? 'warn' : '';
   var lab = [call === 'warn' ? 'No answer' : call ? 'Called' : 'Call',
     ans ? (/refus|cancel/i.test(o) ? 'Refused' : /money/i.test(o) ? 'Cash not ready' : 'Answered') : 'Answer',
@@ -2237,7 +2281,8 @@ function taskCard(c, seen) {
 var TICKET_WORDS = [[/Amal nahi hua/, 'No action'], [/Amal hua/, 'Acted'], [/Intezar/, 'Waiting'], [/Deliver ho gaya/, 'Delivered'],
   [/Return shuru – reattempt nahi hua/, 'Return started · not reattempted'], [/Return shuru ho gaya/, 'Return started'], [/Return ho gaya/, 'Returned'],
   [/Attempt hua – phir fail/, 'Attempted · failed again'], [/Claim – courier ne jawab diya/, 'Claim · courier replied'], [/Courier ne jawab diya/, 'Courier replied'],
-  [/DOBARA – (\d+h), amal nahi/, 'Follow-up · no action in $1'], [/Case band/, 'Case closed'], [/Outbox/, 'Not sent yet']];
+  [/DOBARA – (\d+h), amal nahi/, 'Follow-up · no action in $1'], [/Case band/, 'Case closed'], [/Outbox/, 'Not sent yet'],
+  [/Done \(marked in sheet\)/, 'Done (marked in sheet)'], [/Done \(WhatsApp\)/, 'Done (WhatsApp)']];
 function ticketResult(s) { s = String(s || ''); TICKET_WORDS.forEach(function (w) { s = s.replace(w[0], w[1]); }); return s; }
 function ticketLine(c) {
   var co = N.data.couriers && N.data.couriers[c.courier], t = co && co.tickets[c.cn];
@@ -2265,10 +2310,13 @@ el('ncour').onclick = function (e) {
 };
 
 // ---------- courier list (outbox): cases cleared one by one gather here; send each kind by WhatsApp or sheet ----------
-var OB_KINDS = [['reattempt', '🔁', 'Reattempt', 'DOBARA DELIVER KAREIN'], ['return', '↩️', 'Return to us', 'WAPAS BHEJ DEIN'], ['claim', '📝', 'Claim', 'CLAIM']];
-var OB_REPLIES = ['Reattempt tomorrow', 'Rider assigned', 'Return dispatched', 'Customer issue', 'Claim noted'];
-function outboxOf(name) { var b = (N.data.outbox || {})[name]; return b || { reattempt: [], return: [], claim: [] }; }
-function outboxCount(name) { var b = outboxOf(name); return b.reattempt.length + b.return.length + b.claim.length; }
+var OB_KINDS = [['reattempt', '🔁', 'Reattempt', 'DOBARA DELIVER KAREIN'], ['return', '↩️', 'Return to origin', 'WAPAS BHEJ DEIN'], ['check', '🔍', 'Status check', 'STATUS CHECK'], ['claim', '📝', 'Claim', 'CLAIM']];
+var OB_REPLIES = ['Reattempt tomorrow', 'Rider assigned', 'Delivered', 'POD shared', 'Location shared', 'Proof shared', 'Return dispatched', 'Claim noted', 'Customer issue'];
+var OB_DONE_REPLIES = ['Delivered', 'POD shared', 'Return dispatched', 'Claim noted']; // these usually finish the request
+function outboxOf(name) { var b = (N.data.outbox || {})[name] || {}; OB_KINDS.forEach(function (k) { b[k[0]] = b[k[0]] || []; }); return b; }
+function outboxCount(name) { var b = outboxOf(name); return OB_KINDS.reduce(function (a, k) { return a + b[k[0]].length; }, 0); }
+// how this store sends courier requests (W1 Store Settings "Courier Requests Via"): WhatsApp, Sheet or both
+function courierChannels() { var c = N.data && N.data.options && N.data.options.channels; return c && c.length ? c : ['WhatsApp', 'Sheet']; }
 function outboxHtml() {
   var names = Object.keys(N.data.outbox || {}).filter(function (n) { return outboxCount(n); });
   if (!names.length || !can('ndr.work')) return '';
@@ -2286,7 +2334,8 @@ function courierPrefix(name) { var c = CLIST.filter(function (x) { return x.name
 var OB_MSG = {
   reattempt: ['Reattempt Request', 'Customers se baat ho chuki hai. Barah-e-karam neeche diye gaye parcels *dobara deliver* karwa dein.', 'Dobara deliver karein'],
   return: ['Return Request', 'Barah-e-karam neeche diye gaye parcels *hamein wapas bhej dein*.', 'Wapas bhej dein'],
-  claim: ['Claim Request', 'Neeche diye gaye parcels kharab / adhoore wapas aaye hain. Barah-e-karam *claim note* kar lein.', 'Claim note karein']
+  claim: ['Claim Request', 'Neeche diye gaye parcels kharab / adhoore wapas aaye hain. Barah-e-karam *claim note* kar lein.', 'Claim note karein'],
+  check: ['Status Check Request', 'Customers keh rahe hain parcel mil gaya, magar portal par return hai. Barah-e-karam *status confirm* kar dein.', 'Status confirm karein']
 };
 function waSafe(s) { return String(s || '').replace(/[*_~`]/g, '').replace(/\s+/g, ' ').trim(); } // their own * or _ would break our bold / italic
 function obMessage(name, kind, items, batch, part) {
@@ -2300,7 +2349,7 @@ function obMessage(name, kind, items, batch, part) {
     if (kind === 'claim') {
       lines.push('📝 Issue: _' + (waSafe(it.claimText) || 'Claim') + '_');
     } else {
-      if (it.reason) lines.push('🚚 Courier: _' + waSafe(it.reason) + '_' + (it.attempts ? ' (' + it.attempts + ' attempt' + (it.attempts > 1 ? 's' : '') + ')' : ''));
+      if (it.reason) lines.push('🚚 Courier: _' + waSafe(niceReason(it.reason)) + '_' + (it.attempts ? ' (' + it.attempts + ' attempt' + (it.attempts > 1 ? 's' : '') + ')' : ''));
       // the NDR form's words (English sentences, not a quote); a new address already has its own 🆕 line
       var says = waSafe(it.says), info = waSafe(it.newInfo);
       if (says && !(info && says.indexOf(info) !== -1)) lines.push('🗣 Customer: _' + says + '_');
@@ -2308,6 +2357,8 @@ function obMessage(name, kind, items, batch, part) {
       if (kind === 'reattempt' && it.premature) lines.push('⛔ *Return rokein*, abhi 2 attempts nahi hue');
     }
     lines.push('✅ *Request: ' + m[2] + (kind === 'reattempt' && it.reattempt ? ' · ' + waSafe(it.reattempt) : '') + '*');
+    if (kind === 'check') lines.push('• Delivered: POD share karein', '• Not delivered: parcel ki current location batayen');
+    if (kind === 'reattempt' && it.ask) String(it.ask).split(';').forEach(function (a) { if (a.trim()) lines.push('• ' + waSafe(a)); });
     return lines.join('\n');
   }).join('\n\n');
   var foot = ['Jawab mein parcel ka number likhein, jaise: _"1 done, 2 kal"_', '', 'Shukriya 🙏', '_' + STORE + ' · Operations_'].join('\n');
@@ -2325,7 +2376,8 @@ function openOutbox(name) {
         return '<label class="ob-it"><input type="checkbox" checked data-i="' + i + '"><div><b>' + esc(it.order || it.cn) + ' · ' + esc(it.name || '') + '</b><small>' +
           [esc(it.city || ''), it.newInfo ? '🆕 new address / phone' : '', it.dobara || it.round > 1 ? '🔴 DOBARA' : '', k[0] === 'claim' ? esc(it.claimText || '') : ''].filter(Boolean).join(' · ') + '</small></div></label>';
       }).join('') +
-      '<div class="btns" style="margin-top:8px"><button class="btn wa" data-send="WhatsApp"><i class="ti ti-brand-whatsapp"></i>WhatsApp</button><button class="btn" data-send="Sheet"><i class="ti ti-table"></i>Sheet</button></div></div>';
+      '<div class="btns" style="margin-top:8px">' + (courierChannels().indexOf('WhatsApp') !== -1 ? '<button class="btn wa" data-send="WhatsApp"><i class="ti ti-brand-whatsapp"></i>WhatsApp</button>' : '') +
+      (courierChannels().indexOf('Sheet') !== -1 ? '<button class="btn" data-send="Sheet"><i class="ti ti-table"></i>Sheet</button>' : '') + '</div></div>';
   }).join('');
   el('panel').innerHTML = '<h3>' + esc(name) + ' · courier list</h3><p>Send each kind on its own · batch ' + esc(batch) + '</p>' +
     (sec || '<div class="card empty"><i class="ti ti-circle-check"></i>Everything is sent</div>') +
@@ -2352,9 +2404,9 @@ function obWhatsApp(name, kind, picked, batch, from) {
     el('panel').innerHTML = '<h3>Sent to the ' + esc(name) + ' group?</h3><p>' + part.length + ' parcels · ' + esc(OB_KINDS.filter(function (k) { return k[0] === kind; })[0][2]) + (parts > 1 ? ' · message ' + pn + ' of ' + parts : '') + '</p>' +
       '<div class="msgprev"><div>' + esc(msg).replace(/\n/g, '<br>') + '</div></div>' +
       '<div class="btns" style="margin-top:10px"><button class="btn" id="obNo">Not sent</button><button class="btn pri" id="obYes"><i class="ti ti-check"></i>Yes, sent</button></div>' +
-      '<button class="btn" id="obAgain" style="width:100%;margin-top:8px"><i class="ti ti-brand-whatsapp"></i>Open WhatsApp again</button>';
+      '<button class="btn" id="obAgain" style="width:100%;margin-top:8px"><i class="ti ti-brand-whatsapp"></i>Open WhatsApp again</button><button id="obBack" data-back hidden></button>';
     openPanel(true);
-    el('obNo').onclick = function () { openOutbox(name); };
+    el('obNo').onclick = el('obBack').onclick = function () { openOutbox(name); }; // ‹ / Back = the courier list
     el('obAgain').onclick = share;
     el('obYes').onclick = function () {
       obSend(name, kind, part, 'WhatsApp', batch, function () { if (from + 10 < picked.length) obWhatsApp(name, kind, picked, batch, from + 10); });
@@ -2373,9 +2425,30 @@ function obSend(name, kind, items, channel, batch, then) {
   box[kind] = box[kind].filter(function (it) { return items.indexOf(it) === -1; });
   if (N.data.outbox) N.data.outbox[name] = box;
   snap('ndr', N.data); renderNdr();
-  toast(channel === 'WhatsApp' ? '✅ Recorded as sent on WhatsApp' : '📄 Going to the ' + name + ' sheet (≤5 min)');
-  api('appCourierSend', [TOKEN, list, channel, batch], function () { if (then) then(); else openOutbox(name); loadNdr(true); },
+  toast(channel === 'WhatsApp' ? '✅ Sent to ' + name + ' · WhatsApp · ' + items.length + ' parcel' + (items.length > 1 ? 's' : '') : '✅ Sent to ' + name + ' · Sheet · ' + items.length + ' parcel' + (items.length > 1 ? 's' : '') + ' (on the sheet within 5 min)');
+  api('appCourierSend', [TOKEN, list, channel, batch], function () { if (then) then(); else if (channel === 'Sheet') sheetSent(name, kind, items.length); else openOutbox(name); loadNdr(true); },
     function (e) { toast('❌ Not recorded: ' + ((e && e.message) || 'try again')); loadNdr(true); });
+}
+// The courier's sheet, opened on the tab of that request type (on a phone it opens in the Google Sheets app)
+function courierSheetLink(name, kind) {
+  var s = (N.data.couriers || {})[name] || {}, g = s.tabs && s.tabs[kind || 'reattempt'];
+  return s.link ? s.link + (g != null ? '#gid=' + g : '') : '';
+}
+// WhatsApp text that points the courier's group to their sheet
+function sheetShareText(name, kind, n) {
+  var k = OB_KINDS.filter(function (x) { return x[0] === kind; })[0];
+  return '*' + STORE.toUpperCase() + ' → ' + name + '*\n\nAssalam-o-Alaikum,\n*' + n + ' new request' + (n > 1 ? 's' : '') + '* aap ki sheet mein (' + k[1] + ' ' + k[2] + '):\n' +
+    courierSheetLink(name, kind) + '\n\nStatus aur jawab sheet mein likh dein. Kaam ho jaye to ☑️ Done tick karein.\n\nShukriya 🙏\n_' + STORE + ' · Operations_';
+}
+// After "Send by Sheet": optional — share the link in the courier's WhatsApp group, or open the sheet
+function sheetSent(name, kind, n) {
+  var link = courierSheetLink(name, kind);
+  el('panel').innerHTML = '<h3>Sent to the ' + esc(name) + ' sheet</h3><p>' + n + ' parcel' + (n > 1 ? 's' : '') + ' · on the sheet within 5 minutes</p>' +
+    (link ? '<a class="btn wa" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(sheetShareText(name, kind, n)) + '" style="width:100%;margin-bottom:8px"><i class="ti ti-brand-whatsapp"></i>Share sheet link in ' + esc(name) + ' group</a>' +
+      '<a class="btn" target="_blank" href="' + esc(link) + '" style="width:100%;margin-bottom:8px"><i class="ti ti-table"></i>Open ' + esc(name) + ' sheet</a>' : '') +
+    '<button class="btn pri" id="ssDone" style="width:100%">Done</button><button id="ssBack" data-back hidden></button>';
+  openPanel(true);
+  el('ssDone').onclick = el('ssBack').onclick = function () { openOutbox(name); };
 }
 // A courier answered in the WhatsApp group: note it on the ticket
 document.addEventListener('click', function (e) {
@@ -2384,17 +2457,19 @@ document.addEventListener('click', function (e) {
   var id = b.getAttribute('data-wr'), cour = b.getAttribute('data-wc');
   el('panel').innerHTML = '<h3>' + esc(cour) + ' replied</h3><p>Ticket ' + esc(id) + ' · what did they say on WhatsApp?</p>' +
     '<div class="chips wrapc" id="wrChips">' + OB_REPLIES.map(function (x) { return '<button class="chip" type="button" data-v="' + esc(x) + '">' + esc(x) + '</button>'; }).join('') + '</div>' +
-    '<textarea id="wrText" rows="2" placeholder="Their words (optional)" style="margin-top:8px"></textarea><div class="err" id="wrErr"></div>' +
+    '<textarea id="wrText" rows="2" placeholder="Their words (optional)" style="margin-top:8px"></textarea>' +
+    '<label class="ob-it" style="margin-top:8px"><input type="checkbox" id="wrDone"><div><b>Request complete</b><small>Closes it (like ☑️ Done in the sheet)</small></div></label><div class="err" id="wrErr"></div>' +
     '<div class="btns" style="margin-top:10px"><button class="btn" id="wrCancel">Cancel</button><button class="btn pri" id="wrSave">Save</button></div>';
   openPanel();
   var pick = '';
-  el('wrChips').onclick = function (ev) { var c = ev.target.closest('[data-v]'); if (!c) return; pick = c.classList.contains('on') ? '' : c.getAttribute('data-v'); el('wrChips').querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x === c && !!pick); }); };
+  el('wrChips').onclick = function (ev) { var c = ev.target.closest('[data-v]'); if (!c) return; pick = c.classList.contains('on') ? '' : c.getAttribute('data-v'); el('wrChips').querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x === c && !!pick); }); el('wrDone').checked = OB_DONE_REPLIES.indexOf(pick) !== -1; };
   el('wrCancel').onclick = closePanel;
   el('wrSave').onclick = function () {
     var t = el('wrText').value.trim();
-    if (!pick && !t) { el('wrErr').textContent = 'Pick or write what they said'; return; }
+    var done = el('wrDone').checked;
+    if (!pick && !t && !done) { el('wrErr').textContent = 'Pick or write what they said'; return; }
     closePanel(); toast('Saving reply…');
-    api('appCourierReply', [TOKEN, id, pick, t], function () { toast('✅ Reply noted'); loadNdr(true); });
+    api('appCourierReply', [TOKEN, id, pick, t, done], function () { toast(done ? '✅ Reply noted · request closed' : '✅ Reply noted'); loadNdr(true); });
   };
 }, true);
 // Full courier escalation cards (sheet link, WhatsApp to the group) in a sheet; one courier or all.
@@ -2411,7 +2486,7 @@ function courierCardsHtml(only) {
     var s = cs[name];
     var msg = '*Every Home – ' + name + ' Issues*\n\nAssalam-o-Alaikum,\n*' + s.open + ' parcels* par aap ka action chahiye.' +
       (s.notActed ? '\n*' + s.notActed + '* purane cases par ab tak action nahi hua.' : '') +
-      '\n\nSheet mein status aur reply update kar dein:\n' + s.link + '\n\nShukriya';
+      '\n\nSheet mein status aur jawab likh dein, kaam ho jaye to ☑️ Done tick karein:\n' + s.link + '\n\nShukriya 🙏';
     return '<div class="card"><div class="h"><b>' + name + ' escalations</b><span>' + (s.replyHours != null ? 'avg. reply ~' + s.replyHours + 'h' : '') + '</span></div>' +
       // Open = still on the courier's Issues tab; closed tickets move to its Done tab and are counted by outcome.
       '<div class="cs-h">Open in sheet</div>' +
@@ -2419,7 +2494,8 @@ function courierCardsHtml(only) {
       '<div class="cs-done"><div class="cs-h" style="margin:0"><i class="ti ti-archive"></i>Closed · last ' + (s.closedDays || 30) + ' days<small>' + (s.total || 0) + ' sent in total</small></div>' +
         '<div class="cs-res">' + (s.delivered + s.returned + (s.closedOther || 0) ?
           '<b class="up">' + s.delivered + ' delivered</b> · <b class="down">' + s.returned + ' returned</b>' + (s.closedOther ? ' · ' + s.closedOther + ' other' : '') : 'None yet') + '</div></div>' +
-      (s.link ? '<div class="btns"><a class="btn" target="_blank" href="' + esc(s.link) + '"><i class="ti ti-table"></i>Open sheet</a>' +
+      (s.disputed ? '<div class="tk" style="margin:8px 0 0"><i class="ti ti-alert-octagon"></i> ' + s.disputed + ' disputed attempt' + (s.disputed > 1 ? 's' : '') + ' (proof asked) · last ' + (s.closedDays || 30) + ' days</div>' : '') +
+      (s.link && courierChannels().indexOf('Sheet') !== -1 ? '<div class="btns"><a class="btn" target="_blank" href="' + esc(s.link) + '"><i class="ti ti-table"></i>Open sheet</a>' +
         (s.open ? '<a class="btn wa" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(msg) + '"><i class="ti ti-brand-whatsapp"></i>Send to group</a>' : '') + '</div>' : '') + '</div>';
   }).join('');
 }
@@ -2435,12 +2511,30 @@ el('nlist').onclick = function (e) { var b = e.target.closest('[data-rec]'); if 
 // that asks the courier to deliver again ends with "Please reattempt again."
 var NDR_FLOW = [
   { k: 'deliver', label: 'Deliver again', icon: 'truck-delivery', out: /will receive|reattempt/i, when: true },
-  { k: 'rider', label: 'Rider never came', icon: 'user-x', out: /rider never|fake/i, when: true },
+  // the courier's reason does not match what the customer says (rider never came, no call, area "closed" …): reattempt + attempt proof
+  { k: 'wrong', label: "Courier's reason is wrong", icon: 'alert-octagon', out: /rider never|fake/i, when: true },
   { k: 'address', label: 'New address / phone', icon: 'map-pin', out: /address/i, when: true },
   { k: 'cash', label: 'Cash not ready', icon: 'cash', out: /money|cash/i, when: true },
   { k: 'refuse', label: "Doesn't want it", icon: 'ban', out: /refus|cancel/i, noSend: true },
+  // customer says it was received, the portal says return: a Status check (proof either way), never a reattempt / return
+  { k: 'received', label: 'Says already received', icon: 'package', out: /already received/i, check: true },
   { k: 'other', label: 'Other', icon: 'pencil', out: /will receive|reattempt/i, when: true }
 ];
+// Rider excuses and what the customer says against them; area "closed": how the rider can still reach the customer
+var NDR_WRONG = [['Rider never came', 'never'], ['No call received', 'nocall'], ['Was at home', 'home'], ['Area is not closed', 'area'], ['Did not refuse', 'norefuse'], ['Address was correct', 'addr']];
+var NDR_WRONG_TEXT = { never: 'Customer says the rider never came.', nocall: 'Customer says no call came from the rider.', home: 'Customer says they were at home.',
+  area: 'Customer says the area is not closed.', norefuse: 'Customer says they did not refuse the parcel.', addr: 'Customer says the address was correct.' };
+var NDR_AREA = [['Will come to the gate', 'Customer will come to the gate.'], ['Tell the guard the order #', 'Please tell the guard the order number.'], ['Meet at the main road', 'Customer will meet the rider at the main road.']];
+var NDR_RECEIVED = [['Got this parcel', 'Customer says this parcel was already received.'], ['Got another order', 'Customer received another order, not this one.'], ['Not sure', 'Customer is not sure whether this parcel was received.']];
+var NDR_CHECK_REQ = 'Status confirm karein · Delivered: POD share karein · Not delivered: parcel ki current location batayen';
+// The customer's other orders (same number), to see at once whether "received" was about another parcel
+function otherOrdersHtml(c) {
+  if (typeof P === 'undefined' || !P.data || !c.phone) return '';
+  var d = phoneDigits(c.phone).slice(-10);
+  var list = (P.data.parcels || []).filter(function (p) { return p.cn !== c.cn && p.phone && phoneDigits(p.phone).slice(-10) === d; });
+  return '<div class="tk" style="margin:8px 0 0"><i class="ti ti-history"></i> ' + (list.length ? 'Other orders from this number: ' +
+    list.slice(0, 4).map(function (p) { return esc(p.ref) + ' · ' + esc(STAGE_SHORT[p.stage] || p.stage); }).join(' · ') : 'No other order from this number') + '</div>';
+}
 var NDR_NOT_REACHED = ['No answer', 'Phone off', 'Wrong number'];
 var NDR_REASONS = ['Changed mind', 'Ordered by mistake', 'Delivery too late', 'Price', 'Other reason'];
 var NDR_TIMES = ['Morning', 'Afternoon', 'Evening'];
@@ -2453,7 +2547,14 @@ function openNdrForm(cn, afterCall) {
   var chips = function (id, list) { return '<div class="chips wrapc" id="' + id + '">' + list.map(function (x) { var v = Array.isArray(x) ? x : [x, x]; return '<button class="chip" type="button" data-v="' + esc(v[1]) + '">' + esc(v[0]) + '</button>'; }).join('') + '</div>'; };
   el('panel').innerHTML = (afterCall ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-phone-check"></i> You just called ' + esc(c.name) + '. What happened?</div>' : '') +
     '<h3>' + esc(taskTitle(c)) + '</h3><p>' + esc(c.name) + ' · ' + esc(c.ref) + ' · ' + esc(c.courier) + (c.calls ? ' · called ' + c.calls + '×' : '') + '</p>' +
-    '<div class="fld"><label>Did you reach ' + esc(first) + '?</label><div class="seg2" id="fReach"><button type="button" data-r="yes"><i class="ti ti-phone-check"></i>Yes, we talked</button><button type="button" data-r="no"><i class="ti ti-phone-off"></i>No</button></div></div>' +
+    // what the courier claims, so the agent can check it with the customer
+    (c.reason || c.courierStatus ? '<div class="tsays" style="margin:0 0 10px"><i class="ti ti-truck"></i>' + esc(c.courier) + ' says: ' + esc(niceReason(c.reason || c.courierStatus)) +
+      (c.attempts ? ' · ' + c.attempts + (c.attempts > 1 ? ' attempts' : ' attempt') : '') + '</div>' : '') +
+    // a request already exists: say so first (saving again updates it, never makes a second one)
+    (c.sent === 'Queued' ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-inbox"></i> Request already in the ' + esc(c.courier) + ' list · not sent yet. Send it from the top of NDR.</div>' :
+      c.sent === 'Sent' ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-send"></i> Request sent to ' + esc(c.courier) + ' · waiting for their reply.</div>' :
+      c.sent === 'Courier confirmed' ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-circle-check"></i> ' + esc(c.courier) + ' replied to the request.</div>' : '') +
+    '<div class="fld"><label>Did you reach ' + esc(first) + '?</label><div class="seg2" id="fReach"><button type="button" data-r="yes"><i class="ti ti-phone-check"></i>Yes, reached</button><button type="button" data-r="no"><i class="ti ti-phone-off"></i>No</button></div></div>' +
     // not reached
     '<div id="fNo" hidden><div class="fld"><label>What happened? · call ' + ((c.calls || 0) + 1) + (c.calls + 1 >= 3 ? '' : ' of 3') + '</label>' + chips('fNoWhy', NDR_NOT_REACHED) + '</div>' +
     (c.wa ? '<a class="btn wa" target="_blank" href="' + waLink(c.wa, c.waText) + '" style="margin-bottom:10px"><i class="ti ti-brand-whatsapp"></i>Send WhatsApp to ' + esc(first) + '</a>' : '') +
@@ -2467,17 +2568,20 @@ function openNdrForm(cn, afterCall) {
     '<input id="fDate" type="date" value="' + esc(c.reattempt) + '" style="margin-top:6px">' + chips('fTime', NDR_TIMES) + '</div>' +
     '<div class="fld" id="fAddr" hidden><label>New address / phone</label><input id="fNewAddr" placeholder="House 12, Street 4, Model Town (landmark)"><input id="fNewPhone" type="tel" placeholder="New phone (if any)" style="margin-top:6px"></div>' +
     '<div class="fld" id="fWhy" hidden><label>Why?</label>' + chips('fReason', NDR_REASONS) + '</div>' +
+    '<div class="fld" id="fWrong" hidden><label>What does ' + esc(first) + ' say?</label>' + chips('fWrongWhy', NDR_WRONG) + '</div>' +
+    '<div class="fld" id="fArea" hidden><label>How can the rider reach ' + esc(first) + '?</label>' + chips('fAreaFix', NDR_AREA.map(function (x) { return [x[0], x[1]]; })) + '</div>' +
+    '<div class="fld" id="fRcv" hidden><label>What did ' + esc(first) + ' receive?</label>' + chips('fRcvWhat', NDR_RECEIVED.map(function (x) { return [x[0], x[1]]; })) + otherOrdersHtml(c) + '</div>' +
     '</div>' +
     // own words, for every answer
     '<div class="fld" id="fNoteW" hidden><label id="fNoteL">Your own words (optional)</label><textarea id="fNote" rows="2" placeholder="e.g. Call before coming, gate is at the back">' + '</textarea></div>' +
-    '<div class="msgprev" id="fPrev" hidden><small>Message to ' + esc(c.courier) + '</small><div id="fPrevT"></div></div>' +
+    '<div class="msgprev" id="fPrev" hidden><small>Message to ' + esc(c.courier) + '</small><div id="fPrevT" style="white-space:pre-line"></div></div>' +
     '<details class="fmore"><summary>More options</summary><div class="fld"><label>Internal notes (not sent)</label><textarea id="fNotes" rows="2">' + esc(c.notes) + '</textarea></div></details>' +
     '<div class="err" id="fErr"></div>' +
     '<button class="btn pri" id="fGo" style="width:100%;padding:12px;margin-top:6px" hidden></button>' +
     '<div class="btns" style="margin-top:8px"><button class="btn" id="fCancel">Cancel</button><button class="btn" id="fSaveOnly" hidden>Save only</button></div>';
   openPanel(true);
 
-  var st = { reach: '', why: '', want: null, day: '', time: '', reason: '' };
+  var st = { reach: '', why: '', want: null, day: '', time: '', reason: '', wrong: '', area: '', rcv: '' };
   var pickChip = function (box, key) {
     el(box).onclick = function (e) {
       var b = e.target.closest('[data-v]'); if (!b) return;
@@ -2490,6 +2594,7 @@ function openNdrForm(cn, afterCall) {
     };
   };
   pickChip('fNoWhy', 'why'); pickChip('fDay', 'day'); pickChip('fTime', 'time'); pickChip('fReason', 'reason');
+  pickChip('fWrongWhy', 'wrong'); pickChip('fAreaFix', 'area'); pickChip('fRcvWhat', 'rcv');
   el('fDate').onchange = function () { st.day = el('fDate').value; el('fDay').querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-v') === st.day); }); draw(); };
   ['fNote', 'fNewAddr', 'fNewPhone'].forEach(function (id) { el(id).oninput = function () { el('fErr').textContent = ''; draw(); }; });
   el('fReach').onclick = function (e) {
@@ -2501,6 +2606,10 @@ function openNdrForm(cn, afterCall) {
   el('fWant').onclick = function (e) {
     var b = e.target.closest('[data-k]'); if (!b) return;
     st.want = NDR_FLOW.filter(function (f) { return f.k === b.getAttribute('data-k'); })[0];
+    if (st.want && st.want.k === 'wrong' && !st.wrong) { // the chip that answers this courier's excuse, already picked
+      st.wrong = reasonChip(c.reason || c.courierStatus);
+      el('fWrongWhy').querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', !!st.wrong && x.getAttribute('data-v') === st.wrong); });
+    }
     el('fWant').querySelectorAll('.og').forEach(function (x) { x.classList.toggle('on', x === b); });
     el('fErr').textContent = ''; draw();
   };
@@ -2515,7 +2624,8 @@ function openNdrForm(cn, afterCall) {
     if (st.reach === 'no') return [st.why, note].filter(Boolean).join('. ');
     if (!w) return '';
     if (w.k === 'deliver') m = 'Customer will receive the parcel' + (when ? ' ' + when : '') + '.';
-    if (w.k === 'rider') m = 'Customer says the rider never came and did not call.' + (when ? ' Customer is available ' + when + '.' : '');
+    if (w.k === 'wrong') m = (NDR_WRONG_TEXT[st.wrong] || 'Customer says the courier\'s reason is not correct.') + (st.wrong === 'area' && st.area ? ' ' + st.area : '') + (when ? ' Customer is available ' + when + '.' : '');
+    if (w.k === 'received') m = st.rcv || 'Customer says the parcel was already received.';
     if (w.k === 'address') {
       var a = el('fNewAddr').value.trim(), p = el('fNewPhone').value.trim();
       m = 'Customer gave a new ' + (a && p ? 'address and phone' : p ? 'phone' : 'address') + ': ' + [a, p].filter(Boolean).join(', ') + '.' + (when ? ' Deliver ' + when + '.' : '');
@@ -2524,25 +2634,40 @@ function openNdrForm(cn, afterCall) {
     if (w.k === 'refuse') m = 'Customer does not want the parcel' + (st.reason ? ': ' + st.reason.toLowerCase() : '') + '. Please return the parcel to us.';
     if (w.k === 'other') m = note ? note.replace(/[.\s]*$/, '.') : '';
     else if (note) m += ' ' + note.replace(/[.\s]*$/, '.');
-    if (m && !w.noSend) m += (when && w.k === 'other' ? ' Please come ' + when + '.' : '') + ' Please reattempt again.';
+    if (m && !w.noSend && !w.check) m += (when && w.k === 'other' ? ' Please come ' + when + '.' : '') + ' Please reattempt again.';
     return m.trim();
+  };
+  // extra lines for the courier: proof of the attempt when their reason is disputed; area "closed": call before coming
+  var askText = function () {
+    var w = st.reach === 'yes' && st.want;
+    if (!w || w.k !== 'wrong') return '';
+    return ['Attempt proof share karein'].concat(st.wrong === 'area' ? ['Rider aane se pehle customer ko call kare'] : []).join('; ');
+  };
+  var requestLine = function (send, check) {
+    if (check) return NDR_CHECK_REQ;
+    if (!send) return '';
+    var a = askText();
+    return 'Dobara deliver karein' + (a ? ' · ' + a.split('; ').join(' · ') : '');
   };
   var draw = function () {
     var yes = st.reach === 'yes', no = st.reach === 'no', w = yes && st.want;
     el('fNo').hidden = !no; el('fYes').hidden = !yes;
     el('fWhen').hidden = !(w && w.when); el('fAddr').hidden = !(w && w.k === 'address'); el('fWhy').hidden = !(w && w.k === 'refuse');
+    el('fWrong').hidden = !(w && w.k === 'wrong'); el('fArea').hidden = !(w && w.k === 'wrong' && st.wrong === 'area'); el('fRcv').hidden = !(w && w.k === 'received');
     el('fNoteW').hidden = !(no || w);
     el('fNoteL').textContent = w && w.k === 'other' ? 'What should the courier do?' : 'Your own words (optional)';
-    var msg = message(), send = !!(w && !w.noSend);
-    el('fPrev').hidden = !(send && msg); el('fPrevT').textContent = msg;
+    var msg = message(), send = !!(w && !w.noSend && !w.check), check = !!(w && w.check), req = requestLine(send, check);
+    el('fPrev').hidden = !((send || check) && msg); el('fPrevT').textContent = msg + (req ? '\n✅ ' + req : '');
     el('fGo').hidden = !(no || w);
-    el('fGo').innerHTML = send ? '<i class="ti ti-inbox"></i>Add to ' + esc(c.courier) + ' list' : w && w.noSend ? '<i class="ti ti-arrow-back-up"></i>Ask ' + esc(c.courier) + ' to return it' : '<i class="ti ti-device-floppy"></i>Save · call again later';
-    el('fSaveOnly').hidden = !(send || (w && w.noSend));
-    el('fPrev').hidden = !((send || (w && w.noSend)) && msg);
+    var has = c.sent === 'Queued' || c.sent === 'Sent';
+    el('fGo').innerHTML = check ? (has ? '<i class="ti ti-refresh"></i>Update status check' : '<i class="ti ti-search"></i>Ask ' + esc(c.courier) + ' to check the status') :
+      send ? (has ? '<i class="ti ti-refresh"></i>Update ' + esc(c.courier) + ' request' : '<i class="ti ti-inbox"></i>Add to ' + esc(c.courier) + ' list') : w && w.noSend ? '<i class="ti ti-arrow-back-up"></i>Ask ' + esc(c.courier) + ' to return it' : '<i class="ti ti-device-floppy"></i>Save · call again later';
+    el('fSaveOnly').hidden = !(send || check || (w && w.noSend));
+    el('fPrev').hidden = !((send || check || (w && w.noSend)) && msg);
   };
   draw();
   el('fCancel').onclick = closePanel;
-  var save = function (send, ret) {
+  var save = function (send, ret, check) {
     var w = st.want, msg = message();
     if (ret && st.reach === 'no') msg = (c.calls || 0) + 1 + ' calls, no answer' + (st.why && !/no answer/i.test(st.why) ? ' (' + st.why.toLowerCase() + ')' : '') + '. Please return the parcel to us.';
     if (!st.reach) { el('fErr').textContent = 'Did you reach the customer?'; return; }
@@ -2550,6 +2675,8 @@ function openNdrForm(cn, afterCall) {
     if (st.reach === 'yes' && !w) { el('fErr').textContent = 'Pick what the customer wants'; return; }
     if (w && w.k === 'address' && !el('fNewAddr').value.trim() && !el('fNewPhone').value.trim()) { el('fErr').textContent = 'Write the new address or phone'; el('fNewAddr').focus(); return; }
     if (w && w.k === 'other' && !el('fNote').value.trim()) { el('fErr').textContent = 'Write what the courier should do'; el('fNote').focus(); return; }
+    if (w && w.k === 'wrong' && !st.wrong) { el('fErr').textContent = 'Pick what the customer says'; return; }
+    if (w && w.k === 'received' && !st.rcv) { el('fErr').textContent = 'Pick what the customer received'; return; }
     var outcome = st.reach === 'no' ? outOf(/no answer|phone off/i) : outOf(w.out);
     var updated = w && w.k === 'address' ? [el('fNewAddr').value.trim(), el('fNewPhone').value.trim()].filter(Boolean).join(' · ') : '';
     // Optimistic: close and update the card now, save in the background.
@@ -2557,12 +2684,14 @@ function openNdrForm(cn, afterCall) {
     c.outcome = outcome; c.says = msg; c.calls = (c.calls || 0) + 1; c.lastCall = 'just now';
     if (send) { c.next = 'Escalate to courier'; if (!c.sent || c.sent === 'Not sent') c.sent = 'Queued'; }
     if (ret) { c.next = 'Let it return (RTO)'; if (!c.sent || c.sent === 'Not sent') c.sent = 'Queued'; }
+    if (check) { c.next = 'Verify with courier'; if (!c.sent || c.sent === 'Not sent') c.sent = 'Queued'; }
+    var ask = send ? askText() : '';
     closePanel(); renderNdr(); updateBadge();
-    toast(send || ret ? '📥 Adding to ' + c.courier + ' list…' : 'Saving…');
+    toast(send || ret || check ? '📥 Adding to ' + c.courier + ' list…' : 'Saving…');
     api('saveAppNdrOutcome', [{ token: TOKEN, cn: c.cn, outcome: outcome, next: '', updated: updated, reattempt: st.day || el('fDate').value,
-      sent: c.sent || 'Not sent', notes: el('fNotes').value, says: msg, send: send, ret: !!ret, call: true }], function (r) {
+      sent: c.sent || 'Not sent', notes: el('fNotes').value, says: msg, send: send, ret: !!ret, check: !!check, ask: ask, call: true }], function (r) {
       c.next = r.next; snap('ndr', N.data);
-      toast(send || ret ? '✅ In ' + c.courier + ' list · send it from the top of NDR' : '✅ Saved');
+      toast(send || ret || check ? '✅ Request created · in the ' + c.courier + ' list (not sent yet)' : '✅ Saved');
       loadNdr(true);
     }, function (e) {
       Object.assign(c, JSON.parse(before)); renderNdr(); updateBadge();
@@ -2571,6 +2700,7 @@ function openNdrForm(cn, afterCall) {
   };
   el('fGo').onclick = function () {
     if (st.reach === 'yes' && st.want && st.want.noSend) return save(false, true); // doesn't want it → return request
+    if (st.reach === 'yes' && st.want && st.want.check) return save(false, false, true); // says received → status check
     save(!!(st.reach === 'yes' && st.want && !st.want.noSend));
   };
   el('fSaveOnly').onclick = function () { save(false); };
@@ -2627,7 +2757,7 @@ function renderCash() {
     fbar('bf', bfc[0] === 'all' ? 'All payments' : bfc[1], shown.length) +
     (shown.length ? shown.slice(0, C.blim || 5).map(function (x) {
       var b = x.b, k = rank(b);
-      var st = k === 0 ? ['Not transferred', 'var(--red)'] : k === 1 ? ['Verify in bank', 'var(--amber)'] : k === 3 ? ['Matched', 'var(--green)'] : [b.matched || 'Gap', 'var(--red)'];
+      var st = k === 0 ? ['Not transferred', 'var(--red)'] : k === 1 ? ['Verify in bank', 'var(--amber)'] : k === 3 ? ['Matched', 'var(--green)'] : [matchText(b.matched), 'var(--red)'];
       return '<div class="prow in" data-bt="' + x.i + '" style="--c:' + st[1] + '"><span class="prow-d"></span><div class="prow-m">' +
         '<div class="prow-1"><b>' + esc(b.courier) + ' · ' + esc(b.ref) + '</b><span class="num">' + rs(b.net) + '</span></div>' +
         '<div class="prow-2"><span>' + [esc(b.date), b.parcels + ' parcels', b.bank != null ? 'bank ' + rs(b.bank) : ''].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + st[1] + '">' + esc(st[0]) + '</span></div></div>' +
@@ -2635,7 +2765,7 @@ function renderCash() {
     }).join('') + (shown.length > (C.blim || 5) ? '<button class="btn more" id="bmore">See all ' + shown.length + ' payments</button>' : '') : '<div class="empty">No payments here</div>') + '</div>';
   h += '<div class="card" id="cparcels"></div>';
   el('cview').innerHTML = h;
-  el('cview').querySelectorAll('[data-n]').forEach(countUp); growBars(el('cview'));
+  animateBox(el('cview'), 'cash');
   renderCashParcels();
   if (C.scrollTo) { scrollToCard(C.scrollTo); C.scrollTo = null; }
 }
@@ -2672,7 +2802,7 @@ function cashFlow(s, bankOk, label) {
     row('Outstanding ›', (s.pendingDelivered || 0) + ' unpaid' + (s.overdue ? ' · <i class="late">' + s.overdue + ' overdue</i>' : ''), rs(s.pending), s.overdue ? 'down' : '', 'data-pf="due"') +
     (s.moving ? '<div class="hero-later"><i class="ti ti-clock"></i>In transit: ~' + rs(s.movingCod) + ' COD · ' + s.moving + ' parcels</div>' : '') + '</div>';
 }
-// Each courier: what it owes us now, how many parcels, how old the oldest is (tap = those parcels)
+// Courier receivables: per courier, the COD still to be paid out, how many parcels, how old the oldest is (tap = those parcels)
 function owesCard(d) {
   var by = {};
   d.parcels.forEach(function (p) {
@@ -2682,7 +2812,7 @@ function owesCard(d) {
   });
   var names = Object.keys(by).sort(function (a, b) { return by[b].amt - by[a].amt; });
   if (!names.length) return '';
-  return '<div class="card"><div class="h"><b>Couriers owe us</b><span>' + rs(names.reduce(function (a, n) { return a + by[n].amt; }, 0)) + '</span></div>' +
+  return '<div class="card"><div class="h"><b>Courier receivables</b><span>' + rs(names.reduce(function (a, n) { return a + by[n].amt; }, 0)) + '</span></div>' +
     names.map(function (n) {
       var b = by[n], c = b.late ? 'var(--red)' : 'var(--amber)';
       return '<div class="prow in" data-owe="' + esc(n) + '" style="--c:' + c + '"><span class="prow-d"></span><div class="prow-m">' +
@@ -2690,6 +2820,14 @@ function owesCard(d) {
         '<div class="prow-2"><span>' + b.n + (b.n === 1 ? ' parcel' : ' parcels') + ' · oldest ' + b.old + 'd</span><span class="st" style="--c:' + c + '">' + (b.late ? b.late + ' overdue' : 'On time') + '</span></div></div>' +
         '<i class="ti ti-chevron-right" style="color:var(--faint);align-self:center"></i></div>';
     }).join('') + '</div>';
+}
+// "✅ Match" → "Matched"; "❌ Gap Rs -500" → "Short Rs 500" (bank got less), "Extra Rs 500" (more) — words in the pill, no ❌
+function matchText(m) {
+  m = String(m || '');
+  if (/✅|^\s*match/i.test(m)) return 'Matched';
+  var g = m.match(/(-?[\d,]+(?:\.\d+)?)/), v = g ? Number(g[1].replace(/,/g, '')) : NaN;
+  if (isNaN(v)) return 'Mismatch';
+  return (v < 0 ? 'Short ' : 'Extra ') + rs(Math.abs(v));
 }
 function renderCashParcels() {
   var box = el('cparcels'); if (!box) return;
@@ -2782,7 +2920,7 @@ function openRecord(i, back) {
     el('bSave').disabled = true;
     api('saveAppBankReceived', [{ token: TOKEN, courier: x.courier, ref: x.ref, amount: v }], function (r) {
       x.bank = Number(v); x.matched = r.matched; C.mem = {};
-      closePanel(); toast(r.matched); renderCash();
+      closePanel(); toast(matchText(r.matched)); renderCash();
     }, function (er) { el('bSave').disabled = false; el('bErr').textContent = (er && er.message) || 'Not saved'; });
   };
   el('bSave').onclick = save;
@@ -3021,10 +3159,11 @@ el('btnOut').onclick = function () {
 };
 
 // ---------- Morning brief (the 10 am notification opens it): each number opens its parcels ----------
-var BRIEF = { day: '', data: null };
-function openBrief(day) {
+var BRIEF = { day: '', data: null }, BRIEF_BACK = null; // BRIEF_BACK: where closing the brief returns (the 🔔 list), else Home
+function openBrief(day, back) {
   if (!can('home.view')) return;
-  SHEET_BACK = null; // the brief itself: closing it goes Home
+  if (back !== undefined) BRIEF_BACK = back;
+  SHEET_BACK = BRIEF_BACK; // the brief itself: closing it goes back to where it was opened from (🔔 list) or Home
   if (!BRIEF.data || BRIEF.day !== (day || '')) {
     el('panel').innerHTML = '<h3>Morning brief</h3><div class="sk" style="height:220px"></div>'; openPanel(true);
     return api('getAppBrief', [TOKEN, day || ''], function (d) { BRIEF = { day: day || '', data: d }; openBrief(day); },
@@ -3105,14 +3244,16 @@ function drawAlerts() {
   el('panel').querySelectorAll('[data-al]').forEach(function (r) {
     r.onclick = function () {
       var a = alertsData[Number(r.getAttribute('data-al'))];
-      if (a.p) { closePanel(); setTimeout(function () { openParcel(a.p); }, 250); return; }
-      if (a.kind === 'sync') { closePanel(); setTimeout(openSyncStatus, 250); return; }
+      // opened from the 🔔 list: closing what opens goes back to the list (one step), not Home
+      var toList = function () { el('btnBell').click(); };
+      if (a.p) { openParcel(a.p); return; } // the parcel page sits above the list; closing it shows the list again
+      if (a.kind === 'sync') { openSyncStatus(); SHEET_BACK = toList; return; }
       var pr = (String(a.url).match(/pay=([^&]+)/) || [])[1];
       if (pr) { PAY_OPEN = decodeURIComponent(pr); closePanel(); showTab('cash'); openPayIfReady(); return; }
       if (a.kind === 'brief') {
         // the brief sent on day D is about D-1 (older log rows have no ?brief= in their link)
         var bd = (String(a.url).match(/brief=([\d-]{10})/) || [])[1] || (a.ms ? pkDay(new Date(a.ms - 86400000)) : '');
-        closePanel(); setTimeout(function () { openBrief(bd); }, 250); return;
+        openBrief(bd, toList); return;
       }
       var tab = (String(a.url).match(/tab=(\w+)/) || [])[1];
       closePanel(); if (tab && TABS[tab]) showTab(tab);
@@ -3506,7 +3647,7 @@ function start() {
   drawPushBtn(); pushRefresh(); loadAlerts(false);
   // Opened from a notification: ?tab=ndr / returns / parcels
   var qs = new URLSearchParams(location.search), qt = qs.get('tab'), qp = qs.get('p'), qb = qs.get('brief');
-  if (qb) setTimeout(function () { showTab('home'); openBrief(/^\d{4}-\d{2}-\d{2}$/.test(qb) ? qb : ''); }, 600);
+  if (qb) setTimeout(function () { showTab('home'); openBrief(/^\d{4}-\d{2}-\d{2}$/.test(qb) ? qb : '', null); }, 600);
   var qsy = qs.get('sync'), qpay = qs.get('pay');
   if (qpay) { PAY_OPEN = qpay; setTimeout(function () { showTab('cash'); openPayIfReady(); }, 700); }
   if (qsy) setTimeout(openSyncStatus, 600);
