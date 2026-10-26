@@ -613,6 +613,9 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   <button class="dr-i" data-rep="reasons"><i class="ti ti-alert-triangle"></i>Delivery failure reasons</button>
   <div class="dr-h">Couriers</div>
   <button class="dr-i" data-rep="escalations"><i class="ti ti-headset"></i>Courier escalations</button>
+  <div class="dr-h">Finance</div>
+  <button class="dr-i" id="btnExp"><i class="ti ti-receipt"></i><span id="btnExpT">Expenses</span></button>
+  <button class="dr-i" id="btnPnl"><i class="ti ti-report-money"></i>Profit & loss</button>
   <div class="dr-h">Inventory</div>
   <button class="dr-i" id="btnStock"><i class="ti ti-packages"></i>Stock</button>
   <div class="dr-h">App</div>
@@ -946,6 +949,8 @@ function applyPerms() {
   });
   el('btnDispatch').hidden = !can('parcels.view');
   el('btnStock').hidden = !can('inventory.view');
+  el('btnExp').hidden = !(can('finance.add') || can('finance.view') || can('finance.approve'));
+  el('btnPnl').hidden = !can('finance.view');
   // a menu heading goes when nothing under it is left
   document.querySelectorAll('.dr-h').forEach(function (h) {
     var any = false;
@@ -3311,6 +3316,121 @@ function openStockCount() {
 }
 el('btnStock').onclick = fromMenu(function () { openStock(''); });
 
+// ---------- Finance (W3 "Transactions"): expenses with maker–checker approval, money owed to people, profit & loss ----------
+var FN = { month: '', data: null };
+function fnMonth(m, d) { var y = Number(m.slice(0, 4)), n = Number(m.slice(5, 7)) - 1 + d; y += Math.floor(n / 12); n = ((n % 12) + 12) % 12; return y + '-' + ('0' + (n + 1)).slice(-2); }
+function fnMonthName(m) { return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][Number(m.slice(5, 7)) - 1] + ' ' + m.slice(0, 4); }
+function fnNav(id, m) { return '<div class="btns" style="margin:0 0 12px;align-items:center"><button class="btn" data-fm="-1" aria-label="Previous month"><i class="ti ti-chevron-left"></i></button><b style="flex:1;text-align:center">' + fnMonthName(m) + '</b><button class="btn" data-fm="1" aria-label="Next month"><i class="ti ti-chevron-right"></i></button></div>'; }
+// approvers: "Expenses · 2 to approve" in the menu
+function fnBadge() {
+  if (!can('finance.approve')) return;
+  api('getAppFinance', [TOKEN, ''], function (d) {
+    var n = d.pending.filter(function (x) { return x.enteredBy !== d.me; }).length;
+    el('btnExpT').textContent = 'Expenses' + (n ? ' · ' + n + ' to approve' : '');
+  }, function () {});
+}
+function openExpenses(m) {
+  FN.month = m || FN.month || pkDay(new Date()).slice(0, 7);
+  el('panel').innerHTML = '<h3>Expenses</h3><div class="sk" style="height:220px"></div>'; openPanel(true);
+  api('getAppFinance', [TOKEN, FN.month], function (d) { FN.data = d; renderExpenses(); fnBadge(); }, function () { closePanel(); toast('You don\'t have access to this'); });
+}
+function fnRow(x, act) {
+  var st = x.status === 'Pending' ? ['Pending', 'var(--amber)'] : x.status === 'Rejected' ? ['Rejected', 'var(--red)'] : ['', 'var(--line)'];
+  var sign = x.type === 'Income' || x.type === 'Capital' ? '+' : '';
+  return '<div class="prow" style="cursor:default;--c:' + st[1] + '"><span class="prow-d"></span><div class="prow-m">' +
+    '<div class="prow-1"><b>' + esc(x.desc) + '</b><span class="num">' + sign + rs(x.amount) + '</span></div>' +
+    '<div class="prow-2"><span>' + esc([x.date.slice(5), x.type === 'Expense' ? x.cat : x.type + ' · ' + x.cat, x.from === 'Own pocket' ? 'paid by ' + (x.by || x.enteredBy) : x.from, x.status === 'Pending' ? 'by ' + x.enteredBy : ''].filter(Boolean).join(' · ')) + '</span>' +
+    (st[0] ? '<span class="st" style="--c:' + st[1] + '">' + st[0] + '</span>' : '') + '</div>' + (act || '') + '</div></div>';
+}
+function renderExpenses() {
+  var d = FN.data;
+  var mine = function (x) { return x.enteredBy === d.me; };
+  var toApprove = d.pending.filter(function (x) { return !mine(x); }), waiting = d.pending.filter(mine);
+  var owedK = Object.keys(d.owed || {});
+  el('panel').innerHTML = '<h3>Expenses</h3><p>' + (d.canApprove ? 'Entered by one person, approved by another' : 'Your entries wait for approval') + '</p>' +
+    fnNav('fn', d.month) +
+    '<div class="stk-top"><div><b>' + rs(d.totals.expense) + '</b><small>Expenses</small></div><div><b>' + rs(d.totals.inventory) + '</b><small>Stock bought</small></div><div><b>' + rs(d.totals.income) + '</b><small>Money in</small></div></div>' +
+    (d.canAdd || d.canApprove ? '<button class="btn pri" id="fnAdd" style="width:100%;padding:12px;margin:0 0 12px"><i class="ti ti-plus"></i>Add expense</button>' : '') +
+    (d.canApprove && toApprove.length ? '<div class="card" style="padding:0 0 4px"><div class="h" style="padding:12px 14px 0"><b>To approve</b><span>' + toApprove.length + '</span></div>' +
+      toApprove.map(function (x) { return fnRow(x, '<div class="btns" style="margin-top:8px"><button class="btn" data-fr="' + esc(x.id) + '"><i class="ti ti-x"></i>Reject</button><button class="btn pri" data-fa="' + esc(x.id) + '"><i class="ti ti-check"></i>Approve</button></div>'); }).join('') + '</div>' : '') +
+    (waiting.length ? '<div class="card" style="padding:0 0 4px"><div class="h" style="padding:12px 14px 0"><b>Waiting for approval</b><span>' + waiting.length + '</span></div>' + waiting.map(function (x) { return fnRow(x); }).join('') + '</div>' : '') +
+    (owedK.length ? '<div class="card"><div class="h"><b>Paid from own pocket · to pay back</b></div>' + owedK.map(function (k) {
+      return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><b>' + esc(k) + '</b><span class="num">' + rs(d.owed[k].total) + '</span></div>' +
+        (d.canApprove ? '<div class="btns" style="margin-top:8px"><button class="btn" data-fb="' + esc(k) + '"><i class="ti ti-cash"></i>Mark paid back</button></div>' : '') + '</div></div>';
+    }).join('') + '</div>' : '') +
+    '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>' + fnMonthName(d.month) + '</b><span>' + d.list.length + '</span></div>' +
+    (d.list.length ? d.list.map(function (x) { return fnRow(x); }).join('') : '<div class="empty">Nothing this month</div>') + '</div>' +
+    '<div class="btns" style="margin-top:10px"><button class="btn" id="fnClose">Close</button></div>';
+  openPanel(true);
+  el('fnClose').onclick = closePanel;
+  el('panel').querySelectorAll('[data-fm]').forEach(function (b) { b.onclick = function () { openExpenses(fnMonth(FN.month, Number(b.getAttribute('data-fm')))); }; });
+  if (el('fnAdd')) el('fnAdd').onclick = function () { openAddExpense(); };
+  var act = function (ids, action, note) {
+    api('appApproveFinance', [TOKEN, ids, action, note || ''], function () { toast(action === 'approve' ? '✅ Approved' : action === 'reject' ? 'Rejected' : '✅ Marked paid back'); openExpenses(FN.month); },
+      function (e) { toast('❌ ' + ((e && e.message) || 'try again')); });
+  };
+  el('panel').querySelectorAll('[data-fa]').forEach(function (b) { b.onclick = function () { act([b.getAttribute('data-fa')], 'approve'); }; });
+  el('panel').querySelectorAll('[data-fr]').forEach(function (b) { b.onclick = function () { var why = prompt('Why reject? (optional)') || ''; act([b.getAttribute('data-fr')], 'reject', why); }; });
+  el('panel').querySelectorAll('[data-fb]').forEach(function (b) { b.onclick = function () { act(d.owed[b.getAttribute('data-fb')].ids, 'reimbursed'); }; });
+}
+function openAddExpense() {
+  var d = FN.data, st = { type: 'Expense', cat: '', from: 'Business account' };
+  var draw = function () {
+    el('aeCats').innerHTML = (d.cats[st.type] || []).map(function (c) { return '<button class="chip' + (st.cat === c ? ' on' : '') + '" type="button" data-v="' + esc(c) + '">' + esc(c) + '</button>'; }).join('');
+  };
+  el('panel').innerHTML = '<button class="btn mini" id="aeBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Expenses</button><h3>Add expense</h3>' +
+    '<p>' + (d.canApprove && !can('users.manage') ? 'Another approver will check it' : can('users.manage') ? 'Your entries are approved at once' : 'Waits for approval') + '</p>' +
+    '<div class="fld"><label>Type</label><div class="chips wrapc" id="aeType">' + ['Expense', 'Inventory purchase', 'Income', 'Owner draw', 'Capital'].map(function (x) { return '<button class="chip' + (x === 'Expense' ? ' on' : '') + '" type="button" data-v="' + x + '">' + x + '</button>'; }).join('') + '</div></div>' +
+    '<div class="fld"><label>Amount (PKR)</label><input id="aeAmt" type="text" inputmode="decimal" placeholder="e.g. 2500"></div>' +
+    '<div class="fld"><label>Category</label><div class="chips wrapc" id="aeCats"></div></div>' +
+    '<div class="fld"><label>What was it for</label><input id="aeDesc" placeholder="e.g. Meta ads, office rent October"></div>' +
+    '<div class="fld"><label>Paid from</label><div class="chips wrapc" id="aeFrom">' + d.from.map(function (x) { return '<button class="chip' + (x === st.from ? ' on' : '') + '" type="button" data-v="' + esc(x) + '">' + esc(x === 'Own pocket' ? 'My own pocket' : x) + '</button>'; }).join('') + '</div></div>' +
+    '<div class="fld"><label>Date</label><input id="aeDate" type="date" value="' + pkDay(new Date()) + '"></div>' +
+    '<div class="fld"><label>Receipt / bill # (optional)</label><input id="aeRef" placeholder="e.g. INV-102"></div>' +
+    '<div class="fld"><label>Note (optional)</label><input id="aeNote"></div><div class="err" id="aeErr"></div>' +
+    '<button class="btn pri" id="aeGo" style="width:100%;padding:12px">Save</button>';
+  openPanel(true); draw();
+  el('aeBack').onclick = renderExpenses;
+  var pick = function (box, key, after) { el(box).onclick = function (e) { var b = e.target.closest('[data-v]'); if (!b) return; st[key] = b.getAttribute('data-v'); el(box).querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x === b); }); if (after) after(); }; };
+  pick('aeType', 'type', function () { st.cat = ''; draw(); }); pick('aeCats', 'cat'); pick('aeFrom', 'from');
+  el('aeGo').onclick = function () {
+    var amt = Number(String(el('aeAmt').value).replace(/[^0-9.]/g, ''));
+    if (!(amt > 0)) { el('aeErr').textContent = 'Enter the amount'; return; }
+    if (!st.cat) { el('aeErr').textContent = 'Pick a category'; return; }
+    if (!el('aeDesc').value.trim()) { el('aeErr').textContent = 'Write what it was for'; return; }
+    el('aeGo').disabled = true;
+    api('appAddFinance', [TOKEN, { type: st.type, cat: st.cat, amount: amt, desc: el('aeDesc').value.trim(), from: st.from, date: el('aeDate').value, ref: el('aeRef').value.trim(), note: el('aeNote').value.trim() }],
+      function (r) { toast(r.status === 'Approved' ? '✅ Saved' : '✅ Saved · waiting for approval'); openExpenses(FN.month); },
+      function (e) { el('aeGo').disabled = false; el('aeErr').textContent = (e && e.message) || 'Not saved'; });
+  };
+}
+function openPnl(m) {
+  FN.month = m || FN.month || pkDay(new Date()).slice(0, 7);
+  el('panel').innerHTML = '<h3>Profit & loss</h3><div class="sk" style="height:260px"></div>'; openPanel(true);
+  api('getAppPnl', [TOKEN, FN.month], function (p) {
+    var line = function (l, v, cls, sub) { return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span' + (cls ? ' style="font-weight:600"' : '') + '>' + l + '</span><b class="num"' + (cls === 'neg' ? ' style="color:var(--red)"' : '') + '>' + v + '</b></div>' + (sub ? '<div class="prow-2"><span>' + sub + '</span></div>' : '') + '</div></div>'; };
+    var minus = function (n) { return n ? '− ' + rs(n) : rs(0); };
+    var exp = Object.keys(p.expenses).sort(function (a, b) { return p.expenses[b] - p.expenses[a]; });
+    el('panel').innerHTML = '<h3>Profit & loss</h3><p>Orders of the month · delivered and returned</p>' + fnNav('pl', p.month) +
+      '<div class="card" style="padding:0">' +
+      line('Sales (delivered COD)', rs(p.sales), '', p.delivered + ' delivered · ' + p.returned + ' returned') +
+      line('Courier fees', minus(p.fees), '', 'delivery + return charges, GST') +
+      line('Taxes (WHT + SST)', minus(p.taxes)) +
+      line('Cost of goods', minus(p.cogs), '', p.stockStarted ? 'from stock: average cost of what was sent' : 'starts after the stock count') +
+      line('Gross profit', rs(p.gross), 'b') +
+      line('Ads', minus(p.ads)) +
+      exp.map(function (k) { return line(esc(k), minus(p.expenses[k])); }).join('') +
+      line('Net profit', (p.net < 0 ? '− ' : '') + rs(Math.abs(p.net)), p.net < 0 ? 'neg' : 'b') + '</div>' +
+      '<div class="card"><div class="h"><b>Cash this month</b></div>' + line('Money in', rs(p.cash.in)) + line('Money out', minus(p.cash.out), '', 'expenses, stock bought, owner draws') + '</div>' +
+      '<div class="btns" style="margin-top:10px"><button class="btn" id="plClose">Close</button></div>';
+    openPanel(true);
+    el('plClose').onclick = closePanel;
+    el('panel').querySelectorAll('[data-fm]').forEach(function (b) { b.onclick = function () { openPnl(fnMonth(FN.month, Number(b.getAttribute('data-fm')))); }; });
+  }, function () { closePanel(); toast('You don\'t have access to this'); });
+}
+el('btnExp').onclick = fromMenu(function () { openExpenses(''); });
+el('btnPnl').onclick = fromMenu(function () { openPnl(''); });
+
 // ---------- Morning brief (the 10 am notification opens it): each number opens its parcels ----------
 var BRIEF = { day: '', data: null }, BRIEF_BACK = null; // BRIEF_BACK: where closing the brief returns (the 🔔 list), else Home
 function openBrief(day, back) {
@@ -3812,6 +3932,7 @@ function start() {
   if (qt || qp || qb || qsy || qpay || qst) { try { history.replaceState(history.state, '', location.pathname + location.hash); } catch (e) {} }
   // Warm the other tabs in the background so switching is instant.
   loadAllowed();
+  setTimeout(fnBadge, 2500); // approvers: expenses waiting
   google.script.run.withSuccessHandler(setPerms).withFailureHandler(function (e) { authFail(e); }).appGetProfile(TOKEN);
   loadSync(); drawBioBtn(); setTimeout(bioOffer, 1500);
   if (!started) { started = true; setInterval(function () { if (TOKEN) { if (can('ndr.view')) loadNdr(false); loadAlerts(false); loadSync(); } }, 120000); }
