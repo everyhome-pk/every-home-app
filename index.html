@@ -749,7 +749,14 @@ var USER = store('eh_user') || '';
 var BRAND = 'ORDI', STORE = 'Every Home'; // app name (same everywhere) and this store's name
 
 // Last data kept on the phone: screens open instantly and refresh in the background.
-function snap(key, data) { if (data === undefined) { try { return JSON.parse(store('eh_s4_' + key) || 'null'); } catch (e) { return null; } } store('eh_s4_' + key, JSON.stringify(data)); }
+// a saved view must have its main list: an older / broken copy (other app version, test data) is dropped, never shown
+var SNAP_NEED = { ndr: 'cases', cash: 'batches', parcels: 'parcels', home: 'kpis', returns: 'waiting' };
+function snap(key, data) {
+  if (data === undefined) {
+    try { var d = JSON.parse(store('eh_s4_' + key) || 'null'); return d && (!SNAP_NEED[key] || d[SNAP_NEED[key]] != null) ? d : null; } catch (e) { return null; }
+  }
+  store('eh_s4_' + key, JSON.stringify(data));
+}
 
 // Server calls: adds the token, shows the sync bar, sends to login on LOGIN_REQUIRED.
 var busy = 0;
@@ -2222,7 +2229,7 @@ function isTodo(c) {
 }
 var badgeSeenNew = 0;
 function updateBadge() {
-  var b = el('badge'); if (!N.data) return;
+  var b = el('badge'); if (!N.data || !N.data.cases) return;
   var todo = N.data.cases.filter(isTodo).length, fresh = curTab === 'ndr' ? 0 : newCases().length;
   // the number is always "to do"; new cases make it pop once
   if (fresh > badgeSeenNew) { b.classList.remove('fresh'); void b.offsetWidth; b.classList.add('fresh'); }
@@ -2862,7 +2869,8 @@ var BATCH_F = [
 ];
 function renderCash() {
   saveFilters();
-  var d = C.data, s = d.stats;
+  var d = C.data; if (!d || !d.batches || !d.stats) return;
+  var s = d.stats;
   var months = (H.data && H.data.months) || [];
   cashPbar();
   // Cash = where the money is (Home already shows the Net COD card): the flow, who owes us, payments, parcels.
