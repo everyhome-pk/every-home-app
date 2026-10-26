@@ -3213,7 +3213,7 @@ function renderStock() {
     (d.started ? '<div class="stk-top"><div><b>' + items.filter(function (i) { return i.status === 'OK'; }).length + '</b><small>In stock</small></div><div><b>' + low + '</b><small>Low</small></div><div><b>' + out + '</b><small>Out</small></div></div>' : '') +
     (d.pending.length ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-clock"></i> ' + d.pending.length + ' entr' + (d.pending.length > 1 ? 'ies' : 'y') + ' waiting · stock updates within 15 minutes</div>' : '') +
     (d.errors && d.errors.length && edit ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-alert-triangle"></i> Not posted: ' + d.errors.map(esc).join(' · ') + '</div>' : '') +
-    (edit ? '<div class="btns" style="margin:0 0 12px"><button class="btn pri" id="stIn"><i class="ti ti-truck-loading"></i>Stock in</button><button class="btn" id="stCount"><i class="ti ti-list-numbers"></i>Count</button></div>' : '') +
+    (edit ? '<div class="btns" style="margin:0 0 12px"><button class="btn pri" id="stPur"><i class="ti ti-shopping-cart"></i>Purchases</button><button class="btn" id="stIn"><i class="ti ti-truck-loading"></i>Stock in</button><button class="btn" id="stCount"><i class="ti ti-list-numbers"></i>Count</button></div>' : '') +
     '<div class="search"><i class="ti ti-search"></i><input id="stQ" placeholder="Find a product" value="' + esc(STK.q) + '"></div>' +
     '<div class="chips">' + chip('all', 'Products') + chip('low', 'Low' + (low ? ' · ' + low : '')) + chip('out', 'Out' + (out ? ' · ' + out : '')) + chip('kits', 'Bundles & lines') + '</div>' +
     '<div class="card" style="padding:0">' + (list.length ? list.map(function (i) {
@@ -3232,6 +3232,7 @@ function renderStock() {
   el('panel').querySelectorAll('[data-sf]').forEach(function (b) { b.onclick = function () { STK.f = b.getAttribute('data-sf'); renderStock(); }; });
   el('panel').querySelectorAll('[data-sk]').forEach(function (r) { r.onclick = function () { openStockItem(r.getAttribute('data-sk')); }; });
   if (el('stIn')) el('stIn').onclick = function () { openStockIn(''); };
+  if (el('stPur')) el('stPur').onclick = function () { openPurchases(); };
   if (el('stCount')) el('stCount').onclick = openStockCount;
   if (el('stCount0')) el('stCount0').onclick = openStockCount;
 }
@@ -3244,10 +3245,13 @@ function openStockItem(sku) {
   el('panel').innerHTML = '<button class="btn mini" id="siBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Stock</button>' +
     '<h3>' + esc(i.name) + '</h3><p>' + esc(i.sku) + (st[0] ? ' · <span class="st" style="--c:' + st[1] + '">' + st[0] + '</span>' : '') + '</p>' +
     '<div class="card" style="padding:0">' + row('Available', stkQty(i.available, i.unit)) +
-    (i.kind === 'Item' ? row('On hand', stkQty(i.onHand, i.unit)) + row('For orders (not booked yet)', stkQty(i.committed, i.unit)) + row('Reorder at', stkQty(i.reorder, i.unit)) +
+    (i.kind === 'Item' ? row('On hand', stkQty(i.onHand, i.unit)) + row('For orders (not booked yet)', stkQty(i.committed, i.unit)) +
+      (i.incoming ? row('On the way (ordered)', stkQty(i.incoming, i.unit)) : '') +
+      (i.perDay ? row('Sells per day (30 days)', stkQty(i.perDay, i.unit)) + row('Lasts about', Math.floor(Math.max(0, i.available + (i.incoming || 0)) / i.perDay) + ' days') : '') + row('Reorder at', stkQty(i.reorder, i.unit)) +
       (i.cost != null ? row('Average cost', rs(i.cost)) + row('Stock value', rs(i.value)) : '') : '') + '</div>' +
     (edit ? '<div class="btns" style="margin:0 0 12px"><button class="btn pri" id="siIn"><i class="ti ti-truck-loading"></i>Stock in</button><button class="btn" id="siAdj"><i class="ti ti-adjustments"></i>Adjust</button></div>' : '') +
-    (i.kind === 'Kit' ? '<p style="color:var(--muted);font-size:12.5px">A bundle / clothes line has no stock of its own: its parts go down when it is booked.</p>' : '') +
+    (can('inventory.edit') ? '<button class="btn' + (i.kind === 'Kit' ? ' pri' : '') + '" id="siBuy" style="width:100%;margin:0 0 12px"><i class="ti ti-shopping-cart-plus"></i>Order more' + (i.kind === 'Kit' ? ' (its parts)' : '') + '</button>' : '') +
+    (i.kind === 'Kit' ? kitPartsHtml(i) + '<p style="color:var(--muted);font-size:12.5px">A bundle / clothes line has no stock of its own: its parts go down when it is booked.</p>' : '') +
     '<div class="card"><div class="h"><b>Recent changes</b></div>' + (mv.length ? mv.map(function (m) {
       return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span>' + esc(m.type) + (m.ref && !/^ENT-/.test(m.ref) ? ' · ' + esc(m.ref) : '') + '</span><b class="num" style="color:' + (m.qty < 0 ? 'var(--red)' : 'var(--green)') + '">' + (m.qty > 0 ? '+' : '') + stkQty(m.qty, i.unit) + '</b></div>' +
         '<div class="prow-2"><span>' + esc([m.at, m.by !== 'system' ? m.by : '', m.note].filter(Boolean).join(' · ')) + '</span></div></div></div>';
@@ -3256,6 +3260,54 @@ function openStockItem(sku) {
   el('siBack').onclick = renderStock;
   if (el('siIn')) el('siIn').onclick = function () { openStockIn(sku); };
   if (el('siAdj')) el('siAdj').onclick = function () { openStockAdjust(sku); };
+  if (el('siBuy')) el('siBuy').onclick = function () {
+    // a Kit is bought as its parts (2-pack → the single item; clothes line → wire, hooks, U clamps: remove what is in stock)
+    var leaf = [], walk = function (s, n) { var k = (d.kits || {})[s]; if (k && n < 4) k.forEach(function (c) { walk(c[0], n + 1); }); else if (leaf.indexOf(s) < 0) leaf.push(s); };
+    walk(sku, 0);
+    var go = function () { openNewPurchase({ skus: leaf, back: function () { openStockItem(sku); } }); };
+    if (PUR.data) go(); else api('getAppPurchases', [TOKEN], function (pd) { PUR.data = pd; go(); }, function () { toast('You don\'t have access to this'); });
+  };
+  // purchase price history of this product (who, when, price, cargo per unit → landed cost)
+  if (can('inventory.edit') && i.kind === 'Item') api('getAppPurchases', [TOKEN], function (pd) {
+    PUR.data = pd;
+    if (!el('siBack')) return;
+    var me = function () { openStockItem(sku); };
+    var ls = (pd.links || []).filter(function (l) { return l.sku === sku; }).sort(function (a, b) { return (b.main ? 1 : 0) - (a.main ? 1 : 0); });
+    el('panel').insertAdjacentHTML('beforeend', '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>Suppliers</b><button class="btn mini" id="siSupAdd" type="button"><i class="ti ti-plus"></i>Add</button></div>' +
+      (ls.length ? ls.map(function (l, k) {
+        return '<div class="prow" data-sis="' + k + '"><div class="prow-m"><div class="prow-1"><b>' + (l.main ? '⭐ ' : '') + esc(l.supplier) + '</b><span class="num">' + (l.quoted || l.lastPrice ? rs2(l.quoted || l.lastPrice) + (i.unit === 'ft' ? '/ft' : ' each') : '') + '</span></div>' +
+          '<div class="prow-2"><span>' + esc([l.quoted ? 'quoted' : '', l.lastDate ? 'last bought ' + l.lastDate.slice(5) : ''].filter(Boolean).join(' · ') || 'no rate yet') + '</span></div></div></div>';
+      }).join('') : '<div class="empty">No supplier saved for this product</div>') + '</div>');
+    el('siSupAdd').onclick = function () { openSupplierProduct('', sku, me); };
+    el('panel').querySelectorAll('[data-sis]').forEach(function (r) { r.onclick = function () { openSupplierProduct(ls[+r.getAttribute('data-sis')].supplier, sku, me); }; });
+    var h = (pd.prices[sku] || []).slice(0, 8);
+    if (!h.length) return;
+    el('panel').insertAdjacentHTML('beforeend', '<div class="card"><div class="h"><b>Purchase prices</b><span>last ' + h.length + '</span></div>' + h.map(function (x) {
+      return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span>' + esc(x.date.slice(5)) + ' · ' + esc(x.supplier) + '</span><b class="num">' + rs(x.price) + '</b></div>' +
+        '<div class="prow-2"><span>' + stkQty(x.qty, i.unit) + ' · cargo ' + rs(x.cargoUnit) + '/unit · landed ' + rs(x.landed) + ' · ' + esc(x.po) + '</span></div></div></div>';
+    }).join('') + '</div>');
+  }, function () {});
+}
+// What a Kit is made of (clothes line: its feet of wire + the cut-off, 2 hooks, 2 U clamps) and its cost from the parts' average cost
+function kitPartsHtml(i) {
+  var d = STK.data, parts = (d.kits || {})[i.sku] || [], by = {};
+  if (!parts.length) return '';
+  d.items.forEach(function (x) { by[x.sku] = x; });
+  var leaf = {}, walk = function (s, q, n) {
+    var k = (d.kits || {})[s];
+    if (k && n < 4) { k.forEach(function (c) { walk(c[0], c[1] * q, n + 1); }); if (k.some(function (c) { return c[0] === 'EH-CMP-WIRE'; })) leaf['EH-CMP-WIRE'] = (leaf['EH-CMP-WIRE'] || 0) + (d.waste || 0) * q; }
+    else leaf[s] = (leaf[s] || 0) + q;
+  };
+  walk(i.sku, 1, 0);
+  var total = 0, known = true;
+  var rows = Object.keys(leaf).map(function (s) {
+    var p = by[s] || { name: s, unit: 'pcs' }, c = p.cost != null ? p.cost * leaf[s] : null;
+    if (c == null || !p.cost) known = false; else total += c;
+    return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span>' + esc(p.name) + '</span><b class="num">' + stkQty(leaf[s], p.unit) + '</b></div>' +
+      (c != null && p.cost ? '<div class="prow-2"><span>' + rs(p.cost) + (p.unit === 'ft' ? '/ft' : ' each') + ' → ' + rs(c) + '</span></div>' : '') + '</div></div>';
+  }).join('');
+  return '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>Made from</b><span>' + (known && total ? 'cost ' + rs(total) : '') + '</span></div>' + rows +
+    (leaf['EH-CMP-WIRE'] && d.waste ? '<small class="mnote" style="padding:0 14px 10px;display:block">Wire includes ' + stkQty(d.waste, 'ft') + ' cut-off per line</small>' : '') + '</div>';
 }
 function stkItemOptions(sel) {
   return STK.data.items.filter(function (i) { return i.kind === 'Item'; }).map(function (i) { return '<option value="' + esc(i.sku) + '"' + (i.sku === sel ? ' selected' : '') + '>' + esc(i.name) + '</option>'; }).join('');
@@ -3377,7 +3429,7 @@ function fnRow(x, act) {
   var st = x.status === 'Pending' ? ['Pending', 'var(--amber)'] : x.status === 'Rejected' ? ['Rejected', 'var(--red)'] : ['', 'var(--line)'];
   var sign = x.type === 'Income' || x.type === 'Capital' ? '+' : '';
   return '<div class="prow" style="cursor:default;--c:' + st[1] + '"><span class="prow-d"></span><div class="prow-m">' +
-    '<div class="prow-1"><b>' + esc(x.desc) + '</b><span class="num">' + sign + rs(x.amount) + '</span></div>' +
+    '<div class="prow-1"><b>' + (x.receipt ? '<i class="ti ti-paperclip" data-rcpt="' + esc(x.id) + '" style="cursor:pointer;color:var(--brand)" aria-label="Receipt"></i> ' : '') + esc(x.desc) + '</b><span class="num">' + sign + rs(x.amount) + '</span></div>' +
     '<div class="prow-2"><span>' + esc([x.date.slice(5), x.type === 'Expense' ? x.cat : x.type + ' · ' + x.cat, x.from === 'Own pocket' ? 'paid by ' + (x.by || x.enteredBy) : x.from, x.status === 'Pending' ? 'by ' + x.enteredBy : ''].filter(Boolean).join(' · ')) + '</span>' +
     (st[0] ? '<span class="st" style="--c:' + st[1] + '">' + st[0] + '</span>' : '') + '</div>' + (act || '') + '</div></div>';
 }
@@ -3411,6 +3463,16 @@ function renderExpenses() {
   el('panel').querySelectorAll('[data-fa]').forEach(function (b) { b.onclick = function () { act([b.getAttribute('data-fa')], 'approve'); }; });
   el('panel').querySelectorAll('[data-fr]').forEach(function (b) { b.onclick = function () { var why = prompt('Why reject? (optional)') || ''; act([b.getAttribute('data-fr')], 'reject', why); }; });
   el('panel').querySelectorAll('[data-fb]').forEach(function (b) { b.onclick = function () { act(d.owed[b.getAttribute('data-fb')].ids, 'reimbursed'); }; });
+  el('panel').querySelectorAll('[data-rcpt]').forEach(function (b) { b.onclick = function () { openReceipt(b.getAttribute('data-rcpt')); }; });
+}
+// the photo of a bill, from the app's Drive folder (people who may not open Drive still see it)
+function openReceipt(id) {
+  el('panel').innerHTML = '<button class="btn mini" id="rcBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Expenses</button><h3>Receipt</h3><div class="sk" style="height:300px"></div>';
+  openPanel(true);
+  el('rcBack').onclick = renderExpenses;
+  api('getAppReceipt', [TOKEN, id], function (r) {
+    el('panel').querySelector('.sk').outerHTML = '<img alt="Receipt" src="data:' + r.type + ';base64,' + r.data + '" style="display:block;width:100%;border-radius:12px">';
+  }, function () { toast('Receipt not found'); renderExpenses(); });
 }
 function openAddExpense() {
   var d = FN.data, st = { type: 'Expense', cat: '', from: 'Business account' };
@@ -3425,6 +3487,8 @@ function openAddExpense() {
     '<div class="fld"><label>What was it for</label><input id="aeDesc" placeholder="e.g. Meta ads, office rent October"></div>' +
     '<div class="fld"><label>Paid from</label><div class="chips wrapc" id="aeFrom">' + d.from.map(function (x) { return '<button class="chip' + (x === st.from ? ' on' : '') + '" type="button" data-v="' + esc(x) + '">' + esc(x === 'Own pocket' ? 'My own pocket' : x) + '</button>'; }).join('') + '</div></div>' +
     '<div class="fld"><label>Date</label><input id="aeDate" type="date" value="' + pkDay(new Date()) + '"></div>' +
+    '<div class="fld"><label>Receipt photo (optional)</label><input id="aeFile" type="file" accept="image/*" capture="environment" hidden>' +
+    '<button class="btn" id="aePhoto" type="button" style="width:100%"><i class="ti ti-camera"></i>Add a photo of the bill</button><img id="aeThumb" alt="" hidden style="display:block;max-width:100%;max-height:180px;margin-top:8px;border-radius:12px"></div>' +
     '<div class="fld"><label>Receipt / bill # (optional)</label><input id="aeRef" placeholder="e.g. INV-102"></div>' +
     '<div class="fld"><label>Note (optional)</label><input id="aeNote"></div><div class="err" id="aeErr"></div>' +
     '<button class="btn pri" id="aeGo" style="width:100%;padding:12px">Save</button>';
@@ -3432,13 +3496,28 @@ function openAddExpense() {
   el('aeBack').onclick = renderExpenses;
   var pick = function (box, key, after) { el(box).onclick = function (e) { var b = e.target.closest('[data-v]'); if (!b) return; st[key] = b.getAttribute('data-v'); el(box).querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x === b); }); if (after) after(); }; };
   pick('aeType', 'type', function () { st.cat = ''; draw(); }); pick('aeCats', 'cat'); pick('aeFrom', 'from');
+  // receipt: made small on the phone (longest side 1280 px, JPEG) before sending
+  el('aePhoto').onclick = function () { el('aeFile').click(); };
+  el('aeFile').onchange = function () {
+    var file = el('aeFile').files && el('aeFile').files[0]; if (!file) return;
+    var img = new Image(), url = URL.createObjectURL(file);
+    img.onload = function () {
+      var k = Math.min(1, 1280 / Math.max(img.width, img.height)), cv = document.createElement('canvas');
+      cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
+      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+      st.receipt = cv.toDataURL('image/jpeg', 0.72); URL.revokeObjectURL(url);
+      el('aeThumb').src = st.receipt; el('aeThumb').hidden = false;
+      el('aePhoto').innerHTML = '<i class="ti ti-refresh"></i>Change photo';
+    };
+    img.src = url;
+  };
   el('aeGo').onclick = function () {
     var amt = Number(String(el('aeAmt').value).replace(/[^0-9.]/g, ''));
     if (!(amt > 0)) { el('aeErr').textContent = 'Enter the amount'; return; }
     if (!st.cat) { el('aeErr').textContent = 'Pick a category'; return; }
     if (!el('aeDesc').value.trim()) { el('aeErr').textContent = 'Write what it was for'; return; }
     el('aeGo').disabled = true;
-    api('appAddFinance', [TOKEN, { type: st.type, cat: st.cat, amount: amt, desc: el('aeDesc').value.trim(), from: st.from, date: el('aeDate').value, ref: el('aeRef').value.trim(), note: el('aeNote').value.trim() }],
+    api('appAddFinance', [TOKEN, { type: st.type, cat: st.cat, amount: amt, desc: el('aeDesc').value.trim(), from: st.from, date: el('aeDate').value, ref: el('aeRef').value.trim(), note: el('aeNote').value.trim(), receipt: st.receipt || '' }],
       function (r) { toast(r.status === 'Approved' ? '✅ Saved' : '✅ Saved · waiting for approval'); openExpenses(FN.month); },
       function (e) { el('aeGo').disabled = false; el('aeErr').textContent = (e && e.message) || 'Not saved'; });
   };
@@ -3469,6 +3548,330 @@ function openPnl(m) {
 }
 el('btnExp').onclick = fromMenu(function () { openExpenses(''); });
 el('btnPnl').onclick = fromMenu(function () { openPnl(''); });
+
+// ---------- Purchases: order from a supplier (last price offered) → receive (stock + cargo) → pay (Finance) ----------
+var PUR = { data: null, f: 'open' };
+// price vs the last purchase (per unit): dearer in red, cheaper in green
+function purDiff(l, last) {
+  if (!last || !l.price || !last.price) return '';
+  var p = l.pack > 1 ? l.price / l.pack : l.price, dif = Math.round((p - last.price) * 100) / 100, u = l.unit === 'ft' ? '/ft' : ' each';
+  if (!dif) return '';
+  return '<b style="color:' + (dif > 0 ? 'var(--red)' : 'var(--green)') + '">' + (dif > 0 ? '▲ Rs ' + dif + u + ' dearer' : '▼ Rs ' + (-dif) + u + ' cheaper') + '</b> than last (' + rs(last.price) + ')';
+}
+// WhatsApp order to the supplier (Roman Urdu, like all WhatsApp texts)
+function purMsg(p) {
+  var s = (PUR.data.suppliers.filter(function (x) { return x.name === p.supplier; })[0]) || {};
+  var u = function (l) { var it = PUR.data.items.filter(function (i) { return i.sku === l.sku; })[0]; return it && it.unit === 'ft' ? ' ft' : ' pcs'; };
+  return '*' + STORE + ' · Purchase Order*\n' + p.po + ' · ' + p.date + '\n\nAssalam o Alaikum' + (s.contact ? ' ' + s.contact : '') + ',\nYe maal bhej dein:\n\n' +
+    p.lines.map(function (l, k) { return (k + 1) + ') *' + l.name + '*: ' + Number(l.qty).toLocaleString('en-IN') + u(l) + ' × Rs ' + l.price.toLocaleString('en-IN'); }).join('\n') +
+    '\n\n*Total: Rs ' + Math.round(p.goods).toLocaleString('en-IN') + '*' + (p.paid ? '\nAdvance bheja: Rs ' + Math.round(p.paid).toLocaleString('en-IN') : '') +
+    '\n\nDispatch ke baad bilty ki photo share kar dein.\nShukriya\n' + STORE;
+}
+function purLast(sku, supplier) {
+  var h = (PUR.data && PUR.data.prices[sku]) || [], same = h.filter(function (x) { return x.supplier === supplier; })[0];
+  if (same) return same;
+  var q = ((PUR.data && PUR.data.links) || []).filter(function (l) { return l.sku === sku && l.supplier === supplier && l.quoted; })[0];
+  if (q) return { price: q.quoted, supplier: supplier, date: q.updated || '', quoted: true };
+  return h[0] || null;
+}
+function purMain(sku) { var m = ((PUR.data && PUR.data.links) || []).filter(function (l) { return l.sku === sku && l.main; })[0]; return m ? m.supplier : ''; }
+function rs2(n) { return 'Rs ' + (Math.round((n || 0) * 100) / 100).toLocaleString('en-IN'); }
+function purItem(sku) { return PUR.data.items.filter(function (i) { return i.sku === sku; })[0] || { sku: sku, name: sku, unit: 'pcs' }; }
+function purReload(then) { api('getAppPurchases', [TOKEN], function (pd) { PUR.data = pd; then(); }, function (e) { toast((e && e.message) || 'Not loaded'); }); }
+function purCall(s) { if (!s || !s.phone) { toast('No phone saved for this supplier'); return; } location.href = 'tel:' + String(s.phone).replace(/[^0-9+]/g, ''); }
+
+// Suppliers: list, add / edit, what each one supplies (quoted price, ⭐ main supplier of a product), recent orders
+function openSuppliers() {
+  var d = PUR.data;
+  el('panel').innerHTML = '<button class="btn mini" id="slBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Purchases</button><h3>Suppliers</h3><p>Who supplies what, and at what rate</p>' +
+    '<button class="btn pri" id="slAdd" style="width:100%;padding:12px;margin:0 0 12px"><i class="ti ti-user-plus"></i>Add supplier</button>' +
+    '<div class="card" style="padding:0">' + (d.suppliers.length ? d.suppliers.map(function (s, k) {
+      var n = (d.links || []).filter(function (l) { return l.supplier === s.name; }).length;
+      return '<div class="prow" data-sl="' + k + '"><div class="prow-m"><div class="prow-1"><b>' + esc(s.name) + '</b>' + (s.toPay > 0 ? '<span class="num">to pay ' + rs(s.toPay) + '</span>' : '') + '</div>' +
+        '<div class="prow-2"><span>' + esc([s.contact, s.city, n ? n + ' product' + (n > 1 ? 's' : '') : 'no products yet'].filter(Boolean).join(' · ')) + '</span></div></div></div>';
+    }).join('') : '<div class="empty">No suppliers yet</div>') + '</div>';
+  openPanel(true);
+  el('slBack').onclick = renderPurchases;
+  el('slAdd').onclick = function () { openSupplierForm(null, openSuppliers); };
+  el('panel').querySelectorAll('[data-sl]').forEach(function (r) { r.onclick = function () { openSupplier(d.suppliers[+r.getAttribute('data-sl')].name); }; });
+}
+function openSupplierForm(s, back) {
+  el('panel').innerHTML = '<button class="btn mini" id="sfBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Back</button><h3>' + (s ? 'Edit supplier' : 'Add supplier') + '</h3><p>' + (s ? esc(s.name) : 'Saved for every purchase') + '</p>' +
+    (s ? '' : '<div class="fld"><label>Shop / company name</label><input id="sfName" placeholder="e.g. Tanveer Traders"></div>') +
+    '<div class="fld"><label>Person\'s name</label><input id="sfContact" value="' + esc(s ? s.contact : '') + '" placeholder="e.g. Tanveer Ahmed"></div>' +
+    '<div class="fld"><label>Phone</label><input id="sfPhone" type="tel" value="' + esc(s ? s.phone : '') + '" placeholder="0300 1234567"></div>' +
+    '<div class="fld"><label>City</label><input id="sfCity" value="' + esc(s ? s.city : '') + '" placeholder="e.g. Gujranwala"></div>' +
+    '<div class="fld"><label>Usually delivers in (days, optional)</label><input id="sfLead" type="text" inputmode="numeric" value="' + (s && s.lead ? s.lead : '') + '" placeholder="learned from the first delivery"></div>' +
+    '<div class="err" id="sfErr"></div><button class="btn pri" id="sfGo" style="width:100%;padding:12px">Save supplier</button>';
+  openPanel(true);
+  el('sfBack').onclick = back;
+  el('sfGo').onclick = function () {
+    var n = s ? s.name : el('sfName').value.trim(); if (!n) { el('sfErr').textContent = 'Write the shop / company name'; return; }
+    el('sfGo').disabled = true;
+    api('appSaveSupplier', [TOKEN, { name: n, edit: !!s, contact: el('sfContact').value.trim(), phone: el('sfPhone').value.trim(), city: el('sfCity').value.trim(), lead: Number(el('sfLead').value) || 0 }], function (r) {
+      toast(r.existed ? 'This supplier is already saved' : '✅ Supplier saved'); purReload(function () { openSupplier(r.name); });
+    }, function (e) { el('sfGo').disabled = false; el('sfErr').textContent = (e && e.message) || 'Not saved'; });
+  };
+}
+function openSupplier(name) {
+  var d = PUR.data, s = d.suppliers.filter(function (x) { return x.name === name; })[0]; if (!s) return openSuppliers();
+  var links = (d.links || []).filter(function (l) { return l.supplier === name; }).sort(function (a, b) { return (b.main ? 1 : 0) - (a.main ? 1 : 0); });
+  var pos = d.pos.filter(function (p) { return p.supplier === name; }).slice(0, 5);
+  el('panel').innerHTML = '<button class="btn mini" id="suBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Suppliers</button><h3>' + esc(name) + '</h3>' +
+    '<p>' + esc([s.contact, s.phone, s.city, s.lead ? 'delivers in ~' + s.lead + ' days' : ''].filter(Boolean).join(' · ')) + (s.toPay > 0 ? ' · <b>to pay ' + rs(s.toPay) + '</b>' : '') + '</p>' +
+    '<div class="btns" style="margin:0 0 12px"><button class="btn pri" id="suCall"><i class="ti ti-phone"></i>Call</button><button class="btn" id="suBuy"><i class="ti ti-shopping-cart-plus"></i>Order</button><button class="btn" id="suEdit"><i class="ti ti-pencil"></i>Edit</button></div>' +
+    '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>Supplies</b><button class="btn mini" id="suAddP" type="button"><i class="ti ti-plus"></i>Product</button></div>' +
+    (links.length ? links.map(function (l) {
+      var it = purItem(l.sku), u = it.unit === 'ft' ? '/ft' : ' each';
+      return '<div class="prow" data-sp="' + esc(l.sku) + '"><div class="prow-m"><div class="prow-1"><b>' + (l.main ? '⭐ ' : '') + esc(it.name) + '</b><span class="num">' + (l.quoted || l.lastPrice ? rs2(l.quoted || l.lastPrice) + u : '') + '</span></div>' +
+        '<div class="prow-2"><span>' + esc([l.quoted ? 'quoted' + (l.updated ? ' ' + l.updated.slice(5) : '') : '', l.lastDate ? 'last bought ' + rs2(l.lastPrice) + ' on ' + l.lastDate.slice(5) : ''].filter(Boolean).join(' · ') || 'no rate yet') + '</span></div></div></div>';
+    }).join('') : '<div class="empty">Add the products this supplier gives you</div>') + '</div>' +
+    (pos.length ? '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>Recent orders</b></div>' + pos.map(function (p) {
+      return '<div class="prow" data-po="' + esc(p.po) + '"><div class="prow-m"><div class="prow-1"><span>' + esc(p.date.slice(5)) + ' · ' + p.lines.length + ' product' + (p.lines.length > 1 ? 's' : '') + '</span><b class="num">' + rs(p.goods + p.cargo + p.other) + '</b></div>' +
+        '<div class="prow-2"><span>' + esc(p.status) + (p.toPay > 0 ? ' · to pay ' + rs(p.toPay) : ' · paid') + '</span></div></div></div>';
+    }).join('') + '</div>' : '');
+  openPanel(true);
+  var me = function () { openSupplier(name); };
+  el('suBack').onclick = openSuppliers;
+  el('suCall').onclick = function () { purCall(s); };
+  el('suEdit').onclick = function () { openSupplierForm(s, me); };
+  el('suBuy').onclick = function () { openNewPurchase({ supplier: name, back: me }); };
+  el('suAddP').onclick = function () { openSupplierProduct(name, '', me); };
+  el('panel').querySelectorAll('[data-sp]').forEach(function (r) { r.onclick = function () { openSupplierProduct(name, r.getAttribute('data-sp'), me); }; });
+  el('panel').querySelectorAll('[data-po]').forEach(function (r) { r.onclick = function () { openPurchase(r.getAttribute('data-po')); }; });
+}
+// one supplier + product pair: quoted rate per unit, ⭐ main supplier (Order soon / Order more pick it), remove
+function openSupplierProduct(sup, sku, back) {
+  var d = PUR.data, l = (d.links || []).filter(function (x) { return x.supplier === sup && x.sku === sku; })[0] || null, it = sku ? purItem(sku) : null;
+  el('panel').innerHTML = '<button class="btn mini" id="spBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Back</button><h3>' + (l ? 'Supplier rate' : 'Add who supplies it') + '</h3><p>' + esc([sup, it && it.name].filter(Boolean).join(' · ')) + '</p>' +
+    (sup ? '' : '<div class="fld"><label>Supplier</label><select id="spSup"><option value="">Choose a supplier…</option>' + d.suppliers.map(function (s) { return '<option value="' + esc(s.name) + '">' + esc(s.name) + (s.city ? ' · ' + esc(s.city) : '') + '</option>'; }).join('') + '</select></div>') +
+    (sku ? '' : '<div class="fld"><label>Product</label><select id="spSku"><option value="">Choose a product…</option>' + d.items.map(function (i) { return '<option value="' + esc(i.sku) + '">' + esc(i.name) + '</option>'; }).join('') + '</select></div>') +
+    '<div class="fld"><label id="spPl">' + (it && it.unit === 'ft' ? 'Rate per ft' : 'Rate per piece') + ' (what they quoted)</label><input id="spPrice" type="text" inputmode="decimal" value="' + (l && l.quoted ? l.quoted : '') + '" placeholder="' + (l && l.lastPrice ? 'last bought ' + l.lastPrice : 'optional') + '"></div>' +
+    '<label class="ob-it" style="margin:0 0 12px"><input type="checkbox" id="spMain"' + (l && l.main ? ' checked' : '') + '><div><b>⭐ Main supplier of this product</b><small>Order soon and Order more choose this supplier</small></div></label>' +
+    '<div class="err" id="spErr"></div><button class="btn pri" id="spGo" style="width:100%;padding:12px">Save</button>' +
+    (l && l.saved ? '<button class="btn" id="spRm" style="width:100%;margin-top:8px"><i class="ti ti-trash"></i>Remove</button>' : '');
+  openPanel(true);
+  el('spBack').onclick = back;
+  if (el('spSku')) el('spSku').onchange = function () { var x = purItem(el('spSku').value); el('spPl').textContent = (x.unit === 'ft' ? 'Rate per ft' : 'Rate per piece') + ' (what they quoted)'; };
+  var send = function (f) {
+    api('appSupplierProduct', [TOKEN, f], function () { toast(f.remove ? 'Removed' : '✅ Saved'); purReload(back); },
+      function (e) { el('spGo').disabled = false; el('spErr').textContent = (e && e.message) || 'Not saved'; });
+  };
+  el('spGo').onclick = function () {
+    var s = sup || el('spSup').value, k = sku || el('spSku').value;
+    if (!s) { el('spErr').textContent = 'Choose a supplier'; return; }
+    if (!k) { el('spErr').textContent = 'Choose a product'; return; }
+    el('spGo').disabled = true; send({ supplier: s, sku: k, price: el('spPrice').value, main: el('spMain').checked });
+  };
+  if (el('spRm')) el('spRm').onclick = function () { send({ supplier: sup, sku: sku, remove: true }); };
+}
+function openPurchases() {
+  el('panel').innerHTML = '<h3>Purchases</h3><div class="sk" style="height:220px"></div>'; openPanel(true);
+  api('getAppPurchases', [TOKEN], function (d) { PUR.data = d; renderPurchases(); }, function () { toast('You don\'t have access to this'); openStock(''); });
+}
+var PUR_ST = { 'Ordered': 'var(--amber)', 'Partly received': 'var(--blue)', 'Received': 'var(--green)' };
+function renderPurchases() {
+  var d = PUR.data, open = d.pos.filter(function (p) { return p.status !== 'Received' || p.toPay > 0; });
+  var list = PUR.f === 'open' ? open : d.pos;
+  var owe = d.suppliers.filter(function (s) { return s.toPay > 0; });
+  el('panel').innerHTML = '<button class="btn mini" id="puBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Stock</button><h3>Purchases</h3><p>Order → receive → pay</p>' +
+    '<div class="btns" style="margin:0 0 12px"><button class="btn pri" id="puNew" style="padding:12px"><i class="ti ti-plus"></i>New purchase</button><button class="btn" id="puSup" style="padding:12px"><i class="ti ti-users"></i>Suppliers · ' + d.suppliers.length + '</button></div>' +
+    ((d.plan || []).length ? '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>Order soon</b><button class="btn mini" id="puPlan" type="button">Order these</button></div>' +
+      d.plan.map(function (x, k) {
+        return '<div class="prow" data-plan="' + k + '" style="--c:' + (x.daysLeft != null && x.daysLeft <= x.lead ? 'var(--red)' : 'var(--amber)') + '"><span class="prow-d"></span><div class="prow-m"><div class="prow-1"><b>' + esc(x.name) + '</b><span class="num">' + stkQty(x.suggest, x.unit) + '</span></div>' +
+          '<div class="prow-2"><span>' + (x.daysLeft != null ? 'lasts ~' + x.daysLeft + ' days · sells ' + stkQty(x.perDay, x.unit) + '/day' : 'stock ' + stkQty(x.available, x.unit)) + (x.incoming ? ' · ' + stkQty(x.incoming, x.unit) + ' on the way' : '') + ' · delivery ' + x.lead + 'd</span></div></div></div>';
+      }).join('') + '<small class="mnote" style="padding:0 14px 10px;display:block">Suggested = sales for delivery days + ' + 'cover days − stock − on the way. Change anything in the order.</small></div>' : '') +
+    (owe.length ? '<div class="card"><div class="h"><b>To pay suppliers</b><span>' + rs(owe.reduce(function (a, s) { return a + s.toPay; }, 0)) + '</span></div>' +
+      owe.map(function (s) { return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><b>' + esc(s.name) + '</b><span class="num">' + rs(s.toPay) + '</span></div><div class="prow-2"><span>' + esc([s.city, s.phone].filter(Boolean).join(' · ')) + '</span></div></div></div>'; }).join('') + '</div>' : '') +
+    '<div class="chips"><button class="chip' + (PUR.f === 'open' ? ' on' : '') + '" data-pf="open" type="button">Open · ' + open.length + '</button><button class="chip' + (PUR.f === 'all' ? ' on' : '') + '" data-pf="all" type="button">All · ' + d.pos.length + '</button></div>' +
+    '<div class="card" style="padding:0">' + (list.length ? list.map(function (p) {
+      var c = PUR_ST[p.status] || 'var(--line)';
+      return '<div class="prow" data-po="' + esc(p.po) + '" style="--c:' + c + '"><span class="prow-d"></span><div class="prow-m"><div class="prow-1"><b>' + esc(p.supplier) + '</b><span class="num">' + rs(p.goods + p.cargo + p.other) + '</span></div>' +
+        '<div class="prow-2"><span>' + esc(p.date.slice(5)) + ' · ' + p.lines.length + ' product' + (p.lines.length > 1 ? 's' : '') + (p.toPay > 0 ? ' · to pay ' + rs(p.toPay) : ' · paid') + '</span><span class="st" style="--c:' + c + '">' + esc(p.status) + '</span></div></div></div>';
+    }).join('') : '<div class="empty">No purchases yet</div>') + '</div>';
+  openPanel(true);
+  el('puBack').onclick = function () { openStock(''); };
+  el('puNew').onclick = function () { openNewPurchase(); };
+  el('puSup').onclick = openSuppliers;
+  var planBuy = function (list) {
+    var sups = list.map(function (x) { return x.supplier; }).filter(function (s, k, a) { return s && a.indexOf(s) === k; });
+    openNewPurchase({ lines: list.map(function (x) { return { sku: x.sku, qty: x.suggest }; }), supplier: sups.length === 1 ? sups[0] : '' });
+  };
+  if (el('puPlan')) el('puPlan').onclick = function () { planBuy(d.plan); };
+  el('panel').querySelectorAll('[data-plan]').forEach(function (r) { r.onclick = function () { planBuy([d.plan[+r.getAttribute('data-plan')]]); }; });
+  el('panel').querySelectorAll('[data-pf]').forEach(function (b) { b.onclick = function () { PUR.f = b.getAttribute('data-pf'); renderPurchases(); }; });
+  el('panel').querySelectorAll('[data-po]').forEach(function (r) { r.onclick = function () { openPurchase(r.getAttribute('data-po')); }; });
+}
+// New purchase: supplier (pick or add), products with qty + price (the last price is filled in), expected cargo, optional payment now
+function openNewPurchase(opt) {
+  opt = opt || {};
+  var d = PUR.data, st = { supplier: '', lines: [], from: 'Business account' }, back = opt.back || renderPurchases;
+  var want = opt.lines || (opt.skus || []).map(function (s) { return { sku: s, qty: 0 }; });
+  if (opt.supplier && d.suppliers.some(function (s) { return s.name === opt.supplier; })) st.supplier = opt.supplier;
+  else if (want.length) { var m = want.map(function (x) { return purMain(x.sku); }); if (m[0] && m.every(function (x) { return x === m[0]; })) st.supplier = m[0]; }
+  want.forEach(function (x) {
+    var it = d.items.filter(function (i) { return i.sku === x.sku; })[0], last = purLast(x.sku, st.supplier);
+    if (it) st.lines.push({ sku: x.sku, name: it.name, unit: it.unit, qty: x.qty || 0, price: last ? last.price : 0 });
+  });
+  var supOpts = function () { return '<option value="">Choose a supplier…</option>' + d.suppliers.map(function (s) { return '<option value="' + esc(s.name) + '"' + (s.name === st.supplier ? ' selected' : '') + '>' + esc(s.name) + (s.city ? ' · ' + esc(s.city) : '') + '</option>'; }).join('') + '<option value="__new">+ New supplier</option>'; };
+  var itemOpts = function () { return '<option value="">' + (st.lines.length ? '+ Add another product…' : 'Choose a product…') + '</option>' + d.items.map(function (i) { return '<option value="' + esc(i.sku) + '">' + esc(i.name) + (i.isNew ? ' (new)' : '') + '</option>'; }).join('') + '<option value="__newp">+ New product (not on the store yet)</option>'; };
+  el('panel').innerHTML = '<button class="btn mini" id="npBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>' + (opt.back ? 'Back' : 'Purchases') + '</button><h3>New purchase</h3><p>Product, then supplier · prices fill in from the last order</p>' +
+    '<div class="fld"><label>Product</label></div><div id="npLines"></div><div class="fld"><select id="npAdd">' + itemOpts() + '</select></div>' +
+    '<div id="npNewProd" hidden class="card" style="margin-bottom:12px"><div class="fld"><label>Product name</label><input id="nnName" placeholder="Close to the name it will have on the store"></div>' +
+    '<div class="fld"><label>Counted in</label><select id="nnUnit"><option value="pcs">Pieces</option><option value="ft">Feet</option></select></div>' +
+    '<small class="mnote">When it is listed on Shopify with the same words in its name, its orders link to it by themselves.</small>' +
+    '<button class="btn pri" id="nnSave" type="button" style="width:100%;margin-top:8px">Add product</button></div>' +
+    '<div class="fld"><label>Supplier</label><select id="npSup">' + supOpts() + '</select></div>' +
+    '<div id="npNewSup" hidden class="card" style="margin-bottom:12px"><div class="fld"><label>Shop / company name</label><input id="nsName" placeholder="e.g. Tanveer Traders"></div>' +
+    '<div class="fld"><label>Person\'s name</label><input id="nsContact" placeholder="e.g. Tanveer Ahmed"></div>' +
+    '<div class="fld"><label>Phone</label><input id="nsPhone" type="tel" placeholder="0300 1234567"></div><div class="fld"><label>City</label><input id="nsCity" placeholder="e.g. Gujranwala"></div>' +
+    '<div class="fld"><label>Usually delivers in (days, optional)</label><input id="nsLead" type="text" inputmode="numeric" placeholder="learned from the first delivery"></div>' +
+    '<button class="btn pri" id="nsSave" type="button" style="width:100%">Save supplier</button></div>' +
+    '<div class="fld"><label>Cargo / freight (PKR, total)</label><input id="npCargo" type="text" inputmode="decimal" placeholder="0"></div>' +
+    '<div class="fld"><label>Other charges (PKR, total)</label><input id="npOther" type="text" inputmode="decimal" placeholder="0"></div>' +
+    '<div class="fld"><label>Paid now (optional)</label><input id="npPaid" type="text" inputmode="decimal" placeholder="advance / full payment"></div>' +
+    '<div class="fld"><label>Note (optional)</label><input id="npNote" placeholder="e.g. bilty #, delivery date"></div>' +
+    '<div class="tk" id="npTotal" style="margin:0 0 10px"></div><div class="err" id="npErr"></div>' +
+    '<button class="btn pri" id="npGo" style="width:100%;padding:12px">Save purchase</button>';
+  openPanel(true);
+  var num = function (id) { return Number(String(el(id).value).replace(/[^0-9.]/g, '')) || 0; };
+  var draw = function () {
+    el('npLines').innerHTML = st.lines.map(function (l, k) {
+      var last = purLast(l.sku, st.supplier), it = d.items.filter(function (i) { return i.sku === l.sku; })[0], ft = l.unit === 'ft';
+      return '<div class="card" style="margin-bottom:8px"><div class="h"><b>' + esc(l.name) + '</b><button class="btn mini" type="button" data-rm="' + k + '"><i class="ti ti-x"></i></button></div>' +
+        '<div class="btns"><div class="fld" style="flex:1;margin:0"><label>' + (ft ? 'Feet' : 'Qty') + '</label><input data-q="' + k + '" type="text" inputmode="decimal" value="' + (l.qty || '') + '"></div>' +
+        '<div class="fld" style="flex:1;margin:0"><label>' + (ft ? 'Price / ft' : l.pack > 1 ? 'Price / pack' : 'Price / unit') + '</label><input data-pr="' + k + '" type="text" inputmode="decimal" value="' + (l.price || '') + '"></div>' +
+        (ft ? '' : '<div class="fld" style="flex:.8;margin:0"><label>Per pack</label><input data-pk="' + k + '" type="text" inputmode="decimal" placeholder="1" value="' + (l.pack > 1 ? l.pack : '') + '"></div>') + '</div>' +
+        (ft ? '<div class="btns" style="margin-top:6px">' + [500, 1000, 2500].map(function (n) { return '<button class="btn mini" type="button" data-addft="' + k + ':' + n + '">+' + n.toLocaleString('en-IN') + ' ft' + (n === 2500 ? ' (roll)' : '') + '</button>'; }).join('') + '</div>' : '') +
+        (it && it.available != null ? '<small class="mnote">In stock ' + stkQty(it.available, it.unit) + (it.status && it.status !== 'OK' ? ' · ' + esc(it.status) : '') + (it.incoming ? ' · ' + stkQty(it.incoming, it.unit) + ' on the way' : '') + '</small>' : '') +
+        '<small class="mnote" data-pd="' + k + '">' + purDiff(l, last) + '</small>' +
+        (l.pack > 1 && l.qty ? '<small class="mnote">= ' + (l.qty * l.pack).toLocaleString('en-IN') + (l.unit === 'ft' ? ' ft' : ' pcs') + (l.price ? ' · ' + rs(Math.round(l.price / l.pack * 100) / 100) + (l.unit === 'ft' ? '/ft' : ' each') : '') + '</small>' : '') +
+        (last ? '<small class="mnote">' + (last.quoted ? 'Quoted: ' : 'Last: ') + rs2(last.price) + ' · ' + esc(last.supplier) + ' · ' + esc(last.date.slice(5)) + (last.cargoUnit ? ' · landed ' + rs(last.landed) : '') + '</small>' : '<small class="mnote">First purchase of this product</small>') + '</div>';
+    }).join('');
+    drawTotal();
+    el('npAdd').innerHTML = itemOpts();
+    el('npLines').querySelectorAll('[data-q]').forEach(function (x) { x.oninput = function () { st.lines[+x.getAttribute('data-q')].qty = Number(x.value) || 0; drawTotal(); }; });
+    el('npLines').querySelectorAll('[data-pr]').forEach(function (x) { x.oninput = function () { var k = +x.getAttribute('data-pr'), l = st.lines[k]; l.price = Number(x.value) || 0; l.edited = true; drawTotal(); el('npLines').querySelector('[data-pd="' + k + '"]').innerHTML = purDiff(l, purLast(l.sku, st.supplier)); }; });
+    el('npLines').querySelectorAll('[data-pk]').forEach(function (x) { x.onchange = function () { var l = st.lines[+x.getAttribute('data-pk')], n = Number(x.value) || 1; if (n !== (l.pack || 1)) { if (l.price && (l.pack || 1) === 1) l.price = Math.round(l.price * n * 100) / 100; l.pack = n; draw(); } }; });
+    el('npLines').querySelectorAll('[data-addft]').forEach(function (x) { x.onclick = function () { var p = x.getAttribute('data-addft').split(':'), l = st.lines[+p[0]]; l.qty = (l.qty || 0) + Number(p[1]); draw(); }; });
+    el('npLines').querySelectorAll('[data-rm]').forEach(function (x) { x.onclick = function () { st.lines.splice(+x.getAttribute('data-rm'), 1); draw(); }; });
+  };
+  var drawTotal = function () {
+    var goods = st.lines.reduce(function (a, l) { return a + (l.qty || 0) * (l.price || 0); }, 0), ch = num('npCargo') + num('npOther');
+    el('npTotal').innerHTML = '<i class="ti ti-receipt"></i> Goods ' + rs(goods) + (ch ? ' + charges ' + rs(ch) + ' = <b>' + rs(goods + ch) + '</b>' + (goods ? ' · +' + Math.round(100 * ch / goods) + '% landed' : '') : '');
+  };
+  ['npCargo', 'npOther'].forEach(function (id) { el(id).oninput = drawTotal; });
+  el('npBack').onclick = back;
+  el('npSup').onchange = function () {
+    if (el('npSup').value === '__new') { el('npNewSup').hidden = false; el('nsName').focus(); return; }
+    el('npNewSup').hidden = true; st.supplier = el('npSup').value;
+    st.lines.forEach(function (l) { var last = purLast(l.sku, st.supplier); if (last && !l.edited) l.price = last.price; });
+    draw();
+  };
+  el('nsSave').onclick = function () {
+    var n = el('nsName').value.trim(); if (!n) { el('npErr').textContent = 'Write the supplier name'; return; }
+    api('appSaveSupplier', [TOKEN, { name: n, contact: el('nsContact').value.trim(), city: el('nsCity').value.trim(), phone: el('nsPhone').value.trim(), lead: Number(el('nsLead').value) || 0 }], function (r) {
+      if (!d.suppliers.some(function (s) { return s.name === r.name; })) d.suppliers.push({ name: r.name, contact: el('nsContact').value.trim(), city: el('nsCity').value.trim(), phone: el('nsPhone').value.trim(), toPay: 0 });
+      st.supplier = r.name; el('npSup').innerHTML = supOpts(); el('npNewSup').hidden = true; el('npErr').textContent = ''; toast(r.existed ? 'Supplier already saved · selected' : '✅ Supplier saved'); draw();
+    }, function (e) { el('npErr').textContent = (e && e.message) || 'Not saved'; });
+  };
+  el('npAdd').onchange = function () {
+    var sku = el('npAdd').value; el('npAdd').value = '';
+    if (sku === '__newp') { el('npNewProd').hidden = false; el('nnName').focus(); return; }
+    if (!sku || st.lines.some(function (l) { return l.sku === sku; })) return;
+    var it = d.items.filter(function (i) { return i.sku === sku; })[0], last = purLast(sku, st.supplier);
+    st.lines.push({ sku: sku, name: it ? it.name : sku, unit: it ? it.unit : 'pcs', qty: 0, price: last ? last.price : 0 }); draw();
+  };
+  el('nnSave').onclick = function () {
+    var n = el('nnName').value.trim(); if (n.length < 3) { el('npErr').textContent = 'Write the product name'; return; }
+    el('nnSave').disabled = true;
+    api('appAddProduct', [TOKEN, { name: n, unit: el('nnUnit').value }], function (r) {
+      el('nnSave').disabled = false;
+      if (!d.items.some(function (i) { return i.sku === r.sku; })) d.items.push({ sku: r.sku, name: r.name, unit: r.unit, available: null, status: '', isNew: true });
+      if (!st.lines.some(function (l) { return l.sku === r.sku; })) st.lines.push({ sku: r.sku, name: r.name, unit: r.unit, qty: 0, price: 0 });
+      el('nnName').value = ''; el('npNewProd').hidden = true; el('npErr').textContent = ''; toast(r.existed ? 'Product already there · added' : '✅ Product added'); draw();
+    }, function (e) { el('nnSave').disabled = false; el('npErr').textContent = (e && e.message) || 'Not saved'; });
+  };
+  el('npGo').onclick = function () {
+    if (!st.supplier) { el('npErr').textContent = 'Choose a supplier'; return; }
+    var lines = st.lines.filter(function (l) { return l.qty > 0; }).map(function (l) { var p = l.pack > 1 ? l.pack : 1; return { sku: l.sku, qty: l.qty * p, price: Math.round((l.price || 0) / p * 10000) / 10000 }; });
+    if (!lines.length) { el('npErr').textContent = 'Add a product with its quantity'; return; }
+    el('npGo').disabled = true;
+    api('appCreatePurchase', [TOKEN, { supplier: st.supplier, lines: lines, cargo: num('npCargo'), other: num('npOther'), paidNow: num('npPaid'), from: st.from, note: el('npNote').value.trim() }],
+      function (r) { toast('✅ Purchase ' + r.po + ' saved'); api('getAppPurchases', [TOKEN], function (pd) { PUR.data = pd; openPurchase(r.po); }, function () { openPurchases(); }); },
+      function (e) { el('npGo').disabled = false; el('npErr').textContent = (e && e.message) || 'Not saved'; });
+  };
+  draw();
+}
+// One purchase: what was ordered / received, charges, payments; Receive and Pay
+function openPurchase(po) {
+  var p = PUR.data.pos.filter(function (x) { return x.po === po; })[0]; if (!p) return renderPurchases();
+  var share = p.goods ? (p.cargo + p.other) / p.goods : 0, row = function (l, v) { return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span>' + l + '</span><b class="num">' + v + '</b></div></div></div>'; };
+  el('panel').innerHTML = '<button class="btn mini" id="poBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Purchases</button><h3>' + esc(p.supplier) + '</h3><p>' + esc(p.po) + ' · ' + esc(p.date) + ' · ' + esc(p.status) + '</p>' +
+    '<div class="card" style="padding:0">' + p.lines.map(function (l) {
+      return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><b>' + esc(l.name) + '</b><span class="num">' + rs(l.qty * l.price) + '</span></div>' +
+        '<div class="prow-2"><span>' + l.qty + ' × ' + rs(l.price) + (share ? ' · landed ' + rs(l.price * (1 + share)) : '') + ' · received ' + l.received + (l.rejected ? ' (' + l.rejected + ' rejected)' : '') + '</span></div></div></div>';
+    }).join('') + '</div>' +
+    '<div class="card" style="padding:0">' + row('Goods', rs(p.goods)) + (p.cargo ? row('Cargo / freight', rs(p.cargo)) : '') + (p.other ? row('Other charges', rs(p.other)) : '') + row('Paid', rs(p.paid)) + row('<b>To pay</b>', '<b>' + rs(p.toPay) + '</b>') + '</div>' +
+    (p.note ? '<p style="color:var(--muted);font-size:12.5px">' + esc(p.note) + '</p>' : '') +
+    (p.status === 'Ordered' ? '<div class="btns" style="margin-top:10px"><button class="btn" id="poCall"><i class="ti ti-phone"></i>Call supplier</button><button class="btn" id="poWa"><i class="ti ti-brand-whatsapp"></i>Send copy</button></div>' : '') +
+    '<div class="btns" style="margin-top:10px">' + (p.status !== 'Received' ? '<button class="btn pri" id="poRcv"><i class="ti ti-truck-loading"></i>Receive</button>' : '') + (p.toPay > 0 ? '<button class="btn" id="poPay"><i class="ti ti-cash"></i>Pay</button>' : '') + '</div>';
+  openPanel(true);
+  el('poBack').onclick = renderPurchases;
+  if (el('poRcv')) el('poRcv').onclick = function () { openReceive(p); };
+  if (el('poCall')) el('poCall').onclick = function () { var s = (PUR.data.suppliers.filter(function (x) { return x.name === p.supplier; })[0]) || {}; if (!s.phone) { toast('No phone saved for this supplier'); return; } location.href = 'tel:' + String(s.phone).replace(/[^0-9+]/g, ''); };
+  if (el('poWa')) el('poWa').onclick = function () {
+    var s = (PUR.data.suppliers.filter(function (x) { return x.name === p.supplier; })[0]) || {}, ph = String(s.phone || '').replace(/[^0-9]/g, '').replace(/^0/, '92');
+    window.open('https://wa.me/' + (ph.length >= 11 ? ph : '') + '?text=' + encodeURIComponent(purMsg(p)), '_blank');
+  };
+  if (el('poPay')) el('poPay').onclick = function () { openPayPurchase(p); };
+}
+function openReceive(p) {
+  el('panel').innerHTML = '<button class="btn mini" id="rvBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>' + esc(p.po) + '</button><h3>Goods received</h3><p>' + esc(p.supplier) + ' · stock updates within 15 minutes</p>' +
+    '<div class="card">' + p.lines.map(function (l, k) {
+      var left = Math.max(0, l.qty - l.received);
+      return '<div class="stk-in"><div><b style="font-size:13.5px">' + esc(l.name) + '</b><small>ordered ' + l.qty + ' · received ' + l.received + '</small></div><input type="text" inputmode="decimal" data-rq="' + k + '" value="' + (left || '') + '" placeholder="arrived"></div>' +
+        '<div class="stk-in"><div><small>rejected / damaged</small></div><input type="text" inputmode="decimal" data-rj="' + k + '" placeholder="0"></div>';
+    }).join('') + '</div>' +
+    '<div class="fld"><label>Cargo / freight actually paid (PKR, total)</label><input id="rvCargo" type="text" inputmode="decimal" value="' + (p.cargo || '') + '"></div>' +
+    '<div class="fld"><label>Other charges (PKR, total)</label><input id="rvOther" type="text" inputmode="decimal" value="' + (p.other || '') + '"></div><div class="err" id="rvErr"></div>' +
+    '<button class="btn pri" id="rvGo" style="width:100%;padding:12px">Save received</button>';
+  openPanel(true);
+  el('rvBack').onclick = function () { openPurchase(p.po); };
+  el('rvGo').onclick = function () {
+    var lines = p.lines.map(function (l, k) { return { sku: l.sku, received: Number(el('panel').querySelector('[data-rq="' + k + '"]').value) || 0, rejected: Number(el('panel').querySelector('[data-rj="' + k + '"]').value) || 0 }; }).filter(function (x) { return x.received > 0; });
+    if (!lines.length) { el('rvErr').textContent = 'Write how many arrived'; return; }
+    el('rvGo').disabled = true;
+    api('appReceivePurchase', [TOKEN, { po: p.po, lines: lines, cargo: el('rvCargo').value, other: el('rvOther').value }], function () { toast('✅ Received · stock updates within 15 minutes'); openPurchases(); },
+      function (e) { el('rvGo').disabled = false; el('rvErr').textContent = (e && e.message) || 'Not saved'; });
+  };
+}
+function openPayPurchase(p) {
+  var st = { from: 'Business account', receipt: '' };
+  el('panel').innerHTML = '<button class="btn mini" id="ppBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>' + esc(p.po) + '</button><h3>Pay ' + esc(p.supplier) + '</h3><p>To pay ' + rs(p.toPay) + '</p>' +
+    '<div class="fld"><label>Amount (PKR)</label><input id="ppAmt" type="text" inputmode="decimal" value="' + Math.round(p.toPay) + '"></div>' +
+    '<div class="fld"><label>Paid from</label><div class="chips wrapc" id="ppFrom">' + ['Business account', 'Cash', 'Own pocket'].map(function (x) { return '<button class="chip' + (x === st.from ? ' on' : '') + '" type="button" data-v="' + x + '">' + (x === 'Own pocket' ? 'My own pocket' : x) + '</button>'; }).join('') + '</div></div>' +
+    '<div class="fld"><label>Receipt photo (optional)</label><input id="ppFile" type="file" accept="image/*" capture="environment" hidden><button class="btn" id="ppPhoto" type="button" style="width:100%"><i class="ti ti-camera"></i>Add a photo</button><img id="ppThumb" alt="" hidden style="display:block;max-width:100%;max-height:160px;margin-top:8px;border-radius:12px"></div>' +
+    '<div class="err" id="ppErr"></div><button class="btn pri" id="ppGo" style="width:100%;padding:12px">Save payment</button>';
+  openPanel(true);
+  el('ppBack').onclick = function () { openPurchase(p.po); };
+  el('ppFrom').onclick = function (e) { var b = e.target.closest('[data-v]'); if (!b) return; st.from = b.getAttribute('data-v'); el('ppFrom').querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x === b); }); };
+  el('ppPhoto').onclick = function () { el('ppFile').click(); };
+  el('ppFile').onchange = function () {
+    var file = el('ppFile').files && el('ppFile').files[0]; if (!file) return;
+    var img = new Image(), url = URL.createObjectURL(file);
+    img.onload = function () { var k = Math.min(1, 1280 / Math.max(img.width, img.height)), cv = document.createElement('canvas'); cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
+      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height); st.receipt = cv.toDataURL('image/jpeg', 0.72); URL.revokeObjectURL(url); el('ppThumb').src = st.receipt; el('ppThumb').hidden = false; };
+    img.src = url;
+  };
+  el('ppGo').onclick = function () {
+    var a = Number(String(el('ppAmt').value).replace(/[^0-9.]/g, ''));
+    if (!(a > 0)) { el('ppErr').textContent = 'Enter the amount'; return; }
+    el('ppGo').disabled = true;
+    api('appPayPurchase', [TOKEN, { po: p.po, amount: a, from: st.from, receipt: st.receipt }], function (r) { toast(r.status === 'Approved' ? '✅ Payment saved' : '✅ Payment saved · waiting for approval'); openPurchases(); },
+      function (e) { el('ppGo').disabled = false; el('ppErr').textContent = (e && e.message) || 'Not saved'; });
+  };
+}
 
 // ---------- Morning brief (the 10 am notification opens it): each number opens its parcels ----------
 var BRIEF = { day: '', data: null }, BRIEF_BACK = null; // BRIEF_BACK: where closing the brief returns (the 🔔 list), else Home
