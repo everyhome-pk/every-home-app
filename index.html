@@ -216,7 +216,7 @@ body{overscroll-behavior-y:contain}
 .jr-amt{font-size:11.5px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 9px}
 .jr-gi{display:flex;align-items:center;gap:10px;padding:7px 0;cursor:pointer}.jr-gi>b{font-size:15px}.jr-gi>i{color:var(--faint);font-size:16px}
 .jr-dot2{width:8px;height:8px;border-radius:50%;background:var(--c);flex:none}
-.jr-gn{flex:1;min-width:0;font-size:13px;font-weight:600}.jr-gn small{display:block;font-weight:400;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jr-gn{flex:1;min-width:0;font-size:13px;font-weight:500}.jr-gn small{display:block;font-weight:400;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .jr-funnel{font-size:13px;color:var(--muted);margin:-4px 0 2px;line-height:1.5}.jr-funnel b{color:var(--text);font-size:15px}.jr-funnel b.up{color:var(--green)}.jr-funnel b.down{color:var(--red)}.jr-funnel i.ti{font-size:13px;vertical-align:-1px}
 .late-b,.late-t{font-style:normal;color:var(--red);font-weight:600}.late-b{font-size:10.5px;background:var(--red-bg);padding:1px 6px;border-radius:99px;margin-left:4px;vertical-align:1px}
 .jr-now{display:flex;align-items:center;gap:8px;margin-top:8px;padding:9px 10px;border-radius:12px;border:1px dashed var(--line);font-size:12.5px;color:var(--muted);cursor:pointer}.jr-now span{flex:1}.jr-now b{color:var(--text)}.jr-now i{font-size:16px}
@@ -227,7 +227,7 @@ body{overscroll-behavior-y:contain}
 .jr-list .jr-row:first-child:before{top:50%}
 .jr-list .jr-row:last-child:before{bottom:50%}
 .jr-dot{width:26px;height:26px;border-radius:50%;background:var(--card);border:2px solid var(--c);color:var(--c);display:grid;place-items:center;font-size:13px;position:relative;z-index:1}
-.jr-name{font-size:13px;font-weight:600;min-width:0}.jr-name small{display:block;font-weight:400;color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jr-name{font-size:13px;font-weight:500;min-width:0}.jr-name small{display:block;font-weight:400;color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .jr-bar{height:6px;background:var(--line);border-radius:9px;overflow:hidden}.jr-bar i{display:block;height:100%;border-radius:9px;transition:width .8s cubic-bezier(.2,.8,.2,1)}
 .jr-n{text-align:right;font-size:15px}
 .jr-row.zero{opacity:.4}
@@ -279,10 +279,32 @@ body{overscroll-behavior-y:contain}
 .row:first-of-type{border-top:0}
 .row span{color:var(--muted)}.row b{font-weight:600}
 .act{display:flex;gap:12px;align-items:center;padding:11px 0;border-top:1px solid var(--line)}
+/* Home dashboard (2026-10-28): tall money card + 2 small, Quick create, trend */
+.hd-cards{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:10px;margin-bottom:18px}
+.hd-cards button{border:0;text-align:left;font:inherit;color:var(--text);cursor:pointer;border-radius:18px}
+.hd-tall{grid-row:span 2;background:#E7F5F2;padding:16px;display:flex;flex-direction:column;justify-content:space-between;gap:14px;min-height:176px}
+.hd-tall small,.hd-small small{display:block;font-size:13px;color:#4A5C58}
+.hd-tall b{display:block;font-size:21px;font-weight:500;margin-top:4px}.hd-tall span{display:block;font-size:12px;color:#4A5C58;margin-top:2px}
+.hd-small{padding:13px 14px 11px}.hd-small small{font-weight:500}.hd-small>span:last-child{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
+.hd-n{display:flex;justify-content:space-between;align-items:center}.hd-n b{font-size:22px;font-weight:500}.hd-n i{color:var(--faint);font-size:17px}
+.hd-blue{background:#EEF3FC}.hd-blue small{color:#2F4DB3}.hd-amber{background:#FDF1DC}.hd-amber small{color:#7A5C2E}
+.hd-small em{font-style:normal;font-weight:500}.hd-small em.up{color:var(--green)}.hd-small em.down{color:var(--red)}
+.hd-qh{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;letter-spacing:1px;margin:4px 0 12px}.hd-qh i{font-size:18px}
+.hd-quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;text-align:center;margin-bottom:18px}
+.hd-quick button{border:0;background:none;font:400 12.5px Inter,sans-serif;color:var(--text);cursor:pointer;padding:0}
+.hd-quick span{width:54px;height:54px;border-radius:14px;background:var(--card);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;margin:0 auto 8px}
+.hd-quick i{font-size:24px;color:var(--brand)}
+.hd-trend{background:var(--card);border-radius:18px;padding:14px 14px 6px;box-shadow:var(--shadow);margin-bottom:12px}
+.hd-th{display:flex;justify-content:space-between;align-items:baseline}.hd-th b{font-size:15px;font-weight:500}.hd-th span{font-size:12px;color:var(--muted)}
+.hd-chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 6px}
+.hd-tv{display:flex;align-items:baseline;gap:8px}.hd-tv b{font-size:20px;font-weight:500}.hd-tv span{font-size:12px;color:var(--muted)}
+.hd-trend svg{display:block;width:100%;height:auto;margin-top:6px}.hd-trend text{font-size:9px;fill:var(--faint);font-family:Inter,sans-serif}
+html[data-mode="dark"] .hd-tall{background:#12302C}html[data-mode="dark"] .hd-blue{background:#16223A}html[data-mode="dark"] .hd-amber{background:#2A2210}
+html[data-mode="dark"] .hd-tall small,html[data-mode="dark"] .hd-tall span{color:#9FC9C1}html[data-mode="dark"] .hd-blue small{color:#93B4FF}html[data-mode="dark"] .hd-amber small{color:#F5C77A}
 .act:first-of-type{border-top:0}
 .act .ic{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;font-size:18px;flex:none}
 .t-danger{background:var(--red-bg);color:var(--red)}.t-warning{background:var(--amber-bg);color:var(--amber)}.t-info{background:var(--blue-bg);color:var(--blue)}
-.act b{display:block;font-size:13.5px;font-weight:600}.act small{color:var(--muted);font-size:12px}
+.act b{display:block;font-size:13.5px;font-weight:500}.act small{color:var(--muted);font-size:12px}
 .act .go{margin-left:auto;color:var(--faint)}
 .cmp{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .cmp>div{border:1px solid var(--line);border-radius:14px;padding:12px}
@@ -1729,7 +1751,7 @@ function renderHome(d) {
     (acts.length ? (showAll ? acts : acts.slice(0, 3)).map(function (a) {
       return '<div class="act" data-go="' + esc(a.go || 'ndr') + '" style="cursor:pointer"><div class="ic t-' + a.tone + '"><i class="ti ti-' + a.icon + '"></i></div><div><b>' + esc(a.title) + '</b><small>' + esc(a.sub) + '</small></div><i class="ti ti-chevron-right go"></i></div>';
     }).join('') + (showAll ? '' : '<button class="btn more" id="actsAll">See all ' + acts.length + ' action items</button>') : '<div class="empty"><i class="ti ti-circle-check"></i>Nothing pending</div>') + '</div>';
-  h += cashHero('Net payout · ' + d.monthLabel, c, 'data-go="cash:paid"', 'data-go="cash:due"', 'h');
+  h = homeDash(d) + h;
   // Parcel journey: every parcel counted once, at the stage it is at now. Tap a stage to see those parcels.
   var jmax = Math.max.apply(null, JOURNEY.map(function (s) { return jr[s[0]] || 0; }).concat([1]));
   var cx = d.cancelled || { total: 0, reasons: {} };
@@ -1801,6 +1823,7 @@ function renderHome(d) {
   }
   el('view').innerHTML = h;
   animateBox(el('view'), 'home');
+  homeDashWire(d);
   homeStock();
 }
 // Home: "Stock · n low · n out · n to order" under the action items, for people who see stock
@@ -1816,6 +1839,98 @@ function homeStock() {
   };
   if (STK.data && Date.now() - (STK.at || 0) < 600000) return draw();
   api('getAppStock', [TOKEN], function (d) { STK.data = d; STK.at = Date.now(); draw(); }, function () {});
+}
+// ---------- Home dashboard (2026-10-28, user: Home becomes a dashboard; header, period bar, Action items and Order
+// journey stay as they were). Three cards (one tall money card + two small), Quick create (4 tiles, only what this
+// person may do), and a 6-month trend whose chips never repeat a card number. Every number comes from data the app
+// already loads: Home data (kpis, prev, cash, trend) and, for people with finance.view, the P&L of the same period
+// (kept on the phone, fetched in the background at most every 10 minutes).
+var HD = { pnlAt: {} };
+function homePnlPeriod(d) { return d.range ? d.range.from + '..' + d.range.to : d.month; }
+function homePnl(d, done) {
+  if (!can('finance.view')) return;
+  var per = homePnlPeriod(d), k = 'pnl_' + per, hit = VIEW_MEM[k];
+  if (!hit) { try { hit = JSON.parse(store('ehv_' + k) || 'null'); } catch (e) { hit = null; } }
+  if (hit) done(hit);
+  if (hit && Date.now() - (HD.pnlAt[k] || 0) < 600000) return;
+  HD.pnlAt[k] = Date.now();
+  api('getAppPnl', [TOKEN, per], function (p) { viewKeep(k, p); done(p); }, function () {});
+}
+function homeCards(d) {
+  var k = d.kpis, p = d.prev, c = d.cash || {};
+  var dlt = function (cur, prev) { if (prev == null || !prev) return ''; var x = Math.round((cur - prev) / prev * 100); return '<em class="' + (x >= 0 ? 'up' : 'down') + '">' + (x >= 0 ? '↗ ' : '↘ ') + Math.abs(x) + '%</em>'; };
+  var tall;
+  if (can('finance.view')) tall = '<div><small>Net profit</small><b class="num" id="hdNet">' + (HD.net != null && HD.netFor === homePnlPeriod(d) ? (HD.net < 0 ? '− ' : '') + rs(Math.abs(HD.net)) : '…') + '</b></div>' +
+    '<div><small>With couriers</small><b class="num">' + rs(c.pending || 0) + '</b><span>' + (c.overdue ? c.overdue + ' parcels overdue' : (c.pendingDelivered || 0) + ' parcels unpaid') + '</span></div>';
+  else if (can('cash.view')) tall = '<div><small>Net payout</small><b class="num">' + rs(c.net || 0) + '</b></div>' +
+    '<div><small>With couriers</small><b class="num">' + rs(c.pending || 0) + '</b><span>' + (c.overdue ? c.overdue + ' parcels overdue' : (c.pendingDelivered || 0) + ' parcels unpaid') + '</span></div>';
+  else tall = '<div><small>Shipped</small><b class="num">' + k.booked + '</b></div><div><small>On the way</small><b class="num">' + k.onTheWay + '</b><span>' + k.notBooked + ' not booked yet</span></div>';
+  var tallGo = can('finance.view') ? 'pnl' : can('cash.view') ? 'cash' : 'parcels:moving';
+  return '<div class="hd-cards">' +
+    '<button class="hd-tall" data-hd="' + tallGo + '">' + tall + '</button>' +
+    '<button class="hd-small hd-blue" data-hd="parcels"><span class="hd-n"><b class="num">' + k.orders + '</b><i class="ti ti-chevron-right"></i></span><small>Orders</small><span>' + (dlt(k.orders, p && p.orders) || '&nbsp;') + '</span></button>' +
+    '<button class="hd-small hd-amber" data-hd="success"><span class="hd-n"><b class="num">' + (k.success == null ? '–' : pct(k.success)) + '</b><i class="ti ti-chevron-right"></i></span><small>Delivered</small><span>' + k.returned + ' returned</span></button>' +
+    '</div>';
+}
+// Quick create: the first 4 this person may use, in this order (each opens a screen the app already has)
+var HD_QUICK = [
+  ['expense', 'Expense', 'receipt', 'finance.add', function () { openAddExpense(); }],
+  ['purchase', 'Purchase', 'shopping-cart', 'inventory.edit', function () { openNewPurchase(); }],
+  ['payment', 'Payments', 'cash', 'cash.view', function () { showTab('cash'); }],
+  ['payout', 'Accounts', 'building-bank', 'users.manage', function () { openAccounts(); }],
+  ['ndr', 'Update NDR', 'phone', 'ndr.work', function () { showTab('ndr'); }],
+  ['scan', 'Scan return', 'scan', 'returns.scan', function () { showTab('returns'); startScan(); }],
+  ['count', 'Count stock', 'clipboard-check', 'inventory.edit', function () { openStockCount(true); }],
+  ['find', 'Find parcel', 'search', 'parcels.view', function () { showTab('parcels'); setTimeout(function () { if (el('q')) el('q').focus(); }, 300); }]
+];
+function homeQuick() {
+  var list = HD_QUICK.filter(function (q) { return can(q[3]) && (q[0] !== 'payout' || can('finance.view')); }).slice(0, 4);
+  if (!list.length) return '';
+  return '<div class="hd-qh"><i class="ti ti-bolt"></i>Quick create</div><div class="hd-quick">' +
+    list.map(function (q) { return '<button data-hq="' + q[0] + '"><span><i class="ti ti-' + q[2] + '"></i></span>' + q[1] + '</button>'; }).join('') + '</div>';
+}
+// Trend: last 6 months. Sales / Delivery % from Home's monthly report (reports.view); Profit / Ad spend from the P&L
+// trend (finance.view). Only chips with data are shown; the choice is kept on this phone.
+function homeTrendSeries(d) {
+  var s = [], tr = (d.trend || []).slice(-6), pt = HD.pnlTrend || [];
+  if (pt.length) {
+    var last = pt.slice(-6);
+    s.push({ k: 'profit', l: 'Profit', pts: last.map(function (x) { return { m: x.month, v: x.net }; }), rs: true });
+    s.push({ k: 'ads', l: 'Ad spend', pts: last.map(function (x) { return { m: x.month, v: x.ads }; }), rs: true });
+  }
+  if (tr.length) {
+    s.push({ k: 'sales', l: 'Sales', pts: tr.map(function (x) { return { m: x.key, v: x.sale }; }), rs: true });
+    s.push({ k: 'rate', l: 'Delivery %', pts: tr.map(function (x) { var f = x.delivered + x.returned; return { m: x.key, v: f ? Math.round(x.delivered / f * 100) : null }; }), pc: true });
+  }
+  return s;
+}
+function homeTrend(d) {
+  var all = homeTrendSeries(d); if (!all.length) return '';
+  var key = store('eh_hdtrend') || all[0].k, cur = all.filter(function (x) { return x.k === key; })[0] || all[0];
+  var pts = cur.pts, vals = pts.map(function (x) { return x.v; }).filter(function (v) { return v != null; });
+  var max = Math.max.apply(null, vals.concat([1])), min = Math.min.apply(null, vals.concat([0])), W = 320, H = 110, n = pts.length;
+  var X = function (i) { return 8 + i * (W - 16) / Math.max(1, n - 1); }, Y = function (v) { return 10 + (H - 20) * (1 - (v - min) / Math.max(1, max - min)); };
+  var line = pts.map(function (x, i) { return x.v == null ? '' : (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(x.v).toFixed(1); }).join(' ').replace(/^ *L/, 'M');
+  var lastV = pts[n - 1] ? pts[n - 1].v : null, fmtV = function (v) { return v == null ? '–' : cur.pc ? v + '%' : (v < 0 ? '− ' : '') + rs(Math.abs(v)); };
+  return '<div class="hd-trend"><div class="hd-th"><b>Trend</b><span>Last 6 months</span></div>' +
+    '<div class="hd-chips">' + all.map(function (x) { return '<button class="chip' + (x.k === cur.k ? ' on' : '') + '" data-ht="' + x.k + '">' + x.l + '</button>'; }).join('') + '</div>' +
+    '<div class="hd-tv"><b class="num">' + fmtV(lastV) + '</b><span>' + esc(fnMonthName(pts[n - 1] ? pts[n - 1].m : '')) + '</span></div>' +
+    '<svg viewBox="0 0 ' + W + ' ' + (H + 16) + '" role="img" aria-label="' + esc(cur.l) + ', last 6 months"><path d="' + line + ' L' + X(n - 1).toFixed(1) + ' ' + H + ' L' + X(0).toFixed(1) + ' ' + H + ' Z" fill="var(--brand)" opacity=".08"></path>' +
+    '<path d="' + line + '" fill="none" stroke="var(--brand)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path>' +
+    pts.map(function (x, i) { return '<text x="' + X(i).toFixed(1) + '" y="' + (H + 13) + '" text-anchor="middle">' + esc(fnMonthName(x.m).slice(0, 3)) + '</text>'; }).join('') + '</svg></div>';
+}
+function homeDash(d) { return '<div id="hdash">' + homeCards(d) + homeQuick() + '<div id="hdTrend">' + homeTrend(d) + '</div></div>'; }
+function homeDashWire(d) {
+  var box = el('hdash'); if (!box) return;
+  box.querySelectorAll('[data-hq]').forEach(function (b) { b.onclick = function () { var q = HD_QUICK.filter(function (x) { return x[0] === b.getAttribute('data-hq'); })[0]; if (q) q[4](); }; });
+  box.querySelectorAll('[data-hd]').forEach(function (b) { b.onclick = function () { var g = b.getAttribute('data-hd'); if (g === 'pnl') openPnl(homePnlPeriod(d)); else if (g === 'success') openReport('success'); else go(g); }; });
+  var wireTrend = function () { el('hdTrend').querySelectorAll('[data-ht]').forEach(function (b) { b.onclick = function () { store('eh_hdtrend', b.getAttribute('data-ht')); el('hdTrend').innerHTML = homeTrend(d); wireTrend(); }; }); };
+  wireTrend();
+  homePnl(d, function (p) {
+    HD.net = p.net; HD.netFor = homePnlPeriod(d); HD.pnlTrend = (p.trend || []).map(function (x) { return { month: x.month, net: x.net, ads: x.ads }; });
+    if (el('hdNet')) el('hdNet').textContent = (p.net < 0 ? '− ' : '') + rs(Math.abs(p.net));
+    if (el('hdTrend')) { el('hdTrend').innerHTML = homeTrend(d); wireTrend(); }
+  });
 }
 // ---------- reports (☰ menu): same period + courier as Home, shown in a sheet ----------
 var REPORT = {};
