@@ -2285,6 +2285,8 @@ function newCases() { var s = seenSet(); return N.data ? N.data.cases.filter(fun
 var CALL_AGAIN_HOURS = 3;
 function isTodo(c) {
   if (c.next === 'Chase courier (late)' && c.sent !== 'Attempt failed') return false;
+  // its request is in the courier list or with the courier: nothing to do until the courier acts (user 2026-10-27)
+  if (/^(Queued|Sent|Courier confirmed)$/.test(c.sent || '')) return false;
   if (!c.outcome || c.outcome === 'Not called yet') return true;
   if (c.sent === 'Attempt failed') return true;
   return /no answer|phone off/i.test(c.outcome) && c.lastCallMs > 0 && Date.now() - c.lastCallMs > CALL_AGAIN_HOURS * 3600000;
@@ -2508,43 +2510,51 @@ function courierPrefix(name) { var c = CLIST.filter(function (x) { return x.name
 // what we ask, then each parcel as a short block — CN (bold, own line, easy to copy) · city · COD, the courier's remark,
 // what the customer said, our request. Customer phone / address only when they changed (the courier already has them;
 // a group chat should carry as little personal data as possible). Blank lines between blocks; WhatsApp *bold* / _italic_.
+// WhatsApp message to the courier (short + professional, user 2026-10-27): heading, courier · date · count · Ref, one line
+// of what we want, then per parcel 2 lines: "n) CN · city (· 🔴 Dobara)" and "↳ one instruction" (customer's words,
+// date, new address, proof, "return na karein" together). No order # / COD / our own outcome text. Return = only
+// "Mark for Return" + date + the CNs.
 var OB_MSG = {
-  reattempt: ['Reattempt Request', 'Customers se baat ho chuki hai. Barah-e-karam neeche diye gaye parcels *dobara deliver* karwa dein.', 'Dobara deliver karein'],
-  return: ['Return Request', 'Barah-e-karam neeche diye gaye parcels *hamein wapas bhej dein*.', 'Wapas bhej dein'],
-  claim: ['Claim Request', 'Neeche diye gaye parcels kharab / adhoore wapas aaye hain. Barah-e-karam *claim note* kar lein.', 'Claim note karein'],
-  late: ['Late Delivery Request', 'Neeche diye gaye parcels ka kafi der se koi update nahi aaya / apne waqt se late hain. Barah-e-karam *trace kar ke jald deliver* karwayein.', 'Trace karein, jald deliver karein'],
-  check: ['Status Check Request', 'Customers keh rahe hain parcel mil gaya, magar portal par return hai. Barah-e-karam *status confirm* kar dein.', 'Status confirm karein']
+  reattempt: ['Reattempt Request', 'Customers se baat ho gayi hai, ye parcels dobara deliver karwa dein:'],
+  return: ['Mark for Return', ''],
+  claim: ['Claim Request', 'Ye parcels kharab / adhoore wapas aaye hain, claim note kar lein:'],
+  late: ['Late Delivery', 'In parcels ka kafi der se update nahi aaya, trace karke jald deliver karwa dein:'],
+  check: ['Status Check', 'Customers keh rahe hain parcel mil gaya, status confirm kar dein:']
 };
 function waSafe(s) { return String(s || '').replace(/[*_~`]/g, '').replace(/\s+/g, ' ').trim(); } // their own * or _ would break our bold / italic
+// city only: no Urdu script, no "District …", no address after a comma
+function waCity(s) {
+  var c = waSafe(s).replace(/[؀-ۿ]+/g, ' ').split(',')[0].replace(/\s+(district|distt|dist|tehsil)\b.*$/i, '').replace(/\s+/g, ' ').trim();
+  return c.length > 28 ? c.slice(0, 28).trim() : c;
+}
+// the customer's words without the stock opening / closing sentences
+function waSays(s) {
+  var w = waSafe(s).replace(/^customer (will receive the parcel|says)( tomorrow| today)?( \([^)]*\))?[.,:]?\s*/i, '').replace(/\s*please reattempt again\.?$/i, '').trim();
+  return w.charAt(0).toUpperCase() + w.slice(1);
+}
 function obMessage(name, kind, items, batch, part) {
-  var m = OB_MSG[kind], day = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Karachi', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }).format(new Date());
-  var head = ['*' + STORE.toUpperCase() + ' · ' + m[0] + '*' + (part ? ' (' + part + ')' : ''),
-    '*' + day + '*  ·  ' + items.length + ' parcel' + (items.length > 1 ? 's' : '') + '  ·  ' + name,
-    '_Ref: ' + batch + '_', '', m[1]].join('\n');
+  var m = OB_MSG[kind], day = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Karachi', day: 'numeric', month: 'short' }).format(new Date());
+  var title = '*' + STORE + ' · ' + m[0] + '*' + (part ? ' (' + part + ')' : '');
+  var sub = name + ' · ' + day + ' · ' + items.length + ' parcel' + (items.length > 1 ? 's' : '') + ' · Ref ' + batch;
+  if (kind === 'return') return [title, sub, '', items.map(function (it) { return waSafe(it.cn); }).join('\n'), '', 'Shukriya · ' + STORE].join('\n');
   var body = items.map(function (it, i) {
-    var lines = ['*' + (i + 1) + ')  ' + waSafe(it.cn) + '*' + (it.dobara || it.round > 1 ? '   🔴 *DOBARA*' : ''),
-      '📍 *' + (waSafe(it.city) || '—') + '*' + (kind !== 'claim' && it.cod ? '  ·  COD Rs ' + n0(it.cod) : '') + (it.order ? '  ·  ' + waSafe(it.order) : '')];
-    if (kind === 'claim') {
-      lines.push('📝 Issue: _' + (waSafe(it.claimText) || 'Claim') + '_');
-    } else if (kind === 'late') {
-      lines.push('⏰ _' + (it.hours ? it.hours + ' ghante se koi update nahi' : 'late') + (it.now ? ' · abhi: ' + waSafe(String(it.now).replace(/_/g, ' ').toLowerCase()) : '') + '_');
-    } else {
-      if (it.reason) lines.push('🚚 Courier: _' + waSafe(niceReason(it.reason)) + '_' + (it.attempts ? ' (' + it.attempts + ' attempt' + (it.attempts > 1 ? 's' : '') + ')' : ''));
-      // the NDR form's words (English sentences, not a quote); a new address already has its own 🆕 line
-      var says = waSafe(it.says), info = waSafe(it.newInfo);
-      if (says && !(info && says.indexOf(info) !== -1)) lines.push('🗣 Customer: _' + says + '_');
-      if (kind === 'reattempt' && it.newInfo) lines.push('🆕 *Naya pata / phone:* ' + waSafe(it.newInfo) + (it.name ? ' (' + waSafe(it.name) + (it.phone ? ', ' + phoneText(it.phone) : '') + ')' : ''));
-      if (kind === 'reattempt' && it.premature) lines.push('⛔ *Return rokein*, abhi 2 attempts nahi hue');
+    var top = '*' + (i + 1) + ') ' + waSafe(it.cn) + '*' + (waCity(it.city) ? ' · ' + waCity(it.city) : '') + (it.dobara || it.round > 1 ? ' · 🔴 Dobara' : '');
+    var say = [];
+    if (kind === 'claim') say.push((waSafe(it.claimText) || 'Claim') + '. Claim note karein.');
+    else if (kind === 'late') say.push((it.hours ? it.hours + ' ghante se update nahi' : 'Late') + (it.now ? ' (abhi: ' + waSafe(String(it.now).replace(/_/g, ' ').toLowerCase()) + ')' : '') + '. Location aur delivery ka din batayen.');
+    else if (kind === 'check') say.push('Delivered ho to POD share karein, warna current location batayen.');
+    else {
+      if (it.reattempt) say.push(waSafe(it.reattempt) + ' ko deliver karein.');
+      var w = waSays(it.says), info = waSafe(it.newInfo);
+      if (w && !(info && w.indexOf(info) !== -1)) say.push(/[.!?]$/.test(w) ? w : w + '.');
+      if (info) say.push('🆕 ' + info + (it.name ? ' (' + waSafe(it.name) + (it.phone ? ', ' + phoneText(it.phone) : '') + ')' : '') + '.');
+      if (it.ask) String(it.ask).split(';').forEach(function (a) { a = waSafe(a); if (a) say.push(a + '.'); });
+      if (it.premature) say.push('Return na karein.');
     }
-    lines.push('✅ *Request: ' + m[2] + (kind === 'reattempt' && it.reattempt ? ' · ' + waSafe(it.reattempt) : '') + '*');
-    if (kind === 'check') lines.push('• Delivered: POD share karein', '• Not delivered: parcel ki current location batayen');
-    if (kind === 'late') lines.push('• Parcel ki current location aur delivery ka din batayen');
-    if (kind === 'reattempt' && it.ask) String(it.ask).split(';').forEach(function (a) { if (a.trim()) lines.push('• ' + waSafe(a)); });
-    return lines.join('\n');
+    var line = say.join(' ').replace(/\.\./g, '.');
+    return top + (line ? '\n↳ ' + (line.length > 220 ? line.slice(0, 217).trim() + '…' : line) : '');
   }).join('\n\n');
-  var foot = ['Jawab mein parcel ka number likhein, jaise: _"1 done, 2 kal"_', '', 'Shukriya 🙏', '_' + STORE + ' · Operations_'].join('\n');
-  var sep = '──────────────';
-  return head + '\n\n' + sep + '\n\n' + body + '\n\n' + sep + '\n\n' + foot;
+  return [title, sub, '', m[1], '', body, '', 'Jawab: parcel number + status, jaise "1 done, 2 kal"', 'Shukriya · ' + STORE].join('\n');
 }
 function openOutbox(name) {
   var b = outboxOf(name);
@@ -3920,7 +3930,8 @@ function openPnl(m) {
     var line = function (l, v, cls, sub) { return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span' + (cls ? ' style="font-weight:600"' : '') + '>' + l + '</span><b class="num"' + (cls === 'neg' ? ' style="color:var(--red)"' : '') + '>' + v + '</b></div>' + (sub ? '<div class="prow-2"><span>' + sub + '</span></div>' : '') + '</div></div>'; };
     var minus = function (n) { return n ? '− ' + rs(n) : rs(0); };
     var exp = Object.keys(p.expenses).sort(function (a, b) { return p.expenses[b] - p.expenses[a]; });
-    el('panel').innerHTML = '<h3>Profit & loss</h3><p>Orders of the month · delivered and returned</p>' + fnNav('pl', p.month) +
+    el('panel').innerHTML = '<h3>Profit & loss</h3><p>Parcels booked this month · counted once delivered or returned</p>' + fnNav('pl', p.month) +
+      (p.open && p.open.n ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-truck"></i> ' + p.open.n + ' of ' + p.booked + ' parcels still with the courier · ' + rs(p.open.value) + ' · they join this month when finished</div>' : '') +
       '<div class="card" style="padding:0">' +
       line('Sales (delivered orders)', rs(p.sales), '', p.delivered + ' delivered · ' + p.returned + ' returned' + (p.advanceSales ? ' · incl. ' + rs(p.advanceSales) + ' paid in advance' : '')) +
       line('Courier fees', minus(p.fees), '', 'delivery + return charges, GST') +
