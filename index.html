@@ -794,17 +794,23 @@ function syncBar(d) { busy = Math.max(0, busy + d); el('btnRefresh').classList.t
     if (Math.abs(y - lastY) > 6) lastY = y;
   }, { passive: true });
 })();
-// Menu screens open at once the second time (2026-10-27, speed: every server call takes ~3 s): the last answer is kept in
-// memory for this app session and shown first; the fresh answer replaces it only when it differs and the same screen is
-// still open (same scroll). Any save (app… call) empties it, so nobody sees old numbers after their own change.
+// Menu screens open at once (2026-10-27, speed: every server call takes ~3 s): the last answer is kept on this phone
+// (memory + localStorage ehv_<key>, user: keep the whole app on the phone, money and stock too) and shown first; the
+// fresh answer replaces it only when it differs and the same screen is still open (same scroll). Any save (app… call)
+// clears the kept copies, so nobody sees old numbers after their own change; Log out clears everything (phoneClear).
 var VIEW_MEM = {};
+function viewKeep(key, d) { VIEW_MEM[key] = d; try { store('ehv_' + key, JSON.stringify(d)); } catch (e) {} }
+function viewClear() { VIEW_MEM = {}; try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf('ehv_') === 0) localStorage.removeItem(k); }); } catch (e) {} }
+// everything this app keeps on the phone for the user (views, tabs, stock, purchases): gone on Log out / a refused login
+function phoneClear() { viewClear(); try { Object.keys(localStorage).forEach(function (k) { if (/^(eh_s4_|eh_stk|eh_pur)/.test(k)) localStorage.removeItem(k); }); } catch (e) {} }
 function apiMem(key, fn, args, show, fail, skel) {
   var hit = VIEW_MEM[key];
+  if (!hit) { try { hit = JSON.parse(store('ehv_' + key) || 'null'); if (hit) VIEW_MEM[key] = hit; } catch (e) { hit = null; } }
   if (hit) show(hit); else if (skel) { el('panel').innerHTML = skel + skList(5); openPanel(true); }
   var title = hit ? el('panel').getAttribute('data-title') : null;
   api(fn, args, function (d) {
     var s = JSON.stringify(d); if (hit && JSON.stringify(hit) === s) return;
-    VIEW_MEM[key] = d;
+    viewKeep(key, d);
     if (!hit) return show(d);
     if (el('overlay').classList.contains('show') && el('panel').getAttribute('data-title') === title) { var y = el('panel').scrollTop; show(d); el('panel').scrollTop = y; }
   }, function (e) { if (!hit && fail) fail(e); });
@@ -813,8 +819,8 @@ function apiMem(key, fn, args, show, fail, skel) {
 var LAST_BTN = null, LAST_BTN_AT = 0;
 document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('.btn'); if (b) { LAST_BTN = b; LAST_BTN_AT = Date.now(); } }, true);
 function api(fn, args, ok, fail) {
-  if (/^app[A-Z]/.test(fn)) {
-    VIEW_MEM = {}; // a save: saved screens may be out of date now
+  if (/^app[A-Z]/.test(fn) && fn !== 'appLogin' && fn !== 'appBioLogin') {
+    viewClear(); // a save: saved screens may be out of date now
     var wb = LAST_BTN && Date.now() - LAST_BTN_AT < 1500 && document.contains(LAST_BTN) ? LAST_BTN : null;
     if (wb) {
       LAST_BTN = null; wb.classList.add('wait'); wb.setAttribute('aria-busy', 'true');
@@ -836,7 +842,7 @@ function api(fn, args, ok, fail) {
 }
 function authFail(e) {
   if (!e || !/LOGIN_REQUIRED/.test(e.message || e)) return false;
-  TOKEN = ''; store('eh_token', ''); LOCKED = false; showLogin(); return true;
+  TOKEN = ''; store('eh_token', ''); LOCKED = false; phoneClear(); showLogin(); return true;
 }
 
 // Numbers count up and bars grow only the FIRST time a screen is shown after the app opens (a real start: closed and
@@ -3413,7 +3419,7 @@ el('btnOut').onclick = function () {
   closeDrawer();
   if (!confirm('Log out ' + (USER || '') + '?')) return;
   var bs = bioClear(); if (bs) google.script.run.withFailureHandler(function () {}).appBioOff(bs); // Log out ends fingerprint login here
-  var bye = function () { TOKEN = ''; store('eh_token', ''); store('eh_perms', ''); store('eh_role', ''); location.reload(); };
+  var bye = function () { TOKEN = ''; store('eh_token', ''); store('eh_perms', ''); store('eh_role', ''); phoneClear(); location.reload(); };
   var pt = store('eh_push');
   if (!pt) return bye();
   store('eh_push', ''); // this phone stops getting this user's alerts
@@ -3568,11 +3574,12 @@ function openStockDays() {
   api('getAppStockDays', [TOKEN, 14], function (r) {
     STK.days = r.days;
     var q = function (n) { return Math.round(n * 100) / 100; };
-    el('panel').innerHTML = '<button class="btn mini" id="sdBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Stock</button><h3>Daily stock summary</h3><p>Last 14 days · tap a day for each product</p>' +
+    el('panel').innerHTML = '<button class="btn mini" id="sdBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Stock</button><h3>Daily stock summary</h3><p>' + (r.start ? 'Since the first count (' + esc(niceDay(r.start)) + ') · tap a day for each product' : 'Starts with the first stock count') + '</p>' +
+      (r.days.length ? '' : '<div class="card empty">Count the stock once (Stock → Count) and every day shows here</div>') +
       '<div class="card" style="padding:0">' + r.days.map(function (d, k) {
         var any = d.rows.length;
         return '<div class="prow' + (any ? '' : ' dim') + '" data-sday="' + k + '"' + (any ? '' : ' style="cursor:default"') + '><div class="prow-m"><div class="prow-1"><b>' + esc(niceDay(d.day)) + '</b><span class="num">' + (d.sold ? q(d.sold) + ' out' : '') + '</span></div>' +
-          '<div class="prow-2"><span>' + (any ? [d.rows.filter(function (x) { return x.sold; }).length + ' products sold', d.ret ? q(d.ret) + ' returned' : '', d.recv ? q(d.recv) + ' received' : '', d.other ? d.other + ' changed' : ''].filter(Boolean).join(' · ') : 'no stock moved') + '</span></div></div></div>';
+          '<div class="prow-2"><span>' + (d.opening ? '📋 Opening count · ' + d.other + ' products counted' + (d.recv ? ' · ' + q(d.recv) + ' received' : '') : any ? [d.rows.filter(function (x) { return x.sold; }).length + ' products sold', d.ret ? q(d.ret) + ' returned' : '', d.recv ? q(d.recv) + ' received' : '', d.other ? d.other + ' changed' : ''].filter(Boolean).join(' · ') : 'no stock moved') + '</span></div></div></div>';
       }).join('') + '</div>';
     el('sdBack').onclick = renderStock;
     el('panel').querySelectorAll('[data-sday]').forEach(function (b) { b.onclick = function () { var d = STK.days[+b.getAttribute('data-sday')]; if (d.rows.length) openStockDay(d); }; });
@@ -3985,7 +3992,7 @@ function openPnl(period) {
           '<div class="prow-2"><span>sales ' + rs(x.sales) + ' · ads ' + rs(x.ads) + '</span></div>' +
           '<div style="height:4px;border-radius:2px;margin-top:6px;width:' + w + '%;background:' + (x.net < 0 ? 'var(--red)' : 'var(--green)') + '"></div></div></div>';
       }).join('') + '</div>' : '') +
-      '<div class="card"><div class="h"><b>Cash in the period</b></div>' + line('Money in', rs(p.cash.in)) + line('Money out', minus(p.cash.out), '', 'expenses, stock bought, owner draws') + '</div>' +
+      '<div class="card"><div class="h"><b>Cash in the period</b></div>' + line('Money in', rs(p.cash.in), '', p.cash.courier != null ? 'courier payments ' + rs(p.cash.courier) + ' · advances & other ' + rs(p.cash.other) : '') + line('Money out', minus(p.cash.out), '', 'expenses, stock bought, owner draws') + '</div>' +
       '<div class="btns" style="margin-top:10px"><button class="btn" id="plClose">Close</button></div>';
     openPanel(true);
     el('plClose').onclick = closePanel;
@@ -4264,9 +4271,10 @@ function purLast(sku, supplier) {
 function purMain(sku) { var m = ((PUR.data && PUR.data.links) || []).filter(function (l) { return l.sku === sku && l.main; })[0]; return m ? m.supplier : ''; }
 function rs2(n) { return 'Rs ' + (Math.round((n || 0) * 100) / 100).toLocaleString('en-IN'); }
 function purItem(sku) { return PUR.data.items.filter(function (i) { return i.sku === sku; })[0] || { sku: sku, name: sku, unit: 'pcs' }; }
+function purKeep(d) { PUR.data = d; PUR.at = Date.now(); try { store('eh_pur', JSON.stringify(d)); } catch (e) {} }
 function purReload(then, r, quiet) {
-  if (r && r.data) { PUR.data = r.data; return then(); } // the save already sent the new data
-  api('getAppPurchases', [TOKEN], function (pd) { PUR.data = pd; PUR.at = Date.now(); then(); }, function (e) { if (!quiet) toast((e && e.message) || 'Not loaded'); });
+  if (r && r.data) { purKeep(r.data); return then(); } // the save already sent the new data
+  api('getAppPurchases', [TOKEN], function (pd) { purKeep(pd); then(); }, function (e) { if (!quiet) toast((e && e.message) || 'Not loaded'); });
 }
 function purCall(s) { if (!s || !s.phone) { toast('No phone saved for this supplier'); return; } location.href = 'tel:' + String(s.phone).replace(/[^0-9+]/g, ''); }
 
@@ -4368,11 +4376,12 @@ function openSupplierProduct(sup, sku, back) {
   if (el('spRm')) el('spRm').onclick = function () { send({ supplier: sup, sku: sku, remove: true }); };
 }
 function openPurchases() {
+  if (!PUR.data) { try { var sv = JSON.parse(store('eh_pur') || 'null'); if (sv && sv.pos) PUR.data = sv; } catch (e) {} }
   if (PUR.data) { renderPurchases(); if (PUR.at && Date.now() - PUR.at < 60000) return; }
   else { el('panel').innerHTML = '<button class="btn mini" id="puBack0" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Stock</button><h3>Purchase orders</h3>' + skList(5); openPanel(true); el('puBack0').onclick = function () { openStock(''); }; }
   var had = !!PUR.data;
   api('getAppPurchases', [TOKEN], function (d) {
-    var same = had && JSON.stringify(d) === JSON.stringify(PUR.data); PUR.data = d; PUR.at = Date.now();
+    var same = had && JSON.stringify(d) === JSON.stringify(PUR.data); purKeep(d);
     if (same || !el('overlay').classList.contains('show')) return;
     var h = el('panel').querySelector('h3'); if (h && h.textContent === 'Purchase orders') { var y = el('panel').scrollTop; renderPurchases(); el('panel').scrollTop = y; }
   }, function () { if (!had) { toast('You don\'t have access to this'); openStock(''); } });
