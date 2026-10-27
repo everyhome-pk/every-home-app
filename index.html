@@ -3423,7 +3423,7 @@ el('btnOut').onclick = function () {
 // ---------- Stock (W1 Inventory.js): what we have, what is low / out, stock in, count, adjust ----------
 // The app only adds entries (Purchase / Count / Adjust / Damaged); W1 posts them within 15 minutes.
 var STK = { data: null, q: '', f: 'all' };
-var STK_ST = { OK: ['OK', 'var(--green)'], Low: ['Low', 'var(--amber)'], Out: ['Out', 'var(--red)'], 'Not counted': ['Not counted', 'var(--muted)'], 'No parts': ['No parts', 'var(--muted)'] };
+var STK_ST = { OK: ['OK', 'var(--green)'], Low: ['Low', 'var(--amber)'], Out: ['Out', 'var(--red)'], 'Not counted': ['Not counted', 'var(--muted)'], 'No parts': ['No parts', 'var(--muted)'], 'Listed only': ['Listed only', 'var(--faint)'] };
 function skList(n) { var r = ''; for (var i = 0; i < (n || 5); i++) r += '<div class="prow" style="cursor:default"><div class="prow-m"><div class="sk" style="height:12px;width:' + (55 + (i * 17) % 30) + '%;border-radius:6px"></div><div class="sk" style="height:10px;width:' + (30 + (i * 13) % 25) + '%;margin-top:8px;border-radius:6px"></div></div></div>'; return '<div class="card" style="padding:0">' + r + '</div>'; }
 function stkQty(n, unit) { return (Math.round((Number(n) || 0) * 10) / 10).toLocaleString('en-IN') + (unit === 'ft' ? ' ft' : ''); }
 function openStock(sku) {
@@ -3478,7 +3478,7 @@ function renderStock() {
     return !q || (i.name + ' ' + i.sku).toLowerCase().indexOf(q) !== -1;
   });
   // what needs attention first: Out, Low, then what runs out soonest
-  var rank = function (i) { return i.status === 'Out' ? 0 : i.status === 'Low' ? 1 : 2; };
+  var rank = function (i) { return i.status === 'Out' ? 0 : i.status === 'Low' ? 1 : i.status === 'Listed only' ? 3 : 2; }; // listed-only at the bottom
   list.sort(function (a, b) { var da = stkDays(a), db = stkDays(b); return rank(a) - rank(b) || (da == null ? 1e9 : da) - (db == null ? 1e9 : db) || String(a.name).localeCompare(b.name); });
   var um = edit ? stkUnmatched() : [];
   var chip = function (k, l) { return '<button class="chip' + (STK.f === k ? ' on' : '') + '" type="button" data-sf="' + k + '">' + l + '</button>'; };
@@ -3601,6 +3601,7 @@ function openStockItem(sku) {
       (i.incoming ? row('On the way (ordered)', stkQty(i.incoming, i.unit)) : '') +
       (i.perDay ? row('Sells per day (30 days)', stkQty(i.perDay, i.unit)) + row('Lasts about', Math.floor(Math.max(0, i.available + (i.incoming || 0)) / i.perDay) + ' days') : '') +
       (i.lastCount ? row('Last counted', esc(i.lastCount) + ' · every ' + (i.countEvery === 7 ? 'week' : i.countEvery === 30 ? 'month' : '3 months') + (i.countDue ? ' · <b style="color:var(--amber)">due</b>' : '')) : '') +
+      (edit ? '<div class="prow" id="siListed"><div class="prow-m"><div class="prow-1"><span>' + (i.status === 'Listed only' ? 'Listed only · no stock alerts' : 'Selling · stock alerts on') + '</span><b class="num" style="color:var(--brand)">' + (i.status === 'Listed only' ? 'Track stock' : 'Listed only') + '</b></div><div class="prow-2"><span>Listed only = on the store to be seen, no ads, no sales</span></div></div></div>' : '') +
       (edit ? '<div class="prow" id="siRe"><div class="prow-m"><div class="prow-1"><span>Low stock alert at</span><b class="num">' + stkQty(i.reorder, i.unit) + ' <i class="ti ti-pencil" style="color:var(--muted)"></i></b></div></div></div>' : row('Low stock alert at', stkQty(i.reorder, i.unit))) +
       (i.cost != null ? row('Average cost', rs(i.cost)) + row('Stock value', rs(i.value)) : '') : '') + '</div>' +
     (edit ? '<div class="btns" style="margin:0 0 12px"><button class="btn pri" id="siIn"><i class="ti ti-truck-loading"></i>Stock in</button><button class="btn" id="siAdj"><i class="ti ti-adjustments"></i>Adjust</button></div>' : '') +
@@ -3615,6 +3616,13 @@ function openStockItem(sku) {
   if (el('siIn')) el('siIn').onclick = function () { openStockIn(sku); };
   if (el('siAdj')) el('siAdj').onclick = function () { openStockAdjust(sku); };
   if (el('siRe')) el('siRe').onclick = function () { openReorderEdit(i); };
+  if (el('siListed')) el('siListed').onclick = function () {
+    var on = i.status !== 'Listed only';
+    api('appSetProductListed', [TOKEN, sku, on], function () {
+      if (on) { if (i.available <= 0) i.status = 'Listed only'; } else if (i.status === 'Listed only') i.status = 'Out';
+      toast(on ? '✅ Listed only · no stock alerts' : '✅ Stock tracked with alerts again'); openStockItem(sku);
+    });
+  };
   if (el('siBuy')) el('siBuy').onclick = function () {
     // a Kit is bought as its parts (2-pack → the single item; clothes line → wire, hooks, U clamps: remove what is in stock)
     var leaf = [], walk = function (s, n) { var k = (d.kits || {})[s]; if (k && n < 4) k.forEach(function (c) { walk(c[0], n + 1); }); else if (leaf.indexOf(s) < 0) leaf.push(s); };
@@ -3924,29 +3932,71 @@ function openAddExpense() {
       function (e) { el('aeGo').disabled = false; el('aeErr').textContent = (e && e.message) || 'Not saved'; });
   };
 }
-function openPnl(m) {
-  FN.month = m || FN.month || pkDay(new Date()).slice(0, 7);
-  apiMem('pnl_' + FN.month, 'getAppPnl', [TOKEN, FN.month], function (p) {
-    var line = function (l, v, cls, sub) { return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span' + (cls ? ' style="font-weight:600"' : '') + '>' + l + '</span><b class="num"' + (cls === 'neg' ? ' style="color:var(--red)"' : '') + '>' + v + '</b></div>' + (sub ? '<div class="prow-2"><span>' + sub + '</span></div>' : '') + '</div></div>'; };
-    var minus = function (n) { return n ? '− ' + rs(n) : rs(0); };
+// Profit & loss (user 2026-10-27): any period (month, last month, 3 months, this year, all time, own dates), 4 big numbers,
+// per delivered order, every line with its % of sales, month by month (tap → that month), open parcels, cash.
+function pnlPeriods() {
+  var t = pkDay(new Date()), m = t.slice(0, 7), y = t.slice(0, 4);
+  return [['month', 'This month', m], ['last', 'Last month', fnMonth(m, -1)], ['3m', '3 months', fnMonth(m, -2) + '-01..' + t], ['year', 'This year', y + '-01-01..' + t], ['all', 'All time', 'all']];
+}
+function pnlLabel(p) {
+  if (/^\d{4}-\d{2}$/.test(p)) return fnMonthName(p);
+  if (p === 'all') return 'All time';
+  var f = p.slice(0, 10), t = p.slice(12); return niceDay(f) + ' – ' + niceDay(t);
+}
+function openPnl(period) {
+  FN.pnl = period || FN.pnl || pkDay(new Date()).slice(0, 7);
+  apiMem('pnl_' + FN.pnl, 'getAppPnl', [TOKEN, FN.pnl], function (p) {
+    var pct = function (n) { return p.sales ? Math.round(n / p.sales * 1000) / 10 + '%' : ''; };
+    var line = function (l, v, cls, sub, share) { return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span' + (cls ? ' style="font-weight:600"' : '') + '>' + l + '</span><b class="num"' + (cls === 'neg' ? ' style="color:var(--red)"' : '') + '>' + v + (share ? ' <small style="color:var(--muted);font-weight:500">' + share + '</small>' : '') + '</b></div>' + (sub ? '<div class="prow-2"><span>' + sub + '</span></div>' : '') + '</div></div>'; };
+    var minus = function (n) { return n ? '− ' + rs(n) : rs(0); }, signed = function (n) { return (n < 0 ? '− ' : '') + rs(Math.abs(n)); };
+    var tile = function (l, v, s, c) { return '<div class="card" style="margin:0;padding:12px"><small style="color:var(--muted)">' + l + '</small><b class="num" style="display:block;font-size:20px;margin-top:2px' + (c ? ';color:' + c : '') + '">' + v + '</b><small style="color:var(--muted)">' + (s || '&nbsp;') + '</small></div>'; };
     var exp = Object.keys(p.expenses).sort(function (a, b) { return p.expenses[b] - p.expenses[a]; });
-    el('panel').innerHTML = '<h3>Profit & loss</h3><p>Parcels booked this month · counted once delivered or returned</p>' + fnNav('pl', p.month) +
-      (p.open && p.open.n ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-truck"></i> ' + p.open.n + ' of ' + p.booked + ' parcels still with the courier · ' + rs(p.open.value) + ' · they join this month when finished</div>' : '') +
+    var cur = FN.pnl, isMonth = /^\d{4}-\d{2}$/.test(cur), pers = pnlPeriods();
+    var chips = '<div class="chips" style="flex-wrap:wrap">' + pers.map(function (x) { return '<button class="chip' + (x[2] === cur ? ' on' : '') + '" type="button" data-pp="' + x[2] + '">' + x[1] + '</button>'; }).join('') +
+      '<button class="chip' + (!pers.some(function (x) { return x[2] === cur; }) && !isMonth ? ' on' : '') + '" type="button" id="plOwn"><i class="ti ti-calendar"></i> Dates</button></div>' +
+      '<div id="plDates" hidden class="card"><div class="btns"><div class="fld" style="flex:1;margin:0"><label>From</label><input id="ppF" type="date"></div><div class="fld" style="flex:1;margin:0"><label>To</label><input id="ppT" type="date"></div></div>' +
+      '<button class="btn pri" id="ppGo" type="button" style="width:100%;margin-top:8px">Show</button></div>';
+    var maxNet = Math.max.apply(null, (p.trend || []).map(function (x) { return Math.abs(x.net); }).concat([1]));
+    el('panel').innerHTML = '<h3>Profit & loss</h3><p>Parcels by booking day · counted once delivered or returned</p>' + chips +
+      (isMonth ? fnNav('pl', cur) : '<div style="text-align:center;font-weight:600;margin:0 0 10px">' + esc(pnlLabel(cur)) + '</div>') +
+      (p.open && p.open.n ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-truck"></i> ' + p.open.n + ' of ' + p.booked + ' parcels still with the courier · ' + rs(p.open.value) + ' · they join when finished</div>'
+        : p.booked ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-circle-check"></i> Final · all ' + p.booked + ' parcels finished</div>' : '') +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px">' +
+        tile('Sales', rs(p.sales), p.delivered + ' delivered · ' + p.returned + ' returned') + tile('Gross profit', signed(p.gross), pct(p.gross) + ' of sales') +
+        tile('Ads', rs(p.ads), pct(p.ads) + ' of sales') + tile('Net profit', signed(p.net), pct(p.net) + ' of sales', p.net < 0 ? 'var(--red)' : 'var(--green)') + '</div>' +
+      (p.perOrder ? '<div class="card"><div class="h"><b>Per delivered order</b></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center">' +
+        '<div><b class="num">' + rs(p.perOrder.value) + '</b><br><small style="color:var(--muted)">order value</small></div><div><b class="num">' + rs(p.perOrder.ads) + '</b><br><small style="color:var(--muted)">ads</small></div>' +
+        '<div><b class="num"' + (p.perOrder.net < 0 ? ' style="color:var(--red)"' : '') + '>' + signed(p.perOrder.net) + '</b><br><small style="color:var(--muted)">profit</small></div></div>' +
+        (p.returnFees ? '<small class="mnote" style="display:block;margin-top:8px">Returns cost ' + rs(p.returnFees) + ' in courier fees (' + p.returned + ' returned)</small>' : '') + '</div>' : '') +
       '<div class="card" style="padding:0">' +
-      line('Sales (delivered orders)', rs(p.sales), '', p.delivered + ' delivered · ' + p.returned + ' returned' + (p.advanceSales ? ' · incl. ' + rs(p.advanceSales) + ' paid in advance' : '')) +
-      line('Courier fees', minus(p.fees), '', 'delivery + return charges, GST') +
-      line('Taxes (WHT + SST)', minus(p.taxes)) +
-      line('Cost of goods', minus(p.cogs), '', p.stockStarted ? 'from stock: average cost of what was sent' : 'starts after the stock count') +
-      line('Gross profit', rs(p.gross), 'b') +
-      line('Ads', minus(p.ads), '', Object.keys(p.adSync || {}).map(function (k) { return k + ' ' + rs(p.adSync[k]) + ' (synced)'; }).concat(p.adsEntered ? ['entered ' + rs(p.adsEntered)] : []).join(' · ')) +
+      line('Sales (delivered orders)', rs(p.sales), '', p.advanceSales ? 'incl. ' + rs(p.advanceSales) + ' paid in advance' : '') +
+      line('Courier fees', minus(p.fees), '', 'delivery + return charges, GST', pct(p.fees)) +
+      line('Taxes (WHT + SST)', minus(p.taxes), '', '', pct(p.taxes)) +
+      line('Cost of goods', minus(p.cogs), '', p.cogsEst ? 'incl. ' + rs(p.cogsEst) + ' estimated (before the stock count, at product costs)' + (p.unknownLines ? ' · ' + p.unknownLines + ' line' + (p.unknownLines > 1 ? 's' : '') + ' without a cost' : '') : 'from stock: average cost of what was sent', pct(p.cogs)) +
+      (p.stockLoss ? line('Stock loss', p.stockLoss > 0 ? minus(p.stockLoss) : '+ ' + rs(-p.stockLoss), '', [p.lossBy.count ? 'count differences ' + rs(p.lossBy.count) : '', p.lossBy.damaged ? 'damaged ' + rs(p.lossBy.damaged) : '', p.lossBy.adjust ? 'lost / gift / own use ' + rs(p.lossBy.adjust) : ''].filter(Boolean).join(' · ').replace(/Rs -/g, 'found Rs '), pct(p.stockLoss)) : '') +
+      line('Gross profit', signed(p.gross), 'b', '', pct(p.gross)) +
+      line('Ads', minus(p.ads), '', Object.keys(p.adSync || {}).map(function (k) { return k + ' ' + rs(p.adSync[k]); }).concat(p.adsEntered ? ['entered ' + rs(p.adsEntered)] : []).join(' · '), pct(p.ads)) +
       (p.adDollar && p.adDollar.usd ? line('&nbsp;&nbsp;of which dollar extra', rs(p.adDollar.extra), '', '$' + p.adDollar.usd.toLocaleString('en-US') + ' used · market avg Rs ' + p.adDollar.avg + ' · paid Rs ' + (Math.round((p.adDollar.avg + p.adDollar.extra / p.adDollar.usd) * 100) / 100) + ' per $') : '') +
-      exp.map(function (k) { return line(esc(k), minus(p.expenses[k])); }).join('') +
-      line('Net profit', (p.net < 0 ? '− ' : '') + rs(Math.abs(p.net)), p.net < 0 ? 'neg' : 'b') + '</div>' +
-      '<div class="card"><div class="h"><b>Cash this month</b></div>' + line('Money in', rs(p.cash.in)) + line('Money out', minus(p.cash.out), '', 'expenses, stock bought, owner draws') + '</div>' +
+      exp.map(function (k) { return line(esc(k), minus(p.expenses[k]), '', '', pct(p.expenses[k])); }).join('') +
+      line('Net profit', signed(p.net), p.net < 0 ? 'neg' : 'b', '', pct(p.net)) + '</div>' +
+      ((p.trend || []).length > 1 ? '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>Month by month</b><span>tap a month</span></div>' + p.trend.slice().reverse().map(function (x) {
+        var w = Math.round(Math.abs(x.net) / maxNet * 100);
+        return '<div class="prow" data-pm="' + x.month + '"><div class="prow-m"><div class="prow-1"><b>' + fnMonthName(x.month) + (x.open ? ' <small style="color:var(--amber)">· ' + x.open + ' open</small>' : '') + '</b><b class="num"' + (x.net < 0 ? ' style="color:var(--red)"' : '') + '>' + signed(x.net) + '</b></div>' +
+          '<div class="prow-2"><span>sales ' + rs(x.sales) + ' · ads ' + rs(x.ads) + '</span></div>' +
+          '<div style="height:4px;border-radius:2px;margin-top:6px;width:' + w + '%;background:' + (x.net < 0 ? 'var(--red)' : 'var(--green)') + '"></div></div></div>';
+      }).join('') + '</div>' : '') +
+      '<div class="card"><div class="h"><b>Cash in the period</b></div>' + line('Money in', rs(p.cash.in)) + line('Money out', minus(p.cash.out), '', 'expenses, stock bought, owner draws') + '</div>' +
       '<div class="btns" style="margin-top:10px"><button class="btn" id="plClose">Close</button></div>';
     openPanel(true);
     el('plClose').onclick = closePanel;
-    el('panel').querySelectorAll('[data-fm]').forEach(function (b) { b.onclick = function () { openPnl(fnMonth(FN.month, Number(b.getAttribute('data-fm')))); }; });
+    el('panel').querySelectorAll('[data-fm]').forEach(function (b) { b.onclick = function () { openPnl(fnMonth(FN.pnl, Number(b.getAttribute('data-fm')))); }; });
+    el('panel').querySelectorAll('[data-pp]').forEach(function (b) { b.onclick = function () { openPnl(b.getAttribute('data-pp')); }; });
+    el('panel').querySelectorAll('[data-pm]').forEach(function (b) { b.onclick = function () { openPnl(b.getAttribute('data-pm')); }; });
+    el('plOwn').onclick = function () { // own dates: from / to in the page
+      var td = pkDay(new Date()); var own = FN.pnl.indexOf('..') !== -1; el('ppF').value = own ? FN.pnl.slice(0, 10) : td.slice(0, 7) + '-01'; el('ppT').value = own ? FN.pnl.slice(12) : td;
+      el('ppF').max = el('ppT').max = td; el('plDates').hidden = !el('plDates').hidden;
+    };
+    el('ppGo').onclick = function () { var f = el('ppF').value, to = el('ppT').value; if (!f || !to) return; openPnl((f <= to ? f : to) + '..' + (f <= to ? to : f)); };
   }, function () { closePanel(); toast('You don\'t have access to this'); }, '<h3>Profit & loss</h3>');
 }
 el('btnExp').onclick = fromMenu(function () { openExpenses(''); });
