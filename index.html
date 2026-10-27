@@ -416,6 +416,10 @@ body{overscroll-behavior-y:contain}
 .tl{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
 .tl-src{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--muted)}.tl-src .ti-broadcast{color:var(--green)}
 .spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+/* a save is on its way: the pressed button shows a turning circle and cannot be pressed again */
+.btn.wait{pointer-events:none;position:relative;color:transparent!important}.btn.wait>*{visibility:hidden}
+.btn.wait::after{content:'';position:absolute;left:50%;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;border:2px solid var(--brand);border-top-color:transparent;animation:spin .7s linear infinite}
+.btn.pri.wait::after,.btn.wa.wait::after{border-color:#fff;border-top-color:transparent}
 .tl-i{display:flex;gap:10px;padding-bottom:10px;position:relative}
 .tl-i:before{content:"";position:absolute;left:5px;top:14px;bottom:0;width:2px;background:var(--line)}
 .tl-i:last-child:before{display:none}
@@ -805,8 +809,21 @@ function apiMem(key, fn, args, show, fail, skel) {
     if (el('overlay').classList.contains('show') && el('panel').getAttribute('data-title') === title) { var y = el('panel').scrollTop; show(d); el('panel').scrollTop = y; }
   }, function (e) { if (!hit && fail) fail(e); });
 }
+// the button pressed last (any save started within 1.5 s of the press shows its circle on it)
+var LAST_BTN = null, LAST_BTN_AT = 0;
+document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('.btn'); if (b) { LAST_BTN = b; LAST_BTN_AT = Date.now(); } }, true);
 function api(fn, args, ok, fail) {
-  if (/^app[A-Z]/.test(fn)) VIEW_MEM = {}; // a save: saved screens may be out of date now
+  if (/^app[A-Z]/.test(fn)) {
+    VIEW_MEM = {}; // a save: saved screens may be out of date now
+    var wb = LAST_BTN && Date.now() - LAST_BTN_AT < 1500 && document.contains(LAST_BTN) ? LAST_BTN : null;
+    if (wb) {
+      LAST_BTN = null; wb.classList.add('wait'); wb.setAttribute('aria-busy', 'true');
+      var done = function () { wb.classList.remove('wait'); wb.removeAttribute('aria-busy'); };
+      var ok0 = ok, fail0 = fail;
+      ok = function (d) { done(); if (ok0) ok0(d); };
+      fail = function (e) { done(); if (fail0) fail0(e); else toast((e && e.message) || 'Something went wrong'); };
+    }
+  }
   syncBar(1);
   var r = google.script.run.withSuccessHandler(function (d) { syncBar(-1); if (LOAD_NAMES[fn]) LOADED[LOAD_NAMES[fn]] = Date.now(); if (!el('offbar').hidden) offlineOff(); ok && ok(d); })
     .withFailureHandler(function (e) {
@@ -4028,10 +4045,10 @@ function openAdCharge(id, back) {
     openPanel(true);
     if (!el('chRate')) return;
     el('chRate').oninput = function () { var r = Number(el('chRate').value) || 0; el('chPkr').textContent = c.cur === 'PKR' ? rs(Math.round(c.pkr / (c.rate || r) * r)) : rs(Math.round(c.usd * r)); };
-    el('chGo').onclick = function () {
-      el('chGo').disabled = true;
-      api('appSetAdChargeRate', [TOKEN, id, el('chRate').value], function (r) { toast('✅ Rs ' + r.rate + ' per $ saved'); closePanel(); },
-        function (e) { el('chGo').disabled = false; el('chErr').textContent = (e && e.message) || 'Not saved'; });
+    el('chGo').onclick = function () { // closes at once; the save runs behind (the spend is priced again on the server)
+      var rate = el('chRate').value; closePanel(); toast('Saving Rs ' + rate + ' per $…');
+      api('appSetAdChargeRate', [TOKEN, id, rate], function (r) { toast('✅ Rs ' + r.rate + ' per $ saved'); },
+        function (e) { toast('❌ Not saved: ' + ((e && e.message) || 'try again')); openAdCharge(id, back); });
     };
   }, function () { closePanel(); toast('You don\'t have access to this'); });
 }
