@@ -1,4 +1,4 @@
-const CACHE = 'eh-mvqe471p';
+const CACHE = 'eh-mvqf7rr3';
 const SHELL = ['./', 'index.html', 'ordi.webmanifest', 'ordi-192.png', 'ordi-512.png', 'ordi-maskable-512.png', 'ordi-apple-180.png', 'ordi-badge-96.png'];
 // 'reload': a new version always takes the files from the server, never from the browser's own (older) copy.
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting())); });

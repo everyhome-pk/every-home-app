@@ -4020,14 +4020,14 @@ function openAdCharge(id, back) {
     if (!c) { closePanel(); toast('Charge not found'); return; }
     if (back) SHEET_BACK = back;
     el('panel').innerHTML = '<h3>Meta charge</h3><p>' + esc(c.at) + (c.status ? ' · ' + esc(c.status) : '') + '</p>' +
-      '<div class="card" style="padding:0"><div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span>Charged</span><b class="num">$' + c.usd + '</b></div></div></div>' +
+      '<div class="card" style="padding:0"><div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span>Charged</span><b class="num">' + (c.cur === 'PKR' ? rs(c.usd) : '$' + c.usd) + '</b></div></div></div>' +
       '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span>In rupees</span><b class="num" id="chPkr">' + rs(c.pkr) + '</b></div><div class="prow-2"><span>' + (c.by && c.by !== 'default' ? 'rate set by ' + esc(c.by) : 'rate not checked yet') + '</span></div></div></div></div>' +
       (d.canSet ? '<div class="fld"><label>What one dollar cost (PKR)</label><input id="chRate" type="text" inputmode="decimal" value="' + (c.rate || d.def || '') + '"></div>' +
         '<small class="mnote" style="display:block;margin:-6px 0 10px">The spend this charge paid for is counted at this rate in Profit & loss</small><div class="err" id="chErr"></div>' +
         '<button class="btn pri" id="chGo" style="width:100%;padding:12px">' + (c.by && c.by !== 'default' ? 'Save rate' : 'Confirm rate') + '</button>' : '');
     openPanel(true);
     if (!el('chRate')) return;
-    el('chRate').oninput = function () { var r = Number(el('chRate').value) || 0; el('chPkr').textContent = rs(Math.round(c.usd * r)); };
+    el('chRate').oninput = function () { var r = Number(el('chRate').value) || 0; el('chPkr').textContent = c.cur === 'PKR' ? rs(Math.round(c.pkr / (c.rate || r) * r)) : rs(Math.round(c.usd * r)); };
     el('chGo').onclick = function () {
       el('chGo').disabled = true;
       api('appSetAdChargeRate', [TOKEN, id, el('chRate').value], function (r) { toast('✅ Rs ' + r.rate + ' per $ saved'); closePanel(); },
@@ -4041,9 +4041,10 @@ function openAdCharges() {
   api('getAppAdCharges', [TOKEN], function (d) {
     el('panel').innerHTML = '<button class="btn mini" id="cxBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Accounts</button><h3>Meta charges</h3><p>Each charge to the card · tap to set what the dollar cost</p>' +
       (d.error ? '<div class="card empty">' + esc(d.error) + ' · the token may need business_management</div>' : '') +
+      (d.check ? '<small class="mnote" style="display:block;margin:0 0 10px">Lifetime check · ' + esc(d.check) + '</small>' : '') +
       '<div class="card" style="padding:0">' + (d.list.length ? d.list.map(function (c) {
         var ok = c.by && c.by !== 'default';
-        return '<div class="prow" data-chg="' + esc(c.id) + '" style="--c:' + (ok ? 'var(--green)' : 'var(--amber)') + '"><span class="prow-d"></span><div class="prow-m"><div class="prow-1"><b>$' + c.usd + '</b><span class="num">' + rs(c.pkr) + '</span></div>' +
+        return '<div class="prow" data-chg="' + esc(c.id) + '" style="--c:' + (ok ? 'var(--green)' : 'var(--amber)') + '"><span class="prow-d"></span><div class="prow-m"><div class="prow-1"><b>' + (c.cur === 'PKR' ? rs(c.usd) : '$' + c.usd) + '</b><span class="num">' + rs(c.pkr) + '</span></div>' +
           '<div class="prow-2"><span>' + esc(c.at.slice(0, 10)) + ' · Rs ' + c.rate + ' per $</span><span class="st" style="--c:' + (ok ? 'var(--green)' : 'var(--amber)') + '">' + (ok ? 'checked' : c.by === 'default' ? 'default rate' : 'to check') + '</span></div></div></div>';
       }).join('') : '<div class="empty">No charges yet</div>') + '</div>';
     openPanel(true);
