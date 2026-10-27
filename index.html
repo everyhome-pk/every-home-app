@@ -73,7 +73,7 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .dr-i[hidden],.dr-h[hidden],.nav button[hidden]{display:none}
 .dr-g .dr-c{margin-left:auto;font-size:16px;color:var(--faint);transition:transform .2s}.dr-g[aria-expanded="true"] .dr-c{transform:rotate(180deg)}
 .dr-g[aria-expanded="true"]{color:var(--brand)}.dr-g[aria-expanded="true"]>i:first-child{color:var(--brand)}
-.dr-n{font-style:normal;margin-left:auto;background:var(--brand);color:#fff;font-size:11px;font-weight:600;border-radius:99px;padding:1px 7px}.dr-n+.dr-c{margin-left:6px}
+.dr-n{font-style:normal;margin-left:auto;background:var(--brand);color:#fff;font-size:11px;font-weight:600;border-radius:99px;padding:1px 7px}.dr-n:not([hidden])+.dr-c{margin-left:6px}
 .dr-sub{margin:0 0 6px 18px;padding-left:10px;border-left:1.5px solid var(--line)}.dr-sub .dr-i{padding:9px 6px;font-size:13.5px}.dr-sub .dr-i i{font-size:17px}
 .dr-sub:not([hidden]){animation:drSub .18s ease}@keyframes drSub{from{opacity:0;transform:translateY(-4px)}}
 .dr-h{font-size:10.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.7px;margin:16px 4px 4px}
@@ -497,6 +497,7 @@ body.locked{overflow:hidden;overscroll-behavior:none}
 .tk.ok{background:var(--green-bg);color:var(--green)}.tk.bad{background:var(--red-bg);color:var(--red)}
 .cs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0 4px;text-align:center}
 .cs div{background:var(--bg);border-radius:10px;padding:8px 2px}.cs b{display:block;font-size:16px}.cs small{font-size:10.5px;color:var(--muted)}
+.cs [data-esc]{cursor:pointer}.cs [data-esc]:active{opacity:.6}
 .cs-h{font-size:10.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.7px;margin-top:8px}.cs-h+.cs{margin-top:4px}
 .cs-done{padding:10px 0 2px;border-top:1px solid var(--line);margin-top:10px}
 .cs-done .cs-h{display:flex;align-items:center;gap:6px}.cs-done .cs-h i{font-size:14px}.cs-done .cs-h small{margin-left:auto;text-transform:none;letter-spacing:0;font-size:11px}
@@ -2311,7 +2312,9 @@ function updateBadge() {
 }
 function loadNdr(fresh) {
   api('getAppNdr', [TOKEN, !!fresh], function (d) {
-    var before = N.data ? newCases().map(function (c) { return c.cn; }) : null;
+    // sound / pill only for a parcel that was not on the NDR list at all before (user 2026-10-27: a case leaving the list
+    // or an old case changing its type, e.g. attempt → return started, must not ring)
+    var before = N.data && N.data.cases ? N.data.cases.map(function (c) { return c.cn; }) : null;
     N.data = d; snap('ndr', d);
     var fr = newCases();
     var added = before ? fr.filter(function (c) { return before.indexOf(c.cn) === -1; }) : [];
@@ -2538,6 +2541,14 @@ function waSays(s) {
   var w = waSafe(s).replace(/^customer (will receive the parcel|says)( tomorrow| today)?( \([^)]*\))?[.,:]?\s*/i, '').replace(/\s*please reattempt again\.?$/i, '').trim();
   return w.charAt(0).toUpperCase() + w.slice(1);
 }
+// desk "Updated Address/Phone" = "address · phone" (either may be missing): one line each, a phone told apart by its digits
+function newInfoLines(info, it) {
+  var isPh = function (p) { return /^[+\d][\d\s-]{8,}$/.test(p); }, parts = String(info).split(' · ').map(waSafe).filter(Boolean), newPh = parts.some(isPh);
+  return parts.map(function (p) {
+    if (isPh(p)) return '📞 Naya phone: ' + phoneText(p);
+    return '📍 Naya pata: ' + p + (it.name ? ' (' + waSafe(it.name) + (it.phone && !newPh ? ', ' + phoneText(it.phone) : '') + ')' : '');
+  });
+}
 function obMessage(name, kind, items, batch, part) {
   var m = OB_MSG[kind], day = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Karachi', day: 'numeric', month: 'short' }).format(new Date());
   var title = '*' + STORE + ' · ' + m[0] + '*' + (part ? ' (' + part + ')' : '');
@@ -2553,12 +2564,13 @@ function obMessage(name, kind, items, batch, part) {
       if (it.reattempt) say.push(waSafe(it.reattempt) + ' ko deliver karein.');
       var w = waSays(it.says), info = waSafe(it.newInfo);
       if (w && !(info && w.indexOf(info) !== -1)) say.push(/[.!?]$/.test(w) ? w : w + '.');
-      if (info) say.push('🆕 ' + info + (it.name ? ' (' + waSafe(it.name) + (it.phone ? ', ' + phoneText(it.phone) : '') + ')' : '') + '.');
       if (it.ask) String(it.ask).split(';').forEach(function (a) { a = waSafe(a); if (a) say.push(a + '.'); });
       if (it.premature) say.push('Return na karein.');
     }
     var line = say.join(' ').replace(/\.\./g, '.');
-    return top + (line ? '\n↳ ' + (line.length > 220 ? line.slice(0, 217).trim() + '…' : line) : '');
+    // a new address / phone on its own line under the agent's words (user 2026-10-27)
+    var news = info && kind !== 'claim' && kind !== 'late' && kind !== 'check' ? newInfoLines(info, it) : [];
+    return top + (line ? '\n↳ ' + (line.length > 220 ? line.slice(0, 217).trim() + '…' : line) : '') + news.map(function (x) { return '\n' + x; }).join('');
   }).join('\n\n');
   return [title, sub, '', m[1], '', body, '', 'Jawab: parcel number + status, jaise "1 done, 2 kal"', 'Shukriya · ' + STORE].join('\n');
 }
@@ -2697,6 +2709,27 @@ function openEscalations(only) {
     '<div class="btns" style="margin-top:10px"><button class="btn" id="escClose">Close</button></div>';
   openPanel(true);
   el('escClose').onclick = closePanel;
+  el('panel').querySelectorAll('[data-esc]').forEach(function (b) { b.onclick = function () { var v = b.getAttribute('data-esc').split('|'); openEscList(v[0], v[1], only); }; });
+}
+// Open / Replied / Actioned / No action → those parcels (user 2026-10-27: check the parcel again); tap → parcel page
+var ESC_KINDS = { open: ['Open', function () { return true; }], replied: ['Replied', function (t) { return !!(t.status || t.reply); }],
+  acted: ['Actioned', function (t) { return /Amal hua/.test(t.result); }], none: ['No action', function (t) { return /Amal nahi|DOBARA/.test(t.result); }] };
+function openEscList(name, kind, only) {
+  var co = (N.data.couriers || {})[name] || {}, k = ESC_KINDS[kind], tk = co.tickets || {};
+  var cases = {}; (N.data.cases || []).forEach(function (c) { cases[c.cn] = c; });
+  var cns = Object.keys(tk).filter(function (cn) { return k[1](tk[cn]); });
+  el('panel').innerHTML = '<h3>' + esc(name) + ' · ' + k[0] + '</h3><p>' + cns.length + ' parcel' + (cns.length === 1 ? '' : 's') + ' · tap to check the parcel</p>' +
+    (cns.length ? '<div class="card" style="padding:0">' + cns.map(function (cn) {
+      var t = tk[cn], c = cases[cn] || {};
+      return '<div class="prow" data-ep="' + esc(cn) + '"><div class="prow-m"><div class="prow-1"><b>' + esc(cn) + '</b><span>' + esc(REQ_KIND[t.type] || 'Request') + ' · ' + esc(t.id) + '</span></div>' +
+        '<div class="prow-2"><span>' + esc([c.city, ticketResult(t.result)].filter(Boolean).join(' · ')) + '</span></div>' +
+        (t.status || t.reply ? '<div class="prow-2"><span>' + esc(name) + ': ' + esc([t.status, t.reply].filter(Boolean).join(' – ')) + '</span></div>' : '') +
+        (t.sentAt ? '<div class="prow-2"><span>Sent ' + esc(t.sentAt) + (t.channel ? ' · ' + esc(t.channel) : '') + '</span></div>' : '') + '</div></div>';
+    }).join('') + '</div>' : '<div class="empty">None right now</div>') +
+    '<div class="btns" style="margin-top:10px"><button class="btn" id="elBack" data-back><i class="ti ti-arrow-left"></i>Escalations</button></div>';
+  openPanel(true);
+  el('elBack').onclick = function () { openEscalations(only); };
+  el('panel').querySelectorAll('[data-ep]').forEach(function (r) { r.onclick = function () { openParcel(r.getAttribute('data-ep')); }; });
 }
 function courierCardsHtml(only) {
   var cs = N.data.couriers || {};
@@ -2708,7 +2741,7 @@ function courierCardsHtml(only) {
     return '<div class="card"><div class="h"><b>' + name + ' escalations</b><span>' + (s.replyHours != null ? 'avg. reply ~' + s.replyHours + 'h' : '') + '</span></div>' +
       // Open = still on the courier's Issues tab; closed tickets move to its Done tab and are counted by outcome.
       '<div class="cs-h">Open in sheet</div>' +
-      '<div class="cs"><div><b>' + s.open + '</b><small>Open</small></div><div><b>' + s.replied + '</b><small>Replied</small></div><div><b class="up">' + s.acted + '</b><small>Actioned</small></div><div><b class="down">' + s.notActed + '</b><small>No action</small></div></div>' +
+      '<div class="cs"><div data-esc="' + esc(name) + '|open"><b>' + s.open + '</b><small>Open</small></div><div data-esc="' + esc(name) + '|replied"><b>' + s.replied + '</b><small>Replied</small></div><div data-esc="' + esc(name) + '|acted"><b class="up">' + s.acted + '</b><small>Actioned</small></div><div data-esc="' + esc(name) + '|none"><b class="down">' + s.notActed + '</b><small>No action</small></div></div>' +
       '<div class="cs-done"><div class="cs-h" style="margin:0"><i class="ti ti-archive"></i>Closed · last ' + (s.closedDays || 30) + ' days<small>' + (s.total || 0) + ' sent in total</small></div>' +
         '<div class="cs-res">' + (s.delivered + s.returned + (s.closedOther || 0) ?
           '<b class="up">' + s.delivered + ' delivered</b> · <b class="down">' + s.returned + ' returned</b>' + (s.closedOther ? ' · ' + s.closedOther + ' other' : '') : 'None yet') + '</div></div>' +
@@ -2742,6 +2775,9 @@ function askLate(cn) {
 // Each answer maps onto the W1 desk's Call Outcome list (matched by words, so the sheet's wording can change).
 // The courier message is written for the agent, the agent can add their own words to any answer, and every message
 // that asks the courier to deliver again ends with "Please reattempt again."
+// answers on the form (user 2026-10-27: Cash not ready, Says already received, Courier's reason is wrong taken off; their
+// code stays for cases saved with them before)
+var NDR_SHOW = ['deliver', 'address', 'refuse', 'other'];
 var NDR_FLOW = [
   { k: 'deliver', label: 'Deliver again', icon: 'truck-delivery', out: /will receive|reattempt/i, when: true },
   // the courier's reason does not match what the customer says (rider never came, no call, area "closed" …): reattempt + attempt proof
@@ -2805,7 +2841,7 @@ function openNdrForm(cn, afterCall) {
     '<button class="btn' + ((c.calls || 0) + 1 >= 3 ? ' pri' : '') + '" id="fRet" type="button" style="width:100%;padding:11px;margin-bottom:10px"><i class="ti ti-arrow-back-up"></i>Ask ' + esc(c.courier) + ' to return it</button></div>' +
     // reached
     '<div id="fYes" hidden><div class="fld"><label>What does ' + esc(first) + ' want?</label><div class="ogrid" id="fWant">' +
-    NDR_FLOW.map(function (f) { return '<button type="button" class="og" data-k="' + f.k + '"><i class="ti ti-' + f.icon + '"></i>' + esc(f.label) + '</button>'; }).join('') + '</div></div>' +
+    NDR_FLOW.filter(function (f) { return NDR_SHOW.indexOf(f.k) !== -1; }).map(function (f) { return '<button type="button" class="og" data-k="' + f.k + '"><i class="ti ti-' + f.icon + '"></i>' + esc(f.label) + '</button>'; }).join('') + '</div></div>' +
     '<div class="fld" id="fWhen" hidden><label>When should the courier come?</label>' + chips('fDay', days) +
     '<input id="fDate" type="date" value="' + esc(c.reattempt) + '" style="margin-top:6px">' + chips('fTime', NDR_TIMES) + '</div>' +
     '<div class="fld" id="fAddr" hidden><label>New address / phone</label><input id="fNewAddr" placeholder="House 12, Street 4, Model Town (landmark)"><input id="fNewPhone" type="tel" placeholder="New phone (if any)" style="margin-top:6px"></div>' +
@@ -2874,7 +2910,11 @@ function openNdrForm(cn, afterCall) {
     }
     if (w.k === 'cash') m = 'Customer will have the cash' + (when ? ' ' + when : '') + '.';
     if (w.k === 'refuse') m = 'Customer does not want the parcel' + (st.reason ? ': ' + st.reason.toLowerCase() : '') + '. Please return the parcel to us.';
-    if (w.k === 'other') m = note ? note.replace(/[.\s]*$/, '.') : '';
+    // the agent's own words ARE the courier's message (user 2026-10-27: the kind is already the message heading); the
+    // stock sentence stays only when nothing is written; a new address / phone goes on its own line (desk Updated
+    // Address/Phone → WhatsApp / sheet), a refusal keeps its facts
+    if (note && w.k !== 'refuse') m = note.replace(/[.\s]*$/, '.') + (st.time ? ' (' + st.time + ')' : ''); // the day goes as the reattempt date
+    else if (w.k === 'other') m = '';
     else if (note) m += ' ' + note.replace(/[.\s]*$/, '.');
     if (m && !w.noSend && !w.check) m += (when && w.k === 'other' ? ' Please come ' + when + '.' : '') + ' Please reattempt again.';
     return m.trim();
@@ -2899,7 +2939,8 @@ function openNdrForm(cn, afterCall) {
     el('fNoteW').hidden = !(no || w);
     el('fNoteL').textContent = w && w.k === 'other' ? 'What should the courier do?' : 'Your own words (optional)';
     var msg = message(), send = !!(w && !w.noSend && !w.check), check = !!(w && w.check), req = requestLine(send, check);
-    el('fPrev').hidden = !((send || check) && msg); el('fPrevT').textContent = msg + (req ? '\n✅ ' + req : '');
+    el('fPrev').hidden = !((send || check) && msg); el('fPrevT').textContent = msg +
+      (w && w.k === 'address' ? newInfoLines([el('fNewAddr').value.trim(), el('fNewPhone').value.trim()].filter(Boolean).join(' · '), {}).map(function (x) { return '\n' + x; }).join('') : '') + (req ? '\n✅ ' + req : '');
     el('fGo').hidden = !(no || w);
     var has = c.sent === 'Queued' || c.sent === 'Sent';
     el('fGo').innerHTML = check ? (has ? '<i class="ti ti-refresh"></i>Update status check' : '<i class="ti ti-search"></i>Ask ' + esc(c.courier) + ' to check the status') :
@@ -3959,13 +4000,14 @@ function openPnl(period) {
     var tile = function (l, v, s, c) { return '<div class="card" style="margin:0;padding:12px"><small style="color:var(--muted)">' + l + '</small><b class="num" style="display:block;font-size:20px;margin-top:2px' + (c ? ';color:' + c : '') + '">' + v + '</b><small style="color:var(--muted)">' + (s || '&nbsp;') + '</small></div>'; };
     var exp = Object.keys(p.expenses).sort(function (a, b) { return p.expenses[b] - p.expenses[a]; });
     var cur = FN.pnl, isMonth = /^\d{4}-\d{2}$/.test(cur), pers = pnlPeriods();
-    var chips = '<div class="chips" style="flex-wrap:wrap">' + pers.map(function (x) { return '<button class="chip' + (x[2] === cur ? ' on' : '') + '" type="button" data-pp="' + x[2] + '">' + x[1] + '</button>'; }).join('') +
-      '<button class="chip' + (!pers.some(function (x) { return x[2] === cur; }) && !isMonth ? ' on' : '') + '" type="button" id="plOwn"><i class="ti ti-calendar"></i> Dates</button></div>' +
+    var bar = '<div class="btns" style="align-items:center;margin:0 0 12px">' +
+      (isMonth ? '<button class="btn" data-fm="-1" style="flex:none;width:46px" aria-label="Previous month"><i class="ti ti-chevron-left"></i></button>' : '') +
+      '<button class="btn" id="plPer" type="button" style="flex:1;font-size:14px"><b>' + esc(pnlLabel(cur)) + '</b><i class="ti ti-chevron-down" style="color:var(--muted)"></i></button>' +
+      (isMonth ? '<button class="btn" data-fm="1" style="flex:none;width:46px" aria-label="Next month"><i class="ti ti-chevron-right"></i></button>' : '') + '</div>' +
       '<div id="plDates" hidden class="card"><div class="btns"><div class="fld" style="flex:1;margin:0"><label>From</label><input id="ppF" type="date"></div><div class="fld" style="flex:1;margin:0"><label>To</label><input id="ppT" type="date"></div></div>' +
       '<button class="btn pri" id="ppGo" type="button" style="width:100%;margin-top:8px">Show</button></div>';
     var maxNet = Math.max.apply(null, (p.trend || []).map(function (x) { return Math.abs(x.net); }).concat([1]));
-    el('panel').innerHTML = '<h3>Profit & loss</h3><p>Parcels by booking day · counted once delivered or returned</p>' + chips +
-      (isMonth ? fnNav('pl', cur) : '<div style="text-align:center;font-weight:600;margin:0 0 10px">' + esc(pnlLabel(cur)) + '</div>') +
+    el('panel').innerHTML = '<h3>Profit & loss</h3><p>Parcels by booking day · counted once delivered or returned</p>' + bar +
       (p.open && p.open.n ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-truck"></i> ' + p.open.n + ' of ' + p.booked + ' parcels still with the courier · ' + rs(p.open.value) + ' · they join when finished</div>'
         : p.booked ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-circle-check"></i> Final · all ' + p.booked + ' parcels finished</div>' : '') +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px">' +
@@ -3997,12 +4039,17 @@ function openPnl(period) {
     openPanel(true);
     el('plClose').onclick = closePanel;
     el('panel').querySelectorAll('[data-fm]').forEach(function (b) { b.onclick = function () { openPnl(fnMonth(FN.pnl, Number(b.getAttribute('data-fm')))); }; });
-    el('panel').querySelectorAll('[data-pp]').forEach(function (b) { b.onclick = function () { openPnl(b.getAttribute('data-pp')); }; });
-    el('panel').querySelectorAll('[data-pm]').forEach(function (b) { b.onclick = function () { openPnl(b.getAttribute('data-pm')); }; });
-    el('plOwn').onclick = function () { // own dates: from / to in the page
-      var td = pkDay(new Date()); var own = FN.pnl.indexOf('..') !== -1; el('ppF').value = own ? FN.pnl.slice(0, 10) : td.slice(0, 7) + '-01'; el('ppT').value = own ? FN.pnl.slice(12) : td;
-      el('ppF').max = el('ppT').max = td; el('plDates').hidden = !el('plDates').hidden;
+    el('plPer').onclick = function () { // the period list (a dropdown under the button)
+      var opts = pers.concat([['dates', 'Choose dates…', 'dates']]);
+      showPick('Period', '', '<div class="sheet-list">' + opts.map(function (x) { return '<div class="sl' + (x[2] === cur ? ' on' : '') + '" data-pv="' + x[2] + '"><span>' + x[1] + '</span>' + (x[2] === cur ? '<i class="ti ti-check"></i>' : '') + '</div>'; }).join('') + '</div>',
+        function (ev) {
+          var r = ev.target.closest('[data-pv]'); if (!r) return; var v = r.getAttribute('data-pv'); closePick();
+          if (v !== 'dates') return openPnl(v);
+          var td = pkDay(new Date()), own = FN.pnl.indexOf('..') !== -1;
+          el('ppF').value = own ? FN.pnl.slice(0, 10) : td.slice(0, 7) + '-01'; el('ppT').value = own ? FN.pnl.slice(12) : td; el('ppF').max = el('ppT').max = td; el('plDates').hidden = false;
+        });
     };
+    el('panel').querySelectorAll('[data-pm]').forEach(function (b) { b.onclick = function () { openPnl(b.getAttribute('data-pm')); }; });
     el('ppGo').onclick = function () { var f = el('ppF').value, to = el('ppT').value; if (!f || !to) return; openPnl((f <= to ? f : to) + '..' + (f <= to ? to : f)); };
   }, function () { closePanel(); toast('You don\'t have access to this'); }, '<h3>Profit & loss</h3>');
 }
