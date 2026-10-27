@@ -149,7 +149,7 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .pg-bar:empty{display:none}.pg-bar .btn{flex:1;padding:12px;justify-content:center}
 /* parcel page parts */
 .pp-hero{background:var(--card);border-radius:18px;box-shadow:var(--shadow);padding:14px 16px;margin-bottom:12px}
-.pp-cod{display:flex;justify-content:space-between;align-items:baseline;margin-top:12px}.pp-cod b{font-size:22px}.pp-cod span{font-size:12.5px;color:var(--muted)}
+.pp-cod{margin-top:12px}.pp-cod b{display:block;font-size:22px;line-height:1.2}.pp-cod b.pre{font-size:17px;color:var(--green)}.pp-cod span{display:block;margin-top:2px;font-size:12.5px;color:var(--muted)}
 .pp-steps{display:flex;align-items:flex-start;gap:0;margin-top:2px}
 .pp-step{flex:1;text-align:center;font-size:10.5px;color:var(--faint);position:relative}
 .pp-step i{display:block;width:12px;height:12px;border-radius:50%;margin:0 auto 5px;background:var(--line);position:relative;z-index:1}
@@ -1320,7 +1320,7 @@ function openParcel(key, given) {
     // where it is, and the money at stake
     '<div class="pp-hero">' + ppSteps(p.stage, s[1]) +
     // the amount to collect: total − advance ("Prepaid" when nothing is due on delivery)
-    '<div class="pp-cod"><b class="num">' + (p.adv ? (p.due > 0 ? rs(p.due) : 'Prepaid') : rs(p.total)) + '</b><span>' + (p.adv ? (p.due > 0 ? 'COD · ' + rs(p.adv) + ' paid in advance' : rs(p.adv) + ' paid in advance') + ' · ' : '') + (p.cn ? esc(p.courier) + ' · ' + esc(p.cn) : 'Not booked yet') + '</span></div></div>' +
+    '<div class="pp-cod"><b class="num' + (p.adv && !(p.due > 0) ? ' pre' : '') + '">' + (p.adv ? (p.due > 0 ? rs(p.due) : '<i class="ti ti-circle-check"></i> Prepaid') : rs(p.total)) + '</b><span>' + (p.adv ? (p.due > 0 ? 'COD · ' + rs(p.adv) + ' paid in advance' : rs(p.adv) + ' paid in advance') + ' · ' : '') + (p.cn ? esc(p.courier) + ' · ' + esc(p.cn) : 'Not booked yet') + '</span></div></div>' +
     ((p.flags || []).length ? '<div style="margin:-2px 0 10px">' + p.flags.map(function (f) { return '<span class="flag">' + esc(f) + '</span>'; }).join('') + '</div>' : '') +
     histBlock(p) +
     (ndr ? card('Delivery problem', row('NDR case', esc(ndr.type)) + (ndr.outcome && ndr.outcome !== 'Not called yet' ? row('Call result', esc(ndr.outcome)) : '') + (ndr.says ? row('Customer says', esc(ndr.says)) : '') +
