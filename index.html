@@ -969,7 +969,7 @@ var PERMS = null; try { PERMS = JSON.parse(store('eh_perms') || 'null'); } catch
 var ROLE = store('eh_role') || '';
 var TAB_PERM = { home: 'home.view', parcels: 'parcels.view', ndr: 'ndr.view', returns: 'returns.view', cash: 'cash.view' };
 var KIND_PERM = { ndr: 'ndr.view', courier: 'ndr.work', back: 'returns.view', late: 'parcels.view', nocn: 'parcels.view', brief: 'home.view', cash: 'cash.view',
-  money: 'finance.approve', mine: 'finance.add', stock: 'inventory.view', buy: 'inventory.edit', ads: 'reports.view', security: 'users.manage', sync: 'users.manage' };
+  money: 'finance.approve', mine: 'finance.add', stock: 'inventory.view', buy: 'inventory.edit', ads: 'reports.view', adcharge: 'users.manage', security: 'users.manage', sync: 'users.manage' };
 function can(p) { return !PERMS || PERMS.indexOf(p) !== -1; } // not known yet (old login): show all until the server answers
 function canTab(t) { return can(TAB_PERM[t]); }
 function firstTab() { return ['home', 'parcels', 'ndr', 'returns', 'cash'].filter(canTab)[0] || ''; }
@@ -3911,6 +3911,7 @@ function openPnl(m) {
       line('Cost of goods', minus(p.cogs), '', p.stockStarted ? 'from stock: average cost of what was sent' : 'starts after the stock count') +
       line('Gross profit', rs(p.gross), 'b') +
       line('Ads', minus(p.ads), '', Object.keys(p.adSync || {}).map(function (k) { return k + ' ' + rs(p.adSync[k]) + ' (synced)'; }).concat(p.adsEntered ? ['entered ' + rs(p.adsEntered)] : []).join(' · ')) +
+      (p.adDollar && p.adDollar.usd ? line('&nbsp;&nbsp;of which dollar extra', rs(p.adDollar.extra), '', '$' + p.adDollar.usd.toLocaleString('en-US') + ' used · market avg Rs ' + p.adDollar.avg + ' · paid Rs ' + (Math.round((p.adDollar.avg + p.adDollar.extra / p.adDollar.usd) * 100) / 100) + ' per $') : '') +
       exp.map(function (k) { return line(esc(k), minus(p.expenses[k])); }).join('') +
       line('Net profit', (p.net < 0 ? '− ' : '') + rs(Math.abs(p.net)), p.net < 0 ? 'neg' : 'b') + '</div>' +
       '<div class="card"><div class="h"><b>Cash this month</b></div>' + line('Money in', rs(p.cash.in)) + line('Money out', minus(p.cash.out), '', 'expenses, stock bought, owner draws') + '</div>' +
@@ -4011,6 +4012,61 @@ var AC = { data: null };
 function openAccounts() {
   apiMem('acct', 'getAppAccounts', [TOKEN], function (d) { AC.data = d; renderAccounts(); }, function () { closePanel(); toast('You don\'t have access to this'); }, '<h3>Accounts & payouts</h3>');
 }
+// One Meta charge: amount, the rate it is priced at, change the rate (owner). back = where closing returns (🔔 list)
+function openAdCharge(id, back) {
+  el('panel').innerHTML = '<h3>Meta charge</h3>' + skList(2); openPanel(true);
+  api('getAppAdCharges', [TOKEN], function (d) {
+    var c = d.list.filter(function (x) { return x.id === id; })[0];
+    if (!c) { closePanel(); toast('Charge not found'); return; }
+    if (back) SHEET_BACK = back;
+    el('panel').innerHTML = '<h3>Meta charge</h3><p>' + esc(c.at) + (c.status ? ' · ' + esc(c.status) : '') + '</p>' +
+      '<div class="card" style="padding:0"><div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span>Charged</span><b class="num">$' + c.usd + '</b></div></div></div>' +
+      '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span>In rupees</span><b class="num" id="chPkr">' + rs(c.pkr) + '</b></div><div class="prow-2"><span>' + (c.by && c.by !== 'default' ? 'rate set by ' + esc(c.by) : 'rate not checked yet') + '</span></div></div></div></div>' +
+      (d.canSet ? '<div class="fld"><label>What one dollar cost (PKR)</label><input id="chRate" type="text" inputmode="decimal" value="' + (c.rate || d.def || '') + '"></div>' +
+        '<small class="mnote" style="display:block;margin:-6px 0 10px">The spend this charge paid for is counted at this rate in Profit & loss</small><div class="err" id="chErr"></div>' +
+        '<button class="btn pri" id="chGo" style="width:100%;padding:12px">' + (c.by && c.by !== 'default' ? 'Save rate' : 'Confirm rate') + '</button>' : '');
+    openPanel(true);
+    if (!el('chRate')) return;
+    el('chRate').oninput = function () { var r = Number(el('chRate').value) || 0; el('chPkr').textContent = rs(Math.round(c.usd * r)); };
+    el('chGo').onclick = function () {
+      el('chGo').disabled = true;
+      api('appSetAdChargeRate', [TOKEN, id, el('chRate').value], function (r) { toast('✅ Rs ' + r.rate + ' per $ saved'); closePanel(); },
+        function (e) { el('chGo').disabled = false; el('chErr').textContent = (e && e.message) || 'Not saved'; });
+    };
+  }, function () { closePanel(); toast('You don\'t have access to this'); });
+}
+function openAdCharges() {
+  el('panel').innerHTML = '<button class="btn mini" id="cxBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Accounts</button><h3>Meta charges</h3>' + skList(5); openPanel(true);
+  el('cxBack').onclick = renderAccounts;
+  api('getAppAdCharges', [TOKEN], function (d) {
+    el('panel').innerHTML = '<button class="btn mini" id="cxBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Accounts</button><h3>Meta charges</h3><p>Each charge to the card · tap to set what the dollar cost</p>' +
+      (d.error ? '<div class="card empty">' + esc(d.error) + ' · the token may need business_management</div>' : '') +
+      '<div class="card" style="padding:0">' + (d.list.length ? d.list.map(function (c) {
+        var ok = c.by && c.by !== 'default';
+        return '<div class="prow" data-chg="' + esc(c.id) + '" style="--c:' + (ok ? 'var(--green)' : 'var(--amber)') + '"><span class="prow-d"></span><div class="prow-m"><div class="prow-1"><b>$' + c.usd + '</b><span class="num">' + rs(c.pkr) + '</span></div>' +
+          '<div class="prow-2"><span>' + esc(c.at.slice(0, 10)) + ' · Rs ' + c.rate + ' per $</span><span class="st" style="--c:' + (ok ? 'var(--green)' : 'var(--amber)') + '">' + (ok ? 'checked' : c.by === 'default' ? 'default rate' : 'to check') + '</span></div></div></div>';
+      }).join('') : '<div class="empty">No charges yet</div>') + '</div>';
+    openPanel(true);
+    el('cxBack').onclick = renderAccounts;
+    el('panel').querySelectorAll('[data-chg]').forEach(function (r) { r.onclick = function () { openAdCharge(r.getAttribute('data-chg'), openAdCharges); }; });
+  }, function () { toast('Not loaded'); });
+}
+// Meta ad dollars (Wise card): bought (top-ups) · used (Meta spend) · left, and what the extra per dollar cost
+function acDollars(x) {
+  if (!x) return '';
+  var usd = function (n) { return '$' + (Math.round(n * 100) / 100).toLocaleString('en-US'); };
+  var block = function (b, u, label) {
+    var rate = b.usd ? Math.round(b.pkrWithUsd / b.usd * 100) / 100 : 0;
+    return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><b>' + label + '</b><span></span></div>' +
+      '<div class="prow-2"><span>Bought ' + rs(b.pkr) + (b.usd ? ' · ' + usd(b.usd) + ' · Rs ' + rate + ' per $' : '') + '</span></div>' +
+      '<div class="prow-2"><span>Used ' + usd(u.usd) + ' = ' + rs(u.pkr) + ' · market ' + rs(u.market) + ' + extra ' + rs(u.extra) + '</span></div></div></div>';
+  };
+  var left = x.all.bought.usd ? x.all.bought.usd - x.all.used.usd : null;
+  return '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>Meta ad dollars</b><span>' + (x.paid ? 'paid Rs ' + x.paid + ' per $' : '') + '</span></div>' +
+    block(x.month.bought, x.month.used, 'This month') + block(x.all.bought, x.all.used, 'All time' + (x.since ? ' · since ' + esc(x.since) : '')) +
+    (left != null ? '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span>Dollars left (bought − used)</span><b class="num">' + usd(left) + '</b></div><div class="prow-2"><span>should match the Wise balance</span></div></div></div>' : '') +
+    '<button class="pp-more" id="acChg" style="padding:0 14px 10px">Meta charges ›</button></div>';
+}
 function acMoney(n) { return (n < 0 ? '− ' : '') + rs(Math.abs(n)); }
 function renderAccounts() {
   var d = AC.data, total = d.accounts.reduce(function (a, x) { return a + x.balance; }, 0), pk = Object.keys(d.drawn || {});
@@ -4026,6 +4082,7 @@ function renderAccounts() {
     (d.owner ? '<div class="btns" style="margin:0 0 8px"><button class="btn pri" id="acPay"><i class="ti ti-cash-banknote"></i>Partner payout</button><button class="btn" id="acBank"><i class="ti ti-building-bank"></i>Bank check</button></div>' +
       '<div class="btns" style="margin:0 0 8px"><button class="btn" id="acAds"><i class="ti ti-speakerphone"></i>Ad account top-up</button></div>' +
       '<div class="btns" style="margin:0 0 12px"><button class="btn" id="acMove"><i class="ti ti-arrows-exchange"></i>Transfer</button><button class="btn" id="acIn"><i class="ti ti-plus"></i>Money put in</button><button class="btn" id="acOpen"><i class="ti ti-flag"></i>Opening</button></div>' : '') +
+    acDollars(d.dollars) +
     (Object.keys(d.topups || {}).length ? '<div class="card"><div class="h"><b>Ad accounts topped up</b><span>' + esc(fnMonthName(d.month)) + '</span></div>' + Object.keys(d.topups).map(function (k) { return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span>' + esc(k) + '</span><b class="num">' + rs(d.topups[k]) + '</b></div></div></div>'; }).join('') + '<small class="mnote" style="display:block;padding:0 0 4px">Spend is in Profit & loss (synced from the platform)</small></div>' : '') +
     '<div class="card"><div class="h"><b>Partner payouts</b><span>' + esc(fnMonthName(d.month)) + '</span></div>' +
     (pk.length ? pk.map(function (k) { var p = d.drawn[k]; return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><b>' + esc(k) + '</b><span class="num">' + rs(p.month) + '</span></div><div class="prow-2"><span>this year ' + rs(p.year) + ' · all ' + rs(p.all) + '</span></div></div></div>'; }).join('')
@@ -4033,6 +4090,7 @@ function renderAccounts() {
     '<div class="btns" style="margin-top:10px"><button class="btn" id="acClose">Close</button></div>';
   openPanel(true);
   el('acClose').onclick = closePanel;
+  if (el('acChg')) el('acChg').onclick = openAdCharges;
   el('panel').querySelectorAll('[data-acc]').forEach(function (r) { r.onclick = function () { openLedger(r.getAttribute('data-acc')); }; });
   if (el('acPay')) {
     el('acPay').onclick = function () { openAcForm('payout'); }; el('acBank').onclick = function () { openAcForm('bank'); };
@@ -4063,6 +4121,7 @@ function openAcForm(kind) {
     '<div class="fld"><label>' + (kind === 'transfer' ? 'From' : kind === 'payout' ? 'Paid from' : kind === 'capital' ? 'Into' : 'Account') + '</label>' + chips('afFrom', acc, st.from) + '</div>' +
     (kind === 'transfer' ? '<div class="fld"><label>To</label>' + chips('afTo', acc, st.to) + '</div>' : '') +
     (kind === 'ads' ? '<div class="fld"><label>Ad account</label>' + chips('afTo', d.platforms, st.to) + '</div>' : '') +
+    (kind === 'ads' ? '<div class="fld"><label>Dollars received ($, optional)</label><input id="afUsd" type="text" inputmode="decimal" placeholder="e.g. 100"></div><div class="tk" id="afRate" hidden style="margin:-4px 0 10px"></div>' : '') +
     '<div class="fld"><label>' + (kind === 'bank' ? 'Balance the bank shows (PKR)' : kind === 'opening' ? 'Balance (PKR)' : 'Amount (PKR)') + '</label><input id="afAmt" type="text" inputmode="decimal"></div>' +
     (kind === 'bank' ? '<div class="tk" id="afDiff" style="margin:0 0 10px">App balance ' + rs(a0(st.from)) + '</div>' : '') +
     '<div class="fld"><label>Date</label><input id="afDate" type="date" value="' + pkDay(new Date()) + '"></div>' +
@@ -4077,7 +4136,8 @@ function openAcForm(kind) {
   };
   var pick = function (id, key) { if (!el(id)) return; el(id).onclick = function (e) { var b = e.target.closest('[data-v]'); if (!b) return; st[key] = b.getAttribute('data-v'); el(id).querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x === b); }); diff(); }; };
   pick('afWho', 'who'); pick('afCat', 'cat'); pick('afFrom', 'from'); pick('afTo', 'to');
-  el('afAmt').oninput = diff;
+  var rateNote = function () { if (!el('afUsd')) return; var u = Number(el('afUsd').value) || 0, n = Number(String(el('afAmt').value).replace(/[^0-9.]/g, '')) || 0; el('afRate').hidden = !(u && n); if (u && n) el('afRate').textContent = 'Rs ' + (Math.round(n / u * 100) / 100) + ' per $'; };
+  el('afAmt').oninput = function () { diff(); rateNote(); }; if (el('afUsd')) el('afUsd').oninput = rateNote;
   var save = function (fix) {
     var n = Number(String(el('afAmt').value).replace(/[^0-9.]/g, ''));
     if (!(n > 0) && !(kind === 'opening' && el('afAmt').value.trim() === '0')) { el('afErr').textContent = 'Enter the amount'; return; }
@@ -4086,7 +4146,7 @@ function openAcForm(kind) {
     if (kind === 'transfer' && st.from === st.to) { el('afErr').textContent = 'Choose two different accounts'; return; }
     var f = { ads: { type: 'Transfer', cat: 'Ad account top-up', desc: st.to + ' top-up', to: st.to }, payout: { type: 'Owner draw', cat: 'Profit share', desc: 'Payout · ' + who, by: who }, bank: { type: 'Balance', cat: 'Bank statement', desc: st.from + ' statement' },
       transfer: { type: 'Transfer', cat: 'Between accounts', desc: st.from + ' → ' + st.to, to: st.to }, capital: { type: 'Capital', cat: st.cat, desc: st.cat }, opening: { type: 'Balance', cat: 'Opening balance', desc: st.from + ' opening balance' } }[kind];
-    f.amount = n; f.from = st.from; f.date = el('afDate').value; f.note = el('afNote').value.trim();
+    f.amount = n; f.from = st.from; f.date = el('afDate').value; f.note = el('afNote').value.trim(); if (el('afUsd')) f.usd = Number(el('afUsd').value) || 0;
     var calls = [f];
     if (fix) { var dd = Math.round(n - a0(st.from)); calls.push({ type: 'Balance', cat: dd > 0 ? 'Correction (+)' : 'Correction (−)', desc: 'Match bank · ' + st.from, amount: Math.abs(dd), from: st.from, date: el('afDate').value, note: 'bank showed ' + n }); }
     el('afGo').disabled = true;
@@ -4590,7 +4650,7 @@ function openBriefList(day, k) {
 }
 
 // ---------- 🔔 notification list (everything W1 sent; the dot = new since you last opened it) ----------
-var ALERT_ICON = { courier: ['message-reply', 'var(--blue)'], money: ['receipt', 'var(--amber)'], mine: ['circle-check', 'var(--green)'], buy: ['truck-delivery', 'var(--amber)'],
+var ALERT_ICON = { adcharge: ['credit-card', 'var(--brand)'], courier: ['message-reply', 'var(--blue)'], money: ['receipt', 'var(--amber)'], mine: ['circle-check', 'var(--green)'], buy: ['truck-delivery', 'var(--amber)'],
   ads: ['speakerphone', 'var(--brand)'], security: ['lock', 'var(--red)'], stock: ['packages', 'var(--amber)'], cash: ['cash-banknote', 'var(--green)'], sync: ['alert-circle', 'var(--text)'], ndr: ['headset', 'var(--red)'], back: ['arrow-back-up', 'var(--amber)'], late: ['clock-exclamation', 'var(--amber)'], nocn: ['barcode-off', 'var(--amber)'], brief: ['sun', 'var(--brand)'], test: ['bell', 'var(--muted)'] };
 var alertsData = null;
 function loadAlerts(open) {
@@ -4628,6 +4688,14 @@ function drawAlerts() {
         var bd = (String(a.url).match(/brief=([\d-]{10})/) || [])[1] || (a.ms ? pkDay(new Date(a.ms - 86400000)) : '');
         openBrief(bd, toList); return;
       }
+      var q = function (k) { var m = String(a.url).match(new RegExp('[?&]' + k + '=([^&]+)')); return m ? decodeURIComponent(m[1]) : ''; };
+      if (q('charge')) { openAdCharge(q('charge'), toList); return; }
+      if (q('fin')) { SHEET_BACK = null; openExpenses(''); return; }
+      if (q('acct')) { openAccounts(); return; }
+      if (q('pur')) { purReload(function () { openPurchase(q('pur')); }); return; }
+      if (q('ads')) { openAds(3); return; }
+      if (q('team')) { openTeam(); return; }
+      if (q('stock')) { openStock(q('stock')); return; }
       var tab = (String(a.url).match(/tab=(\w+)/) || [])[1];
       closePanel(); if (tab && TABS[tab]) showTab(tab);
     };
@@ -4690,7 +4758,7 @@ var PUSH_KINDS = [['ndr', 'NDR cases', 'Failed delivery, refused, stuck with cou
   ['cash', 'Courier payments', 'A courier sent money · check the bank and Record'],
   ['money', 'Approvals', 'Expenses waiting for your approval · monthly bank check'], ['mine', 'My entries', 'Your expense was approved or rejected'],
   ['stock', 'Low stock', 'A product is low or out of stock'], ['buy', 'Purchases', 'A purchase is late from the supplier'],
-  ['ads', 'Ads', 'Daily: ad sets to scale or to stop'], ['security', 'Security', 'A login was locked after wrong PINs'],
+  ['ads', 'Ads', 'Daily: ad sets to scale or to stop'], ['adcharge', 'Meta charges', 'Meta charged the card · check the dollar rate'], ['security', 'Security', 'A login was locked after wrong PINs'],
   ['sync', 'System alerts', 'A sync stopped or failed · and when it is back']];
 function openPushPrefs() {
   var kinds = PUSH_KINDS.filter(function (k) { return can(KIND_PERM[k[0]]); }); // only what this role gets
@@ -5026,11 +5094,12 @@ function start() {
   // Opened from a notification: ?tab=ndr / returns / parcels
   var qs = new URLSearchParams(location.search), qt = qs.get('tab'), qp = qs.get('p'), qb = qs.get('brief');
   if (qb) setTimeout(function () { showTab('home'); openBrief(/^\d{4}-\d{2}-\d{2}$/.test(qb) ? qb : '', null); }, 600);
-  var qsy = qs.get('sync'), qpay = qs.get('pay'), qst = qs.get('stock'), qfin = qs.get('fin'), qacct = qs.get('acct'), qpur = qs.get('pur'), qads = qs.get('ads'), qteam = qs.get('team');
+  var qsy = qs.get('sync'), qpay = qs.get('pay'), qst = qs.get('stock'), qfin = qs.get('fin'), qacct = qs.get('acct'), qpur = qs.get('pur'), qads = qs.get('ads'), qteam = qs.get('team'), qchg = qs.get('charge');
   if (qfin && (can('finance.add') || can('finance.approve'))) setTimeout(function () { openExpenses(''); }, 600);
   if (qacct && can('finance.view')) setTimeout(openAccounts, 600);
   if (qads && (can('reports.view') || can('finance.view'))) setTimeout(function () { openAds(3); }, 600);
   if (qteam && can('users.manage')) setTimeout(openTeam, 600);
+  if (qchg && can('finance.view')) setTimeout(function () { openAdCharge(qchg); }, 600);
   if (qpur && can('inventory.edit')) setTimeout(function () { purReload(function () { openPurchase(qpur); }); }, 600);
   if (qst && can('inventory.view')) setTimeout(function () { openStock(qst); }, 600);
   if (qpay) { PAY_OPEN = qpay; setTimeout(function () { showTab('cash'); openPayIfReady(); }, 700); }
@@ -5038,7 +5107,7 @@ function start() {
   applyPerms();
   if (qt && TABS[qt] && canTab(qt)) showTab(qt);
   if (qp && (can('parcels.view') || can('returns.view') || can('inventory.view') || can('ndr.view'))) setTimeout(function () { openParcel(qp); }, 600);
-  if (qt || qp || qb || qsy || qpay || qst || qfin || qacct || qpur || qads || qteam) { try { history.replaceState(history.state, '', location.pathname + location.hash); } catch (e) {} }
+  if (qt || qp || qb || qsy || qpay || qst || qfin || qacct || qpur || qads || qteam || qchg) { try { history.replaceState(history.state, '', location.pathname + location.hash); } catch (e) {} }
   // Warm the other tabs in the background so switching is instant.
   loadAllowed();
   setTimeout(fnBadge, 2500); // approvers: expenses waiting
