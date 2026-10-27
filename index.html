@@ -3532,7 +3532,7 @@ function renderStock() {
   el('panel').innerHTML = '<h3>Stock</h3><p>' + (d.started ? 'Stock updates by itself from orders, returns and purchases' : 'Not counted yet') + '</p>' +
     (!d.started && edit ? '<div class="card" style="margin-bottom:12px"><div class="h"><b>Start: count your stock</b></div><p style="margin:0 0 10px;color:var(--muted);font-size:13px">Count what is on the shelf now (not parcels already with couriers). From then on sales, returns and purchases update the stock by themselves.</p><button class="btn pri" id="stCount0" style="width:100%"><i class="ti ti-list-numbers"></i>Count stock</button></div>' : '') +
 
-    (d.pending.length ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-clock"></i> ' + d.pending.length + ' entr' + (d.pending.length > 1 ? 'ies' : 'y') + ' waiting · stock updates within 15 minutes</div>' : '') +
+    (d.pending.length ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-clock"></i> ' + d.pending.length + ' new entr' + (d.pending.length > 1 ? 'ies' : 'y') + ' · already in the numbers below · saved to the sheet within 15 minutes</div>' : '') +
     (d.errors && d.errors.length && edit ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-alert-triangle"></i> Not posted: ' + d.errors.map(esc).join(' · ') + '</div>' : '') +
     (d.value != null && d.started ? '<div class="psum" style="margin:0 0 10px"><span>Stock value</span><b class="num">' + rs(d.value) + '</b></div>' : '') +
     (edit && items.some(function (i) { return i.countDue; }) ? '<div class="oc-warn" id="stDue" style="margin:0 0 10px;cursor:pointer"><i class="ti ti-list-numbers"></i><span><b>' + items.filter(function (i) { return i.countDue; }).length + ' to count</b> · quick check of fast movers</span><i class="ti ti-chevron-right"></i></div>' : '') +
@@ -3725,8 +3725,16 @@ function stkItemOptions(sel) {
 }
 function stkSave(list, back) {
   api('appStockEntry', [TOKEN, list], function () {
-    toast('✅ Saved · stock updates within 15 minutes');
-    list.forEach(function (x) { STK.data.pending.push({ type: x.type, sku: x.sku, qty: x.qty }); });
+    toast('✅ Saved · stock updated');
+    // shown at once (the server does the same with entries W1 has not posted yet)
+    list.forEach(function (x) {
+      STK.data.pending.push({ type: x.type, sku: x.sku, qty: x.qty });
+      var i = STK.data.items.filter(function (y) { return y.sku === x.sku; })[0]; if (!i) return;
+      var was = i.onHand || 0, q = Number(x.qty) || 0;
+      i.onHand = x.type === 'Count' ? q : x.type === 'Damaged' ? was - q : x.type === 'Purchase' ? was + q - (Number(x.rejected) || 0) : was + q;
+      i.available = Math.round((i.onHand - (i.committed || 0)) * 100) / 100; i.waiting = true;
+    });
+    try { store('eh_stk', JSON.stringify(STK.data)); } catch (e) {}
     back();
   }, function (e) { toast('❌ Not saved: ' + ((e && e.message) || 'try again')); });
 }
