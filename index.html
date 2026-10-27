@@ -71,6 +71,11 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 @keyframes drIn{from{transform:translateX(-100%)}to{transform:none}}
 .dr-user{display:flex;align-items:center;gap:10px;margin-bottom:8px}.dr-user .logo{width:40px;height:40px}.dr-user b{display:block;font-size:15px}.dr-user small{color:var(--muted);font-size:12px}
 .dr-i[hidden],.dr-h[hidden],.nav button[hidden]{display:none}
+.dr-g .dr-c{margin-left:auto;font-size:16px;color:var(--faint);transition:transform .2s}.dr-g[aria-expanded="true"] .dr-c{transform:rotate(180deg)}
+.dr-g[aria-expanded="true"]{color:var(--brand)}.dr-g[aria-expanded="true"]>i:first-child{color:var(--brand)}
+.dr-n{font-style:normal;margin-left:auto;background:var(--brand);color:#fff;font-size:11px;font-weight:600;border-radius:99px;padding:1px 7px}.dr-n+.dr-c{margin-left:6px}
+.dr-sub{margin:0 0 6px 18px;padding-left:10px;border-left:1.5px solid var(--line)}.dr-sub .dr-i{padding:9px 6px;font-size:13.5px}.dr-sub .dr-i i{font-size:17px}
+.dr-sub:not([hidden]){animation:drSub .18s ease}@keyframes drSub{from{opacity:0;transform:translateY(-4px)}}
 .dr-h{font-size:10.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.7px;margin:16px 4px 4px}
 .dr-i{display:flex;align-items:center;gap:12px;width:100%;border:0;background:none;color:var(--text);font:500 14px Inter,sans-serif;padding:11px 6px;border-radius:10px;text-align:left;cursor:pointer;text-decoration:none}
 .dr-i:active{background:var(--bg)}.dr-i i{font-size:19px;color:var(--muted)}
@@ -331,6 +336,10 @@ body{overscroll-behavior-y:contain}
 .prow-d{width:9px;height:9px;border-radius:50%;background:var(--c);margin-top:5px;flex:none}
 .prow-m{flex:1;min-width:0}
 .prow-1{display:flex;justify-content:space-between;gap:8px;font-size:14px}.prow-1 b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.prow-1 span{font-weight:600;flex:none}
+/* a long name never pushes the amount out: the name takes up to 2 lines, the amount keeps its place */
+.prow-1>:first-child{flex:1 1 auto;min-width:0;white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
+.prow-1>:last-child:not(:first-child){flex:none;white-space:nowrap}
+.prow-2{min-width:0}.prow-2>span:first-child{min-width:0;overflow-wrap:anywhere}
 .prow-2{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-top:3px}.prow-2>span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.prow-2 .st{flex:none;font-size:10.5px;padding:2px 8px}
 .prow-3{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--amber);margin-top:4px}.prow-3 i{font-size:14px}
 .cf-r{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:13.5px}.cf-r small{display:block;font-size:11.5px;color:var(--muted);margin-top:1px}.cf-r.tap{cursor:pointer}
@@ -601,33 +610,37 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 <!-- ☰ menu: performance reports, courier escalations, app settings; the header opens My profile (Change PIN inside) -->
 <div class="drawer" id="drawer"><div class="dr-panel">
   <button class="dr-user" id="drUser"><svg class="omark" aria-hidden="true"><use href="#ordiMark"/></svg><div><b id="drName">Every Home</b><small id="drStore">My profile · PIN</small></div><i class="ti ti-chevron-right" style="margin-left:auto;color:var(--faint)"></i></button>
-  <div class="dr-h">Performance</div>
-  <button class="dr-i" data-rep="success"><i class="ti ti-chart-donut"></i>Delivery success</button>
-  <button class="dr-i" data-rep="couriers"><i class="ti ti-scale"></i>Courier comparison</button>
-  <button class="dr-i" id="btnDispatch"><i class="ti ti-truck-delivery"></i>Dispatch log</button>
-  <button class="dr-i" data-rep="months"><i class="ti ti-chart-bar"></i>Monthly report</button>
-  <div class="dr-h">Insights</div>
-  <button class="dr-i" data-rep="couriercity"><i class="ti ti-route"></i>Courier by city</button>
-  <button class="dr-i" data-rep="cities"><i class="ti ti-map-pin"></i>Top cities</button>
-  <button class="dr-i" data-rep="products"><i class="ti ti-shopping-bag"></i>Top products</button>
-  <button class="dr-i" data-rep="reasons"><i class="ti ti-alert-triangle"></i>Delivery failure reasons</button>
-  <button class="dr-i" id="btnAds"><i class="ti ti-speakerphone"></i>Ads performance</button>
-  <div class="dr-h">Couriers</div>
-  <button class="dr-i" data-rep="escalations"><i class="ti ti-headset"></i>Courier escalations</button>
-  <div class="dr-h">Finance</div>
-  <button class="dr-i" id="btnExp"><i class="ti ti-receipt"></i><span id="btnExpT">Expenses</span></button>
-  <button class="dr-i" id="btnPnl"><i class="ti ti-report-money"></i>Profit & loss</button>
-  <button class="dr-i" id="btnAcct"><i class="ti ti-building-bank"></i>Accounts & payouts</button>
-  <div class="dr-h">Inventory</div>
+  <!-- 6 lines; a group opens in place (one at a time, remembered on this phone); the items inside keep their own handlers -->
+  <button class="dr-i dr-g" data-g="rep" aria-expanded="false"><i class="ti ti-chart-histogram"></i><span>Reports</span><i class="ti ti-chevron-down dr-c"></i></button>
+  <div class="dr-sub" data-gsub="rep" hidden>
+    <button class="dr-i" data-rep="success"><i class="ti ti-chart-donut"></i>Delivery success</button>
+    <button class="dr-i" data-rep="couriers"><i class="ti ti-scale"></i>Courier comparison</button>
+    <button class="dr-i" data-rep="months"><i class="ti ti-chart-bar"></i>Monthly report</button>
+    <button class="dr-i" data-rep="couriercity"><i class="ti ti-route"></i>Courier by city</button>
+    <button class="dr-i" data-rep="cities"><i class="ti ti-map-pin"></i>Top cities</button>
+    <button class="dr-i" data-rep="products"><i class="ti ti-shopping-bag"></i>Top products</button>
+    <button class="dr-i" data-rep="reasons"><i class="ti ti-alert-triangle"></i>Delivery failure reasons</button>
+    <button class="dr-i" id="btnAds"><i class="ti ti-speakerphone"></i>Ads performance</button>
+    <button class="dr-i" id="btnDispatch"><i class="ti ti-truck-delivery"></i>Dispatch log</button>
+    <button class="dr-i" data-rep="escalations"><i class="ti ti-headset"></i>Courier escalations</button>
+  </div>
+  <button class="dr-i dr-g" data-g="fin" aria-expanded="false"><i class="ti ti-coins"></i><span>Finance</span><em class="dr-n" id="drNfin" hidden></em><i class="ti ti-chevron-down dr-c"></i></button>
+  <div class="dr-sub" data-gsub="fin" hidden>
+    <button class="dr-i" id="btnExp"><i class="ti ti-receipt"></i><span id="btnExpT">Expenses</span></button>
+    <button class="dr-i" id="btnPnl"><i class="ti ti-report-money"></i>Profit & loss</button>
+    <button class="dr-i" id="btnAcct"><i class="ti ti-building-bank"></i>Accounts & payouts</button>
+  </div>
   <button class="dr-i" id="btnStock"><i class="ti ti-packages"></i>Stock</button>
-  <div class="dr-h">App</div>
   <button class="dr-i" id="btnTeam" hidden><i class="ti ti-users-group"></i>Team</button>
-  <button class="dr-i" id="btnPush" hidden><i class="ti ti-bell-off"></i>Notifications · Off</button>
-  <button class="dr-i" id="btnSync"><i class="ti ti-activity"></i>Data status</button>
-  <button class="dr-i" id="btnBio" hidden><i class="ti ti-fingerprint"></i>Fingerprint login</button>
-  <button class="dr-i" id="btnLock"><i class="ti ti-lock"></i>App lock · Off</button>
-  <button class="dr-i" id="btnMode"><i class="ti ti-moon"></i>Dark mode</button>
-  <button class="dr-i" id="btnInstall" hidden><i class="ti ti-download"></i>Install app</button>
+  <button class="dr-i dr-g" data-g="set" aria-expanded="false"><i class="ti ti-settings"></i><span>Settings</span><i class="ti ti-chevron-down dr-c"></i></button>
+  <div class="dr-sub" data-gsub="set" hidden>
+    <button class="dr-i" id="btnPush" hidden><i class="ti ti-bell-off"></i>Notifications · Off</button>
+    <button class="dr-i" id="btnSync"><i class="ti ti-activity"></i>Data status</button>
+    <button class="dr-i" id="btnBio" hidden><i class="ti ti-fingerprint"></i>Fingerprint login</button>
+    <button class="dr-i" id="btnLock"><i class="ti ti-lock"></i>App lock · Off</button>
+    <button class="dr-i" id="btnMode"><i class="ti ti-moon"></i>Dark mode</button>
+    <button class="dr-i" id="btnInstall" hidden><i class="ti ti-download"></i>Install app</button>
+  </div>
   <button class="dr-i" id="btnOut"><i class="ti ti-logout"></i>Log out</button>
   <div class="dr-ver" id="drVer"></div>
 </div></div>
@@ -705,7 +718,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 (function () {
   if (window.google && google.script) return;
   window.EH_PWA = true; // installed app: notifications are possible
-  window.EH_BUILD = '2026-10-26'; // shown at the bottom of the menu
+  window.EH_BUILD = '2026-10-27'; // shown at the bottom of the menu
   var API = "https://script.google.com/macros/s/AKfycbyqtyrClenCG1_iqTSDK5KhtFItfX6rUsYdIexwQ3qPFbSv9d1n8jy06ItjvWXXtB-I/exec";
   function call(fn, args, ok, fail) {
     fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: fn, args: args }) })
@@ -777,7 +790,23 @@ function syncBar(d) { busy = Math.max(0, busy + d); el('btnRefresh').classList.t
     if (Math.abs(y - lastY) > 6) lastY = y;
   }, { passive: true });
 })();
+// Menu screens open at once the second time (2026-10-27, speed: every server call takes ~3 s): the last answer is kept in
+// memory for this app session and shown first; the fresh answer replaces it only when it differs and the same screen is
+// still open (same scroll). Any save (app… call) empties it, so nobody sees old numbers after their own change.
+var VIEW_MEM = {};
+function apiMem(key, fn, args, show, fail, skel) {
+  var hit = VIEW_MEM[key];
+  if (hit) show(hit); else if (skel) { el('panel').innerHTML = skel + skList(5); openPanel(true); }
+  var title = hit ? el('panel').getAttribute('data-title') : null;
+  api(fn, args, function (d) {
+    var s = JSON.stringify(d); if (hit && JSON.stringify(hit) === s) return;
+    VIEW_MEM[key] = d;
+    if (!hit) return show(d);
+    if (el('overlay').classList.contains('show') && el('panel').getAttribute('data-title') === title) { var y = el('panel').scrollTop; show(d); el('panel').scrollTop = y; }
+  }, function (e) { if (!hit && fail) fail(e); });
+}
 function api(fn, args, ok, fail) {
+  if (/^app[A-Z]/.test(fn)) VIEW_MEM = {}; // a save: saved screens may be out of date now
   syncBar(1);
   var r = google.script.run.withSuccessHandler(function (d) { syncBar(-1); if (LOAD_NAMES[fn]) LOADED[LOAD_NAMES[fn]] = Date.now(); if (!el('offbar').hidden) offlineOff(); ok && ok(d); })
     .withFailureHandler(function (e) {
@@ -939,7 +968,8 @@ el('upd').onclick = function () { if (TOKEN) openSyncStatus(); };
 var PERMS = null; try { PERMS = JSON.parse(store('eh_perms') || 'null'); } catch (e) {}
 var ROLE = store('eh_role') || '';
 var TAB_PERM = { home: 'home.view', parcels: 'parcels.view', ndr: 'ndr.view', returns: 'returns.view', cash: 'cash.view' };
-var KIND_PERM = { ndr: 'ndr.view', back: 'returns.view', late: 'parcels.view', nocn: 'parcels.view', brief: 'home.view', sync: 'users.manage', cash: 'cash.view', stock: 'inventory.view' };
+var KIND_PERM = { ndr: 'ndr.view', courier: 'ndr.work', back: 'returns.view', late: 'parcels.view', nocn: 'parcels.view', brief: 'home.view', cash: 'cash.view',
+  money: 'finance.approve', mine: 'finance.add', stock: 'inventory.view', buy: 'inventory.edit', ads: 'reports.view', security: 'users.manage', sync: 'users.manage' };
 function can(p) { return !PERMS || PERMS.indexOf(p) !== -1; } // not known yet (old login): show all until the server answers
 function canTab(t) { return can(TAB_PERM[t]); }
 function firstTab() { return ['home', 'parcels', 'ndr', 'returns', 'cash'].filter(canTab)[0] || ''; }
@@ -964,12 +994,7 @@ function applyPerms() {
   el('btnAcct').hidden = !can('finance.view');
   el('btnTeam').hidden = !can('users.manage');
   el('btnAds').hidden = !(can('reports.view') || can('finance.view'));
-  // a menu heading goes when nothing under it is left
-  document.querySelectorAll('.dr-h').forEach(function (h) {
-    var any = false;
-    for (var n = h.nextElementSibling; n && !n.classList.contains('dr-h'); n = n.nextElementSibling) if (n.classList.contains('dr-i') && !n.hidden) any = true;
-    h.hidden = !any;
-  });
+  drGroups();
   if (!canTab(curTab)) { var ft = firstTab(); if (ft) showTab(ft, true); else toast('No screens are assigned to your role · contact your admin'); }
 }
 // Data for the tabs this role has (the first one now, the others in the background)
@@ -1151,7 +1176,7 @@ function closePage() {
   if (PAGE_SHEET) { PAGE_SHEET = false; el('overlay').classList.add('show'); }
   pageLock();
 }
-el('pgBack').onclick = closePage;
+el('pgBack').onclick = function () { try { history.back(); } catch (e) { closePage(); } }; // the Back handler closes it (one history step)
 
 // ---------- parcel detail: tap any parcel (Parcels, NDR, Cash, Returns) ----------
 // Everything known about one parcel in one sheet: order, customer, money, NDR case, then the courier timeline.
@@ -1251,22 +1276,12 @@ function ppSteps(stage, color) {
     return '<div class="pp-step' + (i <= at ? ' done' : '') + (i === at ? ' now' : '') + '"><i></i>' + s + '</div>';
   }).join('') + '</div>';
 }
-function parcelItemsHtml(r) {
-  return '<div class="pp-h"><span>What\'s inside</span><span>' + r.pieces + ' piece' + (r.pieces === 1 ? '' : 's') + (r.value ? ' · ' + rs(r.value) : '') + '</span></div><div class="pd">' +
-    (r.lines.length ? r.lines.map(function (l) {
-      return '<div class="pd-r"><span>' + esc(l.name) + (l.variant ? ' · ' + esc(l.variant) : '') + '</span><b>' + l.qty + ' ×' + (l.price ? ' ' + rs(l.price) : '') + '</b></div>';
-    }).join('') : '<div class="pd-r"><span>No product lines</span></div>') + '</div>';
-}
-function openParcelLite(key) {
-  openPage({ title: 'Parcel', body: '<div class="sk" style="height:200px"></div>' });
-  api('getAppParcelItems', [TOKEN, key], function (r) {
-    openPage({ title: r.ref, sub: [r.courier, r.cn].filter(Boolean).join(' · '), tag: r.status ? '<span class="st" style="--c:var(--blue)">' + esc(r.status.replace(/_/g, ' ').toLowerCase()) + '</span>' : '',
-      body: '<div class="pp-card">' + parcelItemsHtml(r) + '</div>', bar: '' });
-  }, function (e) { closePage(); toast((e && e.message) || 'Parcel not found'); });
-}
-function openParcel(key) {
-  if (!can('parcels.view')) return openParcelLite(key);
-  var p = findParcel(key);
+function openParcel(key, given) {
+  var p = given || findParcel(key);
+  if (!p && !can('parcels.view')) { // returns / stock staff: this one parcel from the server, same page
+    openPage({ title: 'Parcel', body: skList(4) });
+    return api('getAppParcel', [TOKEN, key], function (r) { openParcel(key, r.parcel); }, function (e) { closePage(); toast((e && e.message) || 'Parcel not found'); });
+  }
   if (!p && !P.data) { // Parcels not loaded yet: load once, then open
     openPage({ title: 'Parcel', body: '<div class="sk" style="height:220px"></div>' });
     return api('getAppParcels', [{ token: TOKEN }], function (d) { P.data = d; snap('parcels', d); openParcel(key); });
@@ -1294,7 +1309,6 @@ function openParcel(key) {
       cash ? '<button class="pp-more" style="width:auto;padding:0" data-ppr="' + esc(p.cn) + '">Receipt ›</button>' : '') +
     (!p.done && can('cash.edit') && (p.due == null || p.due > 0) ? '<button class="btn" id="pdAdv" style="width:100%;padding:12px;margin-bottom:12px"><i class="ti ti-cash"></i>Record advance payment</button>' : '') +
     (p.rcv ? '<button class="btn" data-rh="' + esc(p.cn) + '" style="width:100%;padding:12px;margin-bottom:12px"><i class="ti ti-history"></i>Return history</button>' : '') +
-    '<div class="pp-card" id="pdIn" hidden></div>' +
     (p.cn ? '<div class="pp-card"><div class="pp-h"><span>Tracking</span></div><div class="tl-sheet" id="pdtl" style="margin-bottom:8px"><div class="sk" style="height:100px"></div></div></div>' : '');
   // the actions stay at the bottom, within thumb reach
   var bar = (p.phone ? '<a class="btn"' + (ndr ? ' data-call="' + esc(ndr.cn) + '"' : '') + ' href="' + telHref(p.phone) + '"><i class="ti ti-phone"></i>Call</a>' : '') +
@@ -1303,7 +1317,6 @@ function openParcel(key) {
       : p.track ? '<a class="btn" target="_blank" href="' + esc(p.track) + '"><i class="ti ti-external-link"></i>Track</a>' : '');
   openPage({ title: p.ref, sub: p.name || '', tag: '<span class="st" style="--c:' + s[1] + '">' + s[0] + '</span>', body: body, bar: bar });
   if (el('pdNdr')) el('pdNdr').onclick = function () { openNdrForm(ndr.cn); };
-  api('getAppParcelItems', [TOKEN, p.cn || p.ref], function (r) { if (el('pdIn')) { el('pdIn').innerHTML = parcelItemsHtml(r); el('pdIn').hidden = false; } }, function () {});
   if (el('pdAdv')) el('pdAdv').onclick = function () { openAdvance(p); };
   el('pgBody').querySelectorAll('[data-ppr]').forEach(function (b) { b.onclick = function () { openCashReceipt(b.getAttribute('data-ppr')); }; });
   // Tracking: the saved events first (instant), then the courier's own live list replaces them; long lists start short.
@@ -1333,7 +1346,7 @@ document.addEventListener('click', function (e) {
   e.preventDefault(); openReturnHistory(b.getAttribute('data-rh'));
 });
 function openReturnHistory(key) {
-  el('panel').innerHTML = '<h3>Return history</h3><div class="sk" style="height:200px"></div>'; openPanel(true);
+  el('panel').innerHTML = '<h3>Return history</h3>' + skList(5); openPanel(true);
   api('getAppReturnHistory', [TOKEN, key], function (d) {
     if (!el('overlay').classList.contains('show')) return;
     if (!d) {
@@ -1366,9 +1379,17 @@ function openReturnHistory(key) {
 // Opening a sheet is a history step too, so Back closes it (even on Home).
 // openPanel(true) = full page: a top bar with ‹ and the title (taken from the first heading). ‹ goes one step back
 // inside the page when it has its own back button ([data-back], e.g. a report's list), otherwise it closes the page.
+// History (2026-10-27, user: Back closed the app from a purchase): every step deeper into a full page adds its history
+// entry when the user taps forward (Chrome skips entries added without a tap, which made the 2nd Back leave the app);
+// Back / ‹ / ✕ all go through history.back(), and closing a sheet any other way takes its entries away again.
+var PANEL_DEPTH = 0, HIST_SKIP = false, HIST_BACKING = false;
+function panelStep() { try { google.script.history.push({ tab: curTab, panel: 1 }, null, curTab); PANEL_DEPTH++; } catch (e) {} }
 function openPanel(full) {
-  if (!el('overlay').classList.contains('show')) { try { google.script.history.push({ tab: curTab, panel: 1 }, null, curTab); } catch (e) {} }
-  var p = el('panel');
+  var p = el('panel'), was = el('overlay').classList.contains('show'), h0 = p.getAttribute('data-title') || '';
+  var h3 = p.querySelector('h3'), title = h3 ? h3.textContent : '';
+  if (!was) panelStep();
+  else if (full && !HIST_BACKING && title !== h0 && p.querySelector('[data-back]')) panelStep(); // a step deeper (not a refresh of the same view)
+  p.setAttribute('data-title', title); p.removeAttribute('data-view');
   el('overlay').classList.toggle('full', !!full);
   var old = p.querySelector(':scope > .fs-top'); if (old) old.remove();
   if (full) {
@@ -1386,8 +1407,11 @@ function openPanel(full) {
 var FROM_MENU = false;
 function fromMenu(fn) { return function () { FROM_MENU = true; fn.apply(null, arguments); }; }
 var SHEET_BACK = null; // set when a sheet was opened from another sheet: closing it reopens that one
-function closePanel() {
-  el('overlay').classList.remove('show'); el('overlay').classList.remove('full');
+function closePanel(fromBack) {
+  var wasOpen = el('overlay').classList.contains('show');
+  el('overlay').classList.remove('show'); el('overlay').classList.remove('full'); el('panel').removeAttribute('data-title');
+  if (wasOpen && fromBack !== true && !HIST_BACKING && PANEL_DEPTH > 0) { var n = PANEL_DEPTH; PANEL_DEPTH = 0; HIST_SKIP = true; try { history.go(-n); } catch (e) { HIST_SKIP = false; } }
+  if (fromBack === true || HIST_BACKING) PANEL_DEPTH = 0;
   pageLock();
   var back = SHEET_BACK; SHEET_BACK = null;
   if (back) { setTimeout(function () { if (!el('overlay').classList.contains('show')) back(); }, 320); return; }
@@ -1396,7 +1420,7 @@ function closePanel() {
 // Back / Close always go ONE step back (user rule 2026-10-26): a view that is a step inside another (report → its parcel
 // list, brief → list, dispatch log → a day, courier list → WhatsApp confirm) carries a [data-back] control; ‹, ✕, the
 // view's own Close button and the phone's Back all use it, and only the first step closes the page.
-function closeStep() { var b = el('panel').querySelector('[data-back]'); if (b) b.click(); else closePanel(); }
+function closeStep() { if (PANEL_DEPTH > 0) { try { history.back(); return; } catch (e) {} } var b = el('panel').querySelector('[data-back]'); if (b) b.click(); else closePanel(); }
 el('panel').addEventListener('click', function (e) {
   if (e.target.closest('.pclose') || e.target.closest('.fs-back')) closeStep();
 });
@@ -1437,6 +1461,22 @@ function pageLock() {
 // full-screen layers (login / lock, My profile, Change PIN, scanner) are shown in many places: watch them instead of calling pageLock everywhere
 ['login', 'profbox', 'pinbox', 'scanner'].forEach(function (id) { new MutationObserver(pageLock).observe(el(id), { attributes: true, attributeFilter: ['hidden'] }); });
 el('btnMenu').onclick = openDrawer;
+// Menu groups (Reports / Finance / Settings): a group goes when nothing in it is left for this role or phone;
+// one open at a time, remembered on this phone (eh_drg)
+function drGroups() {
+  var open = store('eh_drg') || '';
+  document.querySelectorAll('.dr-g').forEach(function (g) {
+    var id = g.getAttribute('data-g'), sub = document.querySelector('[data-gsub="' + id + '"]');
+    g.hidden = ![].some.call(sub.children, function (b) { return !b.hidden; });
+    g.setAttribute('aria-expanded', String(id === open && !g.hidden)); sub.hidden = id !== open || g.hidden;
+  });
+}
+el('drawer').addEventListener('click', function (e) {
+  var g = e.target.closest('.dr-g'); if (!g) return;
+  e.stopPropagation(); var id = g.getAttribute('data-g');
+  store('eh_drg', g.getAttribute('aria-expanded') === 'true' ? '' : id); drGroups();
+  if (id === store('eh_drg')) { var sub = document.querySelector('[data-gsub="' + id + '"]'); setTimeout(function () { sub.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }, 30); }
+}, true);
 el('drawer').onclick = function (e) {
   if (e.target === el('drawer')) return closeDrawer();
   var r = e.target.closest('[data-rep]'); if (r) return fromMenu(openReport)(r.getAttribute('data-rep'));
@@ -1451,11 +1491,16 @@ function navPush(t) { try { google.script.history.push({ tab: t }, null, t); } c
 try {
   google.script.history.replace({ tab: 'home' }, null, 'home');
   google.script.history.setChangeHandler(function (e) {
+    if (HIST_SKIP) { HIST_SKIP = false; return; } // entries of a sheet that was closed another way
     if (!el('menuBd').hidden) { closeMenu(); return; } // Back with a dropdown open: close it
     if (el('overlay').classList.contains('show')) {
+      PANEL_DEPTH = Math.max(0, PANEL_DEPTH - 1);
       var ib = el('overlay').classList.contains('full') && el('panel').querySelector('[data-back]');
-      if (ib) { ib.click(); try { google.script.history.push({ tab: curTab, panel: 1 }, null, curTab); } catch (e) {} return; } // one step back inside the page
-      closePanel(); return; // Back with a sheet open: close the sheet (the menu / a page may be under it)
+      HIST_BACKING = true;
+      var rest = 0;
+      try { if (ib && PANEL_DEPTH > 0) ib.click(); else { rest = PANEL_DEPTH; closePanel(true); } } finally { HIST_BACKING = false; } // one step back inside the page, else close it
+      if (rest > 0) { HIST_SKIP = true; try { history.go(-rest); } catch (x) { HIST_SKIP = false; } } // its other steps go too
+      return;
     }
     if (!el('page').hidden) { closePage(); return; } // Back on a detail page: back to where it was opened
     if (el('drawer').classList.contains('show')) { closeDrawer(); return; } // Back with the menu open: close it
@@ -1958,7 +2003,7 @@ function openReport(key) {
   el('repClose').onclick = closePanel;
   var reload = function () {
     homePbar(); REP_AFTER = key;
-    el('panel').innerHTML = '<h3>' + REPORT_TITLE[key] + '</h3><div class="sk" style="height:200px"></div>'; openPanel(true);
+    el('panel').innerHTML = '<h3>' + REPORT_TITLE[key] + '</h3>' + skList(5); openPanel(true);
     loadHome(false);
   };
   if (el('repPer')) el('repPer').onclick = function () { var ms = (H.data && H.data.months) || []; openPeriodSheet(H, ms, ms[0] && ms[0].key, reload); };
@@ -2252,12 +2297,28 @@ function loadNdr(fresh) {
 }
 function alertNew(c) {
   toast('🔔 New case: ' + c.type);
-  try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (e) {}
+  try { navigator.vibrate && navigator.vibrate(c.priority === '1' ? [200, 100, 200, 100, 300] : [150]); } catch (e) {}
+  chime(c.priority === '1');
+}
+// In-app sound (the phone's own notification sound plays when the app is closed): a short, soft chime from one reused
+// audio engine; notes fade in and out (no click); urgent = three rising notes. ☰ Notifications can turn it off per phone.
+var AUDIO = null;
+function chime(urgent) {
+  if (store('eh_sound') === '0') return;
   try {
-    var a = new (window.AudioContext || window.webkitAudioContext)(), o = a.createOscillator(), g = a.createGain();
-    o.connect(g); g.connect(a.destination); o.frequency.value = 880; g.gain.value = .08; o.start(); o.stop(a.currentTime + .25);
+    AUDIO = AUDIO || new (window.AudioContext || window.webkitAudioContext)();
+    if (AUDIO.state === 'suspended') AUDIO.resume();
+    var t = AUDIO.currentTime + .02, notes = urgent ? [659.25, 880, 1174.66] : [880, 1318.5];
+    notes.forEach(function (f, i) {
+      var o = AUDIO.createOscillator(), g = AUDIO.createGain(), s = t + i * .13;
+      o.type = 'sine'; o.frequency.value = f; o.connect(g); g.connect(AUDIO.destination);
+      g.gain.setValueAtTime(0, s); g.gain.linearRampToValueAtTime(urgent ? .12 : .09, s + .015); g.gain.exponentialRampToValueAtTime(.0005, s + .45);
+      o.start(s); o.stop(s + .5);
+    });
   } catch (e) {}
 }
+// browsers allow sound only after a tap: wake the audio engine on the first one
+addEventListener('pointerdown', function wake() { try { AUDIO = AUDIO || new (window.AudioContext || window.webkitAudioContext)(); AUDIO.resume(); } catch (e) {} removeEventListener('pointerdown', wake); });
 var NDR_GROUPS = [['all', 'All'], ['1', 'Urgent'], ['todo', 'To contact'], ['courier', 'Escalated'], ['watch', 'Stalled']];
 // Case kinds used by Home's to-do lines (same rules as the server's grouping).
 var NDR_TYPES = { premature: 'Premature returns', refused: 'Marked as refused', watch: 'Stalled with courier', ndr: 'Failed deliveries', rto: 'Returns initiated', reattempt: 'Reattempts' };
@@ -2303,9 +2364,24 @@ function taskTitle(c) {
   if (k === 'refused') return 'Verify · courier says refused';
   if (k === 'rto') return /try to stop/i.test(t) ? 'Stop the return · it just started' : 'Return not received yet';
   if (k === 'reattempt') return 'Confirm customer is ready · reattempt coming';
-  if (k === 'watch') return 'Chase courier · ' + t.replace(/\s*[–-]\s*/g, ' · ').replace(/^\w/, function (x) { return x.toUpperCase(); });
+  if (k === 'watch') return 'Late · ' + lateText(t);
   var r = niceReason(c.reason || c.courierStatus);
   return 'Call · ' + (r ? r.charAt(0).toLowerCase() + r.slice(1) : 'delivery failed');
+}
+// a stalled parcel in short words: where it sits (how long is the card's age chip, not repeated)
+function lateText(t) {
+  t = String(t || '');
+  var w = /with rider/i.test(t) ? 'with rider, no result' : /no rider/i.test(t) ? 'at destination, no rider' : /not picked/i.test(t) ? 'not picked up yet'
+    : /origin/i.test(t) ? 'stuck at origin office' : /no courier update/i.test(t) ? 'no courier update' : t.replace(/\s*[–-]\s*/g, ' · ').toLowerCase();
+  return w;
+}
+// late parcel: ask the courier → request sent → courier acts (no customer call)
+function lateSteps(c) {
+  var asked = c.next === 'Chase courier (late)', sent = c.sent === 'Sent' || c.sent === 'Courier confirmed', done = c.sent === 'Courier confirmed';
+  var st = [asked ? 'ok' : '', sent ? 'ok' : asked ? 'warn' : '', done ? 'ok' : sent ? 'warn' : ''];
+  var lab = [asked ? 'Asked' : 'Ask courier', sent ? 'Sent' : asked ? 'In ' + c.courier + ' list' : 'Send', done ? 'Courier acted' : sent ? 'Waiting ' + c.courier : 'Courier acts'];
+  return '<div class="tsteps">' + st.map(function (s) { return '<i class="' + s + '"></i>'; }).join('') + '</div>' +
+    '<div class="tsteps-l">' + lab.map(function (l, i) { return '<span class="' + st[i] + '">' + esc(l) + '</span>'; }).join('') + '</div>';
 }
 function ageText(h) { return !h ? '' : h < 48 ? h + 'h open' : Math.floor(h / 24) + 'd open'; }
 // The 3 steps of a case: call the customer → their answer → courier acts (or nothing to send)
@@ -2330,14 +2406,22 @@ function taskCard(c, seen) {
     (c.calls ? '<div class="tcalls' + (c.calls >= 3 && /no answer|phone off/i.test(c.outcome) ? ' warn' : '') + '"><i class="ti ti-phone-call"></i>Called ' + c.calls + '×' + (c.lastCall ? ' · last ' + esc(c.lastCall) : '') +
       (/no answer|phone off/i.test(c.outcome) ? ' · no answer' + (c.calls >= 3 ? ' → consider letting it return' : '') : '') + '</div>' : '') +
     riskLine(findParcel(c.cn), 'tcalls') +
-    taskSteps(c) +
+    (c.watch ? lateSteps(c) : taskSteps(c)) +
     (c.says ? '<div class="tsays"><i class="ti ti-message-circle"></i>' + esc(c.says) + '</div>' : '') +
     ticketLine(c) +
+    (c.watch ? lateActions(c) :
     '<div class="tact">' + (todo && c.phone ? '<a class="btn pri grow" data-call="' + esc(c.cn) + '" href="' + telHref(c.phone) + '"><i class="ti ti-phone"></i>Call now</a>' : '') +
     (!todo && c.phone ? '<a class="btn sq" data-call="' + esc(c.cn) + '" href="' + telHref(c.phone) + '" aria-label="Call"><i class="ti ti-phone"></i></a>' : '') +
     (c.wa ? '<a class="btn sq wa" target="_blank" href="' + waLink(c.wa, c.waText) + '" aria-label="WhatsApp"><i class="ti ti-brand-whatsapp"></i></a>' : '') +
-    (c.watch && can('ndr.work') && c.next !== 'Chase courier (late)' ? '<button class="btn pri grow" data-late="' + esc(c.cn) + '"><i class="ti ti-clock-exclamation"></i>Ask courier · late</button>' : '') +
-    '<button class="btn' + (todo && !c.watch ? '' : c.watch ? '' : ' pri grow') + '" data-rec="' + esc(c.cn) + '"><i class="ti ti-pencil"></i>' + (todo ? 'Update' : 'Update case') + '</button></div></div>';
+    '<button class="btn' + (todo ? '' : ' pri grow') + '" data-rec="' + esc(c.cn) + '"><i class="ti ti-pencil"></i>' + (todo ? 'Update' : 'Update case') + '</button></div>') + '</div>';
+}
+// late parcel buttons: one clear main action (ask the courier), calling / WhatsApp / update as small icons
+function lateActions(c) {
+  var ask = can('ndr.work') && c.next !== 'Chase courier (late)';
+  return '<div class="tact">' + (ask ? '<button class="btn pri grow" data-late="' + esc(c.cn) + '"><i class="ti ti-clock-exclamation"></i>Ask ' + esc(c.courier || 'courier') + '</button>' : '') +
+    (c.phone ? '<a class="btn sq" href="' + telHref(c.phone) + '" aria-label="Call customer"><i class="ti ti-phone"></i></a>' : '') +
+    (c.wa ? '<a class="btn sq wa" target="_blank" href="' + waLink(c.wa, c.waText) + '" aria-label="WhatsApp"><i class="ti ti-brand-whatsapp"></i></a>' : '') +
+    '<button class="btn' + (ask ? ' sq' : ' grow') + '" data-rec="' + esc(c.cn) + '" aria-label="Update case"><i class="ti ti-pencil"></i>' + (ask ? '' : 'Update case') + '</button></div>';
 }
 // W1 writes results in Roman Urdu for the courier's sheet; the app shows them in English
 var TICKET_WORDS = [[/Amal nahi hua/, 'No action'], [/Amal hua/, 'Acted'], [/Intezar/, 'Waiting'], [/Deliver ho gaya/, 'Delivered'],
@@ -3313,11 +3397,21 @@ el('btnOut').onclick = function () {
 // The app only adds entries (Purchase / Count / Adjust / Damaged); W1 posts them within 15 minutes.
 var STK = { data: null, q: '', f: 'all' };
 var STK_ST = { OK: ['OK', 'var(--green)'], Low: ['Low', 'var(--amber)'], Out: ['Out', 'var(--red)'], 'Not counted': ['Not counted', 'var(--muted)'], 'No parts': ['No parts', 'var(--muted)'] };
+function skList(n) { var r = ''; for (var i = 0; i < (n || 5); i++) r += '<div class="prow" style="cursor:default"><div class="prow-m"><div class="sk" style="height:12px;width:' + (55 + (i * 17) % 30) + '%;border-radius:6px"></div><div class="sk" style="height:10px;width:' + (30 + (i * 13) % 25) + '%;margin-top:8px;border-radius:6px"></div></div></div>'; return '<div class="card" style="padding:0">' + r + '</div>'; }
 function stkQty(n, unit) { return (Math.round((Number(n) || 0) * 10) / 10).toLocaleString('en-IN') + (unit === 'ft' ? ' ft' : ''); }
 function openStock(sku) {
-  el('panel').innerHTML = '<h3>Stock</h3><div class="sk" style="height:220px"></div>'; openPanel(true);
-  api('getAppStock', [TOKEN], function (d) { STK.data = d; STK.at = Date.now(); if (sku) openStockItem(sku); else renderStock(); },
-    function () { closePanel(); toast('You don\'t have access to this'); });
+  if (!STK.data) { try { var s = JSON.parse(store('eh_stk') || 'null'); if (s && s.items) STK.data = s; } catch (e) {} }
+  var had = !!STK.data;
+  if (had) { if (sku) openStockItem(sku); else renderStock(); } // saved data at once
+  else { el('panel').innerHTML = '<h3>Stock</h3>' + skList(6); openPanel(true); }
+  if (can('inventory.edit') && !PUR.data) purReload(function () {}, null, true); // Suppliers / New purchase / Orders then open at once
+  if (had && STK.at && Date.now() - STK.at < 60000) return; // fresh enough
+  api('getAppStock', [TOKEN], function (d) {
+    var same = JSON.stringify(d) === JSON.stringify(STK.data); STK.data = d; STK.at = Date.now();
+    try { store('eh_stk', JSON.stringify(d)); } catch (e) {}
+    if (!had) { if (sku) openStockItem(sku); else renderStock(); return; }
+    if (!same && el('overlay').classList.contains('show') && el('panel').getAttribute('data-view') === 'stock') { var y = el('panel').scrollTop; renderStock(); el('panel').scrollTop = y; } // new numbers, same place
+  }, function () { if (!had) { closePanel(); toast('You don\'t have access to this'); } });
 }
 function stkDays(i) { return i.kind === 'Item' && i.perDay ? Math.floor(Math.max(0, i.available + (i.incoming || 0)) / i.perDay) : null; }
 function stkIsPart(i) { return /-CMP-/i.test(i.sku); }
@@ -3386,7 +3480,7 @@ function renderStock() {
           (u.gid || u.sku ? '<button class="btn prow-btn" data-ul="' + k + '"><i class="ti ti-link"></i>Link</button>' : '') + '</div>';
       }).join('') + '</div>' : '') +
     '<div class="btns" style="margin-top:10px">' + (d.started ? '<button class="btn" id="stDays"><i class="ti ti-calendar-stats"></i>Daily summary</button>' : '') + (edit && d.started ? '<button class="btn" id="stCount"><i class="ti ti-list-numbers"></i>Count stock</button>' : '') + '<button class="btn" id="stClose">Close</button></div>';
-  openPanel(true);
+  openPanel(true); el('panel').setAttribute('data-view', 'stock');
   el('stClose').onclick = closePanel;
   if (el('stPlan')) el('stPlan').onclick = function () { openPurchases(); };
   el('panel').querySelectorAll('[data-ul]').forEach(function (b) { b.onclick = function () { openLinkLine(um[+b.getAttribute('data-ul')]); }; });
@@ -3441,7 +3535,7 @@ function openLinkLine(u) {
 }
 // Daily stock summary: each day what went out (sold), came back, came in, and each product's opening → closing
 function openStockDays() {
-  el('panel').innerHTML = '<button class="btn mini" id="sdBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Stock</button><h3>Daily stock summary</h3><div class="sk" style="height:240px"></div>';
+  el('panel').innerHTML = '<button class="btn mini" id="sdBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Stock</button><h3>Daily stock summary</h3>' + skList(6);
   openPanel(true);
   el('sdBack').onclick = renderStock;
   api('getAppStockDays', [TOKEN, 14], function (r) {
@@ -3670,12 +3764,12 @@ function fnBadge() {
   api('getAppFinance', [TOKEN, ''], function (d) {
     var n = d.pending.filter(function (x) { return x.enteredBy !== d.me; }).length;
     el('btnExpT').textContent = 'Expenses' + (n ? ' · ' + n + ' to approve' : '');
+    el('drNfin').textContent = n || ''; el('drNfin').hidden = !n; // seen on the Finance line while the group is closed
   }, function () {});
 }
 function openExpenses(m) {
   FN.month = m || FN.month || pkDay(new Date()).slice(0, 7);
-  el('panel').innerHTML = '<h3>Expenses</h3><div class="sk" style="height:220px"></div>'; openPanel(true);
-  api('getAppFinance', [TOKEN, FN.month], function (d) { FN.data = d; renderExpenses(); fnBadge(); }, function () { closePanel(); toast('You don\'t have access to this'); });
+  apiMem('fin_' + FN.month, 'getAppFinance', [TOKEN, FN.month], function (d) { FN.data = d; renderExpenses(); fnBadge(); }, function () { closePanel(); toast('You don\'t have access to this'); }, '<h3>Expenses</h3>');
 }
 function fnRow(x, act) {
   var st = x.status === 'Pending' ? ['Pending', 'var(--amber)'] : x.status === 'Rejected' ? ['Rejected', 'var(--red)'] : ['', 'var(--line)'];
@@ -3717,6 +3811,34 @@ function renderExpenses() {
   el('panel').querySelectorAll('[data-fb]').forEach(function (b) { b.onclick = function () { act(d.owed[b.getAttribute('data-fb')].ids, 'reimbursed'); }; });
   el('panel').querySelectorAll('[data-rcpt]').forEach(function (b) { b.onclick = function () { openReceipt(b.getAttribute('data-rcpt')); }; });
 }
+// "Paid from": chips when the store has more than one way to pay; one account (e.g. everything through the bank) = a plain line
+function fromField(id, list, cur, label) {
+  if (list.length < 2) return '<div class="fld"><label>' + (label || 'Paid from') + '</label><div class="pf-phone" id="' + id + '" style="justify-content:flex-start;font-size:14px"><i class="ti ti-building-bank"></i><span>' + esc(list[0] || 'Business account') + '</span></div></div>';
+  return '<div class="fld"><label>' + (label || 'Paid from') + '</label><div class="chips wrapc" id="' + id + '">' + list.map(function (x) { return '<button class="chip' + (x === cur ? ' on' : '') + '" type="button" data-v="' + esc(x) + '">' + esc(x === 'Own pocket' ? 'My own pocket' : x) + '</button>'; }).join('') + '</div></div>';
+}
+// A photo box (bill / invoice): camera or gallery, made small on the phone (1280 px JPEG) before it is sent.
+// photoField(id, label) is the markup; photoWire(id, cb) calls cb(dataUrl) ('' when removed).
+function photoField(id, label) {
+  return '<div class="fld" style="margin:8px 0 0"><input id="' + id + 'File" type="file" accept="image/*" hidden>' +
+    '<button class="btn" id="' + id + 'Btn" type="button" style="width:100%"><i class="ti ti-photo-plus"></i>' + esc(label) + '</button>' +
+    '<div id="' + id + 'Box" hidden style="position:relative;margin-top:8px"><img id="' + id + 'Img" alt="" style="display:block;max-width:100%;max-height:180px;border-radius:12px">' +
+    '<button class="btn mini" id="' + id + 'Rm" type="button" style="position:absolute;top:6px;right:6px"><i class="ti ti-x"></i></button></div></div>';
+}
+function photoWire(id, cb) {
+  el(id + 'Btn').onclick = function () { el(id + 'File').click(); };
+  el(id + 'Rm').onclick = function () { el(id + 'Box').hidden = true; el(id + 'File').value = ''; el(id + 'Btn').hidden = false; cb(''); };
+  el(id + 'File').onchange = function () {
+    var file = el(id + 'File').files && el(id + 'File').files[0]; if (!file) return;
+    var img = new Image(), url = URL.createObjectURL(file);
+    img.onload = function () {
+      var k = Math.min(1, 1280 / Math.max(img.width, img.height)), cv = document.createElement('canvas'); cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
+      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height); var data = cv.toDataURL('image/jpeg', 0.72); URL.revokeObjectURL(url);
+      el(id + 'Img').src = data; el(id + 'Box').hidden = false; el(id + 'Btn').hidden = true; cb(data);
+    };
+    img.onerror = function () { toast('Choose a photo (JPG / PNG)'); };
+    img.src = url;
+  };
+}
 // the photo of a bill, from the app's Drive folder (people who may not open Drive still see it)
 function openReceipt(id) {
   el('panel').innerHTML = '<button class="btn mini" id="rcBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Expenses</button><h3>Receipt</h3><div class="sk" style="height:300px"></div>';
@@ -3738,7 +3860,7 @@ function openAddExpense() {
     '<div class="fld"><label>Amount (PKR)</label><input id="aeAmt" type="text" inputmode="decimal" placeholder="e.g. 2500"></div>' +
     '<div class="fld"><label>Category</label><div class="chips wrapc" id="aeCats"></div></div>' +
     '<div class="fld"><label>What was it for</label><input id="aeDesc" placeholder="e.g. Meta ads, office rent October"></div>' +
-    '<div class="fld"><label>Paid from</label><div class="chips wrapc" id="aeFrom">' + d.from.map(function (x) { return '<button class="chip' + (x === st.from ? ' on' : '') + '" type="button" data-v="' + esc(x) + '">' + esc(x === 'Own pocket' ? 'My own pocket' : x) + '</button>'; }).join('') + '</div></div>' +
+    fromField('aeFrom', d.from, st.from) +
     '<div class="fld"><label>Date</label><input id="aeDate" type="date" value="' + pkDay(new Date()) + '"></div>' +
     '<div class="fld"><label>Receipt photo (optional)</label><input id="aeFile" type="file" accept="image/*" capture="environment" hidden>' +
     '<button class="btn" id="aePhoto" type="button" style="width:100%"><i class="ti ti-camera"></i>Add a photo of the bill</button><img id="aeThumb" alt="" hidden style="display:block;max-width:100%;max-height:180px;margin-top:8px;border-radius:12px"></div>' +
@@ -3777,8 +3899,7 @@ function openAddExpense() {
 }
 function openPnl(m) {
   FN.month = m || FN.month || pkDay(new Date()).slice(0, 7);
-  el('panel').innerHTML = '<h3>Profit & loss</h3><div class="sk" style="height:260px"></div>'; openPanel(true);
-  api('getAppPnl', [TOKEN, FN.month], function (p) {
+  apiMem('pnl_' + FN.month, 'getAppPnl', [TOKEN, FN.month], function (p) {
     var line = function (l, v, cls, sub) { return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span' + (cls ? ' style="font-weight:600"' : '') + '>' + l + '</span><b class="num"' + (cls === 'neg' ? ' style="color:var(--red)"' : '') + '>' + v + '</b></div>' + (sub ? '<div class="prow-2"><span>' + sub + '</span></div>' : '') + '</div></div>'; };
     var minus = function (n) { return n ? '− ' + rs(n) : rs(0); };
     var exp = Object.keys(p.expenses).sort(function (a, b) { return p.expenses[b] - p.expenses[a]; });
@@ -3797,7 +3918,7 @@ function openPnl(m) {
     openPanel(true);
     el('plClose').onclick = closePanel;
     el('panel').querySelectorAll('[data-fm]').forEach(function (b) { b.onclick = function () { openPnl(fnMonth(FN.month, Number(b.getAttribute('data-fm')))); }; });
-  }, function () { closePanel(); toast('You don\'t have access to this'); });
+  }, function () { closePanel(); toast('You don\'t have access to this'); }, '<h3>Profit & loss</h3>');
 }
 el('btnExp').onclick = fromMenu(function () { openExpenses(''); });
 el('btnPnl').onclick = fromMenu(function () { openPnl(''); });
@@ -3808,8 +3929,7 @@ el('btnAds').onclick = fromMenu(function () { openAds(3); });
 // ---------- Ads performance (Meta ad sets from W1 Ad Sets) with scale / kill verdicts and the store's own orders ----------
 var ADV = { Scale: 'var(--green)', Kill: 'var(--red)', Watch: 'var(--amber)', 'Too early': 'var(--blue)' };
 function openAds(n) {
-  el('panel').innerHTML = '<h3>Ads performance</h3><div class="sk" style="height:240px"></div>'; openPanel(true);
-  api('getAppAds', [TOKEN, n], function (d) {
+  apiMem('ads_' + n, 'getAppAds', [TOKEN, n], function (d) {
     var r2 = function (x) { return x == null ? '—' : x; };
     var chip = function (k, l) { return '<button class="chip' + (d.days === k ? ' on' : '') + '" type="button" data-ad="' + k + '">' + l + '</button>'; };
     el('panel').innerHTML = '<h3>Ads performance</h3><p>Meta ad sets' + (d.last ? ' · data till ' + esc(niceDay(d.last)) : '') + ' · verdict on the last 3 days</p>' +
@@ -3830,14 +3950,13 @@ function openAds(n) {
     openPanel(true);
     el('adClose').onclick = closePanel;
     el('panel').querySelectorAll('[data-ad]').forEach(function (b) { b.onclick = function () { openAds(Number(b.getAttribute('data-ad'))); }; });
-  }, function () { closePanel(); toast('You don\'t have access to this'); });
+  }, function () { closePanel(); toast('You don\'t have access to this'); }, '<h3>Ads performance</h3>');
 }
 
 // ---------- Team: the owner adds people, gives roles, resets PINs (server checks users.manage and Owner rules) ----------
 var TM = { data: null };
 function openTeam() {
-  el('panel').innerHTML = '<h3>Team</h3><div class="sk" style="height:220px"></div>'; openPanel(true);
-  api('getAppTeam', [TOKEN], function (d) { TM.data = d; renderTeam(); }, function () { closePanel(); toast('You don\'t have access to this'); });
+  apiMem('team', 'getAppTeam', [TOKEN], function (d) { TM.data = d; renderTeam(); }, function () { closePanel(); toast('You don\'t have access to this'); }, '<h3>Team</h3>');
 }
 function renderTeam() {
   var d = TM.data;
@@ -3890,8 +4009,7 @@ function openTeamForm(u) {
 // ---------- Accounts & payouts: a bank book per money account, bank check, transfers, partner payouts ----------
 var AC = { data: null };
 function openAccounts() {
-  el('panel').innerHTML = '<h3>Accounts & payouts</h3><div class="sk" style="height:240px"></div>'; openPanel(true);
-  api('getAppAccounts', [TOKEN], function (d) { AC.data = d; renderAccounts(); }, function () { closePanel(); toast('You don\'t have access to this'); });
+  apiMem('acct', 'getAppAccounts', [TOKEN], function (d) { AC.data = d; renderAccounts(); }, function () { closePanel(); toast('You don\'t have access to this'); }, '<h3>Accounts & payouts</h3>');
 }
 function acMoney(n) { return (n < 0 ? '− ' : '') + rs(Math.abs(n)); }
 function renderAccounts() {
@@ -4007,7 +4125,10 @@ function purLast(sku, supplier) {
 function purMain(sku) { var m = ((PUR.data && PUR.data.links) || []).filter(function (l) { return l.sku === sku && l.main; })[0]; return m ? m.supplier : ''; }
 function rs2(n) { return 'Rs ' + (Math.round((n || 0) * 100) / 100).toLocaleString('en-IN'); }
 function purItem(sku) { return PUR.data.items.filter(function (i) { return i.sku === sku; })[0] || { sku: sku, name: sku, unit: 'pcs' }; }
-function purReload(then) { api('getAppPurchases', [TOKEN], function (pd) { PUR.data = pd; then(); }, function (e) { toast((e && e.message) || 'Not loaded'); }); }
+function purReload(then, r, quiet) {
+  if (r && r.data) { PUR.data = r.data; return then(); } // the save already sent the new data
+  api('getAppPurchases', [TOKEN], function (pd) { PUR.data = pd; PUR.at = Date.now(); then(); }, function (e) { if (!quiet) toast((e && e.message) || 'Not loaded'); });
+}
 function purCall(s) { if (!s || !s.phone) { toast('No phone saved for this supplier'); return; } location.href = 'tel:' + String(s.phone).replace(/[^0-9+]/g, ''); }
 
 // Suppliers: list, add / edit, what each one supplies (quoted price, ⭐ main supplier of a product), recent orders
@@ -4040,14 +4161,14 @@ function openSupplierForm(s, back) {
     var used = PUR.data.pos.some(function (p) { return p.supplier === s.name; });
     if (!confirm(used ? s.name + ' has purchases, so their history stays. Hide this supplier from the lists?' : 'Delete ' + s.name + '?')) return;
     el('sfDel').disabled = true;
-    api('appDeleteSupplier', [TOKEN, s.name], function (r) { toast(r.hidden ? '✅ Supplier hidden · purchases kept' : '✅ Supplier deleted'); purReload(openSuppliers); },
+    api('appDeleteSupplier', [TOKEN, s.name], function (r) { toast(r.hidden ? '✅ Supplier hidden · purchases kept' : '✅ Supplier deleted'); purReload(openSuppliers, r); },
       function (e) { el('sfDel').disabled = false; el('sfErr').textContent = (e && e.message) || 'Not deleted'; });
   };
   el('sfGo').onclick = function () {
     var n = el('sfName').value.trim(); if (!n) { el('sfErr').textContent = 'Write the shop / company name'; return; }
     el('sfGo').disabled = true;
     api('appSaveSupplier', [TOKEN, { name: s ? s.name : n, newName: s && n !== s.name ? n : '', edit: !!s, contact: el('sfContact').value.trim(), phone: el('sfPhone').value.trim(), city: el('sfCity').value.trim(), lead: Number(el('sfLead').value) || 0 }], function (r) {
-      toast(r.existed ? 'This supplier is already saved' : '✅ Supplier saved'); purReload(function () { openSupplier(r.name); });
+      toast(r.existed ? 'This supplier is already saved' : '✅ Supplier saved'); purReload(function () { openSupplier(r.name); }, r);
     }, function (e) { el('sfGo').disabled = false; el('sfErr').textContent = (e && e.message) || 'Not saved'; });
   };
 }
@@ -4081,9 +4202,13 @@ function openSupplier(name) {
 // one supplier + product pair: quoted rate per unit, ⭐ main supplier (Order soon / Order more pick it), remove
 function openSupplierProduct(sup, sku, back) {
   var d = PUR.data, l = (d.links || []).filter(function (x) { return x.supplier === sup && x.sku === sku; })[0] || null, it = sku ? purItem(sku) : null;
+  // a product is added to a supplier once: the pickers leave out what is already linked (tap it in the list to change it)
+  var linked = function (s, k) { return (d.links || []).some(function (x) { return x.supplier === s && x.sku === k; }); };
+  var sups = d.suppliers.filter(function (s) { return !sku || !linked(s.name, sku); }), items = d.items.filter(function (i) { return !sup || !linked(sup, i.sku); });
+  if ((!sup && !sups.length) || (!sku && !items.length)) { toast(sup ? 'Every product is already added to ' + sup : 'Every supplier is already linked'); return; }
   el('panel').innerHTML = '<button class="btn mini" id="spBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Back</button><h3>' + (l ? 'Supplier rate' : 'Add who supplies it') + '</h3><p>' + esc([sup, it && it.name].filter(Boolean).join(' · ')) + '</p>' +
-    (sup ? '' : '<div class="fld"><label>Supplier</label><select id="spSup"><option value="">Choose a supplier…</option>' + d.suppliers.map(function (s) { return '<option value="' + esc(s.name) + '">' + esc(s.name) + (s.city ? ' · ' + esc(s.city) : '') + '</option>'; }).join('') + '</select></div>') +
-    (sku ? '' : '<div class="fld"><label>Product</label><select id="spSku"><option value="">Choose a product…</option>' + d.items.map(function (i) { return '<option value="' + esc(i.sku) + '">' + esc(i.name) + '</option>'; }).join('') + '</select></div>') +
+    (sup ? '' : '<div class="fld"><label>Supplier</label><select id="spSup"><option value="">Choose a supplier…</option>' + sups.map(function (s) { return '<option value="' + esc(s.name) + '">' + esc(s.name) + (s.city ? ' · ' + esc(s.city) : '') + '</option>'; }).join('') + '</select></div>') +
+    (sku ? '' : '<div class="fld"><label>Product</label><select id="spSku"><option value="">Choose a product…</option>' + items.map(function (i) { return '<option value="' + esc(i.sku) + '">' + esc(i.name) + '</option>'; }).join('') + '</select></div>') +
     '<div class="fld"><label id="spPl">' + (it && it.unit === 'ft' ? 'Rate per ft' : 'Rate per piece') + ' (what they quoted)</label><input id="spPrice" type="text" inputmode="decimal" value="' + (l && l.quoted ? l.quoted : '') + '" placeholder="' + (l && l.lastPrice ? 'last bought ' + l.lastPrice : 'optional') + '"></div>' +
     '<label class="ob-it" style="margin:0 0 12px"><input type="checkbox" id="spMain"' + (l && l.main ? ' checked' : '') + '><div><b>⭐ Main supplier of this product</b><small>Order soon and Order more choose this supplier</small></div></label>' +
     '<div class="err" id="spErr"></div><button class="btn pri" id="spGo" style="width:100%;padding:12px">Save</button>' +
@@ -4092,7 +4217,7 @@ function openSupplierProduct(sup, sku, back) {
   el('spBack').onclick = back;
   if (el('spSku')) el('spSku').onchange = function () { var x = purItem(el('spSku').value); el('spPl').textContent = (x.unit === 'ft' ? 'Rate per ft' : 'Rate per piece') + ' (what they quoted)'; };
   var send = function (f) {
-    api('appSupplierProduct', [TOKEN, f], function () { toast(f.remove ? 'Removed' : '✅ Saved'); purReload(back); },
+    api('appSupplierProduct', [TOKEN, f], function (r) { toast(f.remove ? 'Removed' : '✅ Saved'); purReload(back, r); },
       function (e) { el('spGo').disabled = false; el('spErr').textContent = (e && e.message) || 'Not saved'; });
   };
   el('spGo').onclick = function () {
@@ -4104,8 +4229,14 @@ function openSupplierProduct(sup, sku, back) {
   if (el('spRm')) el('spRm').onclick = function () { send({ supplier: sup, sku: sku, remove: true }); };
 }
 function openPurchases() {
-  el('panel').innerHTML = '<h3>Purchase orders</h3><div class="sk" style="height:220px"></div>'; openPanel(true);
-  api('getAppPurchases', [TOKEN], function (d) { PUR.data = d; renderPurchases(); }, function () { toast('You don\'t have access to this'); openStock(''); });
+  if (PUR.data) { renderPurchases(); if (PUR.at && Date.now() - PUR.at < 60000) return; }
+  else { el('panel').innerHTML = '<button class="btn mini" id="puBack0" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Stock</button><h3>Purchase orders</h3>' + skList(5); openPanel(true); el('puBack0').onclick = function () { openStock(''); }; }
+  var had = !!PUR.data;
+  api('getAppPurchases', [TOKEN], function (d) {
+    var same = had && JSON.stringify(d) === JSON.stringify(PUR.data); PUR.data = d; PUR.at = Date.now();
+    if (same || !el('overlay').classList.contains('show')) return;
+    var h = el('panel').querySelector('h3'); if (h && h.textContent === 'Purchase orders') { var y = el('panel').scrollTop; renderPurchases(); el('panel').scrollTop = y; }
+  }, function () { if (!had) { toast('You don\'t have access to this'); openStock(''); } });
 }
 var PUR_ST = { 'Ordered': 'var(--amber)', 'Partly received': 'var(--blue)', 'Received': 'var(--green)' };
 function renderPurchases() {
@@ -4142,7 +4273,7 @@ function renderPurchases() {
 // New purchase: supplier (pick or add), products with qty + price (the last price is filled in), expected cargo, optional payment now
 function openNewPurchase(opt) {
   opt = opt || {};
-  var d = PUR.data, st = { supplier: '', lines: [], from: 'Business account' }, back = opt.back || renderPurchases;
+  var d = PUR.data, st = { supplier: '', lines: [], from: (d.from || ['Business account'])[0], inv: '' }, back = opt.back || renderPurchases;
   var want = opt.lines || (opt.skus || []).map(function (s) { return { sku: s, qty: 0 }; });
   if (opt.supplier && d.suppliers.some(function (s) { return s.name === opt.supplier; })) st.supplier = opt.supplier;
   else if (want.length) { var m = want.map(function (x) { return purMain(x.sku); }); if (m[0] && m.every(function (x) { return x === m[0]; })) st.supplier = m[0]; }
@@ -4174,23 +4305,26 @@ function openNewPurchase(opt) {
     if (pick) { st.supplier = pick; st.lines.forEach(function (l) { var last = purLast(l.sku, pick); if (last && !l.edited) l.price = last.price; }); }
   };
   var itemOpts = function () { return '<option value="">' + (st.lines.length ? '+ Add another product…' : 'Choose a product…') + '</option>' + d.items.map(function (i) { return '<option value="' + esc(i.sku) + '">' + esc(i.name) + (i.isNew ? ' (new)' : '') + '</option>'; }).join('') + '<option value="__newp">+ New product (not on the store yet)</option>'; };
-  el('panel').innerHTML = '<button class="btn mini" id="npBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>' + (opt.back ? 'Back' : 'Purchases') + '</button><h3>New purchase</h3><p>Product, then supplier · prices fill in from the last order</p>' +
-    '<div class="fld"><label>Product</label></div><div id="npLines"></div><div class="fld"><select id="npAdd">' + itemOpts() + '</select></div>' +
-    '<div id="npNewProd" hidden class="card" style="margin-bottom:12px"><div class="fld"><label>Product name</label><input id="nnName" placeholder="Close to the name it will have on the store"></div>' +
-    '<div class="fld"><label>Counted in</label><select id="nnUnit"><option value="pcs">Pieces</option><option value="ft">Feet</option></select></div>' +
-    '<small class="mnote">When it is listed on Shopify with the same words in its name, its orders link to it by themselves.</small>' +
-    '<button class="btn pri" id="nnSave" type="button" style="width:100%;margin-top:8px">Add product</button></div>' +
+  el('panel').innerHTML = '<button class="btn mini" id="npBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>' + (opt.back ? 'Back' : 'Purchases') + '</button><h3>New purchase</h3><p>From the supplier\'s bill · saved when you pay it</p>' +
     '<div class="fld"><label>Supplier</label><select id="npSup">' + supOpts() + '</select></div>' +
     '<div id="npNewSup" hidden class="card" style="margin-bottom:12px"><div class="fld"><label>Shop / company name</label><input id="nsName" placeholder="e.g. Tanveer Traders"></div>' +
     '<div class="fld"><label>Person\'s name</label><input id="nsContact" placeholder="e.g. Tanveer Ahmed"></div>' +
     '<div class="fld"><label>Phone</label><input id="nsPhone" type="tel" placeholder="0300 1234567"></div><div class="fld"><label>City</label><input id="nsCity" placeholder="e.g. Gujranwala"></div>' +
     '<div class="fld"><label>Usually delivers in (days, optional)</label><input id="nsLead" type="text" inputmode="numeric" placeholder="learned from the first delivery"></div>' +
     '<button class="btn pri" id="nsSave" type="button" style="width:100%">Save supplier</button></div>' +
-    '<div class="fld"><label>Cargo / freight (PKR, total)</label><input id="npCargo" type="text" inputmode="decimal" placeholder="0"></div>' +
-    '<div class="fld"><label>Other charges (PKR, total)</label><input id="npOther" type="text" inputmode="decimal" placeholder="0"></div>' +
-    '<div class="fld"><label>Paid now (optional)</label><input id="npPaid" type="text" inputmode="decimal" placeholder="advance / full payment"></div>' +
-    '<div class="fld"><label>Note (optional)</label><input id="npNote" placeholder="e.g. bilty #, delivery date"></div>' +
-    '<div class="tk" id="npTotal" style="margin:0 0 10px"></div><div class="err" id="npErr"></div>' +
+    '<div class="card" style="margin-bottom:12px"><div class="h"><b><i class="ti ti-file-invoice"></i> Supplier\'s bill</b></div>' + photoField('npInv', 'Choose bill') +
+    '<div class="fld" style="margin:8px 0 0"><label>Bill number (if it has one)</label><input id="npInvNo" placeholder="optional"></div></div>' +
+    '<div class="fld"><label>Products on the bill</label></div><div id="npLines"></div><div class="fld"><select id="npAdd">' + itemOpts() + '</select></div>' +
+    '<div id="npNewProd" hidden class="card" style="margin-bottom:12px"><div class="fld"><label>Product name</label><input id="nnName" placeholder="Close to the name it will have on the store"></div>' +
+    '<div class="fld"><label>Counted in</label><select id="nnUnit"><option value="pcs">Pieces</option><option value="ft">Feet</option></select></div>' +
+    '<small class="mnote">When it is listed on Shopify with the same words in its name, its orders link to it by themselves.</small>' +
+    '<button class="btn pri" id="nnSave" type="button" style="width:100%;margin-top:8px">Add product</button></div>' +
+    '<div class="tk" id="npTotal" style="margin:0 0 10px"></div>' +
+    '<div class="card" style="margin-bottom:12px"><div class="h"><b><i class="ti ti-cash"></i> Paid</b></div>' +
+    '<div class="fld"><label>Amount paid (PKR)</label><input id="npPaid" type="text" inputmode="decimal" placeholder="the bill total"></div>' +
+    '<small class="mnote" id="npLeft" hidden style="display:block;margin:-6px 0 10px;color:var(--warn,#B45309)"></small>' +
+    '<div id="npFromBox"></div>' + photoField('npRc', 'Bank screenshot (optional)') + '</div>' +
+    '<div class="fld"><label>Note (optional)</label><input id="npNote" placeholder="e.g. cargo company"></div><div class="err" id="npErr"></div>' +
     '<button class="btn pri" id="npGo" style="width:100%;padding:12px">Save purchase</button>';
   openPanel(true);
   var num = function (id) { return Number(String(el(id).value).replace(/[^0-9.]/g, '')) || 0; };
@@ -4216,11 +4350,20 @@ function openNewPurchase(opt) {
     el('npLines').querySelectorAll('[data-addft]').forEach(function (x) { x.onclick = function () { var p = x.getAttribute('data-addft').split(':'), l = st.lines[+p[0]]; l.qty = (l.qty || 0) + Number(p[1]); draw(); }; });
     el('npLines').querySelectorAll('[data-rm]').forEach(function (x) { x.onclick = function () { st.lines.splice(+x.getAttribute('data-rm'), 1); draw(); }; });
   };
+  var total = function () { return Math.round(st.lines.reduce(function (a, l) { return a + (l.qty || 0) * (l.price || 0); }, 0) * 100) / 100; };
   var drawTotal = function () {
-    var goods = st.lines.reduce(function (a, l) { return a + (l.qty || 0) * (l.price || 0); }, 0), ch = num('npCargo') + num('npOther');
-    el('npTotal').innerHTML = '<i class="ti ti-receipt"></i> Goods ' + rs(goods) + (ch ? ' + charges ' + rs(ch) + ' = <b>' + rs(goods + ch) + '</b>' + (goods ? ' · +' + Math.round(100 * ch / goods) + '% landed' : '') : '');
+    el('npTotal').innerHTML = '<i class="ti ti-receipt"></i> Bill total <b>' + rs(total()) + '</b>';
+    if (!st.paidTyped) el('npPaid').value = total() ? Math.round(total()) : ''; // paid = the bill, unless typed
+    el('npGo').textContent = num('npPaid') ? 'Save · paid ' + rs(num('npPaid')) : 'Save purchase';
+    var left = Math.round(total() - num('npPaid')); // part paid: the rest stays on the order as To pay
+    el('npLeft').hidden = !(total() && left > 0); el('npLeft').textContent = rs(left) + ' left to pay · pay it later from this purchase (Pay)';
   };
-  ['npCargo', 'npOther'].forEach(function (id) { el(id).oninput = drawTotal; });
+  el('npPaid').oninput = function () { st.paidTyped = el('npPaid').value !== ''; drawTotal(); };
+  photoWire('npRc', function (x) { st.receipt = x; });
+  var drawFrom = function () { el('npFromBox').innerHTML = fromField('npFrom', d.from || ['Business account'], st.from); };
+  el('npFromBox').onclick = function (e) { var b = e.target.closest('[data-v]'); if (!b) return; st.from = b.getAttribute('data-v'); drawFrom(); };
+  drawFrom();
+  photoWire('npInv', function (x) { st.inv = x; });
   el('npBack').onclick = back;
   el('npSup').onchange = function () {
     if (el('npSup').value === '__new') { el('npNewSup').hidden = false; el('nsName').focus(); return; }
@@ -4256,9 +4399,12 @@ function openNewPurchase(opt) {
     if (!st.supplier) { el('npErr').textContent = 'Choose a supplier'; return; }
     var lines = st.lines.filter(function (l) { return l.qty > 0; }).map(function (l) { var p = l.pack > 1 ? l.pack : 1; return { sku: l.sku, qty: l.qty * p, price: Math.round((l.price || 0) / p * 10000) / 10000 }; });
     if (!lines.length) { el('npErr').textContent = 'Add a product with its quantity'; return; }
+    var invNo = el('npInvNo').value.trim();
+    if (num('npPaid') > total() + 1) { el('npErr').textContent = 'Paid is more than the bill ' + rs(total()); return; }
     el('npGo').disabled = true;
-    api('appCreatePurchase', [TOKEN, { supplier: st.supplier, lines: lines, cargo: num('npCargo'), other: num('npOther'), paidNow: num('npPaid'), from: st.from, note: el('npNote').value.trim() }],
-      function (r) { toast('✅ Purchase ' + r.po + ' saved'); api('getAppPurchases', [TOKEN], function (pd) { PUR.data = pd; openPurchase(r.po); }, function () { openPurchases(); }); },
+    api('appCreatePurchase', [TOKEN, { supplier: st.supplier, lines: lines, paidNow: num('npPaid'), from: st.from, receipt: st.receipt, note: el('npNote').value.trim(),
+      invoice: invNo || st.inv ? { no: invNo || 'Bill', date: pkDay(new Date()), photo: st.inv } : null }],
+      function (r) { toast('✅ Purchase ' + r.po + ' saved'); STK.at = 0; purReload(function () { openPurchase(r.po); }, r); },
       function (e) { el('npGo').disabled = false; el('npErr').textContent = (e && e.message) || 'Not saved'; });
   };
   draw();
@@ -4272,7 +4418,13 @@ function openPurchase(po) {
       return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><b>' + esc(l.name) + '</b><span class="num">' + rs(l.qty * l.price) + '</span></div>' +
         '<div class="prow-2"><span>' + l.qty + ' × ' + rs(l.price) + (share ? ' · landed ' + rs(l.price * (1 + share)) : '') + ' · received ' + l.received + (l.rejected ? ' (' + l.rejected + ' rejected)' : '') + '</span></div></div></div>';
     }).join('') + '</div>' +
-    '<div class="card" style="padding:0">' + row('Goods', rs(p.goods)) + (p.cargo ? row('Cargo / freight', rs(p.cargo)) : '') + (p.other ? row('Other charges', rs(p.other)) : '') + row('Paid', rs(p.paid)) + row('<b>To pay</b>', '<b>' + rs(p.toPay) + '</b>') + '</div>' +
+    '<div class="card" style="padding:0">' + row('Goods', rs(p.goods)) + (p.cargo ? row('Cargo / freight', rs(p.cargo)) : '') + (p.other ? row('Other charges', rs(p.other)) : '') + row('Paid', rs(p.paid)) + row('<b>To pay</b>', '<b>' + rs(p.toPay) + '</b>') +
+      (p.expected ? row('Expected delivery', esc(fmtYmd(p.expected)) + (p.status !== 'Received' && p.expected < pkDay(new Date()) ? ' <span style="color:var(--bad)">· late</span>' : '')) : '') + '</div>' +
+    '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>Invoices</b><button class="btn mini" id="poInv" type="button"><i class="ti ti-plus"></i>Invoice</button></div>' +
+      ((p.invoices || []).length ? p.invoices.map(function (v) {
+        return '<div class="prow"' + (v.photo ? ' data-inv="' + esc(v.no) + '"' : ' style="cursor:default"') + '><div class="prow-m"><div class="prow-1"><b>' + (v.photo ? '📎 ' : '') + '#' + esc(v.no) + '</b><span class="num">' + rs(v.amount) + '</span></div>' +
+          '<div class="prow-2"><span>' + esc(fmtYmd(v.date)) + ' · ' + (v.paid >= v.amount - 1 && v.amount ? 'paid' : v.paid ? 'paid ' + rs(v.paid) + ' · ' + rs(v.amount - v.paid) + ' left' : 'not paid') + '</span></div></div></div>';
+      }).join('') : '<div class="empty">No invoice yet · add the supplier\'s bill</div>') + '</div>' +
     (p.note ? '<p style="color:var(--muted);font-size:12.5px">' + esc(p.note) + '</p>' : '') +
     (p.status === 'Ordered' ? '<div class="btns" style="margin-top:10px"><button class="btn" id="poCall"><i class="ti ti-phone"></i>Call supplier</button><button class="btn" id="poWa"><i class="ti ti-brand-whatsapp"></i>Send copy</button></div>' : '') +
     '<div class="btns" style="margin-top:10px">' + (p.status !== 'Received' ? '<button class="btn pri" id="poRcv"><i class="ti ti-truck-loading"></i>Receive</button>' : '') + (p.toPay > 0 ? '<button class="btn" id="poPay"><i class="ti ti-cash"></i>Pay</button>' : '') + '</div>';
@@ -4285,6 +4437,36 @@ function openPurchase(po) {
     window.open('https://wa.me/' + (ph.length >= 11 ? ph : '') + '?text=' + encodeURIComponent(purMsg(p)), '_blank');
   };
   if (el('poPay')) el('poPay').onclick = function () { openPayPurchase(p); };
+  el('poInv').onclick = function () { openPurchaseInvoice(p); };
+  el('panel').querySelectorAll('[data-inv]').forEach(function (r) { r.onclick = function () {
+    var no = r.getAttribute('data-inv');
+    el('panel').innerHTML = '<button class="btn mini" id="ivBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>' + esc(p.po) + '</button><h3>Invoice #' + esc(no) + '</h3><p>' + esc(p.supplier) + '</p><div class="sk" style="height:300px"></div>';
+    el('ivBack').onclick = function () { openPurchase(p.po); };
+    api('getAppPurchaseInvoice', [TOKEN, p.po, no], function (x) { var s = el('panel').querySelector('.sk'); if (s) s.outerHTML = '<img alt="Invoice" src="data:' + x.type + ';base64,' + x.data + '" style="display:block;width:100%;border-radius:12px">'; },
+      function () { toast('Invoice photo not found'); openPurchase(p.po); });
+  }; });
+}
+function fmtYmd(s) { var p = String(s || '').split('-'); return p.length === 3 ? Number(p[2]) + ' ' + ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][Number(p[1]) - 1] + ' ' + p[0] : String(s || ''); }
+// Add the supplier's invoice to a purchase: number, date, amount (the rest still to pay is filled in), photo; then back (or a cb)
+function openPurchaseInvoice(p, done) {
+  var st = { photo: '' }, billed = (p.invoices || []).reduce(function (a, v) { return a + v.amount; }, 0), left = Math.max(0, Math.round(p.goods + p.cargo + p.other - billed));
+  el('panel').innerHTML = '<button class="btn mini" id="aiBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>' + esc(p.po) + '</button><h3>Add invoice</h3><p>' + esc(p.supplier) + '</p>' +
+    '<div class="btns"><div class="fld" style="flex:1"><label>Invoice number</label><input id="aiNo" placeholder="e.g. 1045"></div>' +
+    '<div class="fld" style="flex:1"><label>Invoice date</label><input id="aiDate" type="date" value="' + pkDay(new Date()) + '" max="' + pkDay(new Date()) + '"></div></div>' +
+    '<div class="fld"><label>Invoice amount (PKR)</label><input id="aiAmt" type="text" inputmode="decimal" value="' + (left || '') + '"></div>' +
+    photoField('aiPh', 'Choose invoice') + '<div class="err" id="aiErr" style="margin-top:8px"></div><button class="btn pri" id="aiGo" style="width:100%;padding:12px;margin-top:8px">Save invoice</button>';
+  openPanel(true);
+  var back = function () { if (done) done(); else openPurchase(p.po); };
+  el('aiBack').onclick = back;
+  photoWire('aiPh', function (x) { st.photo = x; });
+  el('aiGo').onclick = function () {
+    var no = el('aiNo').value.trim(); if (!no) { el('aiErr').textContent = 'Write the invoice number'; return; }
+    el('aiGo').disabled = true;
+    api('appAddPurchaseInvoice', [TOKEN, { po: p.po, no: no, date: el('aiDate').value, amount: el('aiAmt').value, photo: st.photo }], function (r) {
+      toast('✅ Invoice #' + r.no + ' saved');
+      api('getAppPurchases', [TOKEN], function (pd) { PUR.data = pd; var np = pd.pos.filter(function (x) { return x.po === p.po; })[0]; if (done) done(np, r.no); else openPurchase(p.po); }, back);
+    }, function (e) { el('aiGo').disabled = false; el('aiErr').textContent = (e && e.message) || 'Not saved'; });
+  };
 }
 function openReceive(p) {
   el('panel').innerHTML = '<button class="btn mini" id="rvBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>' + esc(p.po) + '</button><h3>Goods received</h3><p>' + esc(p.supplier) + ' · stock updates within 15 minutes</p>' +
@@ -4293,8 +4475,9 @@ function openReceive(p) {
       return '<div class="stk-in"><div><b style="font-size:13.5px">' + esc(l.name) + '</b><small>ordered ' + l.qty + ' · received ' + l.received + '</small></div><input type="text" inputmode="decimal" data-rq="' + k + '" value="' + (left || '') + '" placeholder="arrived"></div>' +
         '<div class="stk-in"><div><small>rejected / damaged</small></div><input type="text" inputmode="decimal" data-rj="' + k + '" placeholder="0"></div>';
     }).join('') + '</div>' +
-    '<div class="fld"><label>Cargo / freight actually paid (PKR, total)</label><input id="rvCargo" type="text" inputmode="decimal" value="' + (p.cargo || '') + '"></div>' +
-    '<div class="fld"><label>Other charges (PKR, total)</label><input id="rvOther" type="text" inputmode="decimal" value="' + (p.other || '') + '"></div><div class="err" id="rvErr"></div>' +
+    '<div class="fld"><label>Cargo rent paid (PKR)</label><input id="rvCargo" type="text" inputmode="decimal" value="' + (p.cargo || '') + '" placeholder="what the cargo company took"></div>' +
+    fromField('rvFrom', (PUR.data && PUR.data.from) || ['Business account'], ((PUR.data && PUR.data.from) || [''])[0]) +
+    '<small class="mnote" style="display:block;margin:-6px 0 10px">Recorded as paid and added to each piece\'s cost</small><div class="err" id="rvErr"></div>' +
     '<button class="btn pri" id="rvGo" style="width:100%;padding:12px">Save received</button>';
   openPanel(true);
   el('rvBack').onclick = function () { openPurchase(p.po); };
@@ -4302,19 +4485,31 @@ function openReceive(p) {
     var lines = p.lines.map(function (l, k) { return { sku: l.sku, received: Number(el('panel').querySelector('[data-rq="' + k + '"]').value) || 0, rejected: Number(el('panel').querySelector('[data-rj="' + k + '"]').value) || 0 }; }).filter(function (x) { return x.received > 0; });
     if (!lines.length) { el('rvErr').textContent = 'Write how many arrived'; return; }
     el('rvGo').disabled = true;
-    api('appReceivePurchase', [TOKEN, { po: p.po, lines: lines, cargo: el('rvCargo').value, other: el('rvOther').value }], function () { toast('✅ Received · stock updates within 15 minutes'); openPurchases(); },
+    api('appReceivePurchase', [TOKEN, { po: p.po, lines: lines, cargo: el('rvCargo').value, cargoPaid: true }], function (r) { toast('✅ Received · stock updates within 15 minutes'); STK.at = 0; purReload(function () { openPurchase(p.po); }, r); },
       function (e) { el('rvGo').disabled = false; el('rvErr').textContent = (e && e.message) || 'Not saved'; });
   };
 }
-function openPayPurchase(p) {
-  var acc = (PUR.data && PUR.data.from) || ['Business account', 'Cash', 'Own pocket'], st = { from: acc[0], receipt: '' };
+function openPayPurchase(p, invPick) {
+  var acc = (PUR.data && PUR.data.from) || ['Business account'], st = { from: acc[0], receipt: '' };
+  var invs = p.invoices || [], open = invs.filter(function (v) { return v.amount - v.paid > 1; });
+  var pick = invPick != null ? invPick : open.length === 1 ? open[0].no : ''; // one unpaid invoice: chosen
+  var due = function () { var v = invs.filter(function (x) { return x.no === pick; })[0]; return Math.round(v ? Math.min(p.toPay, Math.max(0, v.amount - v.paid)) : p.toPay); };
   el('panel').innerHTML = '<button class="btn mini" id="ppBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>' + esc(p.po) + '</button><h3>Pay ' + esc(p.supplier) + '</h3><p>To pay ' + rs(p.toPay) + '</p>' +
-    '<div class="fld"><label>Amount (PKR)</label><input id="ppAmt" type="text" inputmode="decimal" value="' + Math.round(p.toPay) + '"></div>' +
-    '<div class="fld"><label>Paid from</label><div class="chips wrapc" id="ppFrom">' + acc.map(function (x) { return '<button class="chip' + (x === st.from ? ' on' : '') + '" type="button" data-v="' + x + '">' + (x === 'Own pocket' ? 'My own pocket' : x) + '</button>'; }).join('') + '</div></div>' +
+    '<div class="fld"><label>For invoice</label><select id="ppInv"><option value="">No invoice / general payment</option>' + invs.map(function (v) {
+      return '<option value="' + esc(v.no) + '"' + (v.no === pick ? ' selected' : '') + '>#' + esc(v.no) + ' · ' + rs(v.amount) + (v.paid ? ' · ' + (v.amount - v.paid > 1 ? rs(v.amount - v.paid) + ' left' : 'paid') : '') + '</option>';
+    }).join('') + '<option value="__new">+ Add an invoice…</option></select></div>' +
+    '<div class="fld"><label>Amount (PKR)</label><input id="ppAmt" type="text" inputmode="decimal" value="' + due() + '"></div>' +
+    '<div class="chips wrapc" id="ppQ" style="margin:-4px 0 10px"><button class="chip" type="button" data-p="1">Full</button><button class="chip" type="button" data-p=".5">Half</button></div>' +
+    fromField('ppFrom', acc, st.from) +
     '<div class="fld"><label>Receipt photo (optional)</label><input id="ppFile" type="file" accept="image/*" capture="environment" hidden><button class="btn" id="ppPhoto" type="button" style="width:100%"><i class="ti ti-camera"></i>Add a photo</button><img id="ppThumb" alt="" hidden style="display:block;max-width:100%;max-height:160px;margin-top:8px;border-radius:12px"></div>' +
     '<div class="err" id="ppErr"></div><button class="btn pri" id="ppGo" style="width:100%;padding:12px">Save payment</button>';
   openPanel(true);
   el('ppBack').onclick = function () { openPurchase(p.po); };
+  el('ppInv').onchange = function () {
+    if (el('ppInv').value === '__new') return openPurchaseInvoice(p, function (np, no) { openPayPurchase(np || p, no || ''); });
+    pick = el('ppInv').value; el('ppAmt').value = due();
+  };
+  el('ppQ').onclick = function (e) { var b = e.target.closest('[data-p]'); if (b) el('ppAmt').value = Math.round(due() * Number(b.getAttribute('data-p'))); };
   el('ppFrom').onclick = function (e) { var b = e.target.closest('[data-v]'); if (!b) return; st.from = b.getAttribute('data-v'); el('ppFrom').querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x === b); }); };
   el('ppPhoto').onclick = function () { el('ppFile').click(); };
   el('ppFile').onchange = function () {
@@ -4328,7 +4523,7 @@ function openPayPurchase(p) {
     var a = Number(String(el('ppAmt').value).replace(/[^0-9.]/g, ''));
     if (!(a > 0)) { el('ppErr').textContent = 'Enter the amount'; return; }
     el('ppGo').disabled = true;
-    api('appPayPurchase', [TOKEN, { po: p.po, amount: a, from: st.from, receipt: st.receipt }], function (r) { toast(r.status === 'Approved' ? '✅ Payment saved' : '✅ Payment saved · waiting for approval'); openPurchases(); },
+    api('appPayPurchase', [TOKEN, { po: p.po, amount: a, from: st.from, receipt: st.receipt, invoice: pick }], function (r) { if (r.data) { PUR.data = r.data; PUR.at = Date.now(); } toast(r.status === 'Approved' ? '✅ Payment saved' : '✅ Payment saved · waiting for approval'); openPurchase(p.po); },
       function (e) { el('ppGo').disabled = false; el('ppErr').textContent = (e && e.message) || 'Not saved'; });
   };
 }
@@ -4340,7 +4535,7 @@ function openBrief(day, back) {
   if (back !== undefined) BRIEF_BACK = back;
   SHEET_BACK = BRIEF_BACK; // the brief itself: closing it goes back to where it was opened from (🔔 list) or Home
   if (!BRIEF.data || BRIEF.day !== (day || '')) {
-    el('panel').innerHTML = '<h3>Morning brief</h3><div class="sk" style="height:220px"></div>'; openPanel(true);
+    el('panel').innerHTML = '<h3>Morning brief</h3>' + skList(5); openPanel(true);
     return api('getAppBrief', [TOKEN, day || ''], function (d) { BRIEF = { day: day || '', data: d }; openBrief(day); },
       function (e) { el('panel').innerHTML = '<h3>Morning brief</h3><div class="card empty">Could not load · ' + esc((e && e.message) || '') + '</div>'; });
   }
@@ -4395,13 +4590,16 @@ function openBriefList(day, k) {
 }
 
 // ---------- 🔔 notification list (everything W1 sent; the dot = new since you last opened it) ----------
-var ALERT_ICON = { cash: ['cash-banknote', 'var(--green)'], sync: ['alert-circle', 'var(--text)'], ndr: ['headset', 'var(--red)'], back: ['arrow-back-up', 'var(--amber)'], late: ['clock-exclamation', 'var(--amber)'], nocn: ['barcode-off', 'var(--amber)'], brief: ['sun', 'var(--brand)'], test: ['bell', 'var(--muted)'] };
+var ALERT_ICON = { courier: ['message-reply', 'var(--blue)'], money: ['receipt', 'var(--amber)'], mine: ['circle-check', 'var(--green)'], buy: ['truck-delivery', 'var(--amber)'],
+  ads: ['speakerphone', 'var(--brand)'], security: ['lock', 'var(--red)'], stock: ['packages', 'var(--amber)'], cash: ['cash-banknote', 'var(--green)'], sync: ['alert-circle', 'var(--text)'], ndr: ['headset', 'var(--red)'], back: ['arrow-back-up', 'var(--amber)'], late: ['clock-exclamation', 'var(--amber)'], nocn: ['barcode-off', 'var(--amber)'], brief: ['sun', 'var(--brand)'], test: ['bell', 'var(--muted)'] };
 var alertsData = null;
 function loadAlerts(open) {
   api('getAppAlerts', [TOKEN], function (list) {
     alertsData = list || [];
-    var seen = Number(store('eh_alerts_seen') || 0);
+    var seen = Number(store('eh_alerts_seen') || 0), top = alertsData.length ? alertsData[0].ms : 0, last = Number(store('eh_alerts_heard') || 0);
     el('bellDot').hidden = !alertsData.some(function (a) { return a.ms > seen; });
+    if (last && top > last && !open) chime(alertsData.some(function (a) { return a.ms > last && /security|sync/.test(a.kind); }));
+    if (top) store('eh_alerts_heard', String(top));
     if (open) drawAlerts();
   }, function () { if (open) { alertsData = []; drawAlerts(); } });
 }
@@ -4486,19 +4684,23 @@ function drawPushBtn() {
 }
 el('btnPush').onclick = function () { if (pushIsOn()) fromMenu(openPushPrefs)(); else { closeDrawer(); pushOn(false); } };
 // What this phone gets: each kind on / off (saved in W1 _APP_PUSH "Types"), or notifications off altogether
-var PUSH_KINDS = [['ndr', 'NDR cases', 'Failed delivery, refused, stuck with courier'], ['back', 'Returns back', 'A return reached the local courier office · collect and scan'],
+var PUSH_KINDS = [['ndr', 'NDR cases', 'Failed delivery, refused, stuck with courier'], ['courier', 'Courier replies', 'A courier answered a request, or did nothing in 24 h'],
+  ['back', 'Returns back', 'A return reached the local courier office · collect and scan'],
   ['late', 'Late parcels', '8+ days since dispatch, not delivered'], ['nocn', 'Missing tracking', 'Booked but no tracking number'], ['brief', 'Morning brief', '10 am · yesterday and today in one message'],
-  ['sync', 'System alerts', 'A sync stopped or failed · and when it is back'],
   ['cash', 'Courier payments', 'A courier sent money · check the bank and Record'],
-  ['stock', 'Low stock', 'A product is low or out of stock']];
+  ['money', 'Approvals', 'Expenses waiting for your approval · monthly bank check'], ['mine', 'My entries', 'Your expense was approved or rejected'],
+  ['stock', 'Low stock', 'A product is low or out of stock'], ['buy', 'Purchases', 'A purchase is late from the supplier'],
+  ['ads', 'Ads', 'Daily: ad sets to scale or to stop'], ['security', 'Security', 'A login was locked after wrong PINs'],
+  ['sync', 'System alerts', 'A sync stopped or failed · and when it is back']];
 function openPushPrefs() {
   var kinds = PUSH_KINDS.filter(function (k) { return can(KIND_PERM[k[0]]); }); // only what this role gets
   var cur = store('eh_push_types'), on = cur == null || cur === '' ? kinds.map(function (k) { return k[0]; }) : cur === 'none' ? [] : cur.split(',');
   el('panel').innerHTML = '<h3>Notifications</h3><p>Choose what this phone gets</p><div class="plist-box">' + kinds.map(function (k) {
     return '<label class="pref"><div><b>' + k[1] + '</b><small>' + k[2] + '</small></div><input type="checkbox" data-kind="' + k[0] + '"' + (on.indexOf(k[0]) !== -1 ? ' checked' : '') + '><span class="sw"></span></label>';
-  }).join('') + '</div><div class="err" id="ppErr"></div>' +
+  }).join('') + '</div><div class="plist-box" style="margin-top:10px"><label class="pref"><div><b>In-app sound</b><small>A soft chime when something new arrives while the app is open (closed app: the phone\'s own sound)</small></div><input type="checkbox" id="ppSound"' + (store('eh_sound') === '0' ? '' : ' checked') + '><span class="sw"></span></label></div><div class="err" id="ppErr"></div>' +
     '<div class="btns" style="margin-top:10px"><button class="btn" id="ppOff"><i class="ti ti-bell-off"></i>Turn off</button><button class="btn pri" id="ppSave">Save</button></div>';
   openPanel();
+  el('ppSound').onchange = function () { store('eh_sound', this.checked ? '' : '0'); if (this.checked) chime(false); };
   el('ppOff').onclick = function () { closePanel(); pushOff(); };
   el('ppSave').onclick = function () {
     var picked = [].slice.call(el('panel').querySelectorAll('[data-kind]')).filter(function (c) { return c.checked; }).map(function (c) { return c.getAttribute('data-kind'); });
@@ -4824,14 +5026,19 @@ function start() {
   // Opened from a notification: ?tab=ndr / returns / parcels
   var qs = new URLSearchParams(location.search), qt = qs.get('tab'), qp = qs.get('p'), qb = qs.get('brief');
   if (qb) setTimeout(function () { showTab('home'); openBrief(/^\d{4}-\d{2}-\d{2}$/.test(qb) ? qb : '', null); }, 600);
-  var qsy = qs.get('sync'), qpay = qs.get('pay'), qst = qs.get('stock');
+  var qsy = qs.get('sync'), qpay = qs.get('pay'), qst = qs.get('stock'), qfin = qs.get('fin'), qacct = qs.get('acct'), qpur = qs.get('pur'), qads = qs.get('ads'), qteam = qs.get('team');
+  if (qfin && (can('finance.add') || can('finance.approve'))) setTimeout(function () { openExpenses(''); }, 600);
+  if (qacct && can('finance.view')) setTimeout(openAccounts, 600);
+  if (qads && (can('reports.view') || can('finance.view'))) setTimeout(function () { openAds(3); }, 600);
+  if (qteam && can('users.manage')) setTimeout(openTeam, 600);
+  if (qpur && can('inventory.edit')) setTimeout(function () { purReload(function () { openPurchase(qpur); }); }, 600);
   if (qst && can('inventory.view')) setTimeout(function () { openStock(qst); }, 600);
   if (qpay) { PAY_OPEN = qpay; setTimeout(function () { showTab('cash'); openPayIfReady(); }, 700); }
   if (qsy) setTimeout(openSyncStatus, 600);
   applyPerms();
   if (qt && TABS[qt] && canTab(qt)) showTab(qt);
   if (qp && (can('parcels.view') || can('returns.view') || can('inventory.view') || can('ndr.view'))) setTimeout(function () { openParcel(qp); }, 600);
-  if (qt || qp || qb || qsy || qpay || qst) { try { history.replaceState(history.state, '', location.pathname + location.hash); } catch (e) {} }
+  if (qt || qp || qb || qsy || qpay || qst || qfin || qacct || qpur || qads || qteam) { try { history.replaceState(history.state, '', location.pathname + location.hash); } catch (e) {} }
   // Warm the other tabs in the background so switching is instant.
   loadAllowed();
   setTimeout(fnBadge, 2500); // approvers: expenses waiting
