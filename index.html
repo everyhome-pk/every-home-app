@@ -281,13 +281,13 @@ body{overscroll-behavior-y:contain}
 .act{display:flex;gap:12px;align-items:center;padding:11px 0;border-top:1px solid var(--line)}
 /* Home dashboard (2026-10-28): tall money card + 2 small, Quick create, trend */
 .hd-cards{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:10px;margin-bottom:18px}
-.hd-cards button{border:0;text-align:left;font:inherit;color:var(--text);cursor:pointer;border-radius:18px}
-.hd-tall{grid-row:span 2;background:#E7F5F2;padding:16px;display:flex;flex-direction:column;justify-content:space-between;gap:14px;min-height:176px}
+.hd-cards button{border:0;text-align:left;font:inherit;color:var(--text);cursor:pointer;border-radius:18px;box-shadow:0 1px 2px rgba(15,23,42,.06),0 6px 16px rgba(15,23,42,.08)}
+.hd-tall{grid-row:span 2;background:#D3EDE7;padding:16px;display:flex;flex-direction:column;justify-content:space-between;gap:14px;min-height:176px}
 .hd-tall small,.hd-small small{display:block;font-size:13px;color:#4A5C58}
 .hd-tall b{display:block;font-size:21px;font-weight:500;margin-top:4px}.hd-tall span{display:block;font-size:12px;color:#4A5C58;margin-top:2px}
 .hd-small{padding:13px 14px 11px}.hd-small small{font-weight:500}.hd-small>span:last-child{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
 .hd-n{display:flex;justify-content:space-between;align-items:center}.hd-n b{font-size:22px;font-weight:500}.hd-n i{color:var(--faint);font-size:17px}
-.hd-blue{background:#EEF3FC}.hd-blue small{color:#2F4DB3}.hd-amber{background:#FDF1DC}.hd-amber small{color:#7A5C2E}
+.hd-blue{background:#DEE7FA}.hd-blue small{color:#2F4DB3}.hd-amber{background:#FAE5C2}.hd-amber small{color:#7A5C2E}
 .hd-small em{font-style:normal;font-weight:500}.hd-small em.up{color:var(--green)}.hd-small em.down{color:var(--red)}
 .hd-qh{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;letter-spacing:1px;margin:4px 0 12px}.hd-qh i{font-size:18px}
 .hd-quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;text-align:center;margin-bottom:18px}
@@ -1874,8 +1874,8 @@ function homeCards(d) {
 }
 // Quick create: the first 4 this person may use, in this order (each opens a screen the app already has)
 var HD_QUICK = [
-  ['expense', 'Expense', 'receipt', 'finance.add', function () { openAddExpense(); }],
-  ['purchase', 'Purchase', 'shopping-cart', 'inventory.edit', function () { openNewPurchase(); }],
+  ['expense', 'Expense', 'receipt', 'finance.add', function () { quickExpense(); }],
+  ['purchase', 'Purchase', 'shopping-cart', 'inventory.edit', function () { quickPurchase(); }],
   ['payment', 'Payments', 'cash', 'cash.view', function () { showTab('cash'); }],
   ['payout', 'Accounts', 'building-bank', 'users.manage', function () { openAccounts(); }],
   ['ndr', 'Update NDR', 'phone', 'ndr.work', function () { showTab('ndr'); }],
@@ -1883,6 +1883,23 @@ var HD_QUICK = [
   ['count', 'Count stock', 'clipboard-check', 'inventory.edit', function () { openStockCount(true); }],
   ['find', 'Find parcel', 'search', 'parcels.view', function () { showTab('parcels'); setTimeout(function () { if (el('q')) el('q').focus(); }, 300); }]
 ];
+// The Add expense / New purchase forms need their screen's data (FN.data / PUR.data): use the copy kept on the
+// phone, else fetch it once (loading rows meanwhile), then open the form straight away (user 2026-10-28: the tiles
+// did nothing when Expenses / Purchases had not been opened yet)
+function quickExpense() {
+  FN.month = pkDay(new Date()).slice(0, 7);
+  var k = 'fin_' + FN.month, hit = VIEW_MEM[k];
+  if (!hit) { try { hit = JSON.parse(store('ehv_' + k) || 'null'); } catch (e) { hit = null; } }
+  if (hit && hit.cats) { FN.data = hit; return openAddExpense(); }
+  el('panel').innerHTML = '<h3>Add expense</h3>' + skList(4); openPanel(true);
+  api('getAppFinance', [TOKEN, FN.month], function (d) { viewKeep(k, d); FN.data = d; openAddExpense(); }, function () { closePanel(); toast('You don\'t have access to this'); });
+}
+function quickPurchase() {
+  if (!PUR.data) { try { var sv = JSON.parse(store('eh_pur') || 'null'); if (sv && sv.pos) PUR.data = sv; } catch (e) {} }
+  if (PUR.data) return openNewPurchase({ back: closePanel });
+  el('panel').innerHTML = '<h3>New purchase</h3>' + skList(4); openPanel(true);
+  api('getAppPurchases', [TOKEN], function (d) { purKeep(d); openNewPurchase({ back: closePanel }); }, function (e) { closePanel(); toast((e && e.message) || 'Not loaded'); });
+}
 function homeQuick() {
   var list = HD_QUICK.filter(function (q) { return can(q[3]) && (q[0] !== 'payout' || can('finance.view')); }).slice(0, 4);
   if (!list.length) return '';
