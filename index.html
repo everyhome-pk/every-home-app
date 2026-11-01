@@ -403,6 +403,38 @@ html[data-mode="dark"] .hd-tall small,html[data-mode="dark"] .hd-tall span{color
 .prow.in{padding-left:0;padding-right:0}.prow.in:first-child{border-top:1px solid var(--line)}
 .prow-btn{flex:none !important;width:auto !important;padding:7px 11px;font-size:12px;align-self:center;gap:5px}
 .prow-call{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);color:var(--brand);margin-top:2px}[data-mode="dark"] .prow-call{color:var(--accent)}
+/* NDR (2026-11-01): tabs, score, group headers, case card, courier list bars */
+.ntabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;background:var(--line);border-radius:12px;padding:4px;margin:0 0 6px}
+.ntabs button{border:0;border-radius:9px;padding:6px 2px;font:500 12px Inter,sans-serif;background:transparent;color:var(--muted);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ntabs button b{display:block;font-size:15px;font-weight:600}.ntabs button.on{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(15,23,42,.12)}
+.nscore{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0 0 10px}
+.nscore>div{background:var(--card);border-radius:12px;padding:8px 10px;box-shadow:var(--shadow);min-width:0}.nscore b{display:block;font-size:16px;font-weight:600}
+.nscore span{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.ngh{display:flex;align-items:flex-start;gap:8px;margin:16px 2px 8px}.ngh>i{font-size:17px;color:var(--brand);margin-top:-1px;flex:none}.ngh>div{min-width:0;flex:1}
+.ngh-t{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;letter-spacing:.4px;text-transform:uppercase}.ngh-t span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ngh-t em{flex:none;font-style:normal;font-size:11px;background:var(--line);border-radius:99px;padding:1px 7px;letter-spacing:0}
+.ngh small{display:block;font-size:11.5px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nc{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:14px;margin-bottom:10px;cursor:pointer}
+.nc-h{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.nc-h b{font-size:14.5px;font-weight:600;display:flex;align-items:center;min-width:0}
+.nc-tag{flex:none;font-size:11.5px;font-weight:500;padding:3px 9px;border-radius:99px;white-space:nowrap}
+.t-red{background:var(--red-bg);color:var(--red)}.t-amber{background:var(--amber-bg);color:var(--amber)}.t-blue{background:var(--blue-bg);color:var(--blue)}.t-green{background:var(--green-bg);color:var(--green)}.t-grey{background:var(--bg);color:var(--muted)}
+.nc-m{font-size:12px;color:var(--muted);margin-top:2px}.nc-it{font-size:12.5px;margin-top:8px}
+.nc-box{font-size:12.5px;margin-top:8px;background:var(--bg);border-radius:10px;padding:7px 10px;color:var(--muted)}.nc-box b{color:var(--text);font-weight:600}
+.nc-box.cu{background:var(--green-bg);color:var(--green)}.nc-box.cu b{color:inherit}
+.nc-ln{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-top:6px}.nc-ln i{font-size:14px;flex:none}
+.nc-st{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin-top:10px}.nc-st>span{display:block;min-width:0}
+.nc-st i{display:block;height:4px;border-radius:99px;background:var(--line)}.nc-st b{display:block;font-size:11px;font-weight:600;margin-top:5px;color:var(--faint)}
+.nc-st small{display:block;font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nc-st .ok i{background:var(--green)}.nc-st .ok b{color:var(--green)}.nc-st .wt i{background:#F59E0B}.nc-st .wt b{color:var(--amber)}.nc-st .bd i{background:var(--red)}.nc-st .bd b{color:var(--red)}
+.nc-hint{font-size:12.5px;font-weight:500;margin-top:10px}
+.nc-act{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}.nc-act .btn{height:40px;padding:0 10px}.nc-act .grow{flex:1}.nc-act .sq{width:44px;flex:none}
+.btn.ton{background:#E7F5F2;border-color:transparent;color:var(--brand)}[data-mode="dark"] .btn.ton{background:#12302d;color:var(--accent)}
+.obar{display:flex;align-items:center;gap:10px;width:100%;background:var(--amber-bg);border:1px solid #FDE68A;border-radius:14px;padding:10px 10px 10px 12px;margin-bottom:8px;text-align:left;font-family:inherit;cursor:pointer;color:var(--text)}
+.obar .av{width:32px;height:32px;border-radius:50%;background:#FEF3C7;color:#92400E;display:flex;align-items:center;justify-content:center;font-weight:600;flex:none}
+.obar .tx{flex:1;min-width:0}.obar .tx b{display:block;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.obar .tx small{display:block;font-size:11.5px;color:var(--amber);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.obar .go{flex:none;background:var(--brand);color:#fff;border-radius:10px;padding:8px 12px;font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px}
+[data-mode="dark"] .obar{border-color:#3b3010}[data-mode="dark"] .obar .av{background:#3b3010;color:var(--amber)}
 .tcard{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:13px 14px;margin-bottom:10px;border-left:4px solid var(--c)}
 .tcard .th{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.tcard .th b{font-size:14px;font-weight:600;line-height:1.35}
 .tage{flex:none;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px;color:var(--c);background:var(--bg)}
@@ -544,6 +576,44 @@ body.locked{overflow:hidden;overscroll-behavior:none}
 .pf-phone{display:flex;align-items:center;justify-content:center;gap:6px;font-weight:600;font-size:15px;margin:4px 0 2px}.pf-phone i{color:var(--muted);font-size:18px}
 .login-box .pf-note{font-size:11.5px;margin:0 0 12px}
 .login-box select,.login-box input{width:100%;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:14px;padding:13px 14px;font:400 15px Inter,sans-serif;margin-bottom:10px;text-align:center}
+/* case history (parcel page) */
+.ch-f{display:flex;gap:6px;margin-bottom:6px}.ch-f button{border:1px solid var(--line);background:var(--card);border-radius:99px;height:30px;padding:0 12px;font:500 12px Inter,sans-serif;color:var(--muted);cursor:pointer}
+.ch-f button.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+.ch-d{font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin:12px 0 4px}
+.ch-i{display:flex;gap:10px;padding:8px 0}.ch-i+.ch-i{border-top:1px solid var(--line)}.ch-i>div{flex:1;min-width:0}
+.ch-ic{width:28px;height:28px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;flex:none;font-size:15px}
+.ch-t{display:flex;justify-content:space-between;gap:8px;font-size:13px}.ch-t b{font-weight:600}.ch-t small{flex:none;color:var(--muted);font-size:11.5px}
+.ch-s{font-size:12.5px;color:var(--muted);margin-top:2px}.ch-by{font-size:11.5px;color:var(--faint);margin-top:2px}
+/* after-call window (2026-11-01) */
+.ac-just{display:flex;align-items:center;gap:8px;background:var(--green-bg);color:var(--green);border-radius:12px;padding:9px 12px;font-size:13px;font-weight:500;margin:0 0 10px}.ac-just i{font-size:16px}
+.ac-facts{border:1px solid var(--line);border-radius:16px;padding:2px 14px;margin-bottom:4px}
+.ac-f{display:flex;gap:10px;align-items:flex-start;padding:9px 0;font-size:13px}.ac-f+.ac-f{border-top:1px solid var(--line)}.ac-f>i{font-size:16px;margin-top:1px;flex:none}.ac-f>span{flex:1;min-width:0}.ac-f b{font-weight:600}
+.ac-f .btn{flex:none;height:34px;padding:0 10px;font-size:12.5px;border-radius:10px;gap:4px}
+.ac-q{font-size:13px;font-weight:600;margin:16px 2px 8px}
+.ac-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:1fr;gap:8px}
+.ac-t{position:relative;display:flex;gap:10px;align-items:flex-start;text-align:left;border:1.5px solid var(--line);background:var(--card);border-radius:14px;padding:11px 12px;font:inherit;color:var(--text);cursor:pointer;min-height:62px}
+.ac-t>i{font-size:18px;margin-top:1px;flex:none}.ac-t b{display:block;font-size:13.5px;font-weight:600}.ac-t small{display:block;font-size:11.5px;color:var(--muted);margin-top:1px}
+.ac-t.on{border-color:var(--brand);background:#E7F5F2}[data-mode="dark"] .ac-t.on{background:#12302d}
+.ac-tick{display:none;position:absolute;top:8px;right:8px;width:18px;height:18px;border-radius:50%;background:var(--brand);color:#fff;align-items:center;justify-content:center;font-size:12px}.ac-t.on .ac-tick{display:flex}
+.ac-sug{position:absolute;top:-9px;right:10px;background:var(--brand);color:#fff;font-size:10px;font-weight:600;border-radius:99px;padding:2px 7px}
+.ac-sugn{font-size:11.5px;color:var(--muted);margin:6px 2px 0}
+.ac-box{border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-top:12px}
+.ac-box>label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:0 0 6px}.ac-box>label~label{margin-top:12px}.ac-box>small{display:block;font-size:11.5px;color:var(--muted);margin-top:8px}
+.ac-box textarea,.ac-box input{width:100%;box-sizing:border-box}
+.ac-row{display:grid;gap:6px;margin-top:6px}.ac-row .chip{width:100%;padding:7px 4px;display:inline-flex;align-items:center;justify-content:center;gap:4px}
+.ac-box .chip.on{background:#E7F5F2;border-color:var(--brand);color:var(--brand)}
+.ac-lbl{display:flex !important;justify-content:space-between;gap:8px}.ac-lbl small{font-weight:500}
+.ac-phr{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.ac-phr:empty{display:none}
+.ac-phr button{border:1px dashed var(--faint);background:var(--card);border-radius:99px;height:32px;padding:0 11px;font:500 12.5px Inter,sans-serif;color:var(--text);cursor:pointer}
+.ac-wa{width:100%;margin-top:12px;height:42px;background:var(--green-bg);color:var(--green);border-color:transparent}
+.ac-prev{border:1px solid #CDE8E2;border-radius:16px;padding:12px 14px;margin-top:12px;font-size:13px}.ac-prev.none{background:var(--bg);border-color:var(--line)}
+.ac-prev small{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px}.ac-prev div div{margin-top:2px;white-space:pre-wrap}.ac-prev .b{font-weight:600}
+.ac-note{display:flex;align-items:center;gap:8px;width:100%;margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;height:44px;padding:0 12px;font:500 13px Inter,sans-serif;color:var(--text);cursor:pointer}
+.ac-note span{flex:1;text-align:left}.ac-note small{color:var(--muted);font-size:12px}
+.ac-bar{position:sticky;bottom:calc(-28px - env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--line);margin:14px -16px calc(-28px - env(safe-area-inset-bottom));padding:8px 16px calc(14px + env(safe-area-inset-bottom));z-index:3}
+.ac-next{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);padding:0 2px 8px}.ac-next b{color:var(--text);font-weight:600}.ac-next input{width:18px;height:18px;accent-color:var(--brand)}
+.ac-btns{display:flex;gap:8px}.ac-btns .btn{height:46px}.ac-btns .btn.pri,.ac-btns .btn.danger{flex:2}.btn:disabled{opacity:.5;pointer-events:none}
+.btn.danger{background:#C2410C;border-color:#C2410C;color:#fff}
 .tk{font-size:12px;margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--amber-bg);color:var(--amber)}
 .tk.ok{background:var(--green-bg);color:var(--green)}.tk.bad{background:var(--red-bg);color:var(--red)}
 .cs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0 4px;text-align:center}
@@ -622,6 +692,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   <section id="tab-ndr" hidden>
     <h1 class="title">NDR &amp; stuck parcels</h1>
     <div class="brief" id="ndrBrief"><i class="ti ti-bell-ringing"></i><span>Loading…</span></div>
+    <div class="search" style="margin:0 0 10px"><i class="ti ti-search"></i><input id="nq" type="search" placeholder="Tracking ID, order #, phone or name" autocomplete="off"></div>
     <div id="nchips"></div>
     <div id="ncour"></div>
     <div id="nlist"><div class="sk" style="height:170px;margin-bottom:10px"></div><div class="sk" style="height:170px"></div></div>
@@ -1384,14 +1455,16 @@ function openParcel(key, given) {
       cash ? '<button class="pp-more" style="width:auto;padding:0" data-ppr="' + esc(p.cn) + '">Receipt ›</button>' : '') +
     (!p.done && can('cash.edit') && (p.due == null || p.due > 0) ? '<button class="btn" id="pdAdv" style="width:100%;padding:12px;margin-bottom:12px"><i class="ti ti-cash"></i>Record advance payment</button>' : '') +
     (p.rcv ? '<button class="btn" data-rh="' + esc(p.cn) + '" style="width:100%;padding:12px;margin-bottom:12px"><i class="ti ti-history"></i>Return history</button>' : '') +
+    (p.cn && (ndr || p.attempts) ? '<div class="pp-card"><div class="pp-h"><span>Case history</span></div><div id="pdch"><div class="sk" style="height:80px"></div></div></div>' : '') +
     (p.cn ? '<div class="pp-card"><div class="pp-h"><span>Tracking</span></div><div class="tl-sheet" id="pdtl" style="margin-bottom:8px"><div class="sk" style="height:100px"></div></div></div>' : '');
   // the actions stay at the bottom, within thumb reach
   var bar = (p.phone ? '<a class="btn"' + (ndr ? ' data-call="' + esc(ndr.cn) + '"' : '') + ' href="' + telHref(p.phone) + '"><i class="ti ti-phone"></i>Call</a>' : '') +
-    (p.wa ? '<a class="btn wa" target="_blank" href="' + waLink(p.wa, custWaText(p)) + '"><i class="ti ti-brand-whatsapp"></i>WhatsApp</a>' : '') +
+    (p.wa ? '<a class="btn wa" target="_blank" href="' + waLink(p.wa, '') + '"><i class="ti ti-brand-whatsapp"></i>WhatsApp</a>' : '') +
     (ndr && can('ndr.work') ? '<button class="btn pri" id="pdNdr"><i class="ti ti-pencil"></i>Update</button>'
       : p.track ? '<a class="btn" target="_blank" href="' + esc(p.track) + '"><i class="ti ti-external-link"></i>Track</a>' : '');
   openPage({ title: p.ref, sub: p.name || '', tag: '<span class="st" style="--c:' + s[1] + '">' + s[0] + '</span>', body: body, bar: bar });
   if (el('pdNdr')) el('pdNdr').onclick = function () { openNdrForm(ndr.cn); };
+  if (el('pdch')) caseHistory(p.cn);
   if (el('pdAdv')) el('pdAdv').onclick = function () { openAdvance(p); };
   el('pgBody').querySelectorAll('[data-ppr]').forEach(function (b) { b.onclick = function () { openCashReceipt(b.getAttribute('data-ppr')); }; });
   // Tracking: the saved events first (instant), then the courier's own live list replaces them; long lists start short.
@@ -2330,7 +2403,7 @@ function go(target) {
     else if (g[1]) { C.pf = g[1]; C.plim = PAGE; C.scrollTo = 'cparcels'; }
     C.data = null; showTab('cash');
   }
-  else if (g[0] === 'ndr') { N.type = g[1] || ''; N.filter = 'all'; N.scrollOnce = !!g[1]; showTab('ndr'); }
+  else if (g[0] === 'ndr') { N.type = g[1] || ''; N.tab = 'todo'; N.scrollOnce = !!g[1]; showTab('ndr'); }
   else if (g[0] === 'returns') { R.filter = g[1] || ''; R.scrollTo = !!g[1]; showTab('returns'); }
   else showTab(g[0]);
 }
@@ -2452,8 +2525,6 @@ function niceReason(r) {
   if (m) return m[1];
   return t.charAt(0) + t.slice(1).toLowerCase();
 }
-// the "Courier's reason is wrong" chip that answers this excuse (preselected in the NDR form)
-function reasonChip(r) { var m = reasonRule(r); return m ? m[2] : ''; }
 // One parcel = one line: who and how much, then order · city · courier and the stage; a third line only for a problem
 // Customer record (same phone number, all other orders): COD risk before confirming, booking or calling
 // returns ≥ deliveries → high risk (red) · some returns → amber · 2+ cancelled → amber · only deliveries → trusted (green)
@@ -2486,30 +2557,6 @@ function parcelRow(p) {
     // customer record while the parcel is still open (before it is delivered / returned / cancelled)
     (['delivered', 'returned', 'cancelled'].indexOf(p.stage) === -1 ? riskLine(p) : '') + '</div>' + call + '</div>';
 }
-// Customer WhatsApp message for where the parcel is now: short Roman Urdu, *bold* for order / amount / CN.
-function custWaText(p) {
-  var name = String(p.name || '').split(' ')[0] || 'Sir/Madam';
-  var ref = '*' + p.ref + '*';
-  var cod = p.total ? '*Rs ' + Math.round(p.total).toLocaleString('en-IN') + '* (COD)' : '';
-  var hi = 'Assalam-o-Alaikum ' + name + ',\n\n', sign = '\n\n– *Every Home*';
-  var track = p.cn ? '\nCourier: ' + (p.courier || '') + '\nTracking: *' + p.cn + '*' : '';
-  switch (p.stage) {
-    case 'pending':
-      return hi + 'Aap ka order ' + ref + ' humein mil gaya hai.\n' + (cod ? 'Raqam: ' + cod + '\n' : '') + '\nOrder confirm karne ke liye *YES* reply karein.' + sign;
-    case 'confirmed': case 'booked':
-      return hi + 'Aap ka order ' + ref + ' confirm ho gaya hai aur jald rawana hoga.' + track + sign;
-    case 'picked': case 'transit': case 'atdest':
-      return hi + 'Aap ka order ' + ref + ' rawana ho chuka hai.' + track + (cod ? '\nRaqam: ' + cod : '') + '\n\nRider delivery se pehle call karega.' + sign;
-    case 'ofd':
-      return hi + 'Aap ka order ' + ref + ' aaj delivery ke liye rider ke paas hai.\n' + (cod ? 'Raqam ' + cod + ' tayyar rakhein.\n' : '') + '\nBarah-e-karam rider ki call receive karein.' + sign;
-    case 'ndr':
-      return hi + 'Aap ka order ' + ref + ' deliver nahi ho saka.\n\nBarah-e-karam confirm karein:\n1. Sahi address\n2. Delivery ka munasib waqt' + sign;
-    case 'delivered':
-      return hi + 'Every Home se khareedari ka shukriya.\nOrder ' + ref + ' ke baare mein koi sawal ho to isi number par batayein.' + sign;
-    default:
-      return hi + 'Every Home se order ' + ref + ' ke silsile mein rabta kar rahe hain.' + sign;
-  }
-}
 el('q').oninput = function () { P.q = el('q').value; P.limit = PAGE; renderParcels(); };
 el('pchips').onclick = function (e) {
   if (e.target.closest('[data-fx]')) { P.ctx = null; P.limit = PAGE; return renderParcels(); }
@@ -2518,7 +2565,7 @@ el('pchips').onclick = function (e) {
 };
 
 // ---------- NDR + Parcel Watch ----------
-var N = { data: snap('ndr'), filter: 'all', limit: 20 };
+var N = { data: snap('ndr'), tab: 'todo', limit: 20 };
 function caseKey(c) { return c.cn + '|' + c.type.slice(0, 12); }
 function seenSet() { try { return JSON.parse(store('eh_ndr_seen') || '[]'); } catch (e) { return []; } }
 function markNdrSeen() { if (N.data) store('eh_ndr_seen', JSON.stringify(N.data.cases.map(caseKey))); updateBadge(); }
@@ -2529,15 +2576,21 @@ var CALL_AGAIN_HOURS = 3;
 function isTodo(c) {
   if (c.next === 'Chase courier (late)' && c.sent !== 'Attempt failed') return false;
   // its request is in the courier list or with the courier: nothing to do until the courier acts (user 2026-10-27)
+  if (c.callBack && c.callBack <= Date.now()) return true;
   if (/^(Queued|Sent|Courier confirmed)$/.test(c.sent || '')) return false;
   if (!c.outcome || c.outcome === 'Not called yet') return true;
   if (c.sent === 'Attempt failed') return true;
+  // the customer asked for a time (Call back at): waits until then, then it is to do again
+  if (c.callBack) return c.callBack <= Date.now();
   return /no answer|phone off/i.test(c.outcome) && c.lastCallMs > 0 && Date.now() - c.lastCallMs > CALL_AGAIN_HOURS * 3600000;
 }
+// the NDR badge / app icon number (2026-11-01): the To do tab's calls (new, call again) + returns that can still be stopped;
+// stuck parcels (Special · no courier update) are the courier's to trace, not counted
+function ndrCounts(c) { var s = ndrSlot(c)[1]; return s === 'new' || s === 'again' || s === 'premature' || s === 'rtostop'; }
 var badgeSeenNew = 0;
 function updateBadge() {
   var b = el('badge'); if (!N.data || !N.data.cases) return;
-  var todo = N.data.cases.filter(isTodo).length, fresh = curTab === 'ndr' ? 0 : newCases().length;
+  var todo = N.data.cases.filter(ndrCounts).length, fresh = curTab === 'ndr' ? 0 : newCases().length;
   // the number is always "to do"; new cases make it pop once
   if (fresh > badgeSeenNew) { b.classList.remove('fresh'); void b.offsetWidth; b.classList.add('fresh'); }
   badgeSeenNew = fresh;
@@ -2583,42 +2636,216 @@ function chime(urgent) {
 }
 // browsers allow sound only after a tap: wake the audio engine on the first one
 addEventListener('pointerdown', function wake() { try { AUDIO = AUDIO || new (window.AudioContext || window.webkitAudioContext)(); AUDIO.resume(); } catch (e) {} removeEventListener('pointerdown', wake); });
-var NDR_GROUPS = [['all', 'All'], ['1', 'Urgent'], ['todo', 'To contact'], ['courier', 'Escalated'], ['watch', 'Stalled']];
 // Case kinds used by Home's to-do lines (same rules as the server's grouping).
 var NDR_TYPES = { premature: 'Premature returns', refused: 'Marked as refused', watch: 'Stalled with courier', ndr: 'Failed deliveries', rto: 'Returns initiated', reattempt: 'Reattempts' };
 function caseType(c) {
   var t = c.type || '';
   return /premature/i.test(t) ? 'premature' : /refus/i.test(t) ? 'refused' : c.watch ? 'watch' : /rto/i.test(t) ? 'rto' : /reattempt/i.test(t) ? 'reattempt' : 'ndr';
 }
-function inGroup(c, g) {
-  return g === 'all' || (g === '1' && c.priority === '1') || (g === 'todo' && isTodo(c)) ||
-    (g === 'courier' && c.next === 'Escalate to courier' && c.sent !== 'Courier confirmed') || (g === 'watch' && c.watch);
+// NDR part 2 (2026-11-01, user mockup "NDR card (new)"): 4 tabs by whose turn it is, groups inside each tab, one card per
+// case (courier says / customer says / tries left / calls / 4 steps with times / one main button), call back at the
+// customer's time, the courier list with its cut-off, a score strip and the cases closed today.
+var NDR_TABS = [['todo', 'To do'], ['courier', 'With courier'], ['special', 'Special'], ['closed', 'Closed today']];
+var NDR_GH = {
+  todo: [['new', 'circle-plus', 'New cases', 'not called yet · fewest tries left first'], ['again', 'phone-call', 'Call again', 'failed again · no answer 3 h+ · their time came'],
+    ['later', 'clock', 'Call back at their time', 'comes back by itself with a reminder'], ['ready', 'send', 'Ready to send', 'in the courier lists'],
+    ['wait', 'hourglass', 'Called · next try later', 'no answer · call again after 3 h']],
+  courier: [['replied', 'message-2', 'Courier replied', 'read it · keep with courier or call the customer'], ['reattempt', 'repeat', 'Reattempt requested', ''],
+    ['return', 'arrow-back-up', 'Return requested', ''], ['late', 'clock-exclamation', 'Late · asked to trace', ''], ['check', 'search', 'Status check', '']],
+  special: [['premature', 'alert-octagon', 'Premature return', 'started before the last try · stop it'], ['rtostop', 'arrow-back-up', 'Return started · can stop', 'within 72 h'],
+    ['stalled', 'clock-pause', 'Stuck · no courier update', 'ask the courier to trace it']],
+  closed: [['saved', 'circle-check', 'Saved', 'delivered after NDR'], ['returned', 'arrow-back-up', 'Returned', ''], ['other', 'archive', 'Other', '']]
+};
+function ndrMax() { return (N.data && N.data.options && N.data.options.maxAttempts) || 3; }
+function ticketOf(c) { var co = N.data.couriers && N.data.couriers[c.courier]; return co && co.tickets ? co.tickets[c.cn] : null; }
+// tries the courier still makes before sending the parcel back (Store Settings "Courier attempts before return")
+function triesLeft(c) { return c.attempts ? ndrMax() - c.attempts : 9; }
+// where a case sits: [tab, group]
+function ndrSlot(c) {
+  var k = caseType(c), t = ticketOf(c), ob = inOutbox(c);
+  if (k === 'premature') return ['special', 'premature'];
+  if (k === 'rto') return ['special', 'rtostop'];
+  if (c.watch && c.next !== 'Chase courier (late)') return ['special', 'stalled'];
+  if (isTodo(c)) return ['todo', !c.outcome || c.outcome === 'Not called yet' ? 'new' : 'again'];
+  if (c.callBack && c.callBack > Date.now()) return ['todo', 'later'];
+  var sentNow = t && SENT_NOW[t.type + '|' + c.cn];
+  if (ob || (c.sent === 'Queued' && !(t && (t.channel || sentNow)))) return ['todo', 'ready'];
+  if ((t && (t.channel || sentNow)) || /^(Sent|Courier confirmed)$/.test(c.sent || '')) {
+    if (t && (t.status || t.reply) && !replyHandled(t)) return ['courier', 'replied'];
+    var ty = (t && t.type) || (c.next === 'Chase courier (late)' ? 'late' : c.next === 'Verify with courier' ? 'check' : /return/i.test(c.next) ? 'return' : 'reattempt');
+    return ['courier', { reattempt: 'reattempt', return: 'return', late: 'late', check: 'check' }[ty] || 'reattempt'];
+  }
+  return ['todo', 'wait'];
+}
+// '25 Oct, 3:10 PM' → ['today' | '25 Oct', '3:10 PM']
+function stepAt(s) {
+  var m = String(s || '').match(/^(\d{1,2} \w{3}), (.+)$/);
+  if (!m) return [s || '', ''];
+  return [m[1] === niceDay(pkDay(new Date())) ? 'today' : m[1], m[2]];
+}
+// '25 Oct, 3:10 PM' (Pakistan time) → ms, like the server's appCallMs_
+function textMs(s) {
+  var m = String(s || '').match(/^(\d{1,2}) (\w{3}), (\d{1,2}):(\d{2}) (AM|PM)$/i); if (!m) return 0;
+  var mon = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'].indexOf(m[2].toLowerCase()); if (mon < 0) return 0;
+  var y = new Date().getUTCFullYear(), ms = Date.UTC(y, mon, +m[1], (+m[3] % 12) + (/pm/i.test(m[5]) ? 12 : 0) - 5, +m[4]);
+  return ms > Date.now() + 86400000 ? ms - 365 * 86400000 : ms;
+}
+function pkTime(ms) { return new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Karachi', hour: 'numeric', minute: '2-digit' }).format(new Date(ms)); }
+function hrsText(ms) { var h = Math.round(ms / 3600000); return h < 1 ? Math.max(1, Math.round(ms / 60000)) + ' min' : h < 48 ? h + ' h' : Math.round(h / 24) + ' d'; }
+// the courier list cut-off for the next day's attempt (Store Settings "Courier list cut-off")
+function cutoffText() {
+  var s = (N.data.options && N.data.options.cutoff) || '5:00 PM', m = String(s).match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  if (!m) return 'Send today';
+  var cut = (+m[1] % 12 + (/pm/i.test(m[3]) ? 12 : 0)) * 60 + +m[2];
+  var p = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Karachi', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date()).split(':');
+  var now = +p[0] * 60 + +p[1], lbl = String(s).replace(':00', '').replace(/\s+/, ' ');
+  return now < cut ? 'Send by ' + lbl + ' for tomorrow\'s attempt' : 'Past ' + lbl + ' · may miss tomorrow, send now';
+}
+// the 4 steps of a case, each with its time: Called → In list → Sent → Courier (late parcels: Asked instead of Called)
+function ndrSteps(c, slot) {
+  var t = ticketOf(c), ob = inOutbox(c), noAns = /no answer|phone off/i.test(c.outcome || ''), called = c.calls > 0;
+  var S = function (l, at, k) { var a = stepAt(at); return { l: l, d1: a[0], d2: a[1], k: k }; };
+  var sentNow = t ? SENT_NOW[t.type + '|' + c.cn] : null, sent = !!(t && (t.channel || sentNow)) || /^(Sent|Courier confirmed)$/.test(c.sent || '');
+  var listed = sent || !!ob || c.sent === 'Queued' || !!t;
+  var s1 = c.watch ? S(c.next === 'Chase courier (late)' ? 'Asked' : 'Ask', '', c.next === 'Chase courier (late)' ? 'ok' : '')
+    : called ? S(noAns ? 'No answer' : 'Called', c.lastCall, noAns ? 'wt' : 'ok') : S('Call', 'not yet', '');
+  var s2 = slot === 'later' ? S('Call back', pkTime(c.callBack), 'wt') : listed ? S('In list', (t && t.created) || c.queuedAt || '', sent ? 'ok' : 'wt') : S('In list', '', '');
+  var s3 = sent ? S('Sent', (t && t.sentAt) || (sentNow ? 'just now' : ''), 'ok') : S('Sent', listed ? 'not yet' : '', '');
+  var s4 = c.sent === 'Attempt failed' ? S('Failed again', '', 'bd')
+    : t && (t.status || t.reply) ? S('Replied', t.replyAt || '', 'ok')
+    : c.sent === 'Courier confirmed' || /Amal hua/.test((t && t.result) || '') ? S('Acted', '', 'ok')
+    : sent ? S('Courier', t && t.sentMs ? 'waiting · ' + hrsText(Date.now() - t.sentMs) : 'waiting', 'wt') : S('Courier', '', '');
+  return '<div class="nc-st">' + [s1, s2, s3, s4].map(function (s) {
+    return '<span class="' + s.k + '"><i></i><b>' + esc(s.l) + '</b><small class="num">' + esc(s.d1 || '—') + '</small><small class="num">' + (s.d2 ? esc(s.d2) : '&nbsp;') + '</small></span>';
+  }).join('') + '</div>';
+}
+var NDR_TAG = {
+  new: ['New', 'red'], again: ['Call again', 'red'], later: ['', 'blue'], ready: ['In list', 'amber'], wait: ['Called', 'grey'],
+  replied: ['New reply', 'green'], reattempt: ['With courier', 'blue'], return: ['Return asked', 'blue'], late: ['Trace asked', 'blue'], check: ['Status check', 'blue'],
+  premature: ['Premature return', 'red'], rtostop: ['Return started', 'red'], stalled: ['No update', 'amber']
+};
+function ndrCard(c, seen) {
+  var slot = ndrSlot(c)[1], t = ticketOf(c), left = triesLeft(c), k = caseType(c);
+  var tag = NDR_TAG[slot] || ['', 'grey'];
+  var tagT = slot === 'later' ? 'Call at ' + pkTime(c.callBack) : slot === 'again' && c.callBack && c.callBack <= Date.now() ? 'Call back now'
+    : slot === 'again' && c.sent === 'Attempt failed' ? 'Failed again' : slot === 'ready' ? 'In ' + c.courier + ' list' : tag[0];
+  var p = findParcel(c.cn), items = String(c.items || (p && p.items) || '').split(/\n|;/)[0];
+  var says = t && (t.status || t.reply) ? ['<b>' + esc(c.courier) + ' replied' + (t.replyAt ? ' (' + esc(t.replyAt) + ')' : '') + ':</b> ', [t.status, t.reply].filter(Boolean).join(' – ')]
+    : ['<b>' + esc(c.courier) + ':</b> ', (niceReason(c.reason || c.courierStatus) || 'Delivery failed') + (c.attempts ? ' · attempt ' + c.attempts : '')];
+  var cust = c.says && c.outcome && !/^Not called/.test(c.outcome) ? c.says : '';
+  // tries left before the courier sends it back
+  var tries = k === 'premature' || k === 'rto' || c.watch || !c.attempts ? '' : left <= 0 ? ['No tries left · ' + c.courier + ' may return it now', 'var(--red)']
+    : left === 1 ? ['Last try left · ' + c.courier + ' returns it after attempt ' + ndrMax(), 'var(--red)'] : [left + ' tries left', 'var(--muted)'];
+  if (slot === 'ready' && tries) tries = [cutoffText(), 'var(--amber)'];
+  var calls = c.calls ? c.calls + (c.calls === 1 ? ' call' : ' calls') + (c.lastCall ? ' · last ' + c.lastCall : '') + (/no answer|phone off/i.test(c.outcome) ? ' · no answer' : '')
+    : c.watch ? '' : 'not called yet' + (c.hours < 1 ? ' · first call within 1 h' : '');
+  // a line only when it adds something (never the same words as the button)
+  var sentMs = t && t.sentMs, hint = '';
+  if (slot === 'later') hint = ['Comes back to To do at ' + pkTime(c.callBack) + ' · reminder on the phone', 'var(--blue)'];
+  else if (slot === 'ready') hint = ['Waiting in the ' + c.courier + ' list · send it from the top of this group', 'var(--amber)'];
+  else if (slot === 'wait' && c.lastCallMs) hint = ['Call again after ' + pkTime(c.lastCallMs + CALL_AGAIN_HOURS * 3600000), 'var(--muted)'];
+  else if (/^(reattempt|late|check)$/.test(slot) && sentMs) hint = Date.now() - sentMs < 86400000 ? ['Follow-up in ' + hrsText(sentMs + 86400000 - Date.now()) + ' if ' + c.courier + ' does nothing', 'var(--amber)'] : ['No action in 24 h · goes again as a follow-up', 'var(--red)'];
+  else if (k === 'premature') hint = ['Stop it · call the customer, then ask ' + c.courier, 'var(--red)'];
+  // one main button for this moment; the small ones never repeat it
+  var tel = c.phone ? telHref(c.phone) : '';
+  var B = {
+    call: function (lbl, cls) { return tel ? '<a class="btn ' + cls + ' grow" data-call="' + esc(c.cn) + '" href="' + tel + '"><i class="ti ti-phone"></i>' + lbl + '</a>' : ''; },
+    callSq: tel ? '<a class="btn sq" data-call="' + esc(c.cn) + '" href="' + tel + '" aria-label="Call" title="Call"><i class="ti ti-phone"></i></a>' : '',
+    wa: c.wa ? '<a class="btn sq wa" target="_blank" href="' + waLink(c.wa, '') + '" aria-label="WhatsApp" title="WhatsApp"><i class="ti ti-brand-whatsapp"></i></a>' : '',
+    upd: '<button class="btn sq" data-rec="' + esc(c.cn) + '" aria-label="Update" title="Update"><i class="ti ti-pencil"></i></button>'
+  };
+  var main = '', side = [];
+  if (slot === 'stalled') { main = can('ndr.work') ? '<button class="btn pri grow" data-late="' + esc(c.cn) + '"><i class="ti ti-clock-exclamation"></i>Ask ' + esc(c.courier) + '</button>' : ''; side = [B.callSq, B.wa]; }
+  else if (slot === 'new' || slot === 'again' || slot === 'premature' || slot === 'rtostop') {
+    main = B.call(slot === 'new' ? 'Call customer' : slot === 'again' ? (c.callBack ? 'Call back now' : 'Call again') : 'Call customer', 'pri') || '<button class="btn pri grow" data-rec="' + esc(c.cn) + '"><i class="ti ti-pencil"></i>Update case</button>';
+    side = [B.wa, tel ? B.upd : ''];
+  }
+  else if (slot === 'later') { main = B.call('Call at ' + pkTime(c.callBack), 'ton'); side = [B.wa, B.upd]; }
+  else if (slot === 'ready') { main = '<button class="btn grow" data-rec="' + esc(c.cn) + '"><i class="ti ti-pencil"></i>Change request</button>'; side = [B.callSq, B.wa]; }
+  else if (slot === 'replied') { main = '<button class="btn pri grow" data-wr="' + esc(t.id) + '" data-wc="' + esc(c.courier) + '"><i class="ti ti-message-2"></i>Read reply · decide</button>'; side = [B.callSq, B.wa]; }
+  else if (t && t.channel) { main = '<button class="btn ton grow" data-wr="' + esc(t.id) + '" data-wc="' + esc(c.courier) + '"><i class="ti ti-message-reply"></i>Note courier reply</button>'; side = [B.callSq, B.wa]; }
+  else { main = '<button class="btn grow" data-rec="' + esc(c.cn) + '"><i class="ti ti-pencil"></i>Update case</button>'; side = [B.callSq, B.wa]; }
+  return '<div class="nc" data-p="' + esc(c.cn) + '">' +
+    '<div class="nc-h"><b>' + (seen && seen.indexOf(caseKey(c)) === -1 ? '<span class="new-dot"></span>' : '') + esc(c.ref) + ' · ' + esc(c.name) + '</b><span class="nc-tag t-' + tag[1] + '">' + esc(tagT) + '</span></div>' +
+    '<div class="nc-m">' + [esc(c.city), esc(c.courier), rs(c.cod), c.hours ? (c.hours < 48 ? c.hours + ' h' : Math.floor(c.hours / 24) + ' d') + ' in NDR' : 'new'].filter(Boolean).join(' · ') + '</div>' +
+    (items ? '<div class="nc-it">' + esc(items) + '</div>' : '') +
+    (c.watch ? '<div class="nc-box"><b>' + esc(c.courier) + ':</b> ' + esc(lateText(c.type)) + '</div>' : '<div class="nc-box">' + says[0] + esc(says[1]) + '</div>') +
+    (cust ? '<div class="nc-box cu"><b>Customer:</b> ' + esc(cust) + '</div>' : '') +
+    (tries ? '<div class="nc-ln" style="color:' + tries[1] + ';font-weight:500"><i class="ti ti-hourglass"></i><span>' + esc(tries[0]) + '</span></div>' : '') +
+    (calls ? '<div class="nc-ln"><i class="ti ti-phone"></i><span>' + esc(calls) + '</span></div>' : '') + riskLine(p, 'nc-ln') +
+    ndrSteps(c, slot) +
+    (hint ? '<div class="nc-hint" style="color:' + hint[1] + '">' + esc(hint[0]) + '</div>' : '') +
+    (main || side.join('') ? '<div class="nc-act">' + main + side.join('') + '</div>' : '') + '</div>';
+}
+function ndrClosedCard(x) {
+  var ok = x.final === 'DELIVERED', back = /^RTO/.test(x.final);
+  return '<div class="nc" data-p="' + esc(x.cn) + '"><div class="nc-h"><b>' + esc(x.ref || x.cn) + '</b><span class="nc-tag t-' + (ok ? 'green' : back ? 'red' : 'grey') + '">' + (ok ? 'Delivered' : back ? 'Returned' : esc(x.final || 'Closed')) + '</span></div>' +
+    '<div class="nc-m">' + [esc(x.courier), x.attempts ? x.attempts + (x.attempts === 1 ? ' attempt' : ' attempts') : '', 'closed ' + esc(x.at)].filter(Boolean).join(' · ') + '</div>' +
+    (x.outcome && !/^Not called/.test(x.outcome) ? '<div class="nc-box">' + esc(x.outcome) + '</div>' : '') + '</div>';
+}
+// the courier lists, one bar per courier: how many, the cut-off, Send
+function outboxBars() {
+  var wa = courierChannels().indexOf('WhatsApp') !== -1;
+  var names = Object.keys(N.data.outbox || {}).concat(Object.keys(N.data.onSheet || {})).filter(function (n, i, a) { return a.indexOf(n) === i && (outboxCount(n) || (wa && onSheetCount(n))); });
+  if (!names.length || !can('ndr.work')) return '';
+  return names.map(function (n) {
+    var b = outboxOf(n), cnt = outboxCount(n), sh = wa ? onSheetCount(n) : 0;
+    var kinds = OB_KINDS.map(function (k) { return b[k[0]].length ? b[k[0]].length + ' ' + k[2].toLowerCase() : ''; }).concat(sh ? [sh + ' on sheet'] : []).filter(Boolean).join(' · ');
+    return '<button class="obar" data-ob="' + esc(n) + '"><span class="av">' + esc(n.charAt(0)) + '</span><span class="tx"><b>' + esc(n) + ' list · ' + (cnt || sh) + ' parcel' + ((cnt || sh) === 1 ? '' : 's') + '</b>' +
+      '<small>' + esc(cnt ? cutoffText() : kinds) + '</small>' + (cnt && kinds ? '<small style="color:var(--muted)">' + esc(kinds) + '</small>' : '') + '</span><span class="go"><i class="ti ti-send"></i>Send</span></button>';
+  }).join('');
 }
 function renderNdr() {
   if (!N.data) return;
-  var cs = N.data.cases, seen = seenSet();
+  var cs = N.data.cases || [], seen = seenSet(), now = Date.now();
   el('ndrBrief').innerHTML = '<i class="ti ti-refresh"></i><span>Updated ' + esc(N.data.updatedAt) + ' · refreshes every 2 min</span>';
-  renderCourierCards();
   // From a Home to-do line: only that kind of case (chip with ✕ clears it).
   var typed = N.type ? cs.filter(function (c) { return caseType(c) === N.type; }) : cs;
-  N.opts = NDR_GROUPS.map(function (g) { return [g[0], g[0] === 'all' ? 'All cases' : g[1], typed.filter(function (c) { return inGroup(c, g[0]); }).length]; });
-  var ng = N.opts.filter(function (o) { return o[0] === N.filter; })[0] || N.opts[0];
-  el('nchips').innerHTML = fbar('n', ng[1], ng[2], N.type ? NDR_TYPES[N.type] || N.type : '');
-  var list = typed.filter(function (c) { return inGroup(c, N.filter); });
+  el('nchips').innerHTML = N.type ? '<div class="fbar"><button class="pbtn ctx" data-fx="n"><span>' + esc(NDR_TYPES[N.type] || N.type) + '</span><i class="ti ti-x"></i></button></div>' : '';
+  // score: saved in the last 7 days, oldest case nobody called yet, parcels on their last try
+  var wk = N.data.week || { saved: 0, done: 0 }, fresh = typed.filter(function (c) { return ndrSlot(c)[1] === 'new'; });
+  var oldest = fresh.reduce(function (m, c) { return Math.max(m, c.hours || 0); }, 0);
+  var last = typed.filter(function (c) { return c.attempts && triesLeft(c) <= 1 && caseType(c) !== 'premature' && caseType(c) !== 'rto' && !c.watch; }).length;
+  var score = '<div class="nscore"><div><b class="num" style="color:var(--green)">' + (wk.done ? Math.round(wk.saved / wk.done * 100) + '%' : '—') + '</b><span>Saved · ' + (wk.done ? wk.saved + ' of ' + wk.done : '7 days') + '</span></div>' +
+    '<div><b class="num">' + fresh.length + (fresh.length ? ' <small style="font-size:11px;font-weight:500;color:var(--muted)">oldest ' + (oldest < 1 ? 'new' : oldest < 48 ? oldest + ' h' : Math.floor(oldest / 24) + ' d') + '</small>' : '') + '</b><span>Not called yet</span></div>' +
+    '<div><b class="num" style="color:' + (last ? 'var(--red)' : 'var(--text)') + '">' + last + '</b><span>On their last try</span></div></div>';
+  // cases per tab / group
+  var by = {}; NDR_TABS.forEach(function (t) { by[t[0]] = {}; });
+  typed.forEach(function (c) { var s = ndrSlot(c); (by[s[0]][s[1]] = by[s[0]][s[1]] || []).push(c); });
+  (N.type ? [] : N.data.closed || []).forEach(function (x) { var g = x.final === 'DELIVERED' ? 'saved' : /^RTO/.test(x.final) ? 'returned' : 'other'; (by.closed[g] = by.closed[g] || []).push(x); });
+  var cnt = function (t) { return Object.keys(by[t]).reduce(function (a, g) { return a + by[t][g].length; }, 0); };
+  if (!N.tab || !by[N.tab]) N.tab = 'todo';
+  if (N.type && !cnt(N.tab)) N.tab = (NDR_TABS.filter(function (t) { return cnt(t[0]); })[0] || ['todo'])[0];
+  var obars = outboxBars();
+  var tabs = '<div class="ntabs">' + NDR_TABS.map(function (t) { var n = cnt(t[0]); return '<button data-nt="' + t[0] + '" class="' + (t[0] === N.tab ? 'on' : '') + '">' + t[1] + '<b class="num">' + n + '</b></button>'; }).join('') + '</div>';
+  el('ncour').innerHTML = score + tabs;
+  // search: tracking ID, order #, phone (any way it is written) or name — across all tabs
+  var q = String(N.q || '').toLowerCase().trim(), qd = q.replace(/[^0-9]/g, '');
+  if (q) {
+    var hit = function (c) { return String(c.cn).toLowerCase().indexOf(q) !== -1 || String(c.ref).toLowerCase().replace('#', '').indexOf(q.replace('#', '')) !== -1 || String(c.name).toLowerCase().indexOf(q) !== -1 || (qd.length >= 4 && phoneDigits(c.phone).indexOf(qd.replace(/^0/, '')) !== -1); };
+    var found = typed.filter(hit);
+    el('nlist').innerHTML = found.length ? found.map(function (c) { return ndrCard(c, seen); }).join('') : '<div class="card empty"><i class="ti ti-search"></i>No NDR case for "' + esc(N.q) + '"</div>';
+    return saveFilters();
+  }
   if (N.scrollOnce) { N.scrollOnce = false; scrollToCard('nchips'); }
-  if (!list.length) { el('nlist').innerHTML = '<div class="card empty"><i class="ti ti-circle-check"></i>No cases here</div>'; return; }
-  var nTotal = list.length;
-  // To do first (not contacted yet), then in progress; each part keeps the server's order (most urgent first)
-  var todo = list.filter(isTodo), doing = list.filter(function (c) { return !isTodo(c); });
-  var shownN = N.limit || PAGE, ordered = todo.concat(doing).slice(0, shownN);
-  var risk = list.reduce(function (s, c) { return s + (Number(c.cod) || 0); }, 0);
-  var sec = function (label, arr) {
-    var part = arr.filter(function (c) { return ordered.indexOf(c) !== -1; });
-    return part.length ? '<div class="pday"><span>' + label + '</span><span class="num">' + arr.length + '</span></div>' + part.map(function (c) { return taskCard(c, seen); }).join('') : '';
-  };
-  el('nlist').innerHTML = '<div class="psum"><span><b class="num">' + todo.length + '</b> to do · <b class="num">' + doing.length + '</b> in progress</span><span><b class="num">' + rs(risk) + '</b> at risk</span></div>' +
-    sec('TO DO', todo) + sec('IN PROGRESS', doing) + moreBtn('nmore', ordered.length, nTotal);
-  if (el('nmore')) { el('nmore').onclick = function () { N.limit = (N.limit || PAGE) + PAGE; renderNdr(); }; autoMore('nmore', N.limit || PAGE); }
+  // most urgent first: fewest tries left, then the oldest
+  var order = function (a, b) { return triesLeft(a) - triesLeft(b) || (b.hours || 0) - (a.hours || 0); };
+  var replyH = function () { var h = Object.keys(N.data.couriers || {}).map(function (n) { return N.data.couriers[n].replyHours ? n + ' ~' + N.data.couriers[n].replyHours + ' h' : ''; }).filter(Boolean); return h.length ? 'usual reply: ' + h.join(' · ') : ''; };
+  var html = N.tab === 'courier' ? '<div class="cstrip">' + Object.keys(N.data.couriers || {}).map(function (name) {
+    var s = N.data.couriers[name];
+    return '<button class="cs-line" data-cour="' + esc(name) + '"><b>' + esc(name) + '</b><span>' + s.open + ' open · ' + s.replied + ' replied' + (s.notActed ? ' · <i class="down">' + s.notActed + ' no action</i>' : '') + '</span><i class="ti ti-chevron-right"></i></button>';
+  }).join('') + '</div>' : '';
+  NDR_GH[N.tab].forEach(function (g) {
+    var arr = (by[N.tab][g[0]] || []).slice();
+    var bars = g[0] === 'ready' ? obars : '';
+    if (!arr.length && !bars) return;
+    if (N.tab !== 'closed') arr.sort(order);
+    html += '<div class="ngh"><i class="ti ti-' + g[1] + '"></i><div><div class="ngh-t"><span>' + g[2] + '</span><em class="num">' + arr.length + '</em></div>' +
+      ((g[0] === 'reattempt' ? replyH() : g[3]) ? '<small>' + esc(g[0] === 'reattempt' ? replyH() : g[3]) + '</small>' : '') + '</div></div>' + bars +
+      arr.map(function (c) { return N.tab === 'closed' ? ndrClosedCard(c) : ndrCard(c, seen); }).join('');
+  });
+  if (!html) html = '<div class="card empty"><i class="ti ti-circle-check"></i>' + (N.tab === 'todo' ? 'Nothing to do · every case is with the courier or waiting' : N.tab === 'closed' ? 'No case closed today yet' : 'No cases here') + '</div>';
+  el('nlist').innerHTML = html;
   saveFilters();
 }
 // What the team has to do, in plain words (the W1 case type stays in the parcel sheet)
@@ -2639,54 +2866,6 @@ function lateText(t) {
     : /origin/i.test(t) ? 'stuck at origin office' : /no courier update/i.test(t) ? 'no courier update' : t.replace(/\s*[–-]\s*/g, ' · ').toLowerCase();
   return w;
 }
-// late parcel: ask the courier → request sent → courier acts (no customer call)
-function lateSteps(c) {
-  var asked = c.next === 'Chase courier (late)', sent = c.sent === 'Sent' || c.sent === 'Courier confirmed', done = c.sent === 'Courier confirmed';
-  var st = [asked ? 'ok' : '', sent ? 'ok' : asked ? 'warn' : '', done ? 'ok' : sent ? 'warn' : ''];
-  var lab = [asked ? 'Asked' : 'Ask courier', sent ? 'Sent' : asked ? 'In ' + c.courier + ' list' : 'Send', done ? 'Courier acted' : sent ? 'Waiting ' + c.courier : 'Courier acts'];
-  return '<div class="tsteps">' + st.map(function (s) { return '<i class="' + s + '"></i>'; }).join('') + '</div>' +
-    '<div class="tsteps-l">' + lab.map(function (l, i) { return '<span class="' + st[i] + '">' + esc(l) + '</span>'; }).join('') + '</div>';
-}
-function ageText(h) { return !h ? '' : h < 48 ? h + 'h open' : Math.floor(h / 24) + 'd open'; }
-// The 3 steps of a case: call the customer → their answer → courier acts (or nothing to send)
-function taskSteps(c) {
-  var o = c.outcome || '', none = !o || o === 'Not called yet', noAns = /no answer|phone off/i.test(o);
-  var call = none ? '' : noAns ? 'warn' : 'ok';
-  var ans = none || noAns ? '' : 'ok';
-  var needsCourier = c.next === 'Escalate to courier' || c.next === 'Verify with courier' || /reattempt|address|later date|rider never|already received/i.test(o);
-  var cour = !ans ? '' : !needsCourier ? 'ok' : c.sent === 'Courier confirmed' ? 'ok' : c.sent === 'Sent' || c.sent === 'Queued' ? 'warn' : '';
-  var lab = [call === 'warn' ? 'No answer' : call ? 'Called' : 'Call',
-    ans ? (/refus|cancel/i.test(o) ? 'Refused' : /money/i.test(o) ? 'Cash not ready' : 'Answered') : 'Answer',
-    !ans ? 'Courier' : !needsCourier ? 'No courier step' : c.sent === 'Courier confirmed' ? 'Courier acted' : c.sent === 'Sent' ? 'Waiting ' + c.courier : c.sent === 'Queued' ? 'In ' + c.courier + ' list' : 'Send to courier'];
-  return '<div class="tsteps">' + [call, ans, cour].map(function (s) { return '<i class="' + s + '"></i>'; }).join('') + '</div>' +
-    '<div class="tsteps-l">' + lab.map(function (l, i) { return '<span class="' + [call, ans, cour][i] + '">' + esc(l) + '</span>'; }).join('') + '</div>';
-}
-function taskCard(c, seen) {
-  var col = c.priority === '1' ? 'var(--red)' : c.priority === '2' ? 'var(--amber)' : 'var(--blue)';
-  var todo = isTodo(c), age = ageText(c.hours);
-  return '<div class="tcard" data-p="' + esc(c.cn) + '" style="--c:' + col + '">' +
-    '<div class="th"><b>' + (seen.indexOf(caseKey(c)) === -1 ? '<span class="new-dot"></span>' : '') + esc(taskTitle(c)) + '</b>' + (age ? '<span class="tage">' + age + '</span>' : '') + '</div>' +
-    '<div class="tw">' + ['<b class="tref">' + esc(c.ref) + '</b>', esc(c.name), esc(c.city), rs(c.cod), c.attempts ? c.attempts + (c.attempts === 1 ? ' attempt' : ' attempts') : ''].filter(Boolean).join(' · ') + '</div>' +
-    (c.calls ? '<div class="tcalls' + (c.calls >= 3 && /no answer|phone off/i.test(c.outcome) ? ' warn' : '') + '"><i class="ti ti-phone-call"></i>Called ' + c.calls + '×' + (c.lastCall ? ' · last ' + esc(c.lastCall) : '') +
-      (/no answer|phone off/i.test(c.outcome) ? ' · no answer' + (c.calls >= 3 ? ' → consider letting it return' : '') : '') + '</div>' : '') +
-    riskLine(findParcel(c.cn), 'tcalls') +
-    (c.watch ? lateSteps(c) : taskSteps(c)) +
-    (c.says ? '<div class="tsays"><i class="ti ti-message-circle"></i>' + esc(c.says) + '</div>' : '') +
-    ticketLine(c) +
-    (c.watch ? lateActions(c) :
-    '<div class="tact">' + (todo && c.phone ? '<a class="btn pri grow" data-call="' + esc(c.cn) + '" href="' + telHref(c.phone) + '"><i class="ti ti-phone"></i>Call now</a>' : '') +
-    (!todo && c.phone ? '<a class="btn sq" data-call="' + esc(c.cn) + '" href="' + telHref(c.phone) + '" aria-label="Call"><i class="ti ti-phone"></i></a>' : '') +
-    (c.wa ? '<a class="btn sq wa" target="_blank" href="' + waLink(c.wa, c.waText) + '" aria-label="WhatsApp"><i class="ti ti-brand-whatsapp"></i></a>' : '') +
-    '<button class="btn' + (todo ? '' : ' pri grow') + '" data-rec="' + esc(c.cn) + '"><i class="ti ti-pencil"></i>' + (todo ? 'Update' : 'Update case') + '</button></div>') + '</div>';
-}
-// late parcel buttons: one clear main action (ask the courier), calling / WhatsApp / update as small icons
-function lateActions(c) {
-  var ask = can('ndr.work') && c.next !== 'Chase courier (late)';
-  return '<div class="tact">' + (ask ? '<button class="btn pri grow" data-late="' + esc(c.cn) + '"><i class="ti ti-clock-exclamation"></i>Ask ' + esc(c.courier || 'courier') + '</button>' : '') +
-    (c.phone ? '<a class="btn sq" href="' + telHref(c.phone) + '" aria-label="Call customer"><i class="ti ti-phone"></i></a>' : '') +
-    (c.wa ? '<a class="btn sq wa" target="_blank" href="' + waLink(c.wa, c.waText) + '" aria-label="WhatsApp"><i class="ti ti-brand-whatsapp"></i></a>' : '') +
-    '<button class="btn' + (ask ? ' sq' : ' grow') + '" data-rec="' + esc(c.cn) + '" aria-label="Update case"><i class="ti ti-pencil"></i>' + (ask ? '' : 'Update case') + '</button></div>';
-}
 // W1 writes results in Roman Urdu for the courier's sheet; the app shows them in English
 var TICKET_WORDS = [[/Amal nahi hua/, 'No action'], [/Amal hua/, 'Acted'], [/Intezar/, 'Waiting'], [/Deliver ho gaya/, 'Delivered'],
   [/Return shuru – reattempt nahi hua/, 'Return started · not reattempted'], [/Return shuru ho gaya/, 'Return started'], [/Return ho gaya/, 'Returned'],
@@ -2700,39 +2879,12 @@ function inOutbox(c) {
   var b = (N.data.outbox || {})[c.courier] || {}, k = Object.keys(b).filter(function (x) { return (b[x] || []).some(function (it) { return it.cn === c.cn; }); })[0];
   return k || '';
 }
-function ticketLine(c) {
-  var co = N.data.couriers && N.data.couriers[c.courier], t = co && co.tickets[c.cn];
-  var ob = inOutbox(c), now = t ? SENT_NOW[t.type + '|' + c.cn] : Object.keys(SENT_NOW).filter(function (k) { return k.split('|')[1] === c.cn; }).map(function (k) { return SENT_NOW[k]; })[0];
-  if (c.next === 'Let it return (RTO)' && c.shipStatus === 'RTO_INITIATED' && !ob) return '<div class="tk ok"><b><i class="ti ti-arrow-back-up"></i> ' + esc(c.courier) + ' is already returning it</b> · no request needed</div>';
-  if (ob) return '<div class="tk"><b><i class="ti ti-inbox"></i> ' + REQ_KIND[ob] + ' request in ' + esc(c.courier) + ' list</b> · not sent yet</div>';
-  if (now && !(t && t.channel)) return '<div class="tk ok"><b>' + (now.channel === 'WhatsApp' ? '📱 Sent on WhatsApp' : '📄 Sent to Sheet') + '</b> · ' + REQ_KIND[now.type] + ' · just now</div>';
-  if (!t) return c.sent === 'Queued' ? '<div class="tk"><b><i class="ti ti-inbox"></i> Request in ' + esc(c.courier) + ' list</b> · not sent yet</div>' : '';
-  var res = ticketResult(t.result);
-  var cls = /Acted|Delivered/.test(res) ? 'ok' : /No action/.test(res) ? 'bad' : '';
-  if (!t.channel) return '<div class="tk"><b><i class="ti ti-inbox"></i> In ' + esc(c.courier) + ' list</b>' + (/DOBARA/.test(t.result) ? ' · 🔴 no action in 24h, goes again' : ' · not sent yet') + '</div>';
-  var via = (t.channel === 'Sheet + WhatsApp' ? '📄 Sheet + 📱 WhatsApp' : t.channel === 'WhatsApp' ? '📱 WhatsApp' : '📄 Sheet') + ' · ' + (REQ_KIND[t.type] || 'Request');
-  return '<div class="tk ' + cls + '"><b>' + via + ' · ' + esc(t.id) + (t.round > 1 ? ' · follow-up' : '') + ':</b> ' + esc(res) +
-    (t.sentAt ? '<br><small>Sent ' + esc(t.sentAt) + (t.by ? ' · ' + esc(t.by) : '') + '</small>' : '') +
-    (t.status || t.reply ? '<br>' + c.courier + ': ' + esc([t.status, t.reply].filter(Boolean).join(' – ')) : '<br>Awaiting reply from ' + c.courier) +
-    (/WhatsApp/.test(t.channel) ? '<br><button class="btn mini" data-wr="' + esc(t.id) + '" data-wc="' + esc(c.courier) + '"><i class="ti ti-message-reply"></i>Courier replied</button>' : '') + '</div>';
-}
-function renderCourierCards() {
-  var cs = N.data.couriers || {};
-  el('ncour').innerHTML = outboxHtml() + '<div class="cstrip">' + Object.keys(cs).map(function (name) {
-    var s = cs[name];
-    return '<button class="cs-line" data-cour="' + esc(name) + '"><b>' + esc(name) + '</b><span>' + s.open + ' open · ' + s.replied + ' replied' +
-      (s.notActed ? ' · <i class="down">' + s.notActed + ' no action</i>' : '') + '</span><i class="ti ti-chevron-right"></i></button>';
-  }).join('') + '</div>';
-}
 el('ncour').onclick = function (e) {
-  var o = e.target.closest('[data-ob]'); if (o) return openOutbox(o.getAttribute('data-ob'));
-  var b = e.target.closest('[data-cour]'); if (b) openEscalations(b.getAttribute('data-cour'));
+  var t = e.target.closest('[data-nt]'); if (t) { N.tab = t.getAttribute('data-nt'); renderNdr(); scrollToCard('ncour'); }
 };
 
 // ---------- courier list (outbox): cases cleared one by one gather here; send each kind by WhatsApp or sheet ----------
 var OB_KINDS = [['reattempt', '🔁', 'Reattempt', 'DOBARA DELIVER KAREIN'], ['return', '↩️', 'Return to origin', 'WAPAS BHEJ DEIN'], ['late', '⏰', 'Late delivery', 'TRACE KAREIN'], ['check', '🔍', 'Status check', 'STATUS CHECK'], ['claim', '📝', 'Claim', 'CLAIM']];
-var OB_REPLIES = ['Reattempt tomorrow', 'Rider assigned', 'Delivered', 'POD shared', 'Location shared', 'Proof shared', 'Return dispatched', 'Claim noted', 'Customer issue'];
-var OB_DONE_REPLIES = ['Delivered', 'POD shared', 'Return dispatched', 'Claim noted']; // these usually finish the request
 function outboxOf(name) { var b = (N.data.outbox || {})[name] || {}; OB_KINDS.forEach(function (k) { b[k[0]] = b[k[0]] || []; }); return b; }
 function onSheetOf(name) { var b = (N.data.onSheet || {})[name] || {}; OB_KINDS.forEach(function (k) { b[k[0]] = b[k[0]] || []; }); return b; }
 function onSheetCount(name) { var b = onSheetOf(name); return OB_KINDS.reduce(function (a, k) { return a + b[k[0]].length; }, 0); }
@@ -2756,7 +2908,7 @@ function courierPrefix(name) { var c = CLIST.filter(function (x) { return x.name
 // what the customer said, our request. Customer phone / address only when they changed (the courier already has them;
 // a group chat should carry as little personal data as possible). Blank lines between blocks; WhatsApp *bold* / _italic_.
 // WhatsApp message to the courier (short + professional, user 2026-10-27): heading, courier · date · count · Ref, one line
-// of what we want, then per parcel 2 lines: "n) CN · city (· 🔴 Dobara)" and "↳ one instruction" (customer's words,
+// of what we want, then per parcel 2 lines: "n) CN · city (· 🔴 Follow-up)" and "↳ one instruction" (customer's words,
 // date, new address, proof, "return na karein" together). No order # / COD / our own outcome text. Return = only
 // "Mark for Return" + date + the CNs.
 var OB_MSG = {
@@ -2781,8 +2933,8 @@ function waSays(s) {
 function newInfoLines(info, it) {
   var isPh = function (p) { return /^[+\d][\d\s-]{8,}$/.test(p); }, parts = String(info).split(' · ').map(waSafe).filter(Boolean), newPh = parts.some(isPh);
   return parts.map(function (p) {
-    if (isPh(p)) return '📞 Naya phone: ' + phoneText(p);
-    return '📍 Naya pata: ' + p + (it.name ? ' (' + waSafe(it.name) + (it.phone && !newPh ? ', ' + phoneText(it.phone) : '') + ')' : '');
+    if (isPh(p)) return 'Naya phone: ' + phoneText(p);
+    return 'Naya pata: ' + p + (it.name ? ' (' + waSafe(it.name) + (it.phone && !newPh ? ', ' + phoneText(it.phone) : '') + ')' : '');
   });
 }
 function obMessage(name, kind, items, batch, part) {
@@ -2790,25 +2942,27 @@ function obMessage(name, kind, items, batch, part) {
   var title = '*' + STORE + ' · ' + m[0] + '*' + (part ? ' (' + part + ')' : '');
   var sub = name + ' · ' + day + ' · ' + items.length + ' parcel' + (items.length > 1 ? 's' : '') + ' · Ref ' + batch;
   if (kind === 'return') return [title, sub, '', items.map(function (it) { return waSafe(it.cn); }).join('\n'), '', 'Shukriya · ' + STORE].join('\n');
-  var body = items.map(function (it, i) {
-    var top = '*' + (i + 1) + ') ' + waSafe(it.cn) + '*' + (waCity(it.city) ? ' · ' + waCity(it.city) : '') + (it.dobara || it.round > 1 ? ' · 🔴 Dobara' : '');
+  var body = items.map(function (it, i) { return obItem(kind, it, i); }).join('\n\n');
+  return [title, sub, '', m[1], '', body, '', 'Shukriya · ' + STORE].join('\n');
+}
+// one parcel's lines in the courier message (also the after-call preview)
+function obItem(kind, it, i) {
+    var top = '*' + (i + 1) + ') ' + waSafe(it.cn) + '*' + (waCity(it.city) ? ' · ' + waCity(it.city) : '') + (it.dobara || it.round > 1 ? ' · Follow-up' : '');
     var say = [];
     if (kind === 'claim') say.push((waSafe(it.claimText) || 'Claim') + '. Claim note karein.');
     else if (kind === 'late') say.push((it.hours ? it.hours + ' ghante se update nahi' : 'Late') + (it.now ? ' (abhi: ' + waSafe(String(it.now).replace(/_/g, ' ').toLowerCase()) + ')' : '') + '. Location aur delivery ka din batayen.');
     else if (kind === 'check') say.push('Delivered ho to POD share karein, warna current location batayen.');
     else {
-      if (it.reattempt) say.push(waSafe(it.reattempt) + ' ko deliver karein.');
+      if (it.reattempt) say.push(waSafe(it.reattempt) + ' ·'); // the day only: no fixed instruction lines, no icons (user 2026-11-01)
       var w = waSays(it.says), info = waSafe(it.newInfo);
-      if (w && !(info && w.indexOf(info) !== -1)) say.push(/[.!?]$/.test(w) ? w : w + '.');
+      // "Naya pata diya hai." says nothing the Naya pata / phone lines below do not
+      if (w && !(info && (w.indexOf(info) !== -1 || /^Naya (pata|phone)( aur phone)? diya hai\.?$/i.test(w)))) say.push(/[.!?]$/.test(w) ? w : w + '.');
       if (it.ask) String(it.ask).split(';').forEach(function (a) { a = waSafe(a); if (a) say.push(a + '.'); });
-      if (it.premature) say.push('Return na karein.');
     }
-    var line = say.join(' ').replace(/\.\./g, '.');
+    var line = say.join(' ').replace(/\.\./g, '.').replace(/ ·$/, '');
     // a new address / phone on its own line under the agent's words (user 2026-10-27)
     var news = info && kind !== 'claim' && kind !== 'late' && kind !== 'check' ? newInfoLines(info, it) : [];
-    return top + (line ? '\n↳ ' + (line.length > 220 ? line.slice(0, 217).trim() + '…' : line) : '') + news.map(function (x) { return '\n' + x; }).join('');
-  }).join('\n\n');
-  return [title, sub, '', m[1], '', body, '', 'Jawab: parcel number + status, jaise "1 done, 2 kal"', 'Shukriya · ' + STORE].join('\n');
+    return top + (line ? '\n' + (line.length > 220 ? line.slice(0, 217).trim() + '…' : line) : '') + news.map(function (x) { return '\n' + x; }).join('');
 }
 function openOutbox(name) {
   var b = outboxOf(name);
@@ -2819,7 +2973,7 @@ function openOutbox(name) {
     return '<div class="card obk" data-k="' + k[0] + '"><div class="h"><b>' + k[1] + ' ' + k[2] + '</b><span>' + items.length + '</span></div>' +
       items.map(function (it, i) {
         return '<label class="ob-it"><input type="checkbox" checked data-i="' + i + '"><div><b>' + esc(it.order || it.cn) + ' · ' + esc(it.name || '') + '</b><small>' +
-          [esc(it.city || ''), it.newInfo ? '🆕 new address / phone' : '', it.dobara || it.round > 1 ? '🔴 DOBARA' : '', k[0] === 'claim' ? esc(it.claimText || '') : ''].filter(Boolean).join(' · ') + '</small></div></label>';
+          [esc(it.city || ''), it.newInfo ? '🆕 new address / phone' : '', it.dobara || it.round > 1 ? '🔴 Follow-up' : '', k[0] === 'claim' ? esc(it.claimText || '') : ''].filter(Boolean).join(' · ') + '</small></div></label>';
       }).join('') +
       '<div class="btns" style="margin-top:8px">' + (courierChannels().indexOf('WhatsApp') !== -1 ? '<button class="btn wa" data-send="WhatsApp"><i class="ti ti-brand-whatsapp"></i>WhatsApp</button>' : '') +
       (courierChannels().indexOf('Sheet') !== -1 ? '<button class="btn" data-send="Sheet"><i class="ti ti-table"></i>Sheet</button>' : '') + '</div></div>';
@@ -2916,28 +3070,104 @@ function sheetSent(name, kind, n) {
   openPanel(true);
   el('ssDone').onclick = el('ssBack').onclick = function () { openOutbox(name); };
 }
-// A courier answered in the WhatsApp group: note it on the ticket
+// The courier answered (on WhatsApp, by phone, or on their sheet): what they said as a fixed category (counted, like
+// Shiprocket / ClickPost reply reasons) + their words + what happens next, chosen for us by the category (study
+// 2026-11-01): keep with the courier · call the customer again (back to To do now) · request complete · send again
+// (the courier did nothing: back to the courier list as a follow-up). A screenshot of their reply can be kept as proof.
+var REPLY_CATS = [['Reattempt tomorrow', 'keep'], ['Rider assigned', 'keep'], ['Location shared', 'keep'], ['Customer not reachable', 'call'], ['Address not found', 'call'],
+  ['Customer asked to hold', 'call'], ['Delivered · POD shared', 'done'], ['Returning to origin', 'done'], ['Claim noted', 'done'], ['No action / fake attempt', 'again']];
+var REPLY_NEXT = [['keep', 'Keep with courier', 'hourglass'], ['call', 'Call customer again', 'phone'], ['done', 'Request complete', 'circle-check'], ['again', 'Send again', 'repeat']];
+// a reply counts as handled once someone noted it in the app (W1 writes "<name> (WhatsApp)" as Replied By)
+function replyHandled(t) { return /\(WhatsApp\)$/.test(String((t && t.replyBy) || '')); }
 document.addEventListener('click', function (e) {
   var b = e.target.closest('[data-wr]'); if (!b) return;
   e.preventDefault(); e.stopPropagation();
-  var id = b.getAttribute('data-wr'), cour = b.getAttribute('data-wc');
-  el('panel').innerHTML = '<h3>' + esc(cour) + ' replied</h3><p>Ticket ' + esc(id) + ' · what did they say on WhatsApp?</p>' +
-    '<div class="chips wrapc" id="wrChips">' + OB_REPLIES.map(function (x) { return '<button class="chip" type="button" data-v="' + esc(x) + '">' + esc(x) + '</button>'; }).join('') + '</div>' +
-    '<textarea id="wrText" rows="2" placeholder="Their words (optional)" style="margin-top:8px"></textarea>' +
-    '<label class="ob-it" style="margin-top:8px"><input type="checkbox" id="wrDone"><div><b>Request complete</b><small>Closes it (like ☑️ Done in the sheet)</small></div></label><div class="err" id="wrErr"></div>' +
-    '<div class="btns" style="margin-top:10px"><button class="btn" id="wrCancel">Cancel</button><button class="btn pri" id="wrSave">Save</button></div>';
-  openPanel();
-  var pick = '';
-  el('wrChips').onclick = function (ev) { var c = ev.target.closest('[data-v]'); if (!c) return; pick = c.classList.contains('on') ? '' : c.getAttribute('data-v'); el('wrChips').querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x === c && !!pick); }); el('wrDone').checked = OB_DONE_REPLIES.indexOf(pick) !== -1; };
-  el('wrCancel').onclick = closePanel;
+  var id = b.getAttribute('data-wr'), cour = b.getAttribute('data-wc') || 'Courier', t = null, cn = '';
+  Object.keys((N.data && N.data.couriers) || {}).forEach(function (k) { var tk = N.data.couriers[k].tickets || {}; Object.keys(tk).forEach(function (x) { if (tk[x].id === id) { t = tk[x]; cn = x; } }); });
+  var c = N.data && N.data.cases.filter(function (x) { return x.cn === cn; })[0];
+  var use = {}; try { use = JSON.parse(store('eh_wr_use') || '{}'); } catch (er) {}
+  var cats = REPLY_CATS.filter(function (x) { return t && t.type === 'claim' ? x[1] !== 'call' : x[0] !== 'Claim noted'; })
+    .map(function (x, i) { return [x, i]; }).sort(function (a, b2) { return (use[b2[0][0]] || 0) - (use[a[0][0]] || 0) || a[1] - b2[1]; }).map(function (x) { return x[0]; });
+  var had = t && (t.status || t.reply) ? [t.status, t.reply].filter(Boolean).join(' – ') : '';
+  var first = c ? String(c.name || '').split(' ')[0] : 'the customer';
+  el('panel').innerHTML = '<h3>' + esc(cour) + ' replied</h3><p>' + [c ? esc(c.ref) + ' · ' + esc(c.name) : '', esc(REQ_KIND[t && t.type] || 'Request') + ' · ' + esc(id), t && t.sentAt ? 'sent ' + esc(t.sentAt) : ''].filter(Boolean).join(' · ') + '</p>' +
+    (had ? '<div class="nc-box" style="margin:0 0 4px"><b>' + esc(cour) + (replyHandled(t) ? '' : ' (on the sheet)') + ':</b> ' + esc(had) + '</div>' : '') +
+    '<div class="ac-box"><label class="ac-lbl"><span>What did ' + esc(cour) + ' say?</span><small>' + (Object.keys(use).length ? 'most used first' : '') + '</small></label>' +
+      '<div class="chips wrapc" id="wrChips">' + cats.map(function (x) { return '<button class="chip" type="button" data-v="' + esc(x[0]) + '" data-n="' + x[1] + '">' + esc(x[0]) + '</button>'; }).join('') + '</div>' +
+      '<label>Their words (optional)</label><textarea id="wrText" rows="2" placeholder="e.g. Rider kal 12 baje jayega"></textarea>' + photoField('wrPh', 'Add screenshot of their reply (proof)') + '</div>' +
+    '<div class="ac-box"><label>What happens next?</label><div class="ac-grid" id="wrNext">' + REPLY_NEXT.map(function (n) {
+      return '<button type="button" class="ac-t" data-x="' + n[0] + '" style="min-height:52px"><i class="ti ti-' + n[2] + '" style="color:var(--brand)"></i><span><b>' + n[1] + '</b><small>' +
+        { keep: 'wait for ' + esc(cour), call: 'back to To do now', done: 'closes the request', again: 'follow-up in the list' }[n[0]] + '</small></span><em class="ac-tick"><i class="ti ti-check"></i></em></button>';
+    }).join('') + '</div></div>' +
+    '<div class="err" id="wrErr"></div>' +
+    '<div class="ac-bar"><div class="ac-btns"><button class="btn pri" id="wrSave" type="button" disabled>Pick what happens next</button></div></div>';
+  openPanel(true);
+  var pick = '', next = '', photo = '';
+  photoWire('wrPh', function (d) { photo = d; });
+  var draw = function () {
+    el('wrChips').querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-v') === pick); });
+    el('wrNext').querySelectorAll('.ac-t').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-x') === next); });
+    var s = el('wrSave'); s.disabled = !next; s.className = 'btn ' + (next === 'again' ? 'danger' : 'pri');
+    s.innerHTML = !next ? 'Pick what happens next' : next === 'keep' ? '<i class="ti ti-device-floppy"></i>Save · keep with ' + esc(cour) : next === 'call' ? '<i class="ti ti-phone"></i>Save · call ' + esc(first) + ' again'
+      : next === 'done' ? '<i class="ti ti-circle-check"></i>Save · request complete' : '<i class="ti ti-repeat"></i>Send again as a follow-up';
+  };
+  el('wrChips').onclick = function (ev) {
+    var x = ev.target.closest('[data-v]'); if (!x) return;
+    pick = pick === x.getAttribute('data-v') ? '' : x.getAttribute('data-v');
+    if (pick) next = x.getAttribute('data-n'); // the category suggests the next step (it can still be changed)
+    el('wrErr').textContent = ''; draw();
+  };
+  el('wrNext').onclick = function (ev) { var x = ev.target.closest('[data-x]'); if (!x) return; next = x.getAttribute('data-x'); el('wrErr').textContent = ''; draw(); };
+  draw();
   el('wrSave').onclick = function () {
-    var t = el('wrText').value.trim();
-    var done = el('wrDone').checked;
-    if (!pick && !t && !done) { el('wrErr').textContent = 'Pick or write what they said'; return; }
+    var txt = el('wrText').value.trim();
+    if (!pick && !txt && !had && next !== 'again') { el('wrErr').textContent = 'Pick or write what ' + cour + ' said'; return; }
+    if (pick) { use[pick] = (use[pick] || 0) + 1; store('eh_wr_use', JSON.stringify(use)); }
     closePanel(); toast('Saving reply…');
-    api('appCourierReply', [TOKEN, id, pick, t, done], function () { toast(done ? '✅ Reply noted · request closed' : '✅ Reply noted'); loadNdr(true); });
+    api('appCourierReply', [TOKEN, id, pick || (had && !txt ? (t.status || '') : ''), txt || (had && !pick ? (t.reply || '') : ''), next === 'done', next, cn, photo], function () {
+      // the card moves at once (the server view and W1 follow)
+      if (t) {
+        if (next === 'again') { t.channel = ''; t.round = (t.round || 1) + 1; t.result = '🔴 DOBARA – amal nahi (app)'; }
+        else { if (pick) t.status = pick; if (txt) t.reply = txt; t.replyBy = 'You (WhatsApp)'; t.replyAt = 'just now'; if (next === 'done') t.result = '☑️ Done (WhatsApp)'; }
+      }
+      if (c && next === 'call') c.callBack = Date.now() - 1000;
+      snap('ndr', N.data); renderNdr(); updateBadge();
+      toast({ keep: 'Reply noted · stays with ' + cour, call: 'Reply noted · ' + (c ? c.ref + ' is back in To do' : 'call the customer'), done: 'Reply noted · request closed', again: 'Back in the ' + cour + ' list as a follow-up' }[next]);
+      loadNdr(true);
+    }, function (er) { toast('Not saved: ' + ((er && er.message) || 'try again')); });
   };
 }, true);
+// Case history on the parcel page (study 2026-11-01: one timeline like Zendesk ticket events / the Shopify order
+// timeline): courier attempts + everything done in the app (calls, requests, sends, replies, notes), newest first,
+// grouped by day, who + when on every line, never edited; filter All / Our actions. Stays after the case closes.
+var CH_IC = { attempt: ['truck', 'var(--red)'], track: ['truck', 'var(--muted)'], done: ['circle-check', 'var(--green)'], call: ['phone', 'var(--brand)'],
+  callback: ['clock', 'var(--amber)'], list: ['inbox', 'var(--amber)'], sent: ['send', 'var(--blue)'], reply: ['message-2', 'var(--green)'],
+  closed: ['archive', 'var(--muted)'], note: ['pencil', 'var(--muted)'], case: ['alert-triangle', 'var(--amber)'] };
+function caseHistory(cn) {
+  if (!el('pdch')) return;
+  var draw = function (ev, only) {
+    if (!el('pdch')) return;
+    var list = only ? ev.filter(function (e) { return !e.sys; }) : ev, today = pkDay(new Date()), yest = addDays(today, -1), days = {}, order = [];
+    list.forEach(function (e) { if (!days[e.day]) { days[e.day] = []; order.push(e.day); } days[e.day].push(e); });
+    el('pdch').innerHTML = '<div class="ch-f"><button data-chf="0" class="' + (only ? '' : 'on') + '">All</button><button data-chf="1" class="' + (only ? 'on' : '') + '">Our actions</button></div>' +
+      (list.length ? order.map(function (d) {
+        return '<div class="ch-d">' + (d === today ? 'Today' : d === yest ? 'Yesterday' : esc(dayLong(d))) + '</div>' + days[d].map(function (e) {
+          var ic = CH_IC[e.kind] || ['point', 'var(--muted)'], s = e.result ? ticketResult(e.s) : e.s;
+          return '<div class="ch-i"><span class="ch-ic" style="color:' + ic[1] + '"><i class="ti ti-' + ic[0] + '"></i></span><div><div class="ch-t"><b>' + esc(e.t) + '</b><small class="num">' + esc(e.at) + '</small></div>' +
+            (s ? '<div class="ch-s">' + esc(s) + '</div>' : '') + (e.by || e.photo ? '<div class="ch-by">' + esc(e.by) + (e.photo ? ' <button class="pp-more" data-chp="' + esc(e.photo) + '" style="width:auto;padding:0">Proof photo ›</button>' : '') + '</div>' : '') + '</div></div>';
+        }).join('');
+      }).join('') : '<small style="color:var(--muted)">' + (only ? 'Nothing done in the app yet' : 'No history yet') + '</small>');
+    el('pdch').querySelectorAll('[data-chf]').forEach(function (b) { b.onclick = function () { draw(ev, b.getAttribute('data-chf') === '1'); }; });
+    el('pdch').querySelectorAll('[data-chp]').forEach(function (b) {
+      b.onclick = function () {
+        b.textContent = 'Loading…';
+        api('getAppNdrPhoto', [TOKEN, b.getAttribute('data-chp')], function (r) { b.outerHTML = '<img alt="Proof" src="data:' + r.type + ';base64,' + r.data + '" style="display:block;max-width:100%;border-radius:10px;margin-top:6px">'; },
+          function () { b.textContent = 'Photo not found'; });
+      };
+    });
+  };
+  api('getAppCaseHistory', [TOKEN, cn], function (r) { draw(r.events || [], false); }, function () { if (el('pdch')) el('pdch').innerHTML = '<small style="color:var(--muted)">Could not load the history</small>'; });
+}
 // Full courier escalation cards (sheet link, WhatsApp to the group) in a sheet; one courier or all.
 function openEscalations(only) {
   if (!N.data) { toast('Loading NDR…'); return; }
@@ -2986,11 +3216,13 @@ function courierCardsHtml(only) {
         (s.open ? '<a class="btn wa" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(msg) + '"><i class="ti ti-brand-whatsapp"></i>Send to group</a>' : '') + '</div>' : '') + '</div>';
   }).join('');
 }
+el('nq').oninput = function () { N.q = this.value; N.limit = PAGE; renderNdr(); };
 el('nchips').onclick = function (e) {
   if (e.target.closest('[data-fx]')) { N.type = ''; return renderNdr(); }
-  if (e.target.closest('[data-fs]')) openFilterSheet('Cases', N.opts, N.filter, function (k) { N.filter = k; N.limit = PAGE; renderNdr(); });
 };
 el('nlist').onclick = function (e) {
+  var o = e.target.closest('[data-ob]'); if (o) return openOutbox(o.getAttribute('data-ob'));
+  var cb = e.target.closest('[data-cour]'); if (cb) return openEscalations(cb.getAttribute('data-cour'));
   var l = e.target.closest('[data-late]'); if (l) return askLate(l.getAttribute('data-late'));
   var b = e.target.closest('[data-rec]'); if (b) openNdrForm(b.getAttribute('data-rec'));
 };
@@ -3007,40 +3239,20 @@ function askLate(cn) {
   }, function (e) { Object.assign(c, JSON.parse(before)); renderNdr(); updateBadge(); toast('❌ Not saved: ' + ((e && e.message) || 'try again')); });
 }
 
-// Update a case after the call: "Did you reach the customer?" → what they want → only the details that answer needs.
-// Each answer maps onto the W1 desk's Call Outcome list (matched by words, so the sheet's wording can change).
-// The courier message is written for the agent, the agent can add their own words to any answer, and every message
-// that asks the courier to deliver again ends with "Please reattempt again."
-// answers on the form (user 2026-10-27: Cash not ready, Says already received, Courier's reason is wrong taken off; their
-// code stays for cases saved with them before)
-var NDR_SHOW = ['deliver', 'address', 'refuse', 'other'];
+// Each after-call answer maps onto the W1 desk's Call Outcome list (matched by words, so the sheet's wording can change).
 var NDR_FLOW = [
-  { k: 'deliver', label: 'Deliver again', icon: 'truck-delivery', out: /will receive|reattempt/i, when: true },
-  // the courier's reason does not match what the customer says (rider never came, no call, area "closed" …): reattempt + attempt proof
-  { k: 'wrong', label: "Courier's reason is wrong", icon: 'alert-octagon', out: /rider never|fake/i, when: true },
-  { k: 'address', label: 'New address / phone', icon: 'map-pin', out: /address/i, when: true },
-  { k: 'cash', label: 'Cash not ready', icon: 'cash', out: /money|cash/i, when: true },
-  { k: 'refuse', label: "Doesn't want it", icon: 'ban', out: /refus|cancel/i, noSend: true },
-  // customer says it was received, the portal says return: a Status check (proof either way), never a reattempt / return
-  { k: 'received', label: 'Says already received', icon: 'package', out: /already received/i, check: true },
-  { k: 'other', label: 'Other', icon: 'pencil', out: /will receive|reattempt/i, when: true }
+  { k: 'deliver', out: /will receive|reattempt/i },
+  { k: 'address', out: /address/i },
+  { k: 'refuse', out: /refus|cancel/i },
+  { k: 'other', out: /will receive|reattempt/i }
 ];
-// Rider excuses and what the customer says against them; area "closed": how the rider can still reach the customer
-var NDR_WRONG = [['Rider never came', 'never'], ['No call received', 'nocall'], ['Was at home', 'home'], ['Area is not closed', 'area'], ['Did not refuse', 'norefuse'], ['Address was correct', 'addr']];
-var NDR_WRONG_TEXT = { never: 'Customer says the rider never came.', nocall: 'Customer says no call came from the rider.', home: 'Customer says they were at home.',
-  area: 'Customer says the area is not closed.', norefuse: 'Customer says they did not refuse the parcel.', addr: 'Customer says the address was correct.' };
-var NDR_AREA = [['Will come to the gate', 'Customer will come to the gate.'], ['Tell the guard the order #', 'Please tell the guard the order number.'], ['Meet at the main road', 'Customer will meet the rider at the main road.']];
-var NDR_RECEIVED = [['Got this parcel', 'Customer says this parcel was already received.'], ['Got another order', 'Customer received another order, not this one.'], ['Not sure', 'Customer is not sure whether this parcel was received.']];
-var NDR_CHECK_REQ = 'Status confirm karein · Delivered: POD share karein · Not delivered: parcel ki current location batayen';
-// The customer's other orders (same number), to see at once whether "received" was about another parcel
-function otherOrdersHtml(c) {
-  if (typeof P === 'undefined' || !P.data || !c.phone) return '';
-  var d = phoneDigits(c.phone).slice(-10);
-  var list = (P.data.parcels || []).filter(function (p) { return p.cn !== c.cn && p.phone && phoneDigits(p.phone).slice(-10) === d; });
-  return '<div class="tk" style="margin:8px 0 0"><i class="ti ti-history"></i> ' + (list.length ? 'Other orders from this number: ' +
-    list.slice(0, 4).map(function (p) { return esc(p.ref) + ' · ' + esc(STAGE_SHORT[p.stage] || p.stage); }).join(' · ') : 'No other order from this number') + '</div>';
+// "Call back at" choices (Pakistan time): in 1 hour, 5 PM / 8 PM while still ahead, tomorrow 11 AM → [label, ms]
+function callBackOpts() {
+  var now = Date.now(), p = pkDay(new Date()).split('-').map(Number);
+  var at = function (h, off) { return Date.UTC(p[0], p[1] - 1, p[2] + (off || 0), h - 5, 0); };
+  return [['In 1 hour', Math.ceil((now + 3600000) / 300000) * 300000], ['5 PM', at(17)], ['8 PM', at(20)], ['Tomorrow 11 AM', at(11, 1)]]
+    .filter(function (x) { return x[1] > now + 30 * 60000; }).map(function (x) { return [x[0], String(x[1])]; });
 }
-var NDR_NOT_REACHED = ['No answer', 'Phone off', 'Wrong number'];
 var NDR_REASONS = ['Changed mind', 'Ordered by mistake', 'Delivery too late', 'Price', 'Other reason'];
 var NDR_TIMES = ['Morning', 'Afternoon', 'Evening'];
 // what already happened with this case's courier request (shown first so nobody makes it twice)
@@ -3054,181 +3266,223 @@ function ndrReqBanner(c) {
   if (c.sent === 'Queued') return '<div class="tk" ' + w + '><i class="ti ti-inbox"></i> <b>Request already made</b> · in the ' + esc(c.courier) + ' list, not sent yet.</div>';
   return '';
 }
+// After a call (2026-11-01, user mockup "After the call"): what the agent needs while talking on top (courier's words,
+// the address on the order, what is inside, tries left), ONE question with 6 answers (no "did you reach?" step first),
+// only the fields that answer needs, own words with every answer, the exact WhatsApp lines the courier gets (no icons),
+// the main button always in reach, and "then open the next call".
+var NDR_ANS = [
+  ['deliver', 'circle-check', 'Will receive', 'deliver again', 'var(--green)'],
+  ['address', 'map-pin', 'New address', 'or new phone', 'var(--blue)'],
+  ['later', 'clock', 'Busy · call later', 'they gave a time', 'var(--amber)'],
+  ['noans', 'phone-off', 'No answer / off', 'call again', 'var(--muted)'],
+  ['refuse', 'ban', "Doesn't want it", 'ask to return', 'var(--red)'],
+  ['other', 'pencil', 'Other', 'own words', 'var(--muted)']
+];
+// words the agent can add with one tap (they go into "Your own words")
+var NDR_PHRASES = { deliver: ['Ghar pe hoga', 'Shaam ko ghar pe', 'Rider call kar ke aaye'], address: ['House #', 'Near mosque', 'Call before coming'],
+  later: ['Office time', 'Kal subah'], noans: ['Bell ja rahi hai', 'Busy tone'], refuse: ['Kisi aur se le liya', 'Paise nahi'], other: ['Rider call kar ke aaye', 'Gate peeche hai'] };
+// 'Tue 4 Nov' (the courier's format)
+function dayLong(ymd) { var p = ymd.split('-').map(Number); return new Date(Date.UTC(p[0], p[1] - 1, p[2], 12)).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).replace(',', ''); }
+// the answer the courier's words point to: [answer, why]
+function ndrSuggest(c) {
+  var r = String((c.reason || '') + ' ' + (c.courierStatus || ''));
+  if (/address|house|flat|untrace|incomplete|location|not found/i.test(r)) return ['address', 'asked for the address / house number'];
+  if (/not available|unavailable|not came|closed|consignee/i.test(r)) return ['deliver', 'says the customer was not there'];
+  return null;
+}
 function openNdrForm(cn, afterCall) {
   var c = N.data.cases.filter(function (x) { return x.cn === cn; })[0]; if (!c) return;
-  var o = N.data.options, first = String(c.name || '').split(' ')[0] || 'the customer';
+  var o = N.data.options, first = String(c.name || '').split(' ')[0] || 'the customer', cour = c.courier || 'courier';
   var outOf = function (re) { return o.outcomes.filter(function (x) { return re.test(x); })[0] || ''; };
-  var today = pkDay(new Date());
-  var days = [['Today', today], ['Tomorrow', addDays(today, 1)], ['Day after', addDays(today, 2)]];
-  var chips = function (id, list) { return '<div class="chips wrapc" id="' + id + '">' + list.map(function (x) { var v = Array.isArray(x) ? x : [x, x]; return '<button class="chip" type="button" data-v="' + esc(v[1]) + '">' + esc(v[0]) + '</button>'; }).join('') + '</div>'; };
-  el('panel').innerHTML = (afterCall ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-phone-check"></i> You just called ' + esc(c.name) + '. What happened?</div>' : '') +
-    '<h3>' + esc(taskTitle(c)) + '</h3><p>' + esc(c.name) + ' · ' + esc(c.ref) + ' · ' + esc(c.courier) + (c.calls ? ' · called ' + c.calls + '×' : '') + '</p>' +
-    // what the courier claims, so the agent can check it with the customer
-    (c.reason || c.courierStatus ? '<div class="tsays" style="margin:0 0 10px"><i class="ti ti-truck"></i>' + esc(c.courier) + ' says: ' + esc(niceReason(c.reason || c.courierStatus)) +
-      (c.attempts ? ' · ' + c.attempts + (c.attempts > 1 ? ' attempts' : ' attempt') : '') + '</div>' : '') +
-    // a request already exists: say so first (saving again updates it, never makes a second one)
+  var flow = function (k) { return NDR_FLOW.filter(function (f) { return f.k === k; })[0]; };
+  var today = pkDay(new Date()), p = findParcel(c.cn) || {};
+  var addr = String(c.address || p.address || '').trim(), item = String(c.items || p.items || '').split(/\n|;/).filter(Boolean)[0] || '';
+  var left = triesLeft(c), sug = ndrSuggest(c), calls = c.calls || 0;
+  var grid = function (id, list, n) { return '<div class="ac-row" style="grid-template-columns:repeat(' + n + ',minmax(0,1fr))" id="' + id + '">' + list.map(function (x) { var v = Array.isArray(x) ? x : [x, x]; return '<button class="chip" type="button" data-v="' + esc(v[1]) + '">' + v[0] + '</button>'; }).join('') + '</div>'; };
+  var cbList = callBackOpts().map(function (x) { return [x[0].replace('In 1 hour', '1 hour').replace('Tomorrow 11 AM', 'Tomorrow'), x[1]]; });
+  var fact = function (ic, col, b, t, extra) { return '<div class="ac-f"><i class="ti ti-' + ic + '" style="color:' + col + '"></i><span>' + (b ? '<b>' + b + '</b> ' : '') + t + '</span>' + (extra || '') + '</div>'; };
+  el('panel').innerHTML = '<h3>' + esc(c.ref) + ' · ' + esc(c.name) + '</h3><p>' + [esc(c.city), esc(cour), rs(c.cod) + ' COD'].join(' · ') + '</p>' +
+    (afterCall ? '<div class="ac-just"><i class="ti ti-phone-check"></i>You just called ' + esc(first) + ' · what happened?</div>' : '') +
     ndrReqBanner(c) +
-    '<div class="fld"><label>Did you reach ' + esc(first) + '?</label><div class="seg2" id="fReach"><button type="button" data-r="yes"><i class="ti ti-phone-check"></i>Yes, reached</button><button type="button" data-r="no"><i class="ti ti-phone-off"></i>No</button></div></div>' +
-    // not reached
-    '<div id="fNo" hidden><div class="fld"><label>What happened? · call ' + ((c.calls || 0) + 1) + (c.calls + 1 >= 3 ? '' : ' of 3') + '</label>' + chips('fNoWhy', NDR_NOT_REACHED) + '</div>' +
-    (c.wa ? '<a class="btn wa" target="_blank" href="' + waLink(c.wa, c.waText) + '" style="margin-bottom:10px"><i class="ti ti-brand-whatsapp"></i>Send WhatsApp to ' + esc(first) + '</a>' : '') +
-    ((c.calls || 0) + 1 >= 3 ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-arrow-back-up"></i> ' + ((c.calls || 0) + 1) + ' calls without an answer. Ask ' + esc(c.courier) + ' to return the parcel?</div>' : '') +
-    // return request: offered from the first call, suggested after 3 (the decision stays with us)
-    '<button class="btn' + ((c.calls || 0) + 1 >= 3 ? ' pri' : '') + '" id="fRet" type="button" style="width:100%;padding:11px;margin-bottom:10px"><i class="ti ti-arrow-back-up"></i>Ask ' + esc(c.courier) + ' to return it</button></div>' +
-    // reached
-    '<div id="fYes" hidden><div class="fld"><label>What does ' + esc(first) + ' want?</label><div class="ogrid" id="fWant">' +
-    NDR_FLOW.filter(function (f) { return NDR_SHOW.indexOf(f.k) !== -1; }).map(function (f) { return '<button type="button" class="og" data-k="' + f.k + '"><i class="ti ti-' + f.icon + '"></i>' + esc(f.label) + '</button>'; }).join('') + '</div></div>' +
-    '<div class="fld" id="fWhen" hidden><label>When should the courier come?</label>' + chips('fDay', days) +
-    '<input id="fDate" type="date" value="' + esc(c.reattempt) + '" style="margin-top:6px">' + chips('fTime', NDR_TIMES) + '</div>' +
-    '<div class="fld" id="fAddr" hidden><label>New address / phone</label><input id="fNewAddr" placeholder="House 12, Street 4, Model Town (landmark)"><input id="fNewPhone" type="tel" placeholder="New phone (if any)" style="margin-top:6px"></div>' +
-    '<div class="fld" id="fWhy" hidden><label>Why?</label>' + chips('fReason', NDR_REASONS) + '</div>' +
-    '<div class="fld" id="fWrong" hidden><label>What does ' + esc(first) + ' say?</label>' + chips('fWrongWhy', NDR_WRONG) + '</div>' +
-    '<div class="fld" id="fArea" hidden><label>How can the rider reach ' + esc(first) + '?</label>' + chips('fAreaFix', NDR_AREA.map(function (x) { return [x[0], x[1]]; })) + '</div>' +
-    '<div class="fld" id="fRcv" hidden><label>What did ' + esc(first) + ' receive?</label>' + chips('fRcvWhat', NDR_RECEIVED.map(function (x) { return [x[0], x[1]]; })) + otherOrdersHtml(c) + '</div>' +
+    '<div class="ac-facts">' +
+      (c.watch ? fact('truck', 'var(--red)', esc(cour) + ':', esc(lateText(c.type))) : fact('truck', 'var(--red)', esc(cour) + ':', esc(niceReason(c.reason || c.courierStatus) || 'Delivery failed') + (c.attempts ? ' · attempt ' + c.attempts : ''))) +
+      (addr ? fact('map-pin', 'var(--muted)', 'Address:', esc(addr), '<button class="btn" type="button" id="fCopy"><i class="ti ti-copy"></i>Copy</button>') : '') +
+      (item ? fact('package', 'var(--muted)', '', esc(item) + ' · ' + rs(c.cod) + ' COD') : '') +
+      (c.attempts && !c.watch ? fact('hourglass', left <= 1 ? 'var(--red)' : 'var(--muted)', '', '<span style="color:' + (left <= 1 ? 'var(--red)' : 'var(--muted)') + '">' +
+        (left <= 0 ? 'No tries left · ' + esc(cour) + ' may return it now' : left === 1 ? 'Last try left · ' + esc(cour) + ' returns it after attempt ' + ndrMax() : left + ' tries left') + '</span>') : '') +
+      (calls ? fact('phone', 'var(--muted)', '', calls + (calls === 1 ? ' call' : ' calls') + ' before' + (c.lastCall ? ' · last ' + esc(c.lastCall) : '')) : '') +
     '</div>' +
-    // own words, for every answer
-    '<div class="fld" id="fNoteW" hidden><label id="fNoteL">Your own words (optional)</label><textarea id="fNote" rows="2" placeholder="e.g. Call before coming, gate is at the back">' + '</textarea></div>' +
-    '<div class="msgprev" id="fPrev" hidden><small>Message to ' + esc(c.courier) + '</small><div id="fPrevT" style="white-space:pre-line"></div></div>' +
-    '<details class="fmore"><summary>More options</summary><div class="fld"><label>Internal notes (not sent)</label><textarea id="fNotes" rows="2">' + esc(c.notes) + '</textarea></div></details>' +
+    '<div class="ac-q">What happened on the call?</div><div class="ac-grid" id="fAns">' + NDR_ANS.map(function (a) {
+      return '<button type="button" class="ac-t" data-a="' + a[0] + '"><i class="ti ti-' + a[1] + '" style="color:' + a[4] + '"></i><span><b>' + a[2] + '</b><small>' + a[3] + '</small></span>' +
+        '<em class="ac-tick"><i class="ti ti-check"></i></em>' + (sug && sug[0] === a[0] ? '<span class="ac-sug">Suggested</span>' : '') + '</button>';
+    }).join('') + '</div>' +
+    (sug ? '<div class="ac-sugn">Suggested because ' + esc(cour) + ' ' + sug[1] + '.</div>' : '') +
+    // only what the chosen answer needs
+    '<div class="ac-box" id="dDeliver" hidden><label>When should ' + esc(cour) + ' come?</label>' +
+      grid('fDay', [['Tomorrow', addDays(today, 1)], ['Day after', addDays(today, 2)], ['<i class="ti ti-calendar"></i>Date', 'pick']], 3) +
+      '<input id="fDate" type="date" min="' + today + '" value="' + esc(c.reattempt) + '" hidden style="margin-top:6px">' + grid('fTime', NDR_TIMES, 3) + '</div>' +
+    '<div class="ac-box" id="dAddr" hidden><label>New address · edit the one on the order</label><textarea id="fNewAddr" rows="2" placeholder="House 12, Street 4, Model Town (landmark)">' + esc(addr) + '</textarea>' +
+      '<label>New phone (if any)</label><input id="fNewPhone" type="tel" placeholder="0300 1234567"></div>' +
+    '<div class="ac-box" id="dLater" hidden><label>Call back at</label>' + grid('fCbL', cbList, cbList.length || 1) +
+      '<small>The case waits under "Call back at their time" and comes back with a reminder. Nothing goes to ' + esc(cour) + ' yet.</small></div>' +
+    '<div class="ac-box" id="dNo" hidden><label>Call ' + (calls + 1) + (calls + 1 >= 3 ? '' : ' of 3') + '</label>' + grid('fNoWhy', [['No answer', 'No answer'], ['Phone off', 'Phone off'], ['Wrong no.', 'Wrong number']], 3) +
+      '<label>Try again at (optional)</label>' + grid('fCb', cbList, cbList.length || 1) +
+      (c.wa ? '<a class="btn ac-wa" target="_blank" href="' + waLink(c.wa, '') + '"><i class="ti ti-brand-whatsapp"></i>Message ' + esc(first) + ' on WhatsApp</a>' : '') +
+      (calls + 1 >= 3 ? '<div class="tk" style="margin:10px 0 0"><i class="ti ti-arrow-back-up"></i> ' + (calls + 1) + ' calls without an answer. Ask ' + esc(cour) + ' to return the parcel?</div>' : '') +
+      '<button class="btn' + (calls + 1 >= 3 ? ' danger' : '') + '" id="fRet" type="button" style="width:100%;margin-top:10px;height:42px"><i class="ti ti-arrow-back-up"></i>Ask ' + esc(cour) + ' to return it</button></div>' +
+    '<div class="ac-box" id="dWhy" hidden><label>Why? (for our records)</label><div class="chips wrapc" id="fReason">' + NDR_REASONS.map(function (x) { return '<button class="chip" type="button" data-v="' + esc(x) + '">' + esc(x) + '</button>'; }).join('') + '</div></div>' +
+    // own words, with every answer: for a request they ARE the courier's message, otherwise saved on the case
+    '<div class="ac-box" id="dWords" hidden><label class="ac-lbl"><span id="fNoteL">Your own words (optional)</span><small id="fWordsTo"></small></label><textarea id="fNote" rows="2"></textarea><div class="ac-phr" id="fPhr"></div></div>' +
+    '<div class="ac-prev" id="fPrev" hidden><small id="fPrevH"></small><div id="fPrevT"></div></div>' +
+    '<button class="ac-note" id="fNoteBtn" type="button"><i class="ti ti-pencil"></i><span>' + (c.notes ? 'Internal note' : 'Add internal note') + '</span><small>not sent</small></button>' +
+    '<div class="ac-box" id="dNotes"' + (c.notes ? '' : ' hidden') + '><label>Internal note (not sent)</label><textarea id="fNotes" rows="2">' + esc(c.notes) + '</textarea></div>' +
     '<div class="err" id="fErr"></div>' +
-    '<button class="btn pri" id="fGo" style="width:100%;padding:12px;margin-top:6px" hidden></button>' +
-    '<div class="btns" style="margin-top:8px"><button class="btn" id="fCancel">Cancel</button><button class="btn" id="fSaveOnly" hidden>Save only</button></div>';
+    '<div class="ac-bar"><label class="ac-next"><span>Then open the next call<b id="fNextN"></b></span><input type="checkbox" id="fNext"' + (store('eh_nextcall') === '0' ? '' : ' checked') + '></label>' +
+      '<div class="ac-btns"><button class="btn" id="fSaveOnly" type="button" hidden>Save only</button><button class="btn pri" id="fGo" type="button" disabled>Pick what happened</button></div></div>';
   openPanel(true);
 
-  var st = { reach: '', why: '', want: null, day: '', time: '', reason: '', wrong: '', area: '', rcv: '' };
-  var pickChip = function (box, key) {
+  var st = { ans: '', why: 'No answer', day: addDays(today, 1), time: '', reason: '', cb: '' };
+  var on = function (box, v) { el(box).querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-v') === v); }); };
+  on('fDay', st.day); on('fNoWhy', st.why);
+  var pickChip = function (box, key, toggle) {
     el(box).onclick = function (e) {
       var b = e.target.closest('[data-v]'); if (!b) return;
-      var on = !b.classList.contains('on');
-      el(box).querySelectorAll('.chip').forEach(function (x) { x.classList.remove('on'); });
-      if (on) b.classList.add('on');
-      st[key] = on ? b.getAttribute('data-v') : '';
-      if (key === 'day') el('fDate').value = st.day;
+      var v = b.getAttribute('data-v');
+      if (box === 'fDay' && v === 'pick') { el('fDate').hidden = false; el('fDate').focus(); try { el('fDate').showPicker(); } catch (er) {} return; }
+      st[key] = toggle && st[key] === v ? '' : v; on(box, st[key]);
+      if (box === 'fDay') { el('fDate').value = st.day; el('fDate').hidden = true; }
       el('fErr').textContent = ''; draw();
     };
   };
-  pickChip('fNoWhy', 'why'); pickChip('fDay', 'day'); pickChip('fTime', 'time'); pickChip('fReason', 'reason');
-  pickChip('fWrongWhy', 'wrong'); pickChip('fAreaFix', 'area'); pickChip('fRcvWhat', 'rcv');
-  el('fDate').onchange = function () { st.day = el('fDate').value; el('fDay').querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-v') === st.day); }); draw(); };
-  ['fNote', 'fNewAddr', 'fNewPhone'].forEach(function (id) { el(id).oninput = function () { el('fErr').textContent = ''; draw(); }; });
-  el('fReach').onclick = function (e) {
-    var b = e.target.closest('[data-r]'); if (!b) return;
-    st.reach = b.getAttribute('data-r');
-    el('fReach').querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); });
+  pickChip('fDay', 'day', true); pickChip('fTime', 'time', true); pickChip('fNoWhy', 'why'); pickChip('fCb', 'cb', true); pickChip('fCbL', 'cb'); pickChip('fReason', 'reason', true);
+  el('fDate').onchange = function () { st.day = el('fDate').value; on('fDay', st.day === addDays(today, 1) || st.day === addDays(today, 2) ? st.day : 'pick'); draw(); };
+  ['fNote', 'fNewAddr', 'fNewPhone', 'fNotes'].forEach(function (id) { el(id).oninput = function () { el('fErr').textContent = ''; draw(); }; });
+  if (el('fCopy')) el('fCopy').onclick = function () { try { navigator.clipboard.writeText(addr); toast('Address copied'); } catch (e) {} };
+  el('fNoteBtn').onclick = function () { el('dNotes').hidden = false; el('fNoteBtn').hidden = true; el('fNotes').focus(); };
+  if (c.notes) el('fNoteBtn').hidden = true;
+  el('fPhr').onclick = function (e) {
+    var b = e.target.closest('[data-w]'); if (!b) return;
+    var t = el('fNote').value.replace(/\s+$/, ''), w = b.getAttribute('data-w');
+    el('fNote').value = t ? t.replace(/[.,]?$/, ', ') + w.charAt(0).toLowerCase() + w.slice(1) : w; draw();
+  };
+  el('fAns').onclick = function (e) {
+    var b = e.target.closest('[data-a]'); if (!b) return;
+    st.ans = b.getAttribute('data-a');
+    if (st.ans === 'later' && !st.cb && cbList[0]) { st.cb = cbList[0][1]; on('fCbL', st.cb); }
+    if (st.ans !== 'later' && st.ans !== 'noans') st.cb = '';
+    on('fCb', st.cb); on('fCbL', st.cb);
+    el('fPhr').innerHTML = (NDR_PHRASES[st.ans] || []).map(function (w) { return '<button type="button" data-w="' + esc(w) + '">+ ' + esc(w) + '</button>'; }).join('');
     el('fErr').textContent = ''; draw();
   };
-  el('fWant').onclick = function (e) {
-    var b = e.target.closest('[data-k]'); if (!b) return;
-    st.want = NDR_FLOW.filter(function (f) { return f.k === b.getAttribute('data-k'); })[0];
-    if (st.want && st.want.k === 'wrong' && !st.wrong) { // the chip that answers this courier's excuse, already picked
-      st.wrong = reasonChip(c.reason || c.courierStatus);
-      el('fWrongWhy').querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', !!st.wrong && x.getAttribute('data-v') === st.wrong); });
-    }
-    el('fWant').querySelectorAll('.og').forEach(function (x) { x.classList.toggle('on', x === b); });
-    el('fErr').textContent = ''; draw();
-  };
+  var want = function () { return { deliver: flow('deliver'), address: flow('address'), refuse: flow('refuse'), other: flow('other') }[st.ans] || null; };
   var whenText = function () {
     if (!st.day) return st.time ? 'in the ' + st.time.toLowerCase() : '';
     var d = st.day === today ? 'today' : st.day === addDays(today, 1) ? 'tomorrow (' + niceDay(st.day) + ')' : 'on ' + niceDay(st.day);
     return d + (st.time ? ', ' + st.time.toLowerCase() : '');
   };
-  // The message the courier gets (also saved as "Customer Says")
+  var newAddr = function () { var a = el('fNewAddr').value.replace(/\s+/g, ' ').trim(); return a && a !== addr.replace(/\s+/g, ' ') ? a : ''; };
+  var updated = function () { return st.ans === 'address' ? [newAddr(), el('fNewPhone').value.trim()].filter(Boolean).join(' · ') : ''; };
+  // the courier's message (also saved as "Customer Says"); the stock sentence only when nothing is written
   var message = function () {
-    var w = st.want, note = el('fNote').value.replace(/\s+/g, ' ').trim(), when = whenText(), m = '';
-    if (st.reach === 'no') return [st.why, note].filter(Boolean).join('. ');
+    var note = el('fNote').value.replace(/\s+/g, ' ').trim(), when = whenText(), m = '', w = want();
+    if (st.ans === 'noans') return [st.why, note].filter(Boolean).join('. ');
+    if (st.ans === 'later') return ['Customer busy' + (st.cb ? ', call back at ' + pkTime(Number(st.cb)) : ''), note].filter(Boolean).join('. ');
     if (!w) return '';
     if (w.k === 'deliver') m = 'Customer will receive the parcel' + (when ? ' ' + when : '') + '.';
-    if (w.k === 'wrong') m = (NDR_WRONG_TEXT[st.wrong] || 'Customer says the courier\'s reason is not correct.') + (st.wrong === 'area' && st.area ? ' ' + st.area : '') + (when ? ' Customer is available ' + when + '.' : '');
-    if (w.k === 'received') m = st.rcv || 'Customer says the parcel was already received.';
-    if (w.k === 'address') {
-      var a = el('fNewAddr').value.trim(), p = el('fNewPhone').value.trim();
-      m = 'Customer gave a new ' + (a && p ? 'address and phone' : p ? 'phone' : 'address') + ': ' + [a, p].filter(Boolean).join(', ') + '.' + (when ? ' Deliver ' + when + '.' : '');
-    }
-    if (w.k === 'cash') m = 'Customer will have the cash' + (when ? ' ' + when : '') + '.';
+    if (w.k === 'address') m = (newAddr() && el('fNewPhone').value.trim() ? 'Naya pata aur phone' : el('fNewPhone').value.trim() ? 'Naya phone' : 'Naya pata') + ' diya hai.';
     if (w.k === 'refuse') m = 'Customer does not want the parcel' + (st.reason ? ': ' + st.reason.toLowerCase() : '') + '. Please return the parcel to us.';
-    // the agent's own words ARE the courier's message (user 2026-10-27: the kind is already the message heading); the
-    // stock sentence stays only when nothing is written; a new address / phone goes on its own line (desk Updated
-    // Address/Phone → WhatsApp / sheet), a refusal keeps its facts
-    if (note && w.k !== 'refuse') m = note.replace(/[.\s]*$/, '.') + (st.time ? ' (' + st.time + ')' : ''); // the day goes as the reattempt date
+    if (note && w.k !== 'refuse') m = note.replace(/[.\s]*$/, '.') + (st.time ? ' (' + st.time + ')' : '');
     else if (w.k === 'other') m = '';
     else if (note) m += ' ' + note.replace(/[.\s]*$/, '.');
-    if (m && !w.noSend && !w.check) m += (when && w.k === 'other' ? ' Please come ' + when + '.' : '') + ' Please reattempt again.';
+    if (m && w.k !== 'refuse') m += ' Please reattempt again.';
     return m.trim();
   };
-  // extra lines for the courier: proof of the attempt when their reason is disputed; area "closed": call before coming
-  var askText = function () {
-    var w = st.reach === 'yes' && st.want;
-    if (!w || w.k !== 'wrong') return '';
-    return ['Attempt proof share karein'].concat(st.wrong === 'area' ? ['Rider aane se pehle customer ko call kare'] : []).join('; ');
+  // the lines the courier will get on WhatsApp (same builder as the courier list)
+  var preview = function () {
+    if (st.ans === 'refuse') return ['Mark for Return', c.cn];
+    var it = { cn: c.cn, city: c.city, reattempt: st.ans === 'address' ? '' : st.day ? dayLong(st.day) : '', says: message(), newInfo: updated(), name: c.name, phone: c.phone };
+    return obItem('reattempt', it, 0).replace(/\*/g, '').split('\n');
   };
-  var requestLine = function (send, check) {
-    if (check) return NDR_CHECK_REQ;
-    if (!send) return '';
-    var a = askText();
-    return 'Dobara deliver karein' + (a ? ' · ' + a.split('; ').join(' · ') : '');
+  var hasReq = c.sent === 'Queued' || c.sent === 'Sent';
+  var next = function () {
+    return N.data.cases.filter(function (x) { var s = ndrSlot(x)[1]; return x.cn !== c.cn && (s === 'new' || s === 'again') && x.phone; })
+      .sort(function (a, b) { return triesLeft(a) - triesLeft(b) || (b.hours || 0) - (a.hours || 0); })[0];
   };
+  var nx = next();
+  el('fNextN').textContent = nx ? ' · ' + nx.ref + ' ' + String(nx.name || '').split(' ')[0] : ' · none left';
+  el('fNext').disabled = !nx;
   var draw = function () {
-    var yes = st.reach === 'yes', no = st.reach === 'no', w = yes && st.want;
-    el('fNo').hidden = !no; el('fYes').hidden = !yes;
-    el('fWhen').hidden = !(w && w.when); el('fAddr').hidden = !(w && w.k === 'address'); el('fWhy').hidden = !(w && w.k === 'refuse');
-    el('fWrong').hidden = !(w && w.k === 'wrong'); el('fArea').hidden = !(w && w.k === 'wrong' && st.wrong === 'area'); el('fRcv').hidden = !(w && w.k === 'received');
-    el('fNoteW').hidden = !(no || w);
-    el('fNoteL').textContent = w && w.k === 'other' ? 'What should the courier do?' : 'Your own words (optional)';
-    var msg = message(), send = !!(w && !w.noSend && !w.check), check = !!(w && w.check), req = requestLine(send, check);
-    el('fPrev').hidden = !((send || check) && msg); el('fPrevT').textContent = msg +
-      (w && w.k === 'address' ? newInfoLines([el('fNewAddr').value.trim(), el('fNewPhone').value.trim()].filter(Boolean).join(' · '), {}).map(function (x) { return '\n' + x; }).join('') : '') + (req ? '\n✅ ' + req : '');
-    el('fGo').hidden = !(no || w);
-    var has = c.sent === 'Queued' || c.sent === 'Sent';
-    el('fGo').innerHTML = check ? (has ? '<i class="ti ti-refresh"></i>Update status check' : '<i class="ti ti-search"></i>Ask ' + esc(c.courier) + ' to check the status') :
-      send ? (has ? '<i class="ti ti-refresh"></i>Update ' + esc(c.courier) + ' request' : '<i class="ti ti-inbox"></i>Add to ' + esc(c.courier) + ' list') : w && w.noSend ? '<i class="ti ti-arrow-back-up"></i>Ask ' + esc(c.courier) + ' to return it' : '<i class="ti ti-device-floppy"></i>Save · call again later';
-    el('fSaveOnly').hidden = !(send || check || (w && w.noSend));
-    el('fPrev').hidden = !((send || check || (w && w.noSend)) && msg);
+    var a = st.ans, send = a === 'deliver' || a === 'address' || a === 'other', w = want();
+    el('fAns').querySelectorAll('.ac-t').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-a') === a); });
+    el('dDeliver').hidden = a !== 'deliver' && a !== 'other'; el('dAddr').hidden = a !== 'address'; el('dLater').hidden = a !== 'later';
+    el('dNo').hidden = a !== 'noans'; el('dWhy').hidden = a !== 'refuse'; el('dWords').hidden = !a;
+    el('fNoteL').textContent = a === 'other' ? 'What should ' + cour + ' do?' : 'Your own words (optional)';
+    el('fWordsTo').textContent = send || a === 'refuse' ? 'sent to ' + cour : 'saved on the case';
+    el('fNote').placeholder = { deliver: 'e.g. Gate peeche hai, rider call kar ke aaye', address: 'e.g. Masjid ke saath wali gali', later: 'e.g. Office mein hai, 5 baje ke baad', noans: 'e.g. Bell ja rahi hai, uthaya nahi', refuse: 'e.g. Kisi aur se mangwa liya', other: 'Write it in your own words' }[a] || '';
+    el('fPrev').hidden = !a;
+    if (a) {
+      var goes = send || a === 'refuse';
+      el('fPrev').classList.toggle('none', !goes);
+      el('fPrevH').textContent = goes ? 'Message to ' + cour + ' (WhatsApp)' : 'Nothing goes to ' + cour;
+      el('fPrevT').innerHTML = (goes ? preview() : [message() || '—']).map(function (l, i) { return '<div' + (i === 0 && goes ? ' class="b"' : '') + '>' + esc(l) + '</div>'; }).join('');
+    }
+    var go = el('fGo');
+    go.disabled = !a; go.className = 'btn ' + (a === 'refuse' ? 'danger' : 'pri');
+    go.innerHTML = !a ? 'Pick what happened' : send ? (hasReq ? '<i class="ti ti-refresh"></i>Update ' + esc(cour) + ' request' : '<i class="ti ti-send"></i>Add to ' + esc(cour) + ' list')
+      : a === 'refuse' ? '<i class="ti ti-arrow-back-up"></i>Ask ' + esc(cour) + ' to return it'
+      : a === 'later' ? '<i class="ti ti-clock"></i>Save · call at ' + (st.cb ? pkTime(Number(st.cb)) : '…')
+      : '<i class="ti ti-phone"></i>Save · ' + (st.cb ? 'try at ' + pkTime(Number(st.cb)) : 'call again later');
+    el('fSaveOnly').hidden = !(send || a === 'refuse');
   };
   draw();
-  el('fCancel').onclick = closePanel;
-  var save = function (send, ret, check) {
-    var w = st.want, msg = message();
-    if (ret && st.reach === 'no') msg = (c.calls || 0) + 1 + ' calls, no answer' + (st.why && !/no answer/i.test(st.why) ? ' (' + st.why.toLowerCase() + ')' : '') + '. Please return the parcel to us.';
-    if (!st.reach) { el('fErr').textContent = 'Did you reach the customer?'; return; }
-    if (st.reach === 'no' && !st.why) { el('fErr').textContent = 'Pick what happened'; return; }
-    if (st.reach === 'yes' && !w) { el('fErr').textContent = 'Pick what the customer wants'; return; }
-    if (w && w.k === 'address' && !el('fNewAddr').value.trim() && !el('fNewPhone').value.trim()) { el('fErr').textContent = 'Write the new address or phone'; el('fNewAddr').focus(); return; }
-    if (w && w.k === 'other' && !el('fNote').value.trim()) { el('fErr').textContent = 'Write what the courier should do'; el('fNote').focus(); return; }
-    if (w && w.k === 'wrong' && !st.wrong) { el('fErr').textContent = 'Pick what the customer says'; return; }
-    if (w && w.k === 'received' && !st.rcv) { el('fErr').textContent = 'Pick what the customer received'; return; }
-    var outcome = st.reach === 'no' ? outOf(/no answer|phone off/i) : outOf(w.out);
-    var updated = w && w.k === 'address' ? [el('fNewAddr').value.trim(), el('fNewPhone').value.trim()].filter(Boolean).join(' · ') : '';
+  var save = function (send, ret) {
+    var a = st.ans, w = want(), msg = message();
+    if (!a) { el('fErr').textContent = 'Pick what happened on the call'; return; }
+    if (ret && a === 'noans') msg = calls + 1 + ' calls, no answer' + (st.why && !/no answer/i.test(st.why) ? ' (' + st.why.toLowerCase() + ')' : '') + '. Please return the parcel to us.';
+    if (a === 'later' && !st.cb) { el('fErr').textContent = 'Pick when to call back'; return; }
+    if (a === 'address' && !updated()) { el('fErr').textContent = 'Add the house number to the address, or write a new phone'; el('fNewAddr').focus(); return; }
+    if (a === 'other' && !el('fNote').value.trim()) { el('fErr').textContent = 'Write what ' + cour + ' should do'; el('fNote').focus(); return; }
+    var outcome = a === 'noans' ? outOf(/no answer|phone off/i) : a === 'later' ? (outOf(/busy/i) || outOf(/no answer|phone off/i)) : outOf(w.out);
+    var cb = (a === 'noans' || a === 'later') && !ret ? Number(st.cb) || 0 : 0, upd = updated(), keep = JSON.stringify(c);
     // Optimistic: close and update the card now, save in the background.
-    var before = JSON.stringify(c);
-    c.outcome = outcome; c.says = msg; c.calls = (c.calls || 0) + 1; c.lastCall = 'just now';
+    c.outcome = outcome; c.says = msg; c.calls = calls + 1; c.lastCall = 'just now'; c.lastCallMs = Date.now(); c.callBack = cb;
     if (send) { c.next = 'Escalate to courier'; if (!c.sent || c.sent === 'Not sent') c.sent = 'Queued'; }
     if (ret) { c.next = 'Let it return (RTO)'; if (!c.sent || c.sent === 'Not sent') c.sent = 'Queued'; }
-    if (check) { c.next = 'Verify with courier'; if (!c.sent || c.sent === 'Not sent') c.sent = 'Queued'; }
-    var ask = send ? askText() : '';
+    var goNext = el('fNext').checked && nx;
+    store('eh_nextcall', el('fNext').checked ? '1' : '0');
     closePanel(); renderNdr(); updateBadge();
-    toast(send || ret || check ? '📥 Adding to ' + c.courier + ' list…' : 'Saving…');
-    api('saveAppNdrOutcome', [{ token: TOKEN, cn: c.cn, outcome: outcome, next: '', updated: updated, reattempt: st.day || el('fDate').value,
-      sent: c.sent || 'Not sent', notes: el('fNotes').value, says: msg, send: send, ret: !!ret, check: !!check, ask: ask, call: true }], function (r) {
+    toast(send || ret ? 'Adding to ' + cour + ' list…' : 'Saving…');
+    api('saveAppNdrOutcome', [{ token: TOKEN, cn: c.cn, outcome: outcome, next: '', updated: upd, reattempt: a === 'deliver' || a === 'other' ? st.day : '',
+      sent: c.sent || 'Not sent', notes: el('fNotes').value, says: msg, send: send, ret: !!ret, check: false, ask: '', call: true, callBack: cb }], function (r) {
       c.next = r.next; if (r.sent) c.sent = r.sent; snap('ndr', N.data);
-      toast(r.returning ? '↩️ ' + c.courier + ' is already returning it · no request needed' :
-        r.already ? '✅ Saved · ' + (REQ_KIND[r.already.type] || '') + ' request already ' + (r.already.channel ? 'sent on ' + r.already.channel + (r.already.sentAt ? ' ' + r.already.sentAt : '') : 'in the ' + c.courier + ' list') + ' · not made twice' :
-        send || ret || check ? '✅ Request created · in the ' + c.courier + ' list (not sent yet)' : '✅ Saved');
+      toast(r.returning ? cour + ' is already returning it · no request needed' :
+        r.already ? 'Saved · ' + (REQ_KIND[r.already.type] || '') + ' request already ' + (r.already.channel ? 'sent on ' + r.already.channel + (r.already.sentAt ? ' ' + r.already.sentAt : '') : 'in the ' + cour + ' list') + ' · not made twice' :
+        send || ret ? 'Request created · in the ' + cour + ' list (not sent yet)' : cb ? 'Saved · call back at ' + pkTime(cb) + ' (reminder on the phone)' : 'Saved');
       loadNdr(true);
     }, function (e) {
-      Object.assign(c, JSON.parse(before)); renderNdr(); updateBadge();
-      toast('❌ Not saved: ' + ((e && e.message) || 'try again'));
+      Object.assign(c, JSON.parse(keep)); renderNdr(); updateBadge();
+      toast('Not saved: ' + ((e && e.message) || 'try again'));
     });
+    if (goNext) setTimeout(function () { openNextCall(goNext); }, 350);
   };
-  el('fGo').onclick = function () {
-    if (st.reach === 'yes' && st.want && st.want.noSend) return save(false, true); // doesn't want it → return request
-    if (st.reach === 'yes' && st.want && st.want.check) return save(false, false, true); // says received → status check
-    save(!!(st.reach === 'yes' && st.want && !st.want.noSend));
-  };
-  el('fSaveOnly').onclick = function () { save(false); };
-  el('fRet').onclick = function () {
-    if (!st.why) { el('fErr').textContent = 'Pick what happened on the call'; return; }
-    save(false, true);
-  };
+  el('fGo').onclick = function () { var a = st.ans; save(a === 'deliver' || a === 'address' || a === 'other', a === 'refuse'); };
+  el('fSaveOnly').onclick = function () { save(false, false); };
+  el('fRet').onclick = function () { save(false, true); };
+}
+// the next case to call, in a small sheet: tap Call → the phone dials → back in the app the after-call window opens
+function openNextCall(c) {
+  if (!c || !N.data.cases.some(function (x) { return x.cn === c.cn; })) return;
+  var left = triesLeft(c);
+  el('panel').innerHTML = '<h3>Next call</h3><p>' + esc(c.ref) + ' · ' + esc(c.name) + ' · ' + [esc(c.city), esc(c.courier), rs(c.cod)].join(' · ') + '</p>' +
+    '<div class="nc-box" style="margin:0"><b>' + esc(c.courier) + ':</b> ' + esc(niceReason(c.reason || c.courierStatus) || 'Delivery failed') + (c.attempts ? ' · attempt ' + c.attempts : '') + '</div>' +
+    (c.attempts ? '<div class="nc-ln" style="color:' + (left <= 1 ? 'var(--red)' : 'var(--muted)') + '"><i class="ti ti-hourglass"></i>' + (left <= 0 ? 'No tries left' : left === 1 ? 'Last try left' : left + ' tries left') + '</div>' : '') +
+    '<div class="nc-act" style="border:0;padding-top:4px"><a class="btn pri grow" id="ncGo" data-call="' + esc(c.cn) + '" href="' + telHref(c.phone) + '"><i class="ti ti-phone"></i>Call ' + esc(String(c.name || '').split(' ')[0]) + '</a>' +
+    (c.wa ? '<a class="btn sq wa" target="_blank" href="' + waLink(c.wa, '') + '" aria-label="WhatsApp"><i class="ti ti-brand-whatsapp"></i></a>' : '') +
+    '<button class="btn" id="ncSkip" style="flex:none;padding:0 14px">Not now</button></div>';
+  openPanel();
+  // the sheet must be closed when the call starts, or the after-call window will not open on return
+  el('ncGo').onclick = function () { setTimeout(closePanel, 0); };
+  el('ncSkip').onclick = closePanel;
 }
 
 // ---------- Cash ----------
@@ -3606,7 +3860,7 @@ el('rview').onclick = function (e) {
   if (a) {
     var w = R.data.waiting.filter(function (x) { return x.cn === a.getAttribute('data-rask'); })[0]; if (!w) return;
     // WhatsApp status check for the courier's group (Roman Urdu, like all courier messages)
-    var msg = '*' + STORE + ' · Return Status Check*\n\n*CN ' + w.cn + '*\n📍 ' + [w.city, w.order].filter(Boolean).join(' · ') +
+    var msg = '*' + STORE + ' · Return Status Check*\n\n*CN ' + w.cn + '*\n' + [w.city, w.order].filter(Boolean).join(' · ') +
       '\n\nYe return ' + w.days + ' din se aage nahi barha. Parcel ki current location batayen aur kab tak wapas pohnchega.\n\nShukriya\n' + STORE + ' · Operations';
     if (navigator.share) navigator.share({ text: msg }).catch(function () {}); else window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
     return;
@@ -5525,7 +5779,7 @@ el('lgForgot').onclick = function () { el('lgErr').textContent = 'Ask the admin 
 // saved by name ("Yesterday" stays yesterday tomorrow); a custom range keeps its dates.
 function saveFilters() {
   var per = function (s) { return { month: s.month || '', courier: s.courier || 'all', range: s.range ? (s.range.q && s.range.q !== 'custom' ? { q: s.range.q } : s.range) : null }; };
-  store('eh_f1', JSON.stringify({ h: per(H), c: per(C), p: P.filter, pc: P.courier, n: N.filter, pf: C.pf, bf: C.bf }));
+  store('eh_f1', JSON.stringify({ h: per(H), c: per(C), p: P.filter, pc: P.courier, n: N.tab, pf: C.pf, bf: C.bf }));
 }
 function loadFilters() {
   var f; try { f = JSON.parse(store('eh_f1') || 'null'); } catch (e) { f = null; }
@@ -5536,7 +5790,7 @@ function loadFilters() {
   if (f.c) { C.month = f.c.month || 'all'; C.courier = f.c.courier || 'all'; C.range = range(f.c.range); }
   if (f.p) P.filter = f.p;
   if (f.pc) P.courier = f.pc;
-  if (f.n) N.filter = f.n;
+  if (f.n && /^(todo|courier|special|closed)$/.test(f.n)) N.tab = f.n;
   if (f.pf) C.pf = f.pf;
   if (f.bf) C.bf = f.bf;
 }
