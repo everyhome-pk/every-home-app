@@ -295,7 +295,7 @@ body{overscroll-behavior-y:contain}
 .hd-quick span{width:54px;height:54px;border-radius:14px;background:var(--card);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;margin:0 auto 8px}
 .hd-quick i{font-size:24px;color:var(--brand)}
 .hd-trend{background:var(--card);border-radius:18px;padding:14px 14px 6px;box-shadow:var(--shadow);margin-bottom:12px}
-.hd-th{display:flex;justify-content:space-between;align-items:baseline}.hd-th b{font-size:15px;font-weight:500}.hd-th span{font-size:12px;color:var(--muted)}
+.hd-th{display:flex;justify-content:space-between;align-items:center}.hd-th b{font-size:15px;font-weight:500}.hd-rg{display:flex;align-items:center;gap:4px;border:1px solid var(--line);background:var(--card);border-radius:99px;height:30px;padding:0 10px;font:500 12px Inter,sans-serif;color:var(--text);cursor:pointer}.hd-rg i{font-size:14px;color:var(--muted)}
 .hd-chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 6px}
 .hd-tv{display:flex;align-items:baseline;gap:8px}.hd-tv b{font-size:20px;font-weight:500}.hd-tv span{font-size:12px;color:var(--muted)}
 .hd-trend svg{display:block;width:100%;height:auto;margin-top:6px}.hd-trend text{font-size:9px;fill:var(--faint);font-family:Inter,sans-serif}
@@ -1015,7 +1015,7 @@ var PERMS = null; try { PERMS = JSON.parse(store('eh_perms') || 'null'); } catch
 var ROLE = store('eh_role') || '';
 var TAB_PERM = { home: 'home.view', parcels: 'parcels.view', ndr: 'ndr.view', returns: 'returns.view', cash: 'cash.view' };
 var KIND_PERM = { ndr: 'ndr.view', courier: 'ndr.work', back: 'returns.view', late: 'parcels.view', nocn: 'parcels.view', brief: 'home.view', cash: 'cash.view',
-  money: 'finance.approve', mine: 'finance.add', stock: 'inventory.view', buy: 'inventory.edit', ads: 'reports.view', adcharge: 'users.manage', security: 'users.manage', sync: 'users.manage' };
+  money: 'finance.approve', mine: 'finance.add', stock: 'inventory.view', buy: 'inventory.edit', link: 'inventory.edit', ads: 'reports.view', adcharge: 'users.manage', security: 'users.manage', sync: 'users.manage' };
 function can(p) { return !PERMS || PERMS.indexOf(p) !== -1; } // not known yet (old login): show all until the server answers
 function canTab(t) { return can(TAB_PERM[t]); }
 function firstTab() { return ['home', 'parcels', 'ndr', 'returns', 'cash'].filter(canTab)[0] || ''; }
@@ -1833,7 +1833,8 @@ function homeStock() {
     var d = STK.data; if (!d || !d.ready || !d.started || !el('todo') || el('hstock')) return;
     var it = d.items.filter(function (i) { return i.kind === 'Item'; });
     var low = it.filter(function (i) { return i.status === 'Low'; }).length, out = it.filter(function (i) { return i.status === 'Out'; }).length, pl = (d.plan || []).length;
-    var txt = [out ? out + ' out' : '', low ? low + ' low' : '', pl ? pl + ' to order' : ''].filter(Boolean).join(' · ');
+    var nl = can('inventory.edit') ? stkUnmatched().length : 0;
+    var txt = [out ? out + ' out' : '', low ? low + ' low' : '', pl ? pl + ' to order' : '', nl ? nl + ' order line' + (nl > 1 ? 's' : '') + ' to link' : ''].filter(Boolean).join(' · ');
     el('todo').insertAdjacentHTML('afterend', '<div class="oc-warn" id="hstock" style="margin:0 0 12px;cursor:pointer"><i class="ti ti-packages"></i><span><b>Stock</b> · ' + (txt || 'all fine') + '</span><i class="ti ti-chevron-right"></i></div>');
     el('hstock').onclick = function () { openStock(''); };
   };
@@ -1911,24 +1912,53 @@ function homeQuick() {
 // 14 days up to it, that day marked), a point a month for all time; the courier filter applies to Sales / Delivery %.
 // Sales / Delivery % come from Home's data (reports.view), Profit / Ad spend from the P&L of the same period
 // (finance.view). Only chips with data are shown; the choice is kept on this phone. Tap the chart → that point's value.
+// The card's own choice (dropdown, kept on this phone): 'period' = the days of the period chosen on top (default),
+// '30d' = last 30 days, '3m' = last 3 months a week each, '12m' = last 12 months a month each
+var HD_RANGES = [['period', 'This period'], ['30d', '30 days'], ['3m', '3 months'], ['12m', '12 months']];
+// the first choice is named after the period chosen on top (user 2026-11-01: 'This period' was not clear)
+function hdRangeName(x, d) { return x[0] === 'period' ? (d && d.range && d.range.from === d.range.to ? '14 days' : (d && d.monthLabel) || 'This period') : x[1]; }
+function hdRange() { var r = store('eh_hdrange') || 'period'; return HD_RANGES.some(function (x) { return x[0] === r; }) ? r : 'period'; }
+// one point a week (Monday … Sunday, key = the Monday): money adds up; delivered / returned add up for Delivery %
+function hdWeeks(list, keys) {
+  var out = [], idx = {};
+  list.forEach(function (x) {
+    var dt = new Date(x.k + 'T12:00:00Z'), wd = (dt.getUTCDay() + 6) % 7; dt.setUTCDate(dt.getUTCDate() - wd);
+    var wk = dt.toISOString().slice(0, 10), w = idx[wk];
+    if (!w) { w = idx[wk] = { k: wk, week: true }; keys.forEach(function (k) { w[k] = 0; }); out.push(w); }
+    keys.forEach(function (k) { w[k] += x[k] || 0; });
+  });
+  return out;
+}
 function homeTrendSeries(d) {
-  var s = [], hs = d.series || [], ps = HD.pnlSeries || [];
+  var rg = hdRange(), hs, ps;
+  if (rg === '30d') { hs = (d.days90 || []).slice(-30); ps = (HD.pnl90 || []).slice(-30); }
+  else if (rg === '3m') { hs = hdWeeks(d.days90 || [], ['orders', 'delivered', 'returned', 'sale']); ps = hdWeeks(HD.pnl90 || [], ['net', 'ads', 'sales']); }
+  else if (rg === '12m') {
+    hs = (d.trend || []).slice(-12).map(function (x) { return { k: x.key, orders: x.orders, delivered: x.delivered, returned: x.returned, sale: x.sale }; });
+    ps = (HD.pnlMonths || []).slice(-12);
+  } else { hs = d.series || []; ps = HD.pnlSeries || []; }
+  var s = [];
   if (ps.length) {
-    s.push({ k: 'profit', l: 'Profit', pts: ps.map(function (x) { return { m: x.k, v: x.net }; }) });
-    s.push({ k: 'ads', l: 'Ad spend', pts: ps.map(function (x) { return { m: x.k, v: x.ads }; }) });
+    s.push({ k: 'profit', l: 'Profit', pts: ps.map(function (x) { return { m: x.k, w: x.week, v: x.net }; }) });
+    s.push({ k: 'ads', l: 'Ad spend', pts: ps.map(function (x) { return { m: x.k, w: x.week, v: x.ads }; }) });
   }
   if (hs.length) {
-    s.push({ k: 'sales', l: 'Sales', pts: hs.map(function (x) { return { m: x.k, v: x.sale }; }) });
-    s.push({ k: 'rate', l: 'Delivery %', pc: true, pts: hs.map(function (x) { var f = x.delivered + x.returned; return { m: x.k, v: f ? Math.round(x.delivered / f * 100) : null }; }) });
+    s.push({ k: 'sales', l: 'Sales', pts: hs.map(function (x) { return { m: x.k, w: x.week, v: x.sale }; }) });
+    s.push({ k: 'rate', l: 'Delivery %', pc: true, pts: hs.map(function (x) { var f = x.delivered + x.returned; return { m: x.k, w: x.week, v: f ? Math.round(x.delivered / f * 100) : null }; }) });
   }
   return s;
 }
-function hdLabel(k) { return k.length === 7 ? fnMonthName(k) : niceDay(k); }
+function hdLabel(k, week) { return k.length === 7 ? fnMonthName(k) : week ? 'Week of ' + niceDay(k) : niceDay(k); }
 function homeTrend(d) {
-  var all = homeTrendSeries(d); if (!all.length) return '';
+  var all = homeTrendSeries(d);
+  if (!all.length) {
+    // nothing for this choice (yet): keep the card and its dropdown so another choice can be picked
+    if (hdRange() === 'period' && !(d.days90 || []).length && !(HD.pnl90 || []).length) return '';
+    return '<div class="hd-trend"><div class="hd-th"><b>Trend</b><button class="hd-rg" id="hdRg" type="button">' + esc(hdRangeName(HD_RANGES.filter(function (x) { return x[0] === hdRange(); })[0], d)) + '<i class="ti ti-chevron-down"></i></button></div><div class="empty" style="padding:22px 0">No data for this view yet</div></div>';
+  }
   var key = store('eh_hdtrend') || all[0].k, cur = all.filter(function (x) { return x.k === key; })[0] || all[0];
   var pts = cur.pts, n = pts.length, monthly = pts[0] && pts[0].m.length === 7;
-  var one = d.range && d.range.from === d.range.to ? d.range.to : '';
+  var one = hdRange() === 'period' && d.range && d.range.from === d.range.to ? d.range.to : '';
   var vals = pts.map(function (x) { return x.v; }).filter(function (v) { return v != null; });
   var max = Math.max.apply(null, vals.concat([1])), min = Math.min.apply(null, vals.concat([0])), W = 320, H = 110;
   var X = function (i) { return 8 + i * (W - 16) / Math.max(1, n - 1); }, Y = function (v) { return 10 + (H - 20) * (1 - (v - min) / Math.max(1, max - min)); };
@@ -1937,14 +1967,14 @@ function homeTrend(d) {
   var fmtV = function (v) { return v == null ? '–' : cur.pc ? v + '%' : (v < 0 ? '− ' : '') + rs(Math.abs(v)); };
   var tot = cur.pc ? null : vals.reduce(function (a, v) { return a + v; }, 0);
   var sel = one ? pts.map(function (x) { return x.m; }).indexOf(one) : -1;
-  var head = sel >= 0 ? fmtV(pts[sel].v) + '|' + hdLabel(one) : cur.pc ? fmtV(Math.round(vals.reduce(function (a, v) { return a + v; }, 0) / Math.max(1, vals.length))) + '|average' : fmtV(tot) + '|' + (monthly ? 'all time' : 'in this period');
+  var head = sel >= 0 ? fmtV(pts[sel].v) + '|' + hdLabel(one) : cur.pc ? fmtV(Math.round(vals.reduce(function (a, v) { return a + v; }, 0) / Math.max(1, vals.length))) + '|average' : fmtV(tot) + '|' + (hdRange() === 'period' ? (monthly ? 'all time' : 'in this period') : 'in these ' + (hdRange() === '12m' ? '12 months' : hdRange() === '3m' ? '3 months' : '30 days'));
   var every = Math.ceil(n / 6), labels = pts.map(function (x, i) {
     if (i % every && i !== n - 1) return '';
-    return '<text x="' + X(i).toFixed(1) + '" y="' + (H + 13) + '" text-anchor="middle">' + esc(monthly ? fnMonthName(x.m).slice(0, 3) : String(Number(x.m.slice(8)))) + '</text>';
+    return '<text x="' + X(i).toFixed(1) + '" y="' + (H + 13) + '" text-anchor="middle">' + esc(monthly ? fnMonthName(x.m).slice(0, 3) : x.w ? niceDay(x.m) : String(Number(x.m.slice(8)))) + '</text>';
   }).join('');
   var mark = sel >= 0 && pts[sel].v != null ? '<circle cx="' + X(sel).toFixed(1) + '" cy="' + Y(pts[sel].v).toFixed(1) + '" r="4.5" fill="var(--card)" stroke="var(--brand)" stroke-width="2"></circle>' : '';
-  var title = monthly ? 'Monthly' : one ? 'Last 14 days' : 'Daily';
-  return '<div class="hd-trend"><div class="hd-th"><b>Trend</b><span>' + title + '</span></div>' +
+  var rg = hdRange(), title = hdRangeName(HD_RANGES.filter(function (x) { return x[0] === rg; })[0], d);
+  return '<div class="hd-trend"><div class="hd-th"><b>Trend</b><button class="hd-rg" id="hdRg" type="button">' + esc(title) + '<i class="ti ti-chevron-down"></i></button></div>' +
     '<div class="hd-chips">' + all.map(function (x) { return '<button class="chip' + (x.k === cur.k ? ' on' : '') + '" data-ht="' + x.k + '">' + x.l + '</button>'; }).join('') + '</div>' +
     '<div class="hd-tv" id="hdTv"><b class="num">' + head.split('|')[0] + '</b><span>' + esc(head.split('|')[1]) + '</span></div>' +
     '<svg id="hdSvg" viewBox="0 0 ' + W + ' ' + (H + 16) + '" role="img" aria-label="' + esc(cur.l) + ' ' + title.toLowerCase() + '">' +
@@ -1960,7 +1990,7 @@ function homeTrendTap(d) {
     var r = svg.getBoundingClientRect(), x = ((ev.touches ? ev.touches[0].clientX : ev.clientX) - r.left) / r.width * 320, n = cur.pts.length;
     var i = Math.max(0, Math.min(n - 1, Math.round((x - 8) / ((320 - 16) / Math.max(1, n - 1))))), p = cur.pts[i], X = 8 + i * (320 - 16) / Math.max(1, n - 1);
     var v = p.v == null ? '–' : cur.pc ? p.v + '%' : (p.v < 0 ? '− ' : '') + rs(Math.abs(p.v));
-    el('hdTv').innerHTML = '<b class="num">' + v + '</b><span>' + esc(hdLabel(p.m)) + '</span>';
+    el('hdTv').innerHTML = '<b class="num">' + v + '</b><span>' + esc(hdLabel(p.m, p.w)) + '</span>';
     var c = el('hdCur'); c.setAttribute('x1', X); c.setAttribute('x2', X); c.setAttribute('opacity', '1');
   };
   svg.addEventListener('click', pick); svg.addEventListener('touchmove', function (ev) { pick(ev); }, { passive: true });
@@ -1970,10 +2000,18 @@ function homeDashWire(d) {
   var box = el('hdash'); if (!box) return;
   box.querySelectorAll('[data-hq]').forEach(function (b) { b.onclick = function () { var q = HD_QUICK.filter(function (x) { return x[0] === b.getAttribute('data-hq'); })[0]; if (q) q[4](); }; });
   box.querySelectorAll('[data-hd]').forEach(function (b) { b.onclick = function () { var g = b.getAttribute('data-hd'); if (g === 'pnl') openPnl(homePnlPeriod(d)); else if (g === 'success') openReport('success'); else go(g); }; });
-  var wireTrend = function () { el('hdTrend').querySelectorAll('[data-ht]').forEach(function (b) { b.onclick = function () { store('eh_hdtrend', b.getAttribute('data-ht')); el('hdTrend').innerHTML = homeTrend(d); wireTrend(); }; }); homeTrendTap(d); };
+  var wireTrend = function () {
+    el('hdTrend').querySelectorAll('[data-ht]').forEach(function (b) { b.onclick = function () { store('eh_hdtrend', b.getAttribute('data-ht')); el('hdTrend').innerHTML = homeTrend(d); wireTrend(); }; });
+    if (el('hdRg')) el('hdRg').onclick = function () {
+      var cur = hdRange();
+      showPick('Trend', '', '<div class="sheet-list">' + HD_RANGES.map(function (x) { return '<div class="sl' + (x[0] === cur ? ' on' : '') + '" data-hr="' + x[0] + '"><span>' + esc(hdRangeName(x, d)) + '</span>' + (x[0] === cur ? '<i class="ti ti-check"></i>' : '') + '</div>'; }).join('') + '</div>',
+        function (ev) { var r = ev.target.closest('[data-hr]'); if (!r) return; closePick(); store('eh_hdrange', r.getAttribute('data-hr')); el('hdTrend').innerHTML = homeTrend(d); wireTrend(); });
+    };
+    homeTrendTap(d);
+  };
   wireTrend();
   homePnl(d, function (p) {
-    HD.net = p.net; HD.netFor = homePnlPeriod(d); HD.pnlSeries = p.series || [];
+    HD.net = p.net; HD.netFor = homePnlPeriod(d); HD.pnlSeries = p.series || []; HD.pnl90 = p.days90 || []; HD.pnlMonths = (p.trend || []).map(function (x) { return { k: x.month, net: x.net, ads: x.ads, sales: x.sales }; });
     if (el('hdNet')) el('hdNet').textContent = (p.net < 0 ? '− ' : '') + rs(Math.abs(p.net));
     if (el('hdTrend')) { el('hdTrend').innerHTML = homeTrend(d); wireTrend(); }
   });
@@ -3634,6 +3672,10 @@ var STK = { data: null, q: '', f: 'all' };
 var STK_ST = { OK: ['OK', 'var(--green)'], Low: ['Low', 'var(--amber)'], Out: ['Out', 'var(--red)'], 'Not counted': ['Not counted', 'var(--muted)'], 'No parts': ['No parts', 'var(--muted)'], 'Listed only': ['Listed only', 'var(--faint)'] };
 function skList(n) { var r = ''; for (var i = 0; i < (n || 5); i++) r += '<div class="prow" style="cursor:default"><div class="prow-m"><div class="sk" style="height:12px;width:' + (55 + (i * 17) % 30) + '%;border-radius:6px"></div><div class="sk" style="height:10px;width:' + (30 + (i * 13) % 25) + '%;margin-top:8px;border-radius:6px"></div></div></div>'; return '<div class="card" style="padding:0">' + r + '</div>'; }
 function stkQty(n, unit) { return (Math.round((Number(n) || 0) * 10) / 10).toLocaleString('en-IN') + (unit === 'ft' ? ' ft' : ''); }
+function openStockLink() {
+  var go = function () { var um = stkUnmatched(); if (um.length === 1) openLinkLine(um[0]); else renderStock(); };
+  api('getAppStock', [TOKEN], function (d) { STK.data = d; STK.at = Date.now(); try { store('eh_stk', JSON.stringify(d)); } catch (e) {} go(); }, function () { toast('Not loaded'); });
+}
 function openStock(sku) {
   if (!STK.data) { try { var s = JSON.parse(store('eh_stk') || 'null'); if (s && s.items) STK.data = s; } catch (e) {} }
   var had = !!STK.data;
@@ -3712,13 +3754,19 @@ function renderStock() {
     (um.length ? '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>Order lines without a product</b><span>' + um.length + '</span></div><p style="margin:0 14px 6px;color:var(--muted);font-size:12.5px">Stock is not taken for these. Link each one to your product once.</p>' +
       um.slice(0, 12).map(function (u, k) {
         return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span>' + esc(u.text) + '</span><span class="num" style="color:var(--muted)">' + u.n + ' order' + (u.n > 1 ? 's' : '') + '</span></div></div>' +
-          (u.gid || u.sku ? '<button class="btn prow-btn" data-ul="' + k + '"><i class="ti ti-link"></i>Link</button>' : '') + '</div>';
+          '<button class="btn prow-btn" data-ul="' + k + '"><i class="ti ti-link"></i>Link</button></div>';
       }).join('') + '</div>' : '') +
+    (edit && (d.nameLinks || []).length ? '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>Name links</b><span>' + d.nameLinks.length + '</span></div><p style="margin:0 14px 6px;color:var(--muted);font-size:12.5px">Order lines made by hand, linked to your products. A wrong one: remove it and link again.</p>' +
+      d.nameLinks.slice(0, 20).map(function (x) { return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span>' + esc(x.name) + '</span></div><div class="prow-2"><span>' + esc(x.note) + '</span></div></div><button class="btn prow-btn" data-unl="' + esc(x.sku) + '"><i class="ti ti-unlink"></i>Remove</button></div>'; }).join('') + '</div>' : '') +
     '<div class="btns" style="margin-top:10px">' + (d.started ? '<button class="btn" id="stDays"><i class="ti ti-calendar-stats"></i>Daily summary</button>' : '') + (edit && d.started ? '<button class="btn" id="stCount"><i class="ti ti-list-numbers"></i>Count stock</button>' : '') + '<button class="btn" id="stClose">Close</button></div>';
   openPanel(true); el('panel').setAttribute('data-view', 'stock');
   el('stClose').onclick = closePanel;
   if (el('stPlan')) el('stPlan').onclick = function () { openPurchases(); };
   el('panel').querySelectorAll('[data-ul]').forEach(function (b) { b.onclick = function () { openLinkLine(um[+b.getAttribute('data-ul')]); }; });
+  el('panel').querySelectorAll('[data-unl]').forEach(function (b) { b.onclick = function () {
+    var sku = b.getAttribute('data-unl');
+    api('appUnlinkName', [TOKEN, sku], function () { STK.data.nameLinks = (STK.data.nameLinks || []).filter(function (x) { return x.sku !== sku; }); STK.at = 0; toast('Removed · the line asks again within 15 minutes'); renderStock(); }, function (e) { toast((e && e.message) || 'Not removed'); });
+  }; });
   if (el('stSup')) el('stSup').onclick = function () { if (PUR.data) openSuppliers(); else purReload(openSuppliers); };
   el('stQ').oninput = function (e) { STK.q = e.target.value; var p = e.target.selectionStart; renderStock(); var n = el('stQ'); n.focus(); try { n.setSelectionRange(p, p); } catch (x) {} };
   el('panel').querySelectorAll('[data-sf]').forEach(function (b) { b.onclick = function () { STK.f = b.getAttribute('data-sf'); renderStock(); }; });
@@ -3750,20 +3798,36 @@ function openReorderEdit(i) {
   };
 }
 // Link a Shopify order line to our product (once): its orders then take stock
+// closest products to a hand-made line's name (same idea as W1 invGuess_): words of the line found in the product name
+function linkGuesses(text) {
+  var w = function (s) { return String(s || '').toLowerCase().replace(/[^a-z0-9.]+/g, ' ').split(' ').filter(function (x) { return x.length > 2 && ['with', 'and', 'the', 'for', 'set', 'new', 'pcs', 'pack', 'size', 'default', 'title'].indexOf(x) === -1 && !/^\d/.test(x); }); };
+  var lw = w(text);
+  return STK.data.items.filter(function (i) { return !/^EH-(NM|LNK)-/.test(i.sku); }).map(function (i) {
+    var pw = w(i.name), hit = lw.filter(function (x) { return pw.indexOf(x) !== -1; }).length;
+    return { i: i, s: hit ? hit / Math.max(lw.length, 1) + hit / Math.max(pw.length, 1) - (i.kind === 'Kit' ? 0.5 : 0) : 0 }; // a single product before a bundle
+  }).filter(function (x) { return x.s > 0.2; }).sort(function (a, b) { return b.s - a.s; }).slice(0, 3).map(function (x) { return x.i; });
+}
+var LINE_RE = /cloth(es)?\s*line|clothline|wire rope/i;
 function openLinkLine(u) {
-  var d = STK.data;
+  var d = STK.data, isLine = LINE_RE.test(u.text), guess = linkGuesses(u.text);
   el('panel').innerHTML = '<button class="btn mini" id="lkBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Stock</button><h3>Link order line</h3><p>' + esc(u.text) + ' · ' + u.n + ' order' + (u.n > 1 ? 's' : '') + '</p>' +
+    (isLine ? '<div class="card" style="margin:0 0 12px"><div class="h"><b>Clothes line</b></div><div class="btns"><div class="fld" style="flex:1;margin:0"><label>Total feet</label><input id="lkFt" type="text" inputmode="decimal" placeholder="e.g. 170"></div><div class="fld" style="flex:1;margin:0"><label>Lines</label><input id="lkLn" type="text" inputmode="numeric" value="1"></div></div>' +
+      '<small class="mnote" style="display:block;margin-top:6px">Takes the wire + 2 hooks + 2 U clamps per line. Or choose a product below.</small></div>' : '') +
+    (guess.length ? '<div class="fld"><label>Is it one of these?</label><div class="chips wrapc" id="lkGuess">' + guess.map(function (i) { return '<button class="chip" type="button" data-g="' + esc(i.sku) + '">' + esc(i.name) + '</button>'; }).join('') + '</div></div>' : '') +
     '<div class="fld"><label>This is our product</label><select id="lkSku"><option value="">Choose…</option>' + d.items.map(function (i) { return '<option value="' + esc(i.sku) + '">' + esc(i.name) + (i.kind === 'Kit' ? ' (bundle / line)' : '') + '</option>'; }).join('') + '</select></div>' +
     '<div class="fld"><label>How many of it in one order line</label><input id="lkPer" type="text" inputmode="numeric" value="1"></div>' +
     '<small class="mnote" style="display:block;margin:-6px 0 10px">e.g. a "2 pack" listing = 2 of the single product</small>' +
-    '<div class="err" id="lkErr"></div><button class="btn pri" id="lkGo" style="width:100%;padding:12px">Link</button>';
+    '<div class="err" id="lkErr"></div><button class="btn pri" id="lkGo" style="width:100%;padding:12px">Link</button>' +
+    '<small class="mnote" style="display:block;margin-top:10px">Tip: name custom clothes lines like "Clothesline 6mm (85 ft)" or "(60+60+50 ft)" — then they are read by themselves, no linking needed.</small>';
   openPanel(true);
   el('lkBack').onclick = renderStock;
+  if (el('lkGuess')) el('lkGuess').onclick = function (e) { var b = e.target.closest('[data-g]'); if (!b) return; el('lkSku').value = b.getAttribute('data-g'); markChip(el('lkGuess'), b); };
   el('lkGo').onclick = function () {
-    var sku = el('lkSku').value; if (!sku) { el('lkErr').textContent = 'Choose your product'; return; }
+    var ft = el('lkFt') ? Number(String(el('lkFt').value).replace(/[^0-9.]/g, '')) || 0 : 0, sku = el('lkSku').value;
+    if (!sku && !ft) { el('lkErr').textContent = isLine ? 'Type the feet, or choose your product' : 'Choose your product'; return; }
     el('lkGo').disabled = true;
-    api('appLinkProduct', [TOKEN, { sku: sku, gid: u.gid, lineSku: u.sku, name: u.text, per: Number(el('lkPer').value) || 1 }], function () {
-      STK.data.unmatched = (STK.data.unmatched || []).filter(function (x) { var p = String(x).split(' ‖ '); return !((u.gid && p[1] === u.gid) || (u.sku && p[2] === u.sku)); });
+    api('appLinkProduct', [TOKEN, { sku: sku, gid: u.gid, lineSku: u.sku, name: u.text, per: Number(el('lkPer').value) || 1, feet: sku ? 0 : ft, lines: el('lkLn') ? Number(el('lkLn').value) || 1 : 1 }], function () {
+      STK.data.unmatched = (STK.data.unmatched || []).filter(function (x) { var p = String(x).split(' ‖ '), m = p[0].match(/^[^:]+:\s*(.*)$/); return !((u.gid && p[1] === u.gid) || (u.sku && p[2] === u.sku) || (!u.gid && !u.sku && m && m[1] === u.text)); });
       toast('✅ Linked · stock updates within 15 minutes'); renderStock();
     }, function (e) { el('lkGo').disabled = false; el('lkErr').textContent = (e && e.message) || 'Not linked'; });
   };
@@ -4954,7 +5018,7 @@ function openBriefList(day, k) {
 }
 
 // ---------- 🔔 notification list (everything W1 sent; the dot = new since you last opened it) ----------
-var ALERT_ICON = { adcharge: ['credit-card', 'var(--brand)'], courier: ['message-reply', 'var(--blue)'], money: ['receipt', 'var(--amber)'], mine: ['circle-check', 'var(--green)'], buy: ['truck-delivery', 'var(--amber)'],
+var ALERT_ICON = { link: ['link', 'var(--amber)'], adcharge: ['credit-card', 'var(--brand)'], courier: ['message-reply', 'var(--blue)'], money: ['receipt', 'var(--amber)'], mine: ['circle-check', 'var(--green)'], buy: ['truck-delivery', 'var(--amber)'],
   ads: ['speakerphone', 'var(--brand)'], security: ['lock', 'var(--red)'], stock: ['packages', 'var(--amber)'], cash: ['cash-banknote', 'var(--green)'], sync: ['alert-circle', 'var(--text)'], ndr: ['headset', 'var(--red)'], back: ['arrow-back-up', 'var(--amber)'], late: ['clock-exclamation', 'var(--amber)'], nocn: ['barcode-off', 'var(--amber)'], brief: ['sun', 'var(--brand)'], test: ['bell', 'var(--muted)'] };
 var alertsData = null;
 function loadAlerts(open) {
@@ -5062,7 +5126,7 @@ var PUSH_KINDS = [['ndr', 'NDR cases', 'Failed delivery, refused, stuck with cou
   ['cash', 'Courier payments', 'A courier sent money · check the bank and Record'],
   ['money', 'Approvals', 'Expenses waiting for your approval · monthly bank check'], ['mine', 'My entries', 'Your expense was approved or rejected'],
   ['stock', 'Low stock', 'A product is low or out of stock'], ['buy', 'Purchases', 'A purchase is late from the supplier'],
-  ['ads', 'Ads', 'Daily: ad sets to scale or to stop'], ['adcharge', 'Meta charges', 'Meta charged the card · check the dollar rate'], ['security', 'Security', 'A login was locked after wrong PINs'],
+  ['link', 'Order lines to link', 'A hand-made order line: which product is it?'], ['ads', 'Ads', 'Daily: ad sets to scale or to stop'], ['adcharge', 'Meta charges', 'Meta charged the card · check the dollar rate'], ['security', 'Security', 'A login was locked after wrong PINs'],
   ['sync', 'System alerts', 'A sync stopped or failed · and when it is back']];
 function openPushPrefs() {
   var kinds = PUSH_KINDS.filter(function (k) { return can(KIND_PERM[k[0]]); }); // only what this role gets
@@ -5405,7 +5469,8 @@ function start() {
   if (qteam && can('users.manage')) setTimeout(openTeam, 600);
   if (qchg && can('finance.view')) setTimeout(function () { openAdCharge(qchg); }, 600);
   if (qpur && can('inventory.edit')) setTimeout(function () { purReload(function () { openPurchase(qpur); }); }, 600);
-  if (qst && can('inventory.view')) setTimeout(function () { openStock(qst); }, 600);
+  if (qst === 'link' && can('inventory.edit')) setTimeout(openStockLink, 600);
+  else if (qst && can('inventory.view')) setTimeout(function () { openStock(qst); }, 600);
   if (qpay) { PAY_OPEN = qpay; setTimeout(function () { showTab('cash'); openPayIfReady(); }, 700); }
   if (qsy) setTimeout(openSyncStatus, 600);
   applyPerms();
