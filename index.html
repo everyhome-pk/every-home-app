@@ -466,6 +466,35 @@ html[data-mode="dark"] .hd-tall small,html[data-mode="dark"] .hd-tall span{color
 .pclose:active{transform:scale(.92)}
 .panel>h3,.panel>.pd-top,.panel>.rep-per{padding-right:42px}
 @media (min-width:560px){.overlay{align-items:center}.panel{border-radius:24px;max-height:86vh}}
+/* ---------- Desktop / laptop (2026-11-01): side menu instead of the bottom bar, Home in two columns, the parcel page as a
+   side panel, full pages as a centred window. Phones and tablets below 1024 px are not changed. ---------- */
+@media (min-width:1024px){
+  body{padding-left:232px}
+  .nav{top:0;bottom:0;left:0;right:auto;width:232px;border-top:0;border-right:1px solid var(--line);box-shadow:none;padding:calc(var(--toph, 72px) + 8px) 12px 16px;background:var(--card)}
+  .nav div{flex-direction:column;max-width:none;gap:4px}
+  .nav button{flex:none;flex-direction:row;justify-content:flex-start;gap:12px;padding:8px 10px;border-radius:12px;font-size:14px;text-align:left}
+  .nav button.on{background:rgba(0,133,122,.10)}.nav button.on .nv-i{background:none}
+  .nv-i{width:28px;height:28px}.nv-i i{font-size:21px}
+  .badge{left:auto;right:-10px;top:-4px}
+  .top{left:232px;max-width:1160px;padding-left:32px;padding-right:32px}
+  .wrap{max-width:1160px;padding-left:32px;padding-right:32px}
+  section:not(#tab-home){max-width:820px;margin-left:auto;margin-right:auto}
+  /* Home: cards across, quick + trend side by side, action items beside the journey */
+  #view{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 20px;align-items:start}
+  #view>#hdash{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 20px;align-items:start}
+  #hdash .hd-cards{grid-column:1/-1;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr)}
+  #hdash .hd-tall{grid-row:auto;flex-direction:row;align-items:flex-end;min-height:0}
+  #hdash .hd-qh{grid-column:1;grid-row:2;align-self:start}#hdash .hd-quick{grid-column:1;grid-row:3;align-self:start;grid-template-columns:repeat(4,minmax(0,110px));justify-content:start;gap:16px}#hdash #hdTrend{grid-column:2;grid-row:2/span 2}#hdash{grid-template-rows:auto auto 1fr}
+  #view>#todo{grid-column:1}#view>#hstock{grid-column:1}#view>.hjr{grid-column:2;grid-row:2/span 6}
+  #view>.card:not(#todo):not(.hjr),#view>.oc-warn:not(#hstock){grid-column:1/-1}
+  /* the parcel page: a panel on the right, the list stays visible */
+  .page{left:auto;width:min(620px,100vw);border-left:1px solid var(--line);box-shadow:-12px 0 40px rgba(2,6,23,.12)}
+  /* full pages (reports, NDR form, stock, P&L …): a centred window */
+  .overlay.full{align-items:center;justify-content:center;background:rgba(2,6,23,.45)}
+  .overlay.full .panel{max-width:820px;height:calc(100vh - 64px);border-radius:22px;box-shadow:0 20px 60px rgba(2,6,23,.25)}
+  .overlay.full .panel>:not(.fs-top){max-width:none}
+  .drawer .dr-in, .drawer>div{max-width:320px}
+}
 [hidden]{display:none !important} /* hidden always wins over a component's own display */
 body.locked{overflow:hidden;overscroll-behavior:none}
 .drawer,.menu-bd,.overlay{overscroll-behavior:contain;touch-action:pan-y}
@@ -1805,12 +1834,12 @@ function renderHome(d) {
   var nowLine = d.movingNow ? '<div class="jr-now" data-go="parcels:moving:open"><i class="ti ti-truck"></i><span>Right now: <b class="num">' + d.movingNow + '</b> parcels in transit (any date)</span><i class="ti ti-chevron-right"></i></div>' : '';
   var stg = function (key) { return JOURNEY.filter(function (s) { return s[0] === key; })[0]; };
   if (d.live !== false) {
-    h += '<div class="card fade"><div class="h"><b>Order journey</b><span>' + esc(d.monthLabel) + '</span></div>' + sumLine + picture +
+    h += '<div class="card fade hjr"><div class="h"><b>Order journey</b><span>' + esc(d.monthLabel) + '</span></div>' + sumLine + picture +
       group('Not shipped yet', ['pending', 'confirmed']) + group('Shipped', MOVING) + group('Returning', BACK) +
       cancelLine + nowLine + '</div>';
   } else {
     var still = d.stillMoving || 0, never = (jr.pending || 0) + (jr.confirmed || 0);
-    h += '<div class="card fade"><div class="h"><b>Order outcome</b><span>' + esc(d.monthLabel) + ' · closed</span></div>' +
+    h += '<div class="card fade hjr"><div class="h"><b>Order outcome</b><span>' + esc(d.monthLabel) + ' · closed</span></div>' +
       sumLine +
       '<div class="oc-kp"><div data-go="parcels:delivered"><b class="num up">' + (jr.delivered || 0) + '</b><small>Delivered</small></div>' +
       '<div data-go="parcels:returned"><b class="num down">' + (jr.returned || 0) + '</b><small>Returned</small></div>' +
@@ -1948,6 +1977,9 @@ function homeTrendSeries(d) {
   }
   return s;
 }
+// first / last point that has a value (the filled area closes there, not at the chart edge)
+function hdFirstI(p) { for (var i = 0; i < p.length; i++) if (p[i].v != null) return i; return 0; }
+function hdLastI(p) { for (var i = p.length - 1; i >= 0; i--) if (p[i].v != null) return i; return 0; }
 function hdLabel(k, week) { return k.length === 7 ? fnMonthName(k) : week ? 'Week of ' + niceDay(k) : niceDay(k); }
 function homeTrend(d) {
   var all = homeTrendSeries(d);
@@ -1978,7 +2010,7 @@ function homeTrend(d) {
     '<div class="hd-chips">' + all.map(function (x) { return '<button class="chip' + (x.k === cur.k ? ' on' : '') + '" data-ht="' + x.k + '">' + x.l + '</button>'; }).join('') + '</div>' +
     '<div class="hd-tv" id="hdTv"><b class="num">' + head.split('|')[0] + '</b><span>' + esc(head.split('|')[1]) + '</span></div>' +
     '<svg id="hdSvg" viewBox="0 0 ' + W + ' ' + (H + 16) + '" role="img" aria-label="' + esc(cur.l) + ' ' + title.toLowerCase() + '">' +
-    (line ? '<path d="' + line + ' L' + X(n - 1).toFixed(1) + ' ' + H + ' L' + X(0).toFixed(1) + ' ' + H + ' Z" fill="var(--brand)" opacity=".08"></path><path d="' + line + '" fill="none" stroke="var(--brand)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>' : '') +
+    (line ? '<path d="' + line + ' L' + X(hdLastI(pts)).toFixed(1) + ' ' + H + ' L' + X(hdFirstI(pts)).toFixed(1) + ' ' + H + ' Z" fill="var(--brand)" opacity=".08"></path><path d="' + line + '" fill="none" stroke="var(--brand)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>' : '') +
     mark + '<line id="hdCur" x1="0" x2="0" y1="6" y2="' + H + '" stroke="var(--faint)" stroke-dasharray="3 3" opacity="0"></line>' + labels + '</svg></div>';
 }
 // tap / drag on the chart: the value of the nearest point
@@ -2029,6 +2061,11 @@ REPORT.success = function (d) {
     '<div data-go="parcels:returned"><small>Returned</small><b class="num down">' + pct(rp) + '</b><span>' + k.returned + ' parcels</span></div></div>' +
     '<div class="bar sxbar"><i style="width:0;background:var(--green)" data-w="' + (dp * 100) + '"></i><i style="width:0;background:var(--red)" data-w="' + (rp * 100) + '"></i></div>' +
     '<div class="legend" style="justify-content:space-between"><span style="--c:transparent;margin-left:-14px">' + fin + ' finished' + (k.onTheWay ? ' · ' + k.onTheWay + ' still on the way' : '') + '</span>' + cmp + '</div></div>' +
+    // first-attempt delivery % and NDR save rate (2026-11-01): failed attempts come from courier tracking
+    (k.firstTry != null ? '<div class="card"><div class="h"><b>Courier & NDR</b></div><div class="sx">' +
+      '<div><small>First-attempt delivery</small><b class="num">' + pct(fin ? k.firstTry / fin : null) + '</b><span>' + k.firstTry + ' of ' + fin + ' delivered at the first try</span></div>' +
+      '<div><small>NDR save rate</small><b class="num' + (k.ndrHad ? (k.ndrSaved / k.ndrHad >= 0.5 ? ' up' : ' down') : '') + '">' + pct(k.ndrHad ? k.ndrSaved / k.ndrHad : null) + '</b><span>' + k.ndrSaved + ' of ' + k.ndrHad + ' with a failed attempt were delivered</span></div></div>' +
+      '<small class="mnote" style="display:block;margin-top:8px">First-attempt: the courier delivered without a failed try. NDR save rate: parcels that failed once or more and still reached the customer — the work of the NDR team.</small></div>' : '') +
     '<small class="mnote">Only finished parcels count (delivered + returned). Change the dates above to compare any period.</small>';
 };
 REPORT.cod = function (d) {
@@ -3704,6 +3741,114 @@ function stkLimit(i) {
   });
   return low;
 }
+// ---------- Kits (2026-11-01): a product made of stock parts, one recipe per Shopify variant ----------
+// List: every kit with its parts and how many can be made (the part that runs out first). New kit: "One kit" (name,
+// variant, parts) or "Variants" (option 1 × option 2, each value = one part, + parts in every kit) → all kits at once.
+function stkIsAlias(sku) { return /^EH-(NM|LNK)-/.test(sku); }
+function openKits() {
+  var d = STK.data, by = {}; d.items.forEach(function (x) { by[x.sku] = x; });
+  var kits = d.items.filter(function (i) { return i.kind === 'Kit' && !stkIsAlias(i.sku) && (d.kits || {})[i.sku]; });
+  el('panel').innerHTML = '<button class="btn mini" id="kiBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Stock</button><h3>Kits</h3><p>Products made of parts · the parts are taken from stock when an order is booked</p>' +
+    '<button class="btn pri" id="kiNew" style="width:100%;margin-bottom:12px"><i class="ti ti-plus"></i>New kit</button>' +
+    (kits.length ? '<div class="card" style="padding:0">' + kits.map(function (i) {
+      var lim = stkLimit(i), parts = (d.kits[i.sku] || []).map(function (c) { var p = by[c[0]]; return (c[1] !== 1 ? c[1] + ' × ' : '') + (p ? p.name : c[0]); }).join(' + ');
+      return '<div class="prow" data-kit="' + esc(i.sku) + '"><div class="prow-m"><div class="prow-1"><span>' + esc(i.name) + '</span><b class="num">' + (lim ? 'can make ' + lim.can : '–') + '</b></div>' +
+        '<div class="prow-2"><span>' + esc(parts) + (lim && lim.can < 5 ? ' · limited by ' + esc(lim.name) : '') + '</span></div></div></div>';
+    }).join('') + '</div>' : '<div class="card empty">No kits yet</div>');
+  openPanel(true);
+  el('kiBack').onclick = renderStock;
+  el('kiNew').onclick = function () { openKitForm(null); };
+  el('panel').querySelectorAll('[data-kit]').forEach(function (r) { r.onclick = function () { openKitForm(r.getAttribute('data-kit')); }; });
+}
+function openKitForm(sku) {
+  var d = STK.data, by = {}; d.items.forEach(function (x) { by[x.sku] = x; });
+  var cur = sku ? by[sku] : null, curName = cur ? String(cur.name).split(' · ') : [];
+  var st = { mode: 'one', name: cur ? curName[0] : '', variant: cur ? curName.slice(1).join(' · ') : '', parts: cur ? (d.kits[sku] || []).map(function (c) { return { sku: c[0], qty: c[1] }; }) : [],
+    newParts: [], o1: { name: '', vals: [] }, o2: { name: '', vals: [] }, common: [] };
+  var items = function () { return d.items.filter(function (i) { return i.kind === 'Item'; }).map(function (i) { return { sku: i.sku, name: i.name }; }).concat(st.newParts.map(function (p, k) { return { sku: 'new:' + k, name: p.name + ' (new)' }; })); };
+  var sel = function (attr, val) { return '<select ' + attr + '><option value="">Choose a part…</option>' + items().map(function (i) { return '<option value="' + esc(i.sku) + '"' + (i.sku === val ? ' selected' : '') + '>' + esc(i.name) + '</option>'; }).join('') + '</select>'; };
+  var partRows = function (list, tag) {
+    return list.map(function (p, k) {
+      return '<div class="btns" style="align-items:flex-end;margin-bottom:6px"><div class="fld" style="flex:3;margin:0">' + sel('data-' + tag + 's="' + k + '"', p.sku) + '</div>' +
+        '<div class="fld" style="flex:1;margin:0"><input data-' + tag + 'q="' + k + '" type="text" inputmode="decimal" value="' + (p.qty || 1) + '" aria-label="Quantity"></div>' +
+        '<button class="btn mini" type="button" data-' + tag + 'x="' + k + '" aria-label="Remove"><i class="ti ti-x"></i></button></div>';
+    }).join('') + '<button class="btn mini" type="button" data-' + tag + 'add><i class="ti ti-plus"></i>Add part</button>';
+  };
+  var combos = function () {
+    var a = st.o1.vals.filter(function (v) { return v.v; }), b = st.o2.vals.filter(function (v) { return v.v; }), out = [];
+    (a.length ? a : [null]).forEach(function (x) { (b.length ? b : [null]).forEach(function (y) {
+      if (!x && !y) return;
+      var parts = st.common.filter(function (p) { return p.sku; }).slice();
+      if (x && x.sku) parts.push({ sku: x.sku, qty: x.qty || 1 }); if (y && y.sku) parts.push({ sku: y.sku, qty: y.qty || 1 });
+      out.push({ name: st.name, variant: [x && x.v, y && y.v].filter(Boolean).join(' / '), parts: parts });
+    }); });
+    return out;
+  };
+  var optBox = function (o, n) {
+    return '<div class="card" style="margin-bottom:10px"><div class="fld" style="margin:0 0 8px"><label>Option ' + n + ' (e.g. ' + (n === 1 ? 'Colour' : 'Pipe length') + ')</label><input data-on="' + n + '" value="' + esc(o.name) + '" placeholder="' + (n === 1 ? 'Colour' : 'Pipe') + '"></div>' +
+      o.vals.map(function (v, k) {
+        return '<div class="btns" style="align-items:flex-end;margin-bottom:6px"><div class="fld" style="flex:1.2;margin:0"><input data-ov="' + n + ':' + k + '" value="' + esc(v.v) + '" placeholder="' + (n === 1 ? 'Silver' : '1 m') + '"></div>' +
+          '<div class="fld" style="flex:2;margin:0">' + sel('data-op="' + n + ':' + k + '"', v.sku) + '</div><button class="btn mini" type="button" data-ox="' + n + ':' + k + '" aria-label="Remove"><i class="ti ti-x"></i></button></div>';
+      }).join('') + '<button class="btn mini" type="button" data-oa="' + n + '"><i class="ti ti-plus"></i>Add value</button></div>';
+  };
+  var draw = function () {
+    var body = '<div class="fld"><label>Product name (as on the store)</label><input id="kfName" value="' + esc(st.name) + '" placeholder="e.g. Muslim Shower Set"></div>' +
+      (sku ? '' : '<div class="chips" id="kfMode" style="margin:0 0 12px"><button class="chip' + (st.mode === 'one' ? ' on' : '') + '" data-m="one" type="button">One kit</button><button class="chip' + (st.mode === 'grid' ? ' on' : '') + '" data-m="grid" type="button">Variants (colour × size …)</button></div>');
+    if (st.mode === 'one') body += '<div class="fld"><label>Variant on the store (optional)</label><input id="kfVar" value="' + esc(st.variant) + '" placeholder="e.g. Silver / 1 m"></div><div class="fld"><label>Parts in one kit</label></div>' + partRows(st.parts, 'p');
+    else {
+      var cs = combos();
+      body += optBox(st.o1, 1) + optBox(st.o2, 2) + '<div class="fld"><label>Parts in every kit (e.g. bracket)</label></div>' + partRows(st.common, 'c') +
+        '<div class="card" style="margin-top:12px"><div class="h"><b>Kits to make</b><span>' + cs.length + '</span></div>' + (cs.length ? cs.map(function (k) {
+          return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span>' + esc(k.variant) + '</span></div><div class="prow-2"><span>' + esc(k.parts.map(function (p) { var it = items().filter(function (i) { return i.sku === p.sku; })[0]; return (p.qty !== 1 ? p.qty + ' × ' : '') + (it ? it.name : '?'); }).join(' + ') || 'no parts yet') + '</span></div></div></div>';
+        }).join('') : '<div class="empty">Add option values</div>') + '</div>';
+    }
+    body += '<div class="card" style="margin-top:12px"><div class="h"><b>New part</b></div><small class="mnote" style="display:block;margin:-4px 0 8px">A part you do not have yet (e.g. "Shower head · Black"). It is counted and bought on its own.</small>' +
+      '<div class="btns" style="align-items:flex-end"><div class="fld" style="flex:3;margin:0"><input id="kfNp" placeholder="Part name"></div><div class="fld" style="flex:1;margin:0"><select id="kfNu"><option value="pcs">pcs</option><option value="ft">ft</option></select></div><button class="btn" type="button" id="kfNpAdd">Add</button></div></div>' +
+      '<div class="err" id="kfErr"></div><button class="btn pri" id="kfGo" style="width:100%;padding:12px;margin-top:8px">' + (sku ? 'Save kit' : 'Save') + '</button>' +
+      (sku ? '<button class="btn" id="kfRetire" style="width:100%;margin-top:8px">No longer sold</button>' : '') +
+      '<small class="mnote" style="display:block;margin-top:10px">Orders find a kit by its Shopify variant or by the same name + variant. If not, the app asks once which product it is.</small>';
+    el('panel').innerHTML = '<button class="btn mini" id="kfBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Kits</button><h3>' + (sku ? 'Edit kit' : 'New kit') + '</h3>' + body;
+    openPanel(true); wire();
+  };
+  var keep = function () { if (el('kfName')) st.name = el('kfName').value; if (el('kfVar')) st.variant = el('kfVar').value; };
+  var wire = function () {
+    var p = el('panel');
+    el('kfBack').onclick = openKits;
+    el('kfName').oninput = function () { st.name = this.value; };
+    if (el('kfVar')) el('kfVar').oninput = function () { st.variant = this.value; };
+    if (el('kfMode')) el('kfMode').onclick = function (e) { var b = e.target.closest('[data-m]'); if (!b) return; keep(); st.mode = b.getAttribute('data-m'); draw(); };
+    var listOf = function (tag) { return tag === 'p' ? st.parts : st.common; };
+    ['p', 'c'].forEach(function (tag) {
+      p.querySelectorAll('[data-' + tag + 's]').forEach(function (x) { x.onchange = function () { listOf(tag)[+x.getAttribute('data-' + tag + 's')].sku = x.value; if (st.mode === 'grid') { keep(); draw(); } }; });
+      p.querySelectorAll('[data-' + tag + 'q]').forEach(function (x) { x.oninput = function () { listOf(tag)[+x.getAttribute('data-' + tag + 'q')].qty = Number(x.value) || 0; }; });
+      p.querySelectorAll('[data-' + tag + 'x]').forEach(function (x) { x.onclick = function () { keep(); listOf(tag).splice(+x.getAttribute('data-' + tag + 'x'), 1); draw(); }; });
+      p.querySelectorAll('[data-' + tag + 'add]').forEach(function (x) { x.onclick = function () { keep(); listOf(tag).push({ sku: '', qty: 1 }); draw(); }; });
+    });
+    var opt = function (n) { return n === '1' ? st.o1 : st.o2; };
+    p.querySelectorAll('[data-on]').forEach(function (x) { x.oninput = function () { opt(x.getAttribute('data-on')).name = x.value; }; });
+    p.querySelectorAll('[data-ov]').forEach(function (x) { x.onchange = function () { var a = x.getAttribute('data-ov').split(':'); opt(a[0]).vals[+a[1]].v = x.value.trim(); keep(); draw(); }; });
+    p.querySelectorAll('[data-op]').forEach(function (x) { x.onchange = function () { var a = x.getAttribute('data-op').split(':'); opt(a[0]).vals[+a[1]].sku = x.value; keep(); draw(); }; });
+    p.querySelectorAll('[data-ox]').forEach(function (x) { x.onclick = function () { var a = x.getAttribute('data-ox').split(':'); keep(); opt(a[0]).vals.splice(+a[1], 1); draw(); }; });
+    p.querySelectorAll('[data-oa]').forEach(function (x) { x.onclick = function () { keep(); opt(x.getAttribute('data-oa')).vals.push({ v: '', sku: '', qty: 1 }); draw(); }; });
+    el('kfNpAdd').onclick = function () { var n = el('kfNp').value.trim(); if (n.length < 2) { el('kfErr').textContent = 'Write the part name'; return; } keep(); st.newParts.push({ name: n, unit: el('kfNu').value }); toast('Part added · choose it in the lists'); draw(); };
+    if (el('kfRetire')) el('kfRetire').onclick = function () {
+      api('appRetireKit', [TOKEN, sku], function () { STK.at = 0; toast('Kit stopped · it no longer takes stock'); openStock(''); }, function (e) { el('kfErr').textContent = (e && e.message) || 'Not saved'; });
+    };
+    el('kfGo').onclick = function () {
+      keep();
+      if (st.name.trim().length < 2) { el('kfErr').textContent = 'Write the product name as on the store'; return; }
+      var kits = st.mode === 'one' ? [{ sku: sku || '', name: st.name.trim(), variant: st.variant.trim(), parts: st.parts.filter(function (x) { return x.sku; }) }] : combos();
+      if (!kits.length) { el('kfErr').textContent = 'Add option values'; return; }
+      var empty = kits.filter(function (k) { return !k.parts.length; })[0]; if (empty) { el('kfErr').textContent = (empty.variant || empty.name) + ': choose its parts'; return; }
+      el('kfGo').disabled = true;
+      api('appSaveKits', [TOKEN, { kits: kits, parts: st.newParts }], function (r) {
+        STK.at = 0; toast('✅ ' + (r.made ? r.made + ' kit' + (r.made > 1 ? 's' : '') + ' made' : '') + (r.made && r.updated ? ' · ' : '') + (r.updated ? r.updated + ' updated' : '') + ' · stock list updates within 15 minutes');
+        openStock('');
+      }, function (e) { el('kfGo').disabled = false; el('kfErr').textContent = (e && e.message) || 'Not saved'; });
+    };
+  };
+  draw();
+}
 // unmatched order lines from W1: "order: product · variant ‖ gid ‖ sku", grouped by product
 function stkUnmatched() {
   var g = {};
@@ -3740,7 +3885,7 @@ function renderStock() {
     (d.value != null && d.started ? '<div class="psum" style="margin:0 0 10px"><span>Stock value</span><b class="num">' + rs(d.value) + '</b></div>' : '') +
     (edit && items.some(function (i) { return i.countDue; }) ? '<div class="oc-warn" id="stDue" style="margin:0 0 10px;cursor:pointer"><i class="ti ti-list-numbers"></i><span><b>' + items.filter(function (i) { return i.countDue; }).length + ' to count</b> · quick check of fast movers</span><i class="ti ti-chevron-right"></i></div>' : '') +
     ((d.plan || []).length ? '<div class="oc-warn" id="stPlan" style="margin:0 0 10px;cursor:pointer"><i class="ti ti-shopping-cart"></i><span><b>' + d.plan.length + ' to order soon</b> · ' + esc(d.plan.slice(0, 3).map(function (x) { return x.name; }).join(', ')) + (d.plan.length > 3 ? '…' : '') + '</span><i class="ti ti-chevron-right"></i></div>' : '') +
-    (edit ? '<div class="btns" style="margin:0 0 12px"><button class="btn pri" id="stNew"><i class="ti ti-plus"></i>New purchase</button><button class="btn" id="stPur"><i class="ti ti-list-details"></i>Orders</button><button class="btn" id="stSup"><i class="ti ti-users"></i>Suppliers</button></div>' : '') +
+    (edit ? '<div class="btns" style="margin:0 0 12px"><button class="btn pri" id="stNew"><i class="ti ti-plus"></i>New purchase</button><button class="btn" id="stPur"><i class="ti ti-list-details"></i>Orders</button><button class="btn" id="stSup"><i class="ti ti-users"></i>Suppliers</button><button class="btn" id="stKits"><i class="ti ti-box-multiple"></i>Kits</button></div>' : '') +
     '<div class="search"><i class="ti ti-search"></i><input id="stQ" placeholder="Find a product" value="' + esc(STK.q) + '"></div>' +
     '<div class="chips">' + chip('all', 'All · ' + items.length) + chip('low', 'Low · ' + low) + chip('out', 'Out · ' + out) + (d.items.some(stkIsPart) ? chip('parts', 'Parts') : '') + chip('kits', 'Bundles & lines') + '</div>' +
     '<div class="card" style="padding:0">' + (list.length ? list.map(function (i) {
@@ -3767,6 +3912,7 @@ function renderStock() {
     var sku = b.getAttribute('data-unl');
     api('appUnlinkName', [TOKEN, sku], function () { STK.data.nameLinks = (STK.data.nameLinks || []).filter(function (x) { return x.sku !== sku; }); STK.at = 0; toast('Removed · the line asks again within 15 minutes'); renderStock(); }, function (e) { toast((e && e.message) || 'Not removed'); });
   }; });
+  if (el('stKits')) el('stKits').onclick = openKits;
   if (el('stSup')) el('stSup').onclick = function () { if (PUR.data) openSuppliers(); else purReload(openSuppliers); };
   el('stQ').oninput = function (e) { STK.q = e.target.value; var p = e.target.selectionStart; renderStock(); var n = el('stQ'); n.focus(); try { n.setSelectionRange(p, p); } catch (x) {} };
   el('panel').querySelectorAll('[data-sf]').forEach(function (b) { b.onclick = function () { STK.f = b.getAttribute('data-sf'); renderStock(); }; });
@@ -4732,22 +4878,38 @@ function openNewPurchase(opt) {
     var pick = main.length === 1 ? main[0] : names.length === 1 ? names[0] : '';
     if (pick) { st.supplier = pick; st.lines.forEach(function (l) { var last = purLast(l.sku, pick); if (last && !l.edited) l.price = last.price; }); }
   };
-  var itemOpts = function () { return '<option value="">' + (st.lines.length ? '+ Add another product…' : 'Choose a product…') + '</option>' + d.items.map(function (i) { return '<option value="' + esc(i.sku) + '">' + esc(i.name) + (i.isNew ? ' (new)' : '') + '</option>'; }).join('') + '<option value="__newp">+ New product (not on the store yet)</option>'; };
+  // this supplier's products (Supplier Products + what was bought from it), with its rate
+  var supItems = function () {
+    if (!st.supplier) return [];
+    var seen = {}, out = [];
+    (d.links || []).forEach(function (l) {
+      if (l.supplier !== st.supplier || seen[l.sku]) return; seen[l.sku] = 1;
+      var it = d.items.filter(function (i) { return i.sku === l.sku; })[0]; if (it) out.push({ it: it, rate: l.quoted || l.lastPrice || 0, main: l.main });
+    });
+    return out.sort(function (a, b) { return (b.main ? 1 : 0) - (a.main ? 1 : 0); });
+  };
+  var itemOpts = function () {
+    var mine = supItems(), skus = mine.map(function (x) { return x.it.sku; });
+    var o = function (i, rate) { return '<option value="' + esc(i.sku) + '">' + esc(i.name) + (i.isNew ? ' (new)' : '') + (rate ? ' · ' + rs2(rate) + (i.unit === 'ft' ? '/ft' : '') : '') + '</option>'; };
+    var rest = d.items.filter(function (i) { return skus.indexOf(i.sku) === -1; });
+    return '<option value="">' + (st.lines.length ? '+ Add another product…' : 'Choose a product…') + '</option>' +
+      (mine.length ? '<optgroup label="From ' + esc(st.supplier) + '">' + mine.map(function (x) { return o(x.it, x.rate); }).join('') + '</optgroup><optgroup label="Other products">' + rest.map(function (i) { return o(i); }).join('') + '</optgroup>' : rest.map(function (i) { return o(i); }).join('')) + '<option value="__newp">+ New product (not on the store yet)</option>'; };
   el('panel').innerHTML = '<button class="btn mini" id="npBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>' + (opt.back ? 'Back' : 'Purchases') + '</button><h3>New purchase</h3><p>From the supplier\'s bill · saved when you pay it</p>' +
-    '<div class="fld"><label>Supplier</label><select id="npSup">' + supOpts() + '</select></div>' +
+    '<div class="fld"><label>Supplier</label><select id="npSup">' + supOpts() + '</select></div><div id="npSupCard"></div>' +
     '<div id="npNewSup" hidden class="card" style="margin-bottom:12px"><div class="fld"><label>Shop / company name</label><input id="nsName" placeholder="e.g. Tanveer Traders"></div>' +
     '<div class="fld"><label>Person\'s name</label><input id="nsContact" placeholder="e.g. Tanveer Ahmed"></div>' +
     '<div class="fld"><label>Phone</label><input id="nsPhone" type="tel" placeholder="0300 1234567"></div><div class="fld"><label>City</label><input id="nsCity" placeholder="e.g. Gujranwala"></div>' +
     '<div class="fld"><label>Usually delivers in (days, optional)</label><input id="nsLead" type="text" inputmode="numeric" placeholder="learned from the first delivery"></div>' +
     '<button class="btn pri" id="nsSave" type="button" style="width:100%">Save supplier</button></div>' +
-    '<div class="card" style="margin-bottom:12px"><div class="h"><b><i class="ti ti-file-invoice"></i> Supplier\'s bill</b></div>' + photoField('npInv', 'Choose bill') +
-    '<div class="fld" style="margin:8px 0 0"><label>Bill number (if it has one)</label><input id="npInvNo" placeholder="optional"></div></div>' +
-    '<div class="fld"><label>Products on the bill</label></div><div id="npLines"></div><div class="fld"><select id="npAdd">' + itemOpts() + '</select></div>' +
+    // order of the form = order of the work (user 2026-11-01, like a purchase order): who → what → total → the bill → payment
+    '<div class="fld"><label>Products</label></div><div id="npLines"></div><div class="fld"><select id="npAdd">' + itemOpts() + '</select></div>' +
     '<div id="npNewProd" hidden class="card" style="margin-bottom:12px"><div class="fld"><label>Product name</label><input id="nnName" placeholder="Close to the name it will have on the store"></div>' +
     '<div class="fld"><label>Counted in</label><select id="nnUnit"><option value="pcs">Pieces</option><option value="ft">Feet</option></select></div>' +
     '<small class="mnote">When it is listed on Shopify with the same words in its name, its orders link to it by themselves.</small>' +
     '<button class="btn pri" id="nnSave" type="button" style="width:100%;margin-top:8px">Add product</button></div>' +
     '<div class="tk" id="npTotal" style="margin:0 0 10px"></div>' +
+    '<div class="card" style="margin-bottom:12px"><div class="h"><b><i class="ti ti-file-invoice"></i> Supplier\'s bill</b></div>' + photoField('npInv', 'Choose bill') +
+    '<div class="fld" style="margin:8px 0 0"><label>Bill number (if it has one)</label><input id="npInvNo" placeholder="optional"></div></div>' +
     '<div class="card" style="margin-bottom:12px"><div class="h"><b><i class="ti ti-cash"></i> Paid</b></div>' +
     '<div class="fld"><label>Amount paid (PKR)</label><input id="npPaid" type="text" inputmode="decimal" placeholder="the bill total"></div>' +
     '<small class="mnote" id="npLeft" hidden style="display:block;margin:-6px 0 10px;color:var(--warn,#B45309)"></small>' +
@@ -4771,12 +4933,30 @@ function openNewPurchase(opt) {
     }).join('');
     drawTotal();
     el('npAdd').innerHTML = itemOpts();
+    drawSup();
     if (el('npSup') && el('npSup').value !== '__new') { var before = st.supplier; supAuto(); el('npSup').innerHTML = supOpts(); if (st.supplier !== before) draw(); }
     el('npLines').querySelectorAll('[data-q]').forEach(function (x) { x.oninput = function () { st.lines[+x.getAttribute('data-q')].qty = Number(x.value) || 0; drawTotal(); }; });
     el('npLines').querySelectorAll('[data-pr]').forEach(function (x) { x.oninput = function () { var k = +x.getAttribute('data-pr'), l = st.lines[k]; l.price = Number(x.value) || 0; l.edited = true; drawTotal(); el('npLines').querySelector('[data-pd="' + k + '"]').innerHTML = purDiff(l, purLast(l.sku, st.supplier)); }; });
     el('npLines').querySelectorAll('[data-pk]').forEach(function (x) { x.onchange = function () { var l = st.lines[+x.getAttribute('data-pk')], n = Number(x.value) || 1; if (n !== (l.pack || 1)) { if (l.price && (l.pack || 1) === 1) l.price = Math.round(l.price * n * 100) / 100; l.pack = n; draw(); } }; });
     el('npLines').querySelectorAll('[data-addft]').forEach(function (x) { x.onclick = function () { var p = x.getAttribute('data-addft').split(':'), l = st.lines[+p[0]]; l.qty = (l.qty || 0) + Number(p[1]); draw(); }; });
     el('npLines').querySelectorAll('[data-rm]').forEach(function (x) { x.onclick = function () { st.lines.splice(+x.getAttribute('data-rm'), 1); draw(); }; });
+  };
+  // the chosen supplier: who, number, Call / WhatsApp (opens the chat, no ready-made text — user 2026-11-01), its products to add in a tap
+  var drawSup = function () {
+    var box = el('npSupCard'); if (!box) return;
+    var s = st.supplier && d.suppliers.filter(function (x) { return x.name === st.supplier; })[0];
+    if (!s) { box.innerHTML = ''; return; }
+    var ph = String(s.phone || '').replace(/[^0-9]/g, ''), wa = ph.replace(/^0/, '92'), mine = supItems().filter(function (x) { return !st.lines.some(function (l) { return l.sku === x.it.sku; }); });
+    box.innerHTML = '<div class="card" style="margin:-4px 0 12px"><div class="h"><b>' + esc(s.name) + '</b><span>' + esc([s.city, s.lead ? s.lead + ' days delivery' : ''].filter(Boolean).join(' · ')) + '</span></div>' +
+      '<div style="font-size:13px;color:var(--muted)">' + esc([s.contact, s.phone ? phoneText(s.phone) : 'no phone saved'].filter(Boolean).join(' · ')) + (s.toPay > 0 ? ' · <b style="color:var(--amber)">to pay ' + rs(s.toPay) + '</b>' : '') + '</div>' +
+      (ph ? '<div class="btns" style="margin-top:10px"><a class="btn" href="tel:' + esc(ph) + '"><i class="ti ti-phone"></i>Call</a><a class="btn wa" id="npWa" target="_blank" href="' + waLink(wa.length >= 11 ? wa : '', '') + '"><i class="ti ti-brand-whatsapp"></i>WhatsApp</a></div>' : '') +
+      (mine.length ? '<div class="fld" style="margin:10px 0 0"><label>Supplies · tap to add</label><div class="chips wrapc" id="npSupIt">' + mine.slice(0, 8).map(function (x) { return '<button class="chip" type="button" data-si="' + esc(x.it.sku) + '">' + (x.main ? '⭐ ' : '') + esc(x.it.name) + (x.rate ? ' · ' + rs2(x.rate) : '') + '</button>'; }).join('') + '</div></div>' : '') + '</div>';
+    if (el('npSupIt')) el('npSupIt').onclick = function (e) {
+      var b = e.target.closest('[data-si]'); if (!b) return; var sku = b.getAttribute('data-si');
+      if (st.lines.some(function (l) { return l.sku === sku; })) return;
+      var it = d.items.filter(function (i) { return i.sku === sku; })[0], last = purLast(sku, st.supplier);
+      st.lines.push({ sku: sku, name: it ? it.name : sku, unit: it ? it.unit : 'pcs', qty: 0, price: last ? last.price : 0 }); draw();
+    };
   };
   var total = function () { return Math.round(st.lines.reduce(function (a, l) { return a + (l.qty || 0) * (l.price || 0); }, 0) * 100) / 100; };
   var drawTotal = function () {
