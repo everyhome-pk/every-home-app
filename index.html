@@ -745,7 +745,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 (function () {
   if (window.google && google.script) return;
   window.EH_PWA = true; // installed app: notifications are possible
-  window.EH_BUILD = '2026-10-27'; // shown at the bottom of the menu
+  window.EH_BUILD = '2026-11-01'; // shown at the bottom of the menu
   var API = "https://script.google.com/macros/s/AKfycbyqtyrClenCG1_iqTSDK5KhtFItfX6rUsYdIexwQ3qPFbSv9d1n8jy06ItjvWXXtB-I/exec";
   function call(fn, args, ok, fail) {
     fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: fn, args: args }) })
@@ -1851,8 +1851,9 @@ function homePnl(d, done) {
   if (!can('finance.view')) return;
   var per = homePnlPeriod(d), k = 'pnl_' + per, hit = VIEW_MEM[k];
   if (!hit) { try { hit = JSON.parse(store('ehv_' + k) || 'null'); } catch (e) { hit = null; } }
+  if (HD.pnlFor !== per) { HD.pnlSeries = []; HD.pnlFor = per; }
   if (hit) done(hit);
-  if (hit && Date.now() - (HD.pnlAt[k] || 0) < 600000) return;
+  if (hit && hit.series && Date.now() - (HD.pnlAt[k] || 0) < 600000) return;
   HD.pnlAt[k] = Date.now();
   api('getAppPnl', [TOKEN, per], function (p) { viewKeep(k, p); done(p); }, function () {});
 }
@@ -1906,45 +1907,73 @@ function homeQuick() {
   return '<div class="hd-qh"><i class="ti ti-bolt"></i>Quick create</div><div class="hd-quick">' +
     list.map(function (q) { return '<button data-hq="' + q[0] + '"><span><i class="ti ti-' + q[2] + '"></i></span>' + q[1] + '</button>'; }).join('') + '</div>';
 }
-// Trend: last 6 months. Sales / Delivery % from Home's monthly report (reports.view); Profit / Ad spend from the P&L
-// trend (finance.view). Only chips with data are shown; the choice is kept on this phone.
+// Trend: follows the period chosen on top (user 2026-10-28): a point a day for a month / range (a single day → the
+// 14 days up to it, that day marked), a point a month for all time; the courier filter applies to Sales / Delivery %.
+// Sales / Delivery % come from Home's data (reports.view), Profit / Ad spend from the P&L of the same period
+// (finance.view). Only chips with data are shown; the choice is kept on this phone. Tap the chart → that point's value.
 function homeTrendSeries(d) {
-  var s = [], tr = (d.trend || []).slice(-6), pt = HD.pnlTrend || [];
-  if (pt.length) {
-    var last = pt.slice(-6);
-    s.push({ k: 'profit', l: 'Profit', pts: last.map(function (x) { return { m: x.month, v: x.net }; }), rs: true });
-    s.push({ k: 'ads', l: 'Ad spend', pts: last.map(function (x) { return { m: x.month, v: x.ads }; }), rs: true });
+  var s = [], hs = d.series || [], ps = HD.pnlSeries || [];
+  if (ps.length) {
+    s.push({ k: 'profit', l: 'Profit', pts: ps.map(function (x) { return { m: x.k, v: x.net }; }) });
+    s.push({ k: 'ads', l: 'Ad spend', pts: ps.map(function (x) { return { m: x.k, v: x.ads }; }) });
   }
-  if (tr.length) {
-    s.push({ k: 'sales', l: 'Sales', pts: tr.map(function (x) { return { m: x.key, v: x.sale }; }), rs: true });
-    s.push({ k: 'rate', l: 'Delivery %', pts: tr.map(function (x) { var f = x.delivered + x.returned; return { m: x.key, v: f ? Math.round(x.delivered / f * 100) : null }; }), pc: true });
+  if (hs.length) {
+    s.push({ k: 'sales', l: 'Sales', pts: hs.map(function (x) { return { m: x.k, v: x.sale }; }) });
+    s.push({ k: 'rate', l: 'Delivery %', pc: true, pts: hs.map(function (x) { var f = x.delivered + x.returned; return { m: x.k, v: f ? Math.round(x.delivered / f * 100) : null }; }) });
   }
   return s;
 }
+function hdLabel(k) { return k.length === 7 ? fnMonthName(k) : niceDay(k); }
 function homeTrend(d) {
   var all = homeTrendSeries(d); if (!all.length) return '';
   var key = store('eh_hdtrend') || all[0].k, cur = all.filter(function (x) { return x.k === key; })[0] || all[0];
-  var pts = cur.pts, vals = pts.map(function (x) { return x.v; }).filter(function (v) { return v != null; });
-  var max = Math.max.apply(null, vals.concat([1])), min = Math.min.apply(null, vals.concat([0])), W = 320, H = 110, n = pts.length;
+  var pts = cur.pts, n = pts.length, monthly = pts[0] && pts[0].m.length === 7;
+  var one = d.range && d.range.from === d.range.to ? d.range.to : '';
+  var vals = pts.map(function (x) { return x.v; }).filter(function (v) { return v != null; });
+  var max = Math.max.apply(null, vals.concat([1])), min = Math.min.apply(null, vals.concat([0])), W = 320, H = 110;
   var X = function (i) { return 8 + i * (W - 16) / Math.max(1, n - 1); }, Y = function (v) { return 10 + (H - 20) * (1 - (v - min) / Math.max(1, max - min)); };
-  var line = pts.map(function (x, i) { return x.v == null ? '' : (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(x.v).toFixed(1); }).join(' ').replace(/^ *L/, 'M');
-  var lastV = pts[n - 1] ? pts[n - 1].v : null, fmtV = function (v) { return v == null ? '–' : cur.pc ? v + '%' : (v < 0 ? '− ' : '') + rs(Math.abs(v)); };
-  return '<div class="hd-trend"><div class="hd-th"><b>Trend</b><span>Last 6 months</span></div>' +
+  var line = '', started = false;
+  pts.forEach(function (x, i) { if (x.v == null) return; line += (started ? ' L' : 'M') + X(i).toFixed(1) + ' ' + Y(x.v).toFixed(1); started = true; });
+  var fmtV = function (v) { return v == null ? '–' : cur.pc ? v + '%' : (v < 0 ? '− ' : '') + rs(Math.abs(v)); };
+  var tot = cur.pc ? null : vals.reduce(function (a, v) { return a + v; }, 0);
+  var sel = one ? pts.map(function (x) { return x.m; }).indexOf(one) : -1;
+  var head = sel >= 0 ? fmtV(pts[sel].v) + '|' + hdLabel(one) : cur.pc ? fmtV(Math.round(vals.reduce(function (a, v) { return a + v; }, 0) / Math.max(1, vals.length))) + '|average' : fmtV(tot) + '|' + (monthly ? 'all time' : 'in this period');
+  var every = Math.ceil(n / 6), labels = pts.map(function (x, i) {
+    if (i % every && i !== n - 1) return '';
+    return '<text x="' + X(i).toFixed(1) + '" y="' + (H + 13) + '" text-anchor="middle">' + esc(monthly ? fnMonthName(x.m).slice(0, 3) : String(Number(x.m.slice(8)))) + '</text>';
+  }).join('');
+  var mark = sel >= 0 && pts[sel].v != null ? '<circle cx="' + X(sel).toFixed(1) + '" cy="' + Y(pts[sel].v).toFixed(1) + '" r="4.5" fill="var(--card)" stroke="var(--brand)" stroke-width="2"></circle>' : '';
+  var title = monthly ? 'Monthly' : one ? 'Last 14 days' : 'Daily';
+  return '<div class="hd-trend"><div class="hd-th"><b>Trend</b><span>' + title + '</span></div>' +
     '<div class="hd-chips">' + all.map(function (x) { return '<button class="chip' + (x.k === cur.k ? ' on' : '') + '" data-ht="' + x.k + '">' + x.l + '</button>'; }).join('') + '</div>' +
-    '<div class="hd-tv"><b class="num">' + fmtV(lastV) + '</b><span>' + esc(fnMonthName(pts[n - 1] ? pts[n - 1].m : '')) + '</span></div>' +
-    '<svg viewBox="0 0 ' + W + ' ' + (H + 16) + '" role="img" aria-label="' + esc(cur.l) + ', last 6 months"><path d="' + line + ' L' + X(n - 1).toFixed(1) + ' ' + H + ' L' + X(0).toFixed(1) + ' ' + H + ' Z" fill="var(--brand)" opacity=".08"></path>' +
-    '<path d="' + line + '" fill="none" stroke="var(--brand)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path>' +
-    pts.map(function (x, i) { return '<text x="' + X(i).toFixed(1) + '" y="' + (H + 13) + '" text-anchor="middle">' + esc(fnMonthName(x.m).slice(0, 3)) + '</text>'; }).join('') + '</svg></div>';
+    '<div class="hd-tv" id="hdTv"><b class="num">' + head.split('|')[0] + '</b><span>' + esc(head.split('|')[1]) + '</span></div>' +
+    '<svg id="hdSvg" viewBox="0 0 ' + W + ' ' + (H + 16) + '" role="img" aria-label="' + esc(cur.l) + ' ' + title.toLowerCase() + '">' +
+    (line ? '<path d="' + line + ' L' + X(n - 1).toFixed(1) + ' ' + H + ' L' + X(0).toFixed(1) + ' ' + H + ' Z" fill="var(--brand)" opacity=".08"></path><path d="' + line + '" fill="none" stroke="var(--brand)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>' : '') +
+    mark + '<line id="hdCur" x1="0" x2="0" y1="6" y2="' + H + '" stroke="var(--faint)" stroke-dasharray="3 3" opacity="0"></line>' + labels + '</svg></div>';
+}
+// tap / drag on the chart: the value of the nearest point
+function homeTrendTap(d) {
+  var svg = el('hdSvg'); if (!svg) return;
+  var all = homeTrendSeries(d), key = store('eh_hdtrend') || (all[0] && all[0].k), cur = all.filter(function (x) { return x.k === key; })[0] || all[0];
+  if (!cur) return;
+  var pick = function (ev) {
+    var r = svg.getBoundingClientRect(), x = ((ev.touches ? ev.touches[0].clientX : ev.clientX) - r.left) / r.width * 320, n = cur.pts.length;
+    var i = Math.max(0, Math.min(n - 1, Math.round((x - 8) / ((320 - 16) / Math.max(1, n - 1))))), p = cur.pts[i], X = 8 + i * (320 - 16) / Math.max(1, n - 1);
+    var v = p.v == null ? '–' : cur.pc ? p.v + '%' : (p.v < 0 ? '− ' : '') + rs(Math.abs(p.v));
+    el('hdTv').innerHTML = '<b class="num">' + v + '</b><span>' + esc(hdLabel(p.m)) + '</span>';
+    var c = el('hdCur'); c.setAttribute('x1', X); c.setAttribute('x2', X); c.setAttribute('opacity', '1');
+  };
+  svg.addEventListener('click', pick); svg.addEventListener('touchmove', function (ev) { pick(ev); }, { passive: true });
 }
 function homeDash(d) { return '<div id="hdash">' + homeCards(d) + homeQuick() + '<div id="hdTrend">' + homeTrend(d) + '</div></div>'; }
 function homeDashWire(d) {
   var box = el('hdash'); if (!box) return;
   box.querySelectorAll('[data-hq]').forEach(function (b) { b.onclick = function () { var q = HD_QUICK.filter(function (x) { return x[0] === b.getAttribute('data-hq'); })[0]; if (q) q[4](); }; });
   box.querySelectorAll('[data-hd]').forEach(function (b) { b.onclick = function () { var g = b.getAttribute('data-hd'); if (g === 'pnl') openPnl(homePnlPeriod(d)); else if (g === 'success') openReport('success'); else go(g); }; });
-  var wireTrend = function () { el('hdTrend').querySelectorAll('[data-ht]').forEach(function (b) { b.onclick = function () { store('eh_hdtrend', b.getAttribute('data-ht')); el('hdTrend').innerHTML = homeTrend(d); wireTrend(); }; }); };
+  var wireTrend = function () { el('hdTrend').querySelectorAll('[data-ht]').forEach(function (b) { b.onclick = function () { store('eh_hdtrend', b.getAttribute('data-ht')); el('hdTrend').innerHTML = homeTrend(d); wireTrend(); }; }); homeTrendTap(d); };
   wireTrend();
   homePnl(d, function (p) {
-    HD.net = p.net; HD.netFor = homePnlPeriod(d); HD.pnlTrend = (p.trend || []).map(function (x) { return { month: x.month, net: x.net, ads: x.ads }; });
+    HD.net = p.net; HD.netFor = homePnlPeriod(d); HD.pnlSeries = p.series || [];
     if (el('hdNet')) el('hdNet').textContent = (p.net < 0 ? '− ' : '') + rs(Math.abs(p.net));
     if (el('hdTrend')) { el('hdTrend').innerHTML = homeTrend(d); wireTrend(); }
   });
