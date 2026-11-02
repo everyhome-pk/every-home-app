@@ -2131,11 +2131,53 @@ function homeQuick() {
 // (finance.view). Only chips with data are shown; the choice is kept on this phone. Tap the chart → that point's value.
 // The card's own choice (dropdown, kept on this phone): 'period' = the days of the period chosen on top (default),
 // '30d' = last 30 days, '3m' = last 3 months a week each, '12m' = last 12 months a month each
-var HD_EVERY = { period: 'a point a day', '30d': 'a point a day', '3m': 'a point a week', '12m': 'a point a month' };
-var HD_RANGES = [['period', 'This period'], ['30d', '30 days'], ['3m', '3 months'], ['12m', '12 months']];
-// the first choice is named after the period chosen on top (user 2026-11-01: 'This period' was not clear)
-function hdRangeName(x, d) { return x[0] === 'period' ? (d && d.range && d.range.from === d.range.to ? '14 days' : (d && d.monthLabel) || 'This period') : x[1]; }
-function hdRange() { var r = store('eh_hdrange') || 'period'; return HD_RANGES.some(function (x) { return x[0] === r; }) ? r : 'period'; }
+// Trend dropdown (user 2026-11-02: full choices like the top of the page / big apps): Same as top · Last 7 / 30 / 90
+// days · This month · Last month · Last 12 months · This year · All time · Custom dates (daily data reaches 90 days
+// back), plus Show by Day / Week / Month (Auto picks: up to 31 days a day, up to 120 days a week, longer a month).
+// Kept on the phone: eh_hdrange (choice or c:yyyy-mm-dd..yyyy-mm-dd), eh_hdby.
+var HD_RANGES = [['period', 'Same as top'], ['d7', 'Last 7 days'], ['d30', 'Last 30 days'], ['d90', 'Last 90 days'], ['tm', 'This month'], ['lm', 'Last month'],
+  ['12m', 'Last 12 months'], ['year', 'This year'], ['all', 'All time']];
+function hdTopName(d) { return d && d.range && d.range.from === d.range.to ? '14 days' : (d && d.monthLabel) || 'This period'; }
+function hdRange() {
+  var r = store('eh_hdrange') || 'period', old = { '30d': 'd30', '3m': 'd90' };
+  if (old[r]) r = old[r];
+  return /^c:\d{4}-\d{2}-\d{2}\.\.\d{4}-\d{2}-\d{2}$/.test(r) || HD_RANGES.some(function (x) { return x[0] === r; }) ? r : 'period';
+}
+function hdRangeName(x, d) { return x[0] === 'period' ? hdTopName(d) : x[1]; }
+// the window of a choice: days (from the 90-day data) or months (from the 12 / 24-month trends); period = the top bar
+function hdWin(rg, d) {
+  var t = pkDay(new Date()), lm = fnMonth(t.slice(0, 7), -1);
+  var days = function (f, to, l) { return { kind: 'days', from: f, to: to, label: l, n: Math.round((Date.parse(to) - Date.parse(f)) / 86400000) + 1 }; };
+  if (rg === 'period') {
+    var ser = d.series || [], mon = ser[0] && ser[0].k.length === 7;
+    return mon ? { kind: 'months', label: hdTopName(d), top: true } : days(ser[0] ? ser[0].k : t, ser.length ? ser[ser.length - 1].k : t, hdTopName(d));
+  }
+  if (rg.slice(0, 2) === 'c:') { var a = rg.slice(2, 12), b = rg.slice(14); return days(a, b, niceDay(a) + ' – ' + niceDay(b)); }
+  var lbl = (HD_RANGES.filter(function (x) { return x[0] === rg; })[0] || [])[1];
+  if (rg === 'd7') return days(hdDayAdd(t, -6), t, lbl);
+  if (rg === 'd30') return days(hdDayAdd(t, -29), t, lbl);
+  if (rg === 'd90') return days(hdDayAdd(t, -89), t, lbl);
+  if (rg === 'tm') return days(t.slice(0, 8) + '01', t, fnMonthName(t.slice(0, 7)));
+  if (rg === 'lm') return days(lm + '-01', hdDayAdd(t.slice(0, 8) + '01', -1), fnMonthName(lm));
+  return { kind: 'months', label: lbl };
+}
+// how a window can be shown: a point a day / week / month
+function hdBys(w) {
+  if (w.kind === 'months') return ['month'];
+  var b = ['day']; if (w.n >= 14) b.push('week'); if (w.from.slice(0, 7) !== w.to.slice(0, 7)) b.push('month'); return b;
+}
+function hdBy(w) {
+  var ok = hdBys(w), b = store('eh_hdby') || 'auto';
+  if (b !== 'auto' && ok.indexOf(b) !== -1) return b;
+  return w.kind === 'months' ? 'month' : w.n <= 31 ? 'day' : w.n <= 120 ? 'week' : 'month';
+}
+var HD_BY_NAME = { day: 'daily', week: 'weekly', month: 'monthly' };
+// one point a month (key yyyy-MM): money adds up; delivered / returned add up for Delivery %
+function hdMonths(list, keys) {
+  var out = [], idx = {};
+  list.forEach(function (x) { var mk = x.k.slice(0, 7), m = idx[mk]; if (!m) { m = idx[mk] = { k: mk }; keys.forEach(function (k) { m[k] = 0; }); out.push(m); } keys.forEach(function (k) { m[k] += x[k] || 0; }); });
+  return out;
+}
 // one point a week (Monday … Sunday, key = the Monday): money adds up; delivered / returned add up for Delivery %
 function hdWeeks(list, keys) {
   var out = [], idx = {};
@@ -2160,18 +2202,29 @@ function hdPrevDays(src, keys, fn) {
 // every series point carries v (+ d / f for Delivery %: delivered / finished, so totals are weighted, not an average of
 // days); prev = the same-length window before (daily views from the 90-day data, 12 months from the 24-month trend)
 function homeTrendSeries(d) {
-  var rg = hdRange(), hs, ps, hsPrev = null, psPrev = null;
-  var hsOf = function (x) { return x; }, rate = function (x) { var f = (x.delivered || 0) + (x.returned || 0); return { v: f ? Math.round(x.delivered / f * 100) : null, d: x.delivered || 0, f: f }; };
-  if (rg === '30d') { hs = (d.days90 || []).slice(-30); ps = (HD.pnl90 || []).slice(-30); }
-  else if (rg === '3m') { hs = hdWeeks(d.days90 || [], ['orders', 'delivered', 'returned', 'sale']); ps = hdWeeks(HD.pnl90 || [], ['net', 'ads', 'sales']); }
-  else if (rg === '12m') {
-    var tr = (d.trend || []).map(function (x) { return { k: x.key, orders: x.orders, delivered: x.delivered, returned: x.returned, sale: x.sale }; });
-    hs = tr.slice(-12); if (tr.length >= 24) hsPrev = tr.slice(-24, -12);
-    var pm = HD.pnlMonths || []; ps = pm.slice(-12); if (pm.length >= 24) psPrev = pm.slice(-24, -12);
-  } else { hs = d.series || []; ps = HD.pnlSeries || []; }
-  if (rg === '30d' || rg === 'period') {
-    hsPrev = hdPrevDays(d.days90, hs.map(function (x) { return x.k; }), hsOf);
-    psPrev = hdPrevDays(HD.pnl90, ps.map(function (x) { return x.k; }), hsOf);
+  var rg = hdRange(), w = hdWin(rg, d), by = hdBy(w), hs, ps, hsPrev = null, psPrev = null;
+  var HK = ['orders', 'delivered', 'returned', 'sale'], PK = ['net', 'ads', 'sales'];
+  var rate = function (x) { var f = (x.delivered || 0) + (x.returned || 0); return { v: f ? Math.round(x.delivered / f * 100) : null, d: x.delivered || 0, f: f }; };
+  var same = function (x) { return x; };
+  if (w.kind === 'days') {
+    var inW = function (x) { return x.k >= w.from && x.k <= w.to; };
+    if (rg === 'period') { hs = d.series || []; ps = HD.pnlSeries || []; }
+    else { hs = (d.days90 || []).filter(inW); ps = (HD.pnl90 || []).filter(inW); }
+    hsPrev = hdPrevDays(d.days90, hs.map(function (x) { return x.k; }), same);
+    psPrev = hdPrevDays(HD.pnl90, ps.map(function (x) { return x.k; }), same);
+    var agg = function (list, keys) { return !list ? null : by === 'week' ? hdWeeks(list, keys) : by === 'month' ? hdMonths(list, keys) : list; };
+    hs = agg(hs, HK); ps = agg(ps, PK); hsPrev = agg(hsPrev, HK); psPrev = agg(psPrev, PK);
+  } else {
+    var tr = (d.trend || []).map(function (x) { return { k: x.key, orders: x.orders, delivered: x.delivered, returned: x.returned, sale: x.sale }; }), pm = HD.pnlMonths || [];
+    var y = pkDay(new Date()).slice(0, 4), ly = String(Number(y) - 1);
+    if (w.top) { hs = d.series || []; ps = HD.pnlSeries || []; }
+    else if (rg === '12m') { hs = tr.slice(-12); ps = pm.slice(-12); if (tr.length >= 24) hsPrev = tr.slice(-24, -12); if (pm.length >= 24) psPrev = pm.slice(-24, -12); }
+    else if (rg === 'year') {
+      hs = tr.filter(function (x) { return x.k.slice(0, 4) === y; }); ps = pm.filter(function (x) { return x.k.slice(0, 4) === y; });
+      // the same months of last year, when they are all there
+      var sameLast = function (list, cur) { var o = cur.map(function (c) { return list.filter(function (x) { return x.k === ly + c.k.slice(4); })[0]; }); return o.every(Boolean) ? o : null; };
+      hsPrev = sameLast(tr, hs); psPrev = sameLast(pm, ps);
+    } else { hs = tr; ps = pm; }
   }
   var mk = function (list, f) { return list.map(function (x) { var o = f(x); o.m = x.k; o.w = x.week; return o; }); };
   var s = [];
@@ -2205,13 +2258,15 @@ function hdNice(v) { if (v <= 0) return 0; var p = Math.pow(10, Math.floor(Math.
 // is the last point still running (today / this week / this month)?
 function hdPartial(p) { var t = pkDay(new Date()); if (!p) return false; return p.m.length === 7 ? p.m === t.slice(0, 7) : p.w ? hdDayAdd(p.m, 6) >= t : p.m === t; }
 function hdWindowName(cur, pts, d) {
-  var rg = hdRange(), n = pts.length;
+  var rg = hdRange(), w = hdWin(rg, d);
   if (rg === '12m') return 'previous 12 months';
-  if (rg === '3m') return '';
-  return 'previous ' + n + (n === 1 ? ' day' : ' days');
+  if (rg === 'year') return 'same months last year';
+  return w.kind === 'days' ? 'previous ' + w.n + (w.n === 1 ? ' day' : ' days') : 'before';
 }
+// the dropdown's button: the window, plus how it is shown when the person chose it (not Auto)
+function hdTitle(d) { var w = hdWin(hdRange(), d), b = store('eh_hdby'); return w.label + (b && b !== 'auto' && hdBys(w).length > 1 ? ' · ' + HD_BY_NAME[hdBy(w)] : ''); }
 function homeTrend(d) {
-  var all = homeTrendSeries(d), rg = hdRange(), title = hdRangeName(HD_RANGES.filter(function (x) { return x[0] === rg; })[0], d);
+  var all = homeTrendSeries(d), rg = hdRange(), title = hdTitle(d);
   var top = '<div class="hd-th"><b>Trend</b><button class="hd-rg" id="hdRg" type="button">' + esc(title) + '<i class="ti ti-chevron-down"></i></button></div>';
   if (!all.length) {
     // nothing for this choice (yet): keep the card and its dropdown so another choice can be picked
@@ -2225,13 +2280,14 @@ function homeTrend(d) {
   var tot = hdTotal(cur, pts), ptot = prev ? hdTotal(cur, prev) : null;
   // change vs the window before: % for money, points for Delivery %
   var dl = '';
-  if (tot != null && ptot != null && (cur.pc || ptot !== 0)) {
+  // only with 3+ points: a window of a day or two (e.g. the 2nd of the month) says nothing yet
+  if (tot != null && ptot != null && n >= 3 && (cur.pc || ptot !== 0)) {
     var ch = cur.pc ? tot - ptot : Math.round((tot - ptot) / Math.abs(ptot) * 100), up = ch >= 0;
     var tone = ch === 0 || cur.k === 'ads' ? 'flat' : up ? 'up' : 'down'; // more ad spend is neither good nor bad
     if (!cur.pc && Math.abs(ch) > 300) dl = '<span class="hd-vs">' + fmtV(ptot) + ' in the ' + esc(hdWindowName(cur, pts, d)) + '</span>';
     else dl = '<span class="hd-dl ' + tone + '">' + (ch === 0 ? '' : up ? '▲ ' : '▼ ') + Math.abs(ch) + (cur.pc ? ' pts' : '%') + '</span><span class="hd-vs">vs ' + esc(hdWindowName(cur, pts, d)) + '</span>';
   }
-  var sub = one ? hdLabel(one) : cur.pc ? 'delivered of finished' : rg === 'period' ? (monthly ? 'all time' : 'in this period') : 'in these ' + (rg === '12m' ? '12 months' : rg === '3m' ? '3 months' : '30 days');
+  var sub = one ? hdLabel(one) : cur.pc ? 'delivered of finished' : 'total · ' + HD_BY_NAME[hdBy(hdWin(rg, d))] + ' chart';
   var head = '<div class="hd-tv"><b class="num">' + fmtV(one ? (pts.filter(function (x) { return x.m === one; })[0] || {}).v : tot) + '</b><span>' + esc(sub) + '</span></div>' + (dl && !one ? '<div class="hd-cmp">' + dl + '</div>' : '');
   var vals = pts.concat(prev || []).map(function (x) { return x.v; }).filter(function (v) { return v != null; });
   var segBar = '<div class="hd-seg">' + all.map(function (x) { return '<button type="button" class="' + (x.k === cur.k ? 'on' : '') + '" data-ht="' + x.k + '">' + x.l + '</button>'; }).join('') + '</div>';
@@ -2309,6 +2365,38 @@ function hdTipScale(cur, pts, prev) {
   return { mx: mx, mn: mn };
 }
 var HD_RS = null; addEventListener('resize', function () { clearTimeout(HD_RS); HD_RS = setTimeout(function () { if (HD.redraw) HD.redraw(); }, 150); });
+function hdOpenPick(d, redraw) {
+  var cur = hdRange(), w = hdWin(cur, d), bys = hdBys(w), by = hdBy(w), b0 = store('eh_hdby') || 'auto', t = pkDay(new Date());
+  var row = function (attr, label, on, sub, off) { return '<div class="sl' + (on ? ' on' : '') + '" ' + attr + (off ? ' style="opacity:.4;pointer-events:none"' : '') + '><span>' + label + (sub ? '<small>' + sub + '</small>' : '') + '</span>' + (on ? '<i class="ti ti-check"></i>' : '') + '</div>'; };
+  var rr = function (k) { var x = HD_RANGES.filter(function (y) { return y[0] === k; })[0], ww = hdWin(k, d); return row('data-hr="' + k + '"', esc(x[1]), cur === k, ww.kind === 'days' && k !== 'period' ? niceDay(ww.from) + ' – ' + niceDay(ww.to) : k === 'period' ? esc(hdTopName(d)) + ' · follows the top' : ''); };
+  showPick('Trend', '', '<div class="sheet-list">' +
+    rr('period') + '<div class="sl-h">Quick</div>' + rr('d7') + rr('d30') + rr('d90') +
+    '<div class="sl-h">Months</div>' + rr('tm') + rr('lm') + '<div class="sl-h">Longer</div>' + rr('12m') + rr('year') + rr('all') +
+    row('data-hr="custom"', 'Custom range…', cur.slice(0, 2) === 'c:', cur.slice(0, 2) === 'c:' ? w.label : 'within the last 90 days') +
+    '<div class="sl-h">Show by</div>' + row('data-hb="auto"', 'Auto', b0 === 'auto' || bys.indexOf(b0) === -1, HD_BY_NAME[by]) +
+    ['day', 'week', 'month'].map(function (b) { return row('data-hb="' + b + '"', b.charAt(0).toUpperCase() + b.slice(1), b0 === b && bys.indexOf(b) !== -1, '', bys.indexOf(b) === -1); }).join('') +
+    '</div>', function (ev) {
+      var hb = ev.target.closest('[data-hb]'); if (hb) { store('eh_hdby', hb.getAttribute('data-hb')); closePick(); return redraw(); }
+      var r = ev.target.closest('[data-hr]'); if (!r) return;
+      var k = r.getAttribute('data-hr'); closePick();
+      if (k !== 'custom') { store('eh_hdrange', k); return redraw(); }
+      // own dates (the daily data reaches 90 days back)
+      var min = hdDayAdd(t, -89), c0 = cur.slice(0, 2) === 'c:' ? { from: w.from, to: w.to } : { from: hdDayAdd(t, -13), to: t };
+      setTimeout(openPanel, 0);
+      el('panel').innerHTML = '<h3>Trend · custom range</h3><p>Any days in the last 90 days</p>' +
+        '<div class="grid" style="margin-bottom:6px"><div class="fld"><label>From</label><input id="tFrom" type="date" min="' + min + '" max="' + t + '" value="' + c0.from + '"></div>' +
+        '<div class="fld"><label>To</label><input id="tTo" type="date" min="' + min + '" max="' + t + '" value="' + c0.to + '"></div></div>' +
+        '<div class="err" id="tErr"></div><div class="btns"><button class="btn" id="tCancel">Cancel</button><button class="btn pri" id="tApply">Apply</button></div>';
+      el('tCancel').onclick = closePanel;
+      el('tApply').onclick = function () {
+        var f = el('tFrom').value, to = el('tTo').value;
+        if (!f || !to) { el('tErr').textContent = 'Choose both dates'; return; }
+        if (f > to) { var x = f; f = to; to = x; }
+        if (f < min) f = min; if (to > t) to = t;
+        store('eh_hdrange', 'c:' + f + '..' + to); closePanel(); redraw();
+      };
+    });
+}
 function homeDash(d) { return '<div id="hdash">' + homeCards(d) + homeQuick() + '<div id="hdTrend">' + homeTrend(d) + '</div></div>'; }
 function homeDashWire(d) {
   var box = el('hdash'); if (!box) return;
@@ -2316,11 +2404,7 @@ function homeDashWire(d) {
   box.querySelectorAll('[data-hd]').forEach(function (b) { b.onclick = function () { var g = b.getAttribute('data-hd'); if (g === 'pnl') openPnl(homePnlPeriod(d)); else if (g === 'success') openReport('success'); else go(g); }; });
   var wireTrend = function () {
     el('hdTrend').querySelectorAll('[data-ht]').forEach(function (b) { b.onclick = function () { store('eh_hdtrend', b.getAttribute('data-ht')); el('hdTrend').innerHTML = homeTrend(d); wireTrend(); }; });
-    if (el('hdRg')) el('hdRg').onclick = function () {
-      var cur = hdRange();
-      showPick('Trend', '', '<div class="sheet-list">' + HD_RANGES.map(function (x) { return '<div class="sl' + (x[0] === cur ? ' on' : '') + '" data-hr="' + x[0] + '"><span>' + esc(hdRangeName(x, d)) + '<small>' + HD_EVERY[x[0]] + '</small></span>' + (x[0] === cur ? '<i class="ti ti-check"></i>' : '') + '</div>'; }).join('') + '</div>',
-        function (ev) { var r = ev.target.closest('[data-hr]'); if (!r) return; closePick(); store('eh_hdrange', r.getAttribute('data-hr')); el('hdTrend').innerHTML = homeTrend(d); wireTrend(); });
-    };
+    if (el('hdRg')) el('hdRg').onclick = function () { hdOpenPick(d, function () { el('hdTrend').innerHTML = homeTrend(d); wireTrend(); }); };
     homeTrendTap(d);
   };
   wireTrend();
@@ -3092,11 +3176,14 @@ function renderNdr() {
   // calls today: cases called since midnight (Pakistan) vs cases that still need a call now (New + Call again)
   var today0 = Date.parse(pkDay(new Date()) + 'T00:00:00+05:00');
   var doneToday = cs.filter(function (c) { return c.lastCallMs >= today0; }).length;
-  var left = typed.filter(function (c) { var g = ndrSlot(c)[1]; return g === 'new' || g === 'again'; }).length;
+  // to call now: New + Call again, and the Special cases that need the customer (return can still be stopped,
+  // premature return) while no request is made yet (user 2026-11-02: Special cases were missing from 'left')
+  var callNow = typed.filter(function (c) { var g = ndrSlot(c)[1]; return (g === 'new' || g === 'again' || g === 'premature' || g === 'rtostop') && ndrRank(c) === 0; });
+  var left = callNow.length, leftSp = callNow.filter(function (c) { return ndrSlot(c)[0] === 'special'; }).length;
   var score = '<div class="nscore"><div><b class="num" style="color:var(--green)">' + (wk.done ? Math.round(wk.saved / wk.done * 100) + '%' : '—') + '</b><span>Saved · ' + (wk.done ? wk.saved + ' of ' + wk.done : '7 days') + '</span></div>' +
-    '<div class="ncalls"><b class="num">' + doneToday + ' <small>done</small> · <i style="color:' + (left ? 'var(--amber)' : 'var(--green)') + '">' + left + '</i> <small>left</small></b>' +
+    '<div class="ncalls"><b class="num">' + doneToday + ' <small>called</small> · <i style="color:' + (left ? 'var(--amber)' : 'var(--green)') + '">' + left + '</i> <small>to call</small></b>' +
       '<span class="nbar"><i style="width:' + (doneToday + left ? Math.round(doneToday / (doneToday + left) * 100) : 100) + '%"></i></span>' +
-      '<span>Calls today</span></div>' +
+      '<span>Calls today' + (leftSp ? ' · ' + leftSp + ' in Special' : '') + '</span></div>' +
     '<div><b class="num" style="color:' + (last ? 'var(--red)' : 'var(--text)') + '">' + last + '</b><span>On their last try</span></div></div>';
   // cases per tab / group
   var by = {}; NDR_TABS.forEach(function (t) { by[t[0]] = {}; });
