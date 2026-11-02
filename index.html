@@ -5031,7 +5031,11 @@ function fnRow(x, act) {
   return '<div class="prow" style="cursor:default;--c:' + st[1] + '"><span class="prow-d"></span><div class="prow-m">' +
     '<div class="prow-1"><b>' + (x.receipt ? '<i class="ti ti-paperclip" data-rcpt="' + esc(x.id) + '" style="cursor:pointer;color:var(--brand)" aria-label="Receipt"></i> ' : '') + esc(x.desc.replace(/ · \$[\d.,]+$/, '')) + '</b><span class="num">' + sign + (x.usd ? '$' + x.usd.toFixed(2) : rs(x.amount)) + '</span></div>' +
     '<div class="prow-2"><span>' + esc([x.date.slice(5), x.usd ? rs(x.amount) + ' at Rs ' + Math.round(x.amount / x.usd) + '/$' : '', x.type === 'Expense' ? x.cat : x.type + ' · ' + x.cat, x.from === 'Own pocket' ? 'paid by ' + (x.by || x.enteredBy) : x.from, x.status === 'Pending' ? 'by ' + x.enteredBy : ''].filter(Boolean).join(' · ')) + '</span>' +
-    (st[0] ? '<span class="st" style="--c:' + st[1] + '">' + st[0] + '</span>' : '') + '</div>' + (act || '') + '</div></div>';
+    (st[0] ? '<span class="st" style="--c:' + st[1] + '">' + st[0] + '</span>' : '') + '</div>' +
+    // an emailed Shopify bill waiting for its check: its lines, and a likely twin already in Finance
+    (x.status === 'Pending' && /^Shopify bill · /.test(x.source) ? (/^Possible duplicate/.test(x.note) ? '<div class="prow-3" style="color:var(--red)"><i class="ti ti-copy"></i>' + esc(x.note.split(' · ')[0]) + ' · check it is not the same bill</div>' : '') +
+      '<div class="prow-3" style="color:var(--muted)"><i class="ti ti-receipt"></i>' + esc(x.note.replace(/^Possible duplicate of [^·]*· /, '')) + '</div>' : '') +
+    (act || '') + '</div></div>';
 }
 function renderExpenses() {
   var d = FN.data;
@@ -5043,7 +5047,8 @@ function renderExpenses() {
     '<div class="stk-top"><div><b>' + rs(d.totals.expense) + '</b><small>Expenses</small></div><div><b>' + rs(d.totals.inventory) + '</b><small>Stock bought</small></div><div><b>' + rs(d.totals.income) + '</b><small>Money in</small></div></div>' +
     (d.canAdd || d.canApprove ? '<button class="btn pri" id="fnAdd" style="width:100%;padding:12px;margin:0 0 12px"><i class="ti ti-plus"></i>Add expense</button>' : '') +
     (d.canApprove && toApprove.length ? '<div class="card" style="padding:0 0 4px"><div class="h" style="padding:12px 14px 0"><b>To approve</b><span>' + toApprove.length + '</span></div>' +
-      toApprove.map(function (x) { return fnRow(x, '<div class="btns" style="margin-top:8px"><button class="btn" data-fr="' + esc(x.id) + '"><i class="ti ti-x"></i>Reject</button><button class="btn pri" data-fa="' + esc(x.id) + '"><i class="ti ti-check"></i>Approve</button></div>'); }).join('') + '</div>' : '') +
+      toApprove.map(function (x) { return fnRow(x, '<div class="btns" style="margin-top:8px"><button class="btn" data-fr="' + esc(x.id) + '"><i class="ti ti-x"></i>Reject</button>' +
+        (/^Possible duplicate/.test(x.note) ? '<button class="btn" data-fd="' + esc(x.id) + '"><i class="ti ti-copy"></i>Already entered</button>' : '') + '<button class="btn pri" data-fa="' + esc(x.id) + '"><i class="ti ti-check"></i>Approve</button></div>'); }).join('') + '</div>' : '') +
     (waiting.length ? '<div class="card" style="padding:0 0 4px"><div class="h" style="padding:12px 14px 0"><b>Waiting for approval</b><span>' + waiting.length + '</span></div>' + waiting.map(function (x) { return fnRow(x); }).join('') + '</div>' : '') +
     (owedK.length ? '<div class="card"><div class="h"><b>Paid from own pocket · to pay back</b></div>' + owedK.map(function (k) {
       return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><b>' + esc(k) + '</b><span class="num">' + rs(d.owed[k].total) + '</span></div>' +
@@ -5057,11 +5062,12 @@ function renderExpenses() {
   el('panel').querySelectorAll('[data-fm]').forEach(function (b) { b.onclick = function () { openExpenses(fnMonth(FN.month, Number(b.getAttribute('data-fm')))); }; });
   if (el('fnAdd')) el('fnAdd').onclick = function () { openAddExpense(); };
   var act = function (ids, action, note) {
-    api('appApproveFinance', [TOKEN, ids, action, note || ''], function () { toast(action === 'approve' ? '✅ Approved' : action === 'reject' ? 'Rejected' : '✅ Marked paid back'); openExpenses(FN.month); },
+    api('appApproveFinance', [TOKEN, ids, action, note || ''], function () { toast(action === 'approve' ? '✅ Approved' : action === 'reject' ? 'Rejected' : action === 'duplicate' ? 'Set aside · already entered' : '✅ Marked paid back'); openExpenses(FN.month); },
       function (e) { toast('❌ ' + ((e && e.message) || 'try again')); });
   };
   el('panel').querySelectorAll('[data-fa]').forEach(function (b) { b.onclick = function () { act([b.getAttribute('data-fa')], 'approve'); }; });
   el('panel').querySelectorAll('[data-fr]').forEach(function (b) { b.onclick = function () { var why = prompt('Why reject? (optional)') || ''; act([b.getAttribute('data-fr')], 'reject', why); }; });
+  el('panel').querySelectorAll('[data-fd]').forEach(function (b) { b.onclick = function () { act([b.getAttribute('data-fd')], 'duplicate'); }; });
   el('panel').querySelectorAll('[data-fb]').forEach(function (b) { b.onclick = function () { act(d.owed[b.getAttribute('data-fb')].ids, 'reimbursed'); }; });
   el('panel').querySelectorAll('[data-rcpt]').forEach(function (b) { b.onclick = function () { openReceipt(b.getAttribute('data-rcpt')); }; });
 }
@@ -5146,9 +5152,17 @@ function openAddExpense() {
     if (!st.cat) { el('aeErr').textContent = 'Pick a category'; return; }
     if (!el('aeDesc').value.trim()) { el('aeErr').textContent = 'Write what it was for'; return; }
     el('aeGo').disabled = true;
-    api('appAddFinance', [TOKEN, { type: st.type, cat: st.cat, amount: amt, desc: el('aeDesc').value.trim(), from: st.from, date: el('aeDate').value, ref: el('aeRef').value.trim(), note: el('aeNote').value.trim(), receipt: st.receipt || '' }],
-      function (r) { toast(r.status === 'Approved' ? '✅ Saved' : '✅ Saved · waiting for approval'); openExpenses(FN.month); },
-      function (e) { el('aeGo').disabled = false; el('aeErr').textContent = (e && e.message) || 'Not saved'; });
+    var f = { type: st.type, cat: st.cat, amount: amt, desc: el('aeDesc').value.trim(), from: st.from, date: el('aeDate').value, ref: el('aeRef').value.trim(), note: el('aeNote').value.trim(), receipt: st.receipt || '' };
+    var send = function () {
+      api('appAddFinance', [TOKEN, f], function (r) { toast(r.status === 'Approved' ? '✅ Saved' : '✅ Saved · waiting for approval'); openExpenses(FN.month); },
+        function (e) {
+          var m = String((e && e.message) || '').split('|');
+          // the same Shopify bill already came from email: ask before entering it twice
+          if (m[0] === 'DUP' && confirm('This Shopify bill already came from email (' + m[1] + ', ' + m[2] + ', Rs ' + Number(m[3]).toLocaleString('en-PK') + ').\nEnter it again anyway?')) { f.dupOk = true; return send(); }
+          el('aeGo').disabled = false; el('aeErr').textContent = m[0] === 'DUP' ? 'Not added · the emailed bill is already in Finance' : (e && e.message) || 'Not saved';
+        });
+    };
+    send();
   };
 }
 // Profit & loss (user 2026-10-27): any period (month, last month, 3 months, this year, all time, own dates), 4 big numbers,
