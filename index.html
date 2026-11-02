@@ -414,8 +414,11 @@ html[data-mode="dark"] .hd-tall small,html[data-mode="dark"] .hd-tall span{color
 /* NDR (2026-11-01): tabs, score, group headers, case card, courier list bars */
 .ntabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;background:var(--line);border-radius:12px;padding:4px;margin:0 0 6px}
 .ntabs button{border:0;border-radius:9px;padding:6px 2px;font:500 12px Inter,sans-serif;background:transparent;color:var(--muted);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nsub{display:flex;gap:6px;margin:4px 0 12px}.nsub button{flex:1 1 auto;height:36px;border-radius:99px;border:1px solid var(--line);background:var(--card);font:500 13px Inter,sans-serif;color:var(--muted);cursor:pointer;white-space:nowrap}
+.nsub button b{font-weight:600;color:var(--text);margin-left:2px}.nsub button.on{background:var(--brand);border-color:var(--brand);color:#fff}.nsub button.on b{color:#fff}
 .ntabs button b{display:block;font-size:15px;font-weight:600}.ntabs button.on{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(15,23,42,.12)}
 .nscore{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0 0 10px}
+.nscore>div{cursor:pointer}.nscore>div.on{box-shadow:inset 0 0 0 2px var(--red)}
 .nscore>div{background:var(--card);border-radius:12px;padding:8px 10px;box-shadow:var(--shadow);min-width:0}.nscore b{display:block;font-size:16px;font-weight:600}
 .ncalls b small{font-size:11px;font-weight:500;color:var(--muted)}.ncalls b i{font-style:normal}
 .nbar{display:block;height:4px;border-radius:2px;background:var(--line);margin:5px 0 3px;overflow:hidden}.nbar i{display:block;height:100%;background:var(--green);border-radius:2px}
@@ -759,7 +762,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 
   <section id="tab-ndr" hidden>
     <h1 class="title">NDR &amp; stuck parcels</h1>
-    <div class="brief" id="ndrBrief"><i class="ti ti-bell-ringing"></i><span>Loading…</span></div>
+    <div id="ndrBrief" hidden></div>
     <div class="search" style="margin:0 0 10px"><i class="ti ti-search"></i><input id="nq" type="search" placeholder="Tracking ID, order #, phone or name" autocomplete="off"></div>
     <div id="nchips"></div>
     <div id="ncour"></div>
@@ -1533,7 +1536,7 @@ function openParcel(key, given) {
       '<button class="btn mini" type="button" data-tagref="' + esc(p.ref) + '"><i class="ti ti-tag"></i>Change tags</button></div>'
     : (p.flags || []).length ? '<div style="margin:-2px 0 10px">' + p.flags.map(function (f) { return '<span class="flag">' + esc(f) + '</span>'; }).join('') + '</div>' : '') +
     histBlock(p) +
-    (ndr ? card('Delivery problem', row('NDR case', esc(ndr.type)) + (ndr.outcome && ndr.outcome !== 'Not called yet' ? row('Call result', esc(ndr.outcome)) : '') + (ndr.says ? row('Customer says', esc(ndr.says)) : '') +
+    (ndr ? card('Delivery problem', row('NDR case', esc(ndr.type)) + (ndr.outcome && ndr.outcome !== 'Not called yet' ? row('Call result', esc(ndr.outcome)) : '') + (ndr.says ? row('Customer says', esc(String(ndr.says).replace(/\s*Please reattempt again\.?\s*$/i, ''))) : '') +
       (p.attempts ? row('Delivery attempts', p.attempts) : '')) : '') +
     card('Customer', row('Name', esc(p.name)) + row('Phone', esc(phoneText(p.phone))) + row('City', esc(p.city)) + row('Address', esc(p.address))) +
     card('Order', row('Order date', esc(p.ordered || p.date)) + (p.dispatched ? row('Shipped', esc(p.dispatched)) : '') + row('Items', esc(p.items)) +
@@ -3000,7 +3003,7 @@ function caseType(c) {
 // NDR part 2 (2026-11-01, user mockup "NDR card (new)"): 4 tabs by whose turn it is, groups inside each tab, one card per
 // case (courier says / customer says / tries left / calls / 4 steps with times / one main button), call back at the
 // customer's time, the courier list with its cut-off, a score strip and the cases closed today.
-var NDR_TABS = [['todo', 'To do'], ['courier', 'With courier'], ['special', 'Special'], ['closed', 'Closed today']];
+var NDR_TABS = [['todo', 'To do'], ['courier', 'With courier'], ['special', 'Urgent'], ['closed', 'Closed today']];
 var NDR_GH = {
   todo: [['new', 'circle-plus', 'New cases', 'not called yet · fewest tries left first'], ['again', 'phone-call', 'Call again', 'failed again · no answer 3 h+ · their time came'],
     ['later', 'clock', 'Call back at their time', 'comes back by itself with a reminder'],
@@ -3076,7 +3079,7 @@ function ndrSteps(c, slot) {
   var listed = sent || !!ob || c.sent === 'Queued' || !!t;
   var s1 = c.watch ? S(c.next === 'Chase courier (late)' ? 'Asked' : 'Ask', '', c.next === 'Chase courier (late)' ? 'ok' : '')
     : called ? S(noAns ? 'No answer' : 'Called', c.lastCall, noAns ? 'wt' : 'ok') : S('Call', 'not yet', '');
-  var s2 = slot === 'later' ? S('Call back', pkTime(c.callBack), 'wt') : listed ? S('In list', (t && t.created) || c.queuedAt || '', sent ? 'ok' : 'wt') : S('In list', '', '');
+  var s2 = slot === 'later' ? S('Call back', 'waiting', 'wt') : listed ? S('In list', (t && t.created) || c.queuedAt || '', sent ? 'ok' : 'wt') : S('In list', '', '');
   var s3 = sent ? S('Sent', (t && t.sentAt) || (sentNow ? 'just now' : ''), 'ok') : S('Sent', listed ? 'not yet' : '', '');
   var s4 = c.sent === 'Attempt failed' ? S('Failed again', '', 'bd')
     : t && (t.status || t.reply) ? S('Replied', t.replyAt || '', 'ok')
@@ -3091,11 +3094,14 @@ var NDR_TAG = {
   replied: ['New reply', 'green'], reattempt: ['With courier', 'blue'], return: ['Return asked', 'blue'], late: ['Trace asked', 'blue'], check: ['Status check', 'blue'],
   premature: ['Premature return', 'red'], rtostop: ['Return started', 'red'], stalled: ['No update', 'amber']
 };
-function ndrCard(c, seen) {
+// inGroup: shown under its group heading — then the tag appears only when it says more than the heading
+// (Failed again, Call back now); in search results every card keeps its tag
+function ndrCard(c, seen, inGroup) {
   var slot = ndrSlot(c)[1], t = ticketOf(c), left = triesLeft(c), k = caseType(c);
   var tag = NDR_TAG[slot] || ['', 'grey'];
-  var tagT = slot === 'later' ? 'Call at ' + pkTime(c.callBack) : slot === 'again' && c.callBack && c.callBack <= Date.now() ? 'Call back now'
+  var tagT = slot === 'later' ? 'Call back' : slot === 'again' && c.callBack && c.callBack <= Date.now() ? 'Call back now'
     : slot === 'again' && c.sent === 'Attempt failed' ? 'Failed again' : slot === 'ready' ? 'In ' + c.courier + ' list' : tag[0];
+  if (inGroup && (tagT === tag[0] || slot === 'later' || slot === 'ready')) tagT = '';
   var p = findParcel(c.cn), items = String(c.items || (p && p.items) || '').split(/\n|;/)[0];
   var says = t && (t.status || t.reply) ? ['<b>' + esc(c.courier) + ' replied' + (t.replyAt ? ' (' + esc(t.replyAt) + ')' : '') + ':</b> ', [t.status, t.reply].filter(Boolean).join(' – ')]
     : ['<b>' + esc(c.courier) + ':</b> ', (niceReason(c.reason || c.courierStatus) || 'Delivery failed') + (c.attempts ? ' · attempt ' + c.attempts : '')];
@@ -3103,16 +3109,11 @@ function ndrCard(c, seen) {
   // tries left before the courier sends it back
   var tries = k === 'premature' || k === 'rto' || c.watch || !c.attempts ? '' : left <= 0 ? ['No tries left · ' + c.courier + ' may return it now', 'var(--red)']
     : left === 1 ? ['Last try left · ' + c.courier + ' returns it after attempt ' + ndrMax(), 'var(--red)'] : [left + ' tries left', 'var(--muted)'];
-  if (slot === 'ready' && tries) tries = [cutoffText(), 'var(--amber)'];
-  var calls = c.calls ? c.calls + (c.calls === 1 ? ' call' : ' calls') + (c.lastCall ? ' · last ' + c.lastCall : '') + (/no answer|phone off/i.test(c.outcome) ? ' · no answer' : '')
-    : c.watch ? '' : 'not called yet' + (c.hours < 1 ? ' · first call within 1 h' : '');
+  var calls = c.calls > 1 ? c.calls + ' calls' + (/no answer|phone off/i.test(c.outcome) ? ' · no answer' : '') : '';
   // a line only when it adds something (never the same words as the button)
   var sentMs = t && t.sentMs, hint = '';
-  if (slot === 'later') hint = ['Comes back to To do at ' + pkTime(c.callBack) + ' · reminder on the phone', 'var(--blue)'];
-  else if (slot === 'ready') hint = ['Waiting in the ' + c.courier + ' list · send it from the top of this group', 'var(--amber)'];
-  else if (slot === 'wait' && c.lastCallMs) hint = ['Call again after ' + pkTime(c.lastCallMs + CALL_AGAIN_HOURS * 3600000), 'var(--muted)'];
+  if (slot === 'wait' && c.lastCallMs) hint = ['Call again after ' + pkTime(c.lastCallMs + CALL_AGAIN_HOURS * 3600000), 'var(--muted)'];
   else if (/^(reattempt|late|check)$/.test(slot) && sentMs) hint = Date.now() - sentMs < 86400000 ? ['Follow-up in ' + hrsText(sentMs + 86400000 - Date.now()) + ' if ' + c.courier + ' does nothing', 'var(--amber)'] : ['No action in 24 h · goes again as a follow-up', 'var(--red)'];
-  else if (k === 'premature') hint = ['Stop it · call the customer, then ask ' + c.courier, 'var(--red)'];
   // one main button for this moment; the small ones never repeat it
   var tel = c.phone ? telHref(c.phone) : '';
   var B = {
@@ -3133,7 +3134,7 @@ function ndrCard(c, seen) {
   else if (t && t.channel) { main = '<button class="btn ton grow" data-wr="' + esc(t.id) + '" data-wc="' + esc(c.courier) + '"><i class="ti ti-message-reply"></i>Note courier reply</button>'; side = [B.callSq, B.wa]; }
   else { main = '<button class="btn grow" data-rec="' + esc(c.cn) + '"><i class="ti ti-pencil"></i>Update case</button>'; side = [B.callSq, B.wa]; }
   return '<div class="nc" data-p="' + esc(c.cn) + '">' +
-    '<div class="nc-h"><b>' + (seen && seen.indexOf(caseKey(c)) === -1 ? '<span class="new-dot"></span>' : '') + esc(c.ref) + ' · ' + esc(c.name) + '</b><span class="nc-tag t-' + tag[1] + '">' + esc(tagT) + '</span></div>' +
+    '<div class="nc-h"><b>' + (seen && seen.indexOf(caseKey(c)) === -1 ? '<span class="new-dot"></span>' : '') + esc(c.ref) + ' · ' + esc(c.name) + '</b>' + (tagT ? '<span class="nc-tag t-' + (slot === 'again' && tagT !== tag[0] ? 'red' : tag[1]) + '">' + esc(tagT) + '</span>' : '') + '</div>' +
     '<div class="nc-m">' + [esc(c.city), esc(c.courier), rs(c.cod), c.hours ? (c.hours < 48 ? c.hours + ' h' : Math.floor(c.hours / 24) + ' d') + ' in NDR' : 'new'].filter(Boolean).join(' · ') + '</div>' +
     (items ? '<div class="nc-it">' + esc(items) + '</div>' : '') +
     (c.watch ? '<div class="nc-box"><b>' + esc(c.courier) + ':</b> ' + esc(lateText(c.type)) + '</div>' : '<div class="nc-box">' + says[0] + esc(says[1]) + '</div>') +
@@ -3165,10 +3166,9 @@ function outboxBars() {
 function renderNdr() {
   if (!N.data) return;
   var cs = N.data.cases || [], seen = seenSet(), now = Date.now();
-  el('ndrBrief').innerHTML = '<i class="ti ti-refresh"></i><span>Updated ' + esc(N.data.updatedAt) + ' · refreshes every 2 min</span>';
   // From a Home to-do line: only that kind of case (chip with ✕ clears it).
   var typed = N.type ? cs.filter(function (c) { return caseType(c) === N.type; }) : cs;
-  el('nchips').innerHTML = N.type ? '<div class="fbar"><button class="pbtn ctx" data-fx="n"><span>' + esc(NDR_TYPES[N.type] || N.type) + '</span><i class="ti ti-x"></i></button></div>' : '';
+  el('nchips').innerHTML = N.last ? '<div class="fbar"><button class="pbtn ctx" data-fx="n"><span>On their last try</span><i class="ti ti-x"></i></button></div>' : N.type ? '<div class="fbar"><button class="pbtn ctx" data-fx="n"><span>' + esc(NDR_TYPES[N.type] || N.type) + '</span><i class="ti ti-x"></i></button></div>' : '';
   // score: saved in the last 7 days, oldest case nobody called yet, parcels on their last try
   var wk = N.data.week || { saved: 0, done: 0 }, fresh = typed.filter(function (c) { return ndrSlot(c)[1] === 'new'; });
   var oldest = fresh.reduce(function (m, c) { return Math.max(m, c.hours || 0); }, 0);
@@ -3180,11 +3180,11 @@ function renderNdr() {
   // premature return) while no request is made yet (user 2026-11-02: Special cases were missing from 'left')
   var callNow = typed.filter(function (c) { var g = ndrSlot(c)[1]; return (g === 'new' || g === 'again' || g === 'premature' || g === 'rtostop') && ndrRank(c) === 0; });
   var left = callNow.length, leftSp = callNow.filter(function (c) { return ndrSlot(c)[0] === 'special'; }).length;
-  var score = '<div class="nscore"><div><b class="num" style="color:var(--green)">' + (wk.done ? Math.round(wk.saved / wk.done * 100) + '%' : '—') + '</b><span>Saved · ' + (wk.done ? wk.saved + ' of ' + wk.done : '7 days') + '</span></div>' +
-    '<div class="ncalls"><b class="num">' + doneToday + ' <small>called</small> · <i style="color:' + (left ? 'var(--amber)' : 'var(--green)') + '">' + left + '</i> <small>to call</small></b>' +
+  var score = '<div class="nscore"><div data-ns="saved" role="button"><b class="num" style="color:var(--green)">' + (wk.done ? Math.round(wk.saved / wk.done * 100) + '%' : '—') + '</b><span>Saved · ' + (wk.done ? wk.saved + ' of ' + wk.done : '7 days') + '</span></div>' +
+    '<div class="ncalls" data-ns="call" role="button"><b class="num">' + doneToday + ' <small>called today</small></b>' +
       '<span class="nbar"><i style="width:' + (doneToday + left ? Math.round(doneToday / (doneToday + left) * 100) : 100) + '%"></i></span>' +
-      '<span>Calls today' + (leftSp ? ' · ' + leftSp + ' in Special' : '') + '</span></div>' +
-    '<div><b class="num" style="color:' + (last ? 'var(--red)' : 'var(--text)') + '">' + last + '</b><span>On their last try</span></div></div>';
+      '<span' + (left ? ' style="color:var(--amber)"' : '') + '>' + (left ? left + ' still to call' + (leftSp ? ' · ' + leftSp + ' urgent' : '') : 'all called') + '</span></div>' +
+    '<div data-ns="last" role="button"' + (N.last ? ' class="on"' : '') + '><b class="num" style="color:' + (last ? 'var(--red)' : 'var(--text)') + '">' + last + '</b><span>On their last try</span></div></div>';
   // cases per tab / group
   var by = {}; NDR_TABS.forEach(function (t) { by[t[0]] = {}; });
   typed.forEach(function (c) { var s = ndrSlot(c); (by[s[0]][s[1]] = by[s[0]][s[1]] || []).push(c); });
@@ -3196,6 +3196,12 @@ function renderNdr() {
   var tabs = '<div class="ntabs">' + NDR_TABS.map(function (t) { var n = cnt(t[0]); return '<button data-nt="' + t[0] + '" class="' + (t[0] === N.tab ? 'on' : '') + '">' + t[1] + '<b class="num">' + n + '</b></button>'; }).join('') + '</div>';
   el('ncour').innerHTML = score + tabs;
   // search: tracking ID, order #, phone (any way it is written) or name — across all tabs
+  if (N.last) {
+    var lt = typed.filter(function (c) { return c.attempts && triesLeft(c) <= 1 && caseType(c) !== 'premature' && caseType(c) !== 'rto' && !c.watch; })
+      .sort(function (a, b) { return ndrRank(a) - ndrRank(b) || (b.hours || 0) - (a.hours || 0); });
+    el('nlist').innerHTML = lt.length ? lt.map(function (c) { return ndrCard(c, seen); }).join('') : '<div class="card empty"><i class="ti ti-circle-check"></i>No parcel is on its last try</div>';
+    return saveFilters();
+  }
   var q = String(N.q || '').toLowerCase().trim(), qd = q.replace(/[^0-9]/g, '');
   if (q) {
     var hit = function (c) { return String(c.cn).toLowerCase().indexOf(q) !== -1 || String(c.ref).toLowerCase().replace('#', '').indexOf(q.replace('#', '')) !== -1 || String(c.name).toLowerCase().indexOf(q) !== -1 || (qd.length >= 4 && phoneDigits(c.phone).indexOf(qd.replace(/^0/, '')) !== -1); };
@@ -3210,23 +3216,46 @@ function renderNdr() {
   var html = N.tab === 'courier' ? '<div class="cstrip">' + Object.keys(N.data.couriers || {}).map(function (name) {
     var s = N.data.couriers[name];
     var sp = sheetPending(name);
-    return '<button class="cs-line" data-cour="' + esc(name) + '"><b>' + esc(name) + '</b><span>' + s.open + ' open · ' + s.replied + ' replied' + (s.notActed ? ' · <i class="down">' + s.notActed + ' no action</i>' : '') + '</span><i class="ti ti-chevron-right"></i></button>' +
+    return '<button class="cs-line" data-cour="' + esc(name) + '"><b>' + esc(name) + '</b><span>' + s.open + ' open' + (s.notActed ? ' · <i class="down">' + s.notActed + ' no action</i>' : '') + '</span><i class="ti ti-chevron-right"></i></button>' +
       (sp.n && s.link && can('ndr.work') ? '<div class="sh-rem' + (sp.untouched ? ' late' : '') + '"><span><i class="ti ti-table"></i>On the sheet: ' + sp.n + (sp.untouched ? ' · ' + sp.untouched + ' without update' : ' · all answered') + '</span>' +
         (sp.untouched ? '<a class="btn mini wa" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(sheetReminderText(name)) + '"><i class="ti ti-brand-whatsapp"></i>Remind</a>' : '') + '</div>' : '');
   }).join('') + '</div>' : '';
+  var NSUB = [['call', 'To call', ['new', 'again']], ['called', 'Called', ['later', 'wait']], ['list', 'In list', ['ready']]];
+  var subN = function (x) { return x[2].reduce(function (a, g) { return a + (by.todo[g] || []).length; }, 0); };
+  if (N.tab === 'todo') {
+    if (!N.sub || !NSUB.some(function (x) { return x[0] === N.sub; })) N.sub = 'call';
+    // nothing left to call: open the next category that has something (once, until the person picks one)
+    if (!N.subPicked && !subN(NSUB[0])) N.sub = (NSUB.filter(function (x) { return subN(x); })[0] || NSUB[0])[0];
+    html += '<div class="nsub">' + NSUB.map(function (x) { return '<button type="button" data-nsub="' + x[0] + '" class="' + (x[0] === N.sub ? 'on' : '') + '">' + x[1] + ' <b class="num">' + subN(x) + '</b></button>'; }).join('') + '</div>';
+  }
+  var subGroups = N.tab === 'todo' ? NSUB.filter(function (x) { return x[0] === N.sub; })[0][2] : null;
+  var USUB = [['act', 'To act'], ['list', 'In list'], ['sent', 'Sent']];
+  var ucat = function (c) { var r = ndrRank(c); return r <= 1 ? 'act' : r === 4 ? 'list' : 'sent'; };
+  var uN = function (k) { return Object.keys(by.special).reduce(function (a, g) { return a + by.special[g].filter(function (c) { return ucat(c) === k; }).length; }, 0); };
+  if (N.tab === 'special') {
+    if (!N.usub || !USUB.some(function (x) { return x[0] === N.usub; })) N.usub = 'act';
+    if (!N.usubPicked && !uN(N.usub)) N.usub = (USUB.filter(function (x) { return uN(x[0]); })[0] || USUB[0])[0];
+    html += '<div class="nsub">' + USUB.map(function (x) { return '<button type="button" data-usub="' + x[0] + '" class="' + (x[0] === N.usub ? 'on' : '') + '">' + x[1] + ' <b class="num">' + uN(x[0]) + '</b></button>'; }).join('') + '</div>';
+  }
   NDR_GH[N.tab].forEach(function (g) {
+    if (subGroups && subGroups.indexOf(g[0]) === -1) return;
     var arr = (by[N.tab][g[0]] || []).slice();
+    if (N.tab === 'special') arr = arr.filter(function (c) { return ucat(c) === N.usub; });
     var bars = g[0] === 'ready' ? obars : '';
     if (!arr.length && !bars) return;
     if (N.tab !== 'closed') arr.sort(order);
-    html += '<div class="ngh"><i class="ti ti-' + g[1] + '"></i><div><div class="ngh-t"><span>' + g[2] + '</span><em class="num">' + arr.length + '</em></div>' +
-      ((g[0] === 'reattempt' ? replyH() : g[3]) ? '<small>' + esc(g[0] === 'reattempt' ? replyH() : g[3]) + '</small>' : '') + '</div></div>' + bars +
-      (g[0] === 'ready' && arr.length && !N.readyOpen ? '<button class="ngh-more" type="button" data-ready="1"><i class="ti ti-chevron-down"></i>Show ' + arr.length + (arr.length === 1 ? ' parcel' : ' parcels') + ' in the list</button>'
-        : arr.map(function (c) { return N.tab === 'closed' ? ndrClosedCard(c) : ndrCard(c, seen); }).join('') +
-          (g[0] === 'ready' && arr.length ? '<button class="ngh-more" type="button" data-ready="0"><i class="ti ti-chevron-up"></i>Hide the list</button>' : ''));
+    html += (subGroups && subGroups.length === 1 ? '' : '<div class="ngh"><i class="ti ti-' + g[1] + '"></i><div><div class="ngh-t"><span>' + g[2] + '</span><em class="num">' + arr.length + '</em></div>' +
+      ((g[0] === 'reattempt' ? replyH() : g[3]) ? '<small>' + esc(g[0] === 'reattempt' ? replyH() : g[3]) + '</small>' : '') + '</div></div>') + bars +
+      (g[0] === 'ready' && arr.length && !N.readyOpen && !subGroups ? '<button class="ngh-more" type="button" data-ready="1"><i class="ti ti-chevron-down"></i>Show ' + arr.length + (arr.length === 1 ? ' parcel' : ' parcels') + ' in the list</button>'
+        : arr.map(function (c) { return N.tab === 'closed' ? ndrClosedCard(c) : ndrCard(c, seen, true); }).join('') +
+          (g[0] === 'ready' && arr.length && !subGroups ? '<button class="ngh-more" type="button" data-ready="0"><i class="ti ti-chevron-up"></i>Hide the list</button>' : ''));
   });
+  if (N.tab === 'special' && !/class="nc/.test(html)) html += '<div class="card empty"><i class="ti ti-circle-check"></i>' + ({ act: 'Nothing urgent to act on now', list: 'No urgent request in the courier lists', sent: 'No urgent request with the courier' })[N.usub] + '</div>';
+  if (N.tab === 'todo' && !/class="nc/.test(html) && !/obar/.test(html)) html += '<div class="card empty"><i class="ti ti-circle-check"></i>' + ({ call: 'Nobody to call right now', called: 'No called case is waiting', list: 'Nothing in the courier lists' })[N.sub] + '</div>';
   if (!html) html = '<div class="card empty"><i class="ti ti-circle-check"></i>' + (N.tab === 'todo' ? 'Nothing to do · every case is with the courier or waiting' : N.tab === 'closed' ? 'No case closed today yet' : 'No cases here') + '</div>';
   el('nlist').innerHTML = html;
+  el('nlist').querySelectorAll('[data-usub]').forEach(function (b) { b.onclick = function () { N.usub = b.getAttribute('data-usub'); N.usubPicked = true; renderNdr(); }; });
+  el('nlist').querySelectorAll('[data-nsub]').forEach(function (b) { b.onclick = function () { N.sub = b.getAttribute('data-nsub'); N.subPicked = true; renderNdr(); }; });
   el('nlist').querySelectorAll('[data-ready]').forEach(function (b) { b.onclick = function () { N.readyOpen = b.getAttribute('data-ready') === '1'; renderNdr(); }; });
   saveFilters();
 }
@@ -3262,7 +3291,14 @@ function inOutbox(c) {
   return k || '';
 }
 el('ncour').onclick = function (e) {
-  var t = e.target.closest('[data-nt]'); if (t) { N.tab = t.getAttribute('data-nt'); renderNdr(); scrollToCard('ncour'); }
+  var ns = e.target.closest('[data-ns]');
+  if (ns) {
+    var k = ns.getAttribute('data-ns');
+    if (k === 'saved') return openReport('success');
+    if (k === 'call') { N.last = false; N.tab = 'todo'; N.sub = 'call'; N.subPicked = true; renderNdr(); return scrollToCard('ncour'); }
+    if (k === 'last') { N.last = !N.last; renderNdr(); return scrollToCard('ncour'); }
+  }
+  var t = e.target.closest('[data-nt]'); if (t) { N.last = false; N.tab = t.getAttribute('data-nt'); renderNdr(); scrollToCard('ncour'); }
 };
 
 // ---------- courier list (outbox): cases cleared one by one gather here; send each kind by WhatsApp or sheet ----------
@@ -3640,7 +3676,7 @@ function courierCardsHtml(only) {
 }
 el('nq').oninput = function () { N.q = this.value; N.limit = PAGE; renderNdr(); };
 el('nchips').onclick = function (e) {
-  if (e.target.closest('[data-fx]')) { N.type = ''; return renderNdr(); }
+  if (e.target.closest('[data-fx]')) { N.type = ''; N.last = false; return renderNdr(); }
 };
 el('nlist').onclick = function (e) {
   var o = e.target.closest('[data-ob]'); if (o) return openOutbox(o.getAttribute('data-ob'));
@@ -3735,7 +3771,7 @@ function openNdrForm(cn, afterCall) {
     '<div class="ac-facts">' +
       (c.watch ? fact('truck', 'var(--red)', esc(cour) + ':', esc(lateText(c.type))) : fact('truck', 'var(--red)', esc(cour) + ':', esc(niceReason(c.reason || c.courierStatus) || 'Delivery failed') + (c.attempts ? ' · attempt ' + c.attempts : ''))) +
       (addr ? fact('map-pin', 'var(--muted)', 'Address:', esc(addr), '<button class="btn" type="button" id="fCopy"><i class="ti ti-copy"></i>Copy</button>') : '') +
-      (item ? fact('package', 'var(--muted)', '', esc(item) + ' · ' + rs(c.cod) + ' COD') : '') +
+      (item ? fact('package', 'var(--muted)', '', esc(item)) : '') +
       (c.attempts && !c.watch ? fact('hourglass', left <= 1 ? 'var(--red)' : 'var(--muted)', '', '<span style="color:' + (left <= 1 ? 'var(--red)' : 'var(--muted)') + '">' +
         (left <= 0 ? 'No tries left · ' + esc(cour) + ' may return it now' : left === 1 ? 'Last try left · ' + esc(cour) + ' returns it after attempt ' + ndrMax() : left + ' tries left') + '</span>') : '') +
       (calls ? fact('phone', 'var(--muted)', '', calls + (calls === 1 ? ' call' : ' calls') + ' before' + (c.lastCall ? ' · last ' + esc(c.lastCall) : '')) : '') +
