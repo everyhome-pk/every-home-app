@@ -3043,7 +3043,7 @@ var NDR_GH = {
     ['return', 'arrow-back-up', 'Return requested', ''], ['late', 'clock-exclamation', 'Late · asked to trace', ''], ['check', 'search', 'Status check', '']],
   special: [['premature', 'alert-octagon', 'Premature return', 'started before the last try · stop it'], ['rtostop', 'arrow-back-up', 'Return started · can stop', 'within 72 h'],
     ['stalled', 'clock-pause', 'Stuck · no courier update', 'ask the courier to trace it']],
-  closed: [['saved', 'circle-check', 'Saved', 'delivered after NDR'], ['returned', 'arrow-back-up', 'Returned', ''], ['other', 'archive', 'Other', '']]
+  closed: [['saved', 'circle-check', 'Saved', 'delivered after NDR'], ['returned', 'arrow-back-up', 'Returned / returning', ''], ['other', 'archive', 'Other', '']]
 };
 function ndrMax() { return (N.data && N.data.options && N.data.options.maxAttempts) || 3; }
 function ticketOf(c) { var co = N.data.couriers && N.data.couriers[c.courier]; return co && co.tickets ? co.tickets[c.cn] : null; }
@@ -3175,11 +3175,14 @@ function ndrCard(c, seen, inGroup) {
     (hint ? '<div class="nc-hint" style="color:' + hint[1] + '">' + esc(hint[0]) + '</div>' : '') +
     (main || side.join('') ? '<div class="nc-act">' + main + side.join('') + '</div>' : '') + '</div>';
 }
+// A closed case (user 2026-11-02: who, where, how much, what we did, and whether the parcel is back or still coming)
 function ndrClosedCard(x) {
-  var ok = x.final === 'DELIVERED', back = /^RTO/.test(x.final);
-  return '<div class="nc" data-p="' + esc(x.cn) + '"><div class="nc-h"><b>' + esc(x.ref || x.cn) + '</b><span class="nc-tag t-' + (ok ? 'green' : back ? 'red' : 'grey') + '">' + (ok ? 'Delivered' : back ? 'Returned' : esc(x.final || 'Closed')) + '</span></div>' +
-    '<div class="nc-m">' + [esc(x.courier), x.attempts ? x.attempts + (x.attempts === 1 ? ' attempt' : ' attempts') : '', 'closed ' + esc(x.at)].filter(Boolean).join(' · ') + '</div>' +
-    (x.outcome && !/^Not called/.test(x.outcome) ? '<div class="nc-box">' + esc(x.outcome) + '</div>' : '') + '</div>';
+  var ok = x.final === 'DELIVERED', home = x.final === 'RTO_DELIVERED', back = /^RTO/.test(x.final);
+  var did = [x.outcome && !/^Not called/.test(x.outcome) ? x.outcome : 'Not called', /^(Sent|Courier confirmed)$/.test(x.sent) ? 'request sent' : '', x.by && x.by !== 'Owner' ? 'by ' + x.by : ''].filter(Boolean).join(' · ');
+  return '<div class="nc" data-p="' + esc(x.cn) + '"><div class="nc-h"><b>' + esc(x.ref || x.cn) + (x.name ? ' · ' + esc(x.name) : '') + '</b><span class="nc-tag t-' + (ok ? 'green' : back ? 'red' : 'grey') + '">' +
+      (ok ? 'Delivered' : home ? 'Returned' : back ? 'Returning' : esc(x.final || 'Closed')) + '</span></div>' +
+    '<div class="nc-m">' + [esc(x.city), esc(x.courier), x.cod ? rs(x.cod) : '', x.attempts ? x.attempts + (x.attempts === 1 ? ' attempt' : ' attempts') : '', x.days != null ? (x.days < 1 ? 'same day' : x.days + ' d in NDR') : ''].filter(Boolean).join(' · ') + '</div>' +
+    '<div class="nc-box">' + esc(did) + '</div><div class="nc-ln"><i class="ti ti-clock"></i><span>closed ' + esc(x.at) + '</span></div></div>';
 }
 // the courier lists, one bar per courier: how many, the cut-off, Send
 function outboxBars() {
@@ -3277,7 +3280,8 @@ function renderNdr() {
     if (!arr.length && !bars) return;
     if (N.tab !== 'closed') arr.sort(order);
     html += (subGroups && subGroups.length === 1 ? '' : '<div class="ngh"><i class="ti ti-' + g[1] + '"></i><div><div class="ngh-t"><span>' + g[2] + '</span><em class="num">' + arr.length + '</em></div>' +
-      ((g[0] === 'reattempt' ? replyH() : g[3]) ? '<small>' + esc(g[0] === 'reattempt' ? replyH() : g[3]) + '</small>' : '') + '</div></div>') + bars +
+      (N.tab === 'closed' && arr.some(function (c) { return c.cod; }) ? '<small>' + esc(g[3] ? g[3] + ' · ' : '') + rs(arr.reduce(function (a, c) { return a + (c.cod || 0); }, 0)) + '</small>'
+        : (g[0] === 'reattempt' ? replyH() : g[3]) ? '<small>' + esc(g[0] === 'reattempt' ? replyH() : g[3]) + '</small>' : '') + '</div></div>') + bars +
       (g[0] === 'ready' && arr.length && !N.readyOpen && !subGroups ? '<button class="ngh-more" type="button" data-ready="1"><i class="ti ti-chevron-down"></i>Show ' + arr.length + (arr.length === 1 ? ' parcel' : ' parcels') + ' in the list</button>'
         : arr.map(function (c) { return N.tab === 'closed' ? ndrClosedCard(c) : ndrCard(c, seen, true); }).join('') +
           (g[0] === 'ready' && arr.length && !subGroups ? '<button class="ngh-more" type="button" data-ready="0"><i class="ti ti-chevron-up"></i>Hide the list</button>' : ''));
