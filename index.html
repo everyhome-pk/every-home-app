@@ -579,6 +579,8 @@ body.locked{overflow:hidden;overscroll-behavior:none}
 /* sheet reminder under a courier line (With courier tab) */
 .sh-rem{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:-2px 0 4px;padding:6px 10px;border-radius:10px;background:var(--bg);font-size:12px;color:var(--muted)}
 .sh-rem i{margin-right:4px}.sh-rem.late{background:var(--amber-bg);color:var(--amber)}.sh-rem .btn{flex:none;height:30px;padding:0 10px}
+/* P&L contribution subtotals */
+.pl-cm{background:var(--bg)}.pl-cm .prow-2 span{font-size:11.5px}
 /* case history (parcel page) */
 .ch-f{display:flex;gap:6px;margin-bottom:6px}.ch-f button{border:1px solid var(--line);background:var(--card);border-radius:99px;height:30px;padding:0 12px;font:500 12px Inter,sans-serif;color:var(--muted);cursor:pointer}
 .ch-f button.on{background:var(--text);color:var(--bg);border-color:var(--text)}
@@ -758,6 +760,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   <div class="dr-sub" data-gsub="fin" hidden>
     <button class="dr-i" id="btnExp"><i class="ti ti-receipt"></i><span id="btnExpT">Expenses</span></button>
     <button class="dr-i" id="btnPnl"><i class="ti ti-report-money"></i>Profit & loss</button>
+    <button class="dr-i" id="btnCashPlan"><i class="ti ti-calendar-dollar"></i>Cash forecast</button>
     <button class="dr-i" id="btnAcct"><i class="ti ti-building-bank"></i>Accounts & payouts</button>
   </div>
   <button class="dr-i" id="btnStock"><i class="ti ti-packages"></i>Stock</button>
@@ -1147,6 +1150,7 @@ function applyPerms() {
   el('btnStock').hidden = !can('inventory.view');
   el('btnExp').hidden = !(can('finance.add') || can('finance.view') || can('finance.approve'));
   el('btnPnl').hidden = !can('finance.view');
+  el('btnCashPlan').hidden = !can('finance.view');
   el('btnAcct').hidden = !can('finance.view');
   el('btnTeam').hidden = !can('users.manage');
   el('btnAds').hidden = !(can('reports.view') || can('finance.view'));
@@ -2742,7 +2746,7 @@ function ndrCard(c, seen) {
   var p = findParcel(c.cn), items = String(c.items || (p && p.items) || '').split(/\n|;/)[0];
   var says = t && (t.status || t.reply) ? ['<b>' + esc(c.courier) + ' replied' + (t.replyAt ? ' (' + esc(t.replyAt) + ')' : '') + ':</b> ', [t.status, t.reply].filter(Boolean).join(' – ')]
     : ['<b>' + esc(c.courier) + ':</b> ', (niceReason(c.reason || c.courierStatus) || 'Delivery failed') + (c.attempts ? ' · attempt ' + c.attempts : '')];
-  var cust = c.says && c.outcome && !/^Not called/.test(c.outcome) ? c.says : '';
+  var cust = c.says && c.outcome && !/^Not called/.test(c.outcome) ? String(c.says).replace(/\s*Please reattempt again\.?\s*$/i, '') : '';
   // tries left before the courier sends it back
   var tries = k === 'premature' || k === 'rto' || c.watch || !c.attempts ? '' : left <= 0 ? ['No tries left · ' + c.courier + ' may return it now', 'var(--red)']
     : left === 1 ? ['Last try left · ' + c.courier + ' returns it after attempt ' + ndrMax(), 'var(--red)'] : [left + ' tries left', 'var(--muted)'];
@@ -3334,6 +3338,12 @@ var NDR_ANS = [
 // words the agent can add with one tap (they go into "Your own words")
 var NDR_PHRASES = { deliver: ['Ghar pe hoga', 'Shaam ko ghar pe', 'Rider call kar ke aaye'], address: ['House #', 'Near mosque', 'Call before coming'],
   later: ['Office time', 'Kal subah'], noans: ['Bell ja rahi hai', 'Busy tone'], refuse: ['Kisi aur se le liya', 'Paise nahi'], other: ['Rider call kar ke aaye', 'Gate peeche hai'] };
+function ndrOwnWords(says) {
+  var t = String(says || '').replace(/\s*Please reattempt again\.?\s*$/i, '').trim(), time = '';
+  t = t.replace(/^Customer will receive the parcel[^.]*\.\s*/i, '').replace(/^Naya (pata aur phone|pata|phone) diya hai\.\s*/i, '');
+  var m = t.match(/\s*\((Morning|Afternoon|Evening)\)\s*$/); if (m) { time = m[1]; t = t.slice(0, m.index); }
+  return { text: t.trim(), time: time };
+}
 // 'Tue 4 Nov' (the courier's format)
 function dayLong(ymd) { var p = ymd.split('-').map(Number); return new Date(Date.UTC(p[0], p[1] - 1, p[2], 12)).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).replace(',', ''); }
 // the answer the courier's words point to: [answer, why]
@@ -3395,6 +3405,9 @@ function openNdrForm(cn, afterCall) {
   openPanel(true);
 
   var st = { ans: '', why: 'No answer', day: addDays(today, 1), time: '', reason: '', cb: '' };
+  // Edit (user 2026-11-02): "Change request" / "Update case" opens the saved answer, words and date again; not a new call
+  var prevAns = !afterCall && c.says ? (/address/i.test(c.outcome) ? 'address' : /refus|cancel/i.test(c.outcome) ? 'refuse' : /will receive|reattempt/i.test(c.outcome) ? 'deliver' : '') : '';
+  var editing = !!prevAns;
   var on = function (box, v) { el(box).querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-v') === v); }); };
   on('fDay', st.day); on('fNoWhy', st.why);
   var pickChip = function (box, key, toggle) {
@@ -3418,6 +3431,18 @@ function openNdrForm(cn, afterCall) {
     var t = el('fNote').value.replace(/\s+$/, ''), w = b.getAttribute('data-w');
     el('fNote').value = t ? t.replace(/[.,]?$/, ', ') + w.charAt(0).toLowerCase() + w.slice(1) : w; draw();
   };
+  if (editing) {
+    var words = ndrOwnWords(c.says);
+    if (words.time) st.time = words.time;
+    if (c.reattempt && c.reattempt >= today) st.day = c.reattempt;
+    el('fNote').value = words.text;
+    if (prevAns === 'address' && c.updated) String(c.updated).split(' · ').forEach(function (x) {
+      if (/^[\d\s+-]{10,}$/.test(x.trim())) el('fNewPhone').value = x.trim(); else el('fNewAddr').value = x.trim();
+    });
+    on('fDay', st.day === addDays(today, 1) || st.day === addDays(today, 2) ? st.day : 'pick');
+    if (st.day !== addDays(today, 1) && st.day !== addDays(today, 2)) { el('fDate').value = st.day; el('fDate').hidden = false; }
+    on('fTime', st.time);
+  }
   el('fAns').onclick = function (e) {
     var b = e.target.closest('[data-a]'); if (!b) return;
     st.ans = b.getAttribute('data-a');
@@ -3447,7 +3472,6 @@ function openNdrForm(cn, afterCall) {
     if (note && w.k !== 'refuse') m = note.replace(/[.\s]*$/, '.') + (st.time ? ' (' + st.time + ')' : '');
     else if (w.k === 'other') m = '';
     else if (note) m += ' ' + note.replace(/[.\s]*$/, '.');
-    if (m && w.k !== 'refuse') m += ' Please reattempt again.';
     return m.trim();
   };
   // the lines the courier will get on WhatsApp (same builder as the courier list)
@@ -3488,6 +3512,10 @@ function openNdrForm(cn, afterCall) {
     el('fSaveOnly').hidden = !(send || a === 'refuse');
   };
   draw();
+  if (editing) {
+    el('fAns').querySelector('[data-a="' + prevAns + '"]').click();
+    el('panel').querySelector('.ac-q').insertAdjacentHTML('beforebegin', '<div class="ac-just"><i class="ti ti-pencil"></i>Editing the saved answer · change what you need and save</div>');
+  }
   var save = function (send, ret) {
     var a = st.ans, w = want(), msg = message();
     if (!a) { el('fErr').textContent = 'Pick what happened on the call'; return; }
@@ -3498,7 +3526,7 @@ function openNdrForm(cn, afterCall) {
     var outcome = a === 'noans' ? outOf(/no answer|phone off/i) : a === 'later' ? (outOf(/busy/i) || outOf(/no answer|phone off/i)) : outOf(w.out);
     var cb = (a === 'noans' || a === 'later') && !ret ? Number(st.cb) || 0 : 0, upd = updated(), keep = JSON.stringify(c);
     // Optimistic: close and update the card now, save in the background.
-    c.outcome = outcome; c.says = msg; c.calls = calls + 1; c.lastCall = 'just now'; c.lastCallMs = Date.now(); c.callBack = cb;
+    c.outcome = outcome; c.says = msg; c.callBack = cb; if (!editing) { c.calls = calls + 1; c.lastCall = 'just now'; c.lastCallMs = Date.now(); }
     if (send) { c.next = 'Escalate to courier'; if (!c.sent || c.sent === 'Not sent') c.sent = 'Queued'; }
     if (ret) { c.next = 'Let it return (RTO)'; if (!c.sent || c.sent === 'Not sent') c.sent = 'Queued'; }
     var goNext = el('fNext').checked && nx;
@@ -3506,7 +3534,7 @@ function openNdrForm(cn, afterCall) {
     closePanel(); renderNdr(); updateBadge();
     toast(send || ret ? 'Adding to ' + cour + ' list…' : 'Saving…');
     api('saveAppNdrOutcome', [{ token: TOKEN, cn: c.cn, outcome: outcome, next: '', updated: upd, reattempt: a === 'deliver' || a === 'other' ? st.day : '',
-      sent: c.sent || 'Not sent', notes: el('fNotes').value, says: msg, send: send, ret: !!ret, check: false, ask: '', call: true, callBack: cb }], function (r) {
+      sent: c.sent || 'Not sent', notes: el('fNotes').value, says: msg, send: send, ret: !!ret, check: false, ask: '', call: !editing, callBack: cb }], function (r) {
       c.next = r.next; if (r.sent) c.sent = r.sent; snap('ndr', N.data);
       toast(r.returning ? cour + ' is already returning it · no request needed' :
         r.already ? 'Saved · ' + (REQ_KIND[r.already.type] || '') + ' request already ' + (r.already.channel ? 'sent on ' + r.already.channel + (r.already.sentAt ? ' ' + r.already.sentAt : '') : 'in the ' + cour + ' list') + ' · not made twice' :
@@ -4683,6 +4711,7 @@ function openPnl(period) {
     var pct = function (n) { return p.sales ? Math.round(n / p.sales * 1000) / 10 + '%' : ''; };
     var line = function (l, v, cls, sub, share) { return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span' + (cls ? ' style="font-weight:600"' : '') + '>' + l + '</span><b class="num"' + (cls === 'neg' ? ' style="color:var(--red)"' : '') + '>' + v + (share ? ' <small style="color:var(--muted);font-weight:500">' + share + '</small>' : '') + '</b></div>' + (sub ? '<div class="prow-2"><span>' + sub + '</span></div>' : '') + '</div></div>'; };
     var minus = function (n) { return n ? '− ' + rs(n) : rs(0); }, signed = function (n) { return (n < 0 ? '− ' : '') + rs(Math.abs(n)); };
+    var cmLine = function (l, v, sub) { if (v == null) return ''; return '<div class="prow pl-cm" style="cursor:default"><div class="prow-m"><div class="prow-1"><b>' + l + '</b><b class="num"' + (v < 0 ? ' style="color:var(--red)"' : '') + '>' + signed(v) + ' <small style="color:var(--muted);font-weight:500">' + pct(v) + '</small></b></div><div class="prow-2"><span>' + sub + '</span></div></div></div>'; };
     var tile = function (l, v, s, c) { return '<div class="card" style="margin:0;padding:12px"><small style="color:var(--muted)">' + l + '</small><b class="num" style="display:block;font-size:20px;margin-top:2px' + (c ? ';color:' + c : '') + '">' + v + '</b><small style="color:var(--muted)">' + (s || '&nbsp;') + '</small></div>'; };
     var exp = Object.keys(p.expenses).sort(function (a, b) { return p.expenses[b] - p.expenses[a]; });
     var cur = FN.pnl, isMonth = /^\d{4}-\d{2}$/.test(cur), pers = pnlPeriods();
@@ -4693,25 +4722,31 @@ function openPnl(period) {
       '<div id="plDates" hidden class="card"><div class="btns"><div class="fld" style="flex:1;margin:0"><label>From</label><input id="ppF" type="date"></div><div class="fld" style="flex:1;margin:0"><label>To</label><input id="ppT" type="date"></div></div>' +
       '<button class="btn pri" id="ppGo" type="button" style="width:100%;margin-top:8px">Show</button></div>';
     var maxNet = Math.max.apply(null, (p.trend || []).map(function (x) { return Math.abs(x.net); }).concat([1]));
-    el('panel').innerHTML = '<h3>Profit & loss</h3><p>Parcels by booking day · counted once delivered or returned</p>' + bar +
+    el('panel').innerHTML = '<h3>Profit & loss</h3><p>Parcels in the month they were dispatched · counted once delivered or returned</p>' + bar +
       (p.open && p.open.n ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-truck"></i> ' + p.open.n + ' of ' + p.booked + ' parcels still with the courier · ' + rs(p.open.value) + ' · they join when finished</div>'
         : p.booked ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-circle-check"></i> Final · all ' + p.booked + ' parcels finished</div>' : '') +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px">' +
-        tile('Sales', rs(p.sales), p.delivered + ' delivered · ' + p.returned + ' returned') + tile('Gross profit', signed(p.gross), pct(p.gross) + ' of sales') +
+        tile('Sales', rs(p.sales), p.delivered + ' delivered · ' + p.returned + ' returned') + tile('Product margin', signed(p.cm1 != null ? p.cm1 : p.gross), pct(p.cm1 != null ? p.cm1 : p.gross) + ' of sales') +
         tile('Ads', rs(p.ads), pct(p.ads) + ' of sales') + tile('Net profit', signed(p.net), pct(p.net) + ' of sales', p.net < 0 ? 'var(--red)' : 'var(--green)') + '</div>' +
+      (p.expected ? '<div class="card"><div class="h"><b>Expected when all parcels finish</b><span>estimate</span></div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' + tile('Sales', rs(p.expected.sales), '') + tile('Net profit', signed(p.expected.net), '', p.expected.net < 0 ? 'var(--red)' : 'var(--green)') + '</div>' +
+        '<small class="mnote" style="display:block;margin-top:8px">' + p.open.n + ' parcels still with the courier, counted at the last 90 days: ' + p.expected.rate + '% delivered (' + p.expected.basis + ' parcels) · ' + (p.expected.add >= 0 ? '+ ' : '− ') + rs(Math.abs(p.expected.add)) + ' after courier fees, taxes and cost of goods. Becomes final when every parcel is delivered or returned.</small></div>' : '') +
       (p.perOrder ? '<div class="card"><div class="h"><b>Per delivered order</b></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center">' +
         '<div><b class="num">' + rs(p.perOrder.value) + '</b><br><small style="color:var(--muted)">order value</small></div><div><b class="num">' + rs(p.perOrder.ads) + '</b><br><small style="color:var(--muted)">ads</small></div>' +
         '<div><b class="num"' + (p.perOrder.net < 0 ? ' style="color:var(--red)"' : '') + '>' + signed(p.perOrder.net) + '</b><br><small style="color:var(--muted)">profit</small></div></div>' +
         (p.returnFees ? '<small class="mnote" style="display:block;margin-top:8px">Returns cost ' + rs(p.returnFees) + ' in courier fees (' + p.returned + ' returned)</small>' : '') + '</div>' : '') +
       '<div class="card" style="padding:0">' +
       line('Sales (delivered orders)', rs(p.sales), '', p.advanceSales ? 'incl. ' + rs(p.advanceSales) + ' paid in advance' : '') +
-      line('Courier fees', minus(p.fees), '', 'delivery + return charges, GST', pct(p.fees)) +
-      line('Taxes (WHT + SST)', minus(p.taxes), '', '', pct(p.taxes)) +
       line('Cost of goods', minus(p.cogs), '', p.cogsEst ? 'incl. ' + rs(p.cogsEst) + ' estimated (before the stock count, at product costs)' + (p.unknownLines ? ' · ' + p.unknownLines + ' line' + (p.unknownLines > 1 ? 's' : '') + ' without a cost' : '') : 'from stock: average cost of what was sent', pct(p.cogs)) +
       (p.stockLoss ? line('Stock loss', p.stockLoss > 0 ? minus(p.stockLoss) : '+ ' + rs(-p.stockLoss), '', [p.lossBy.count ? 'count differences ' + rs(p.lossBy.count) : '', p.lossBy.damaged ? 'damaged ' + rs(p.lossBy.damaged) : '', p.lossBy.adjust ? 'lost / gift / own use ' + rs(p.lossBy.adjust) : ''].filter(Boolean).join(' · ').replace(/Rs -/g, 'found Rs '), pct(p.stockLoss)) : '') +
-      line('Gross profit', signed(p.gross), 'b', '', pct(p.gross)) +
+      cmLine('CM1 · Product margin', p.cm1, 'what the products leave') +
+      line('Courier fees', minus(p.fees), '', 'delivery + return charges, GST' + (p.returnFees ? ' · returns ' + rs(p.returnFees) : ''), pct(p.fees)) +
+      line(p.sstAdjustable ? 'Income tax withheld (WHT)' : 'Taxes (WHT + SST)', minus(p.taxes), '', p.wht != null ? (p.sstAdjustable ? 'final tax on COD (section 153)' : 'WHT ' + rs(p.wht) + ' · sales tax ' + rs(p.sst)) : '', pct(p.taxes)) +
+      cmLine('CM2 · After delivery', p.cm2, 'what a delivered order leaves before ads') +
+      (p.sstAdjustable && p.sst ? line('&nbsp;&nbsp;Sales tax withheld', rs(p.sst), '', 'adjustable in your sales tax return · not taken from profit') : '') +
       line('Ads', minus(p.ads), '', Object.keys(p.adSync || {}).map(function (k) { return k + ' ' + rs(p.adSync[k]); }).concat(p.adsEntered ? ['entered ' + rs(p.adsEntered)] : []).join(' · '), pct(p.ads)) +
       (p.adDollar && p.adDollar.usd ? line('&nbsp;&nbsp;of which dollar extra', rs(p.adDollar.extra), '', '$' + p.adDollar.usd.toLocaleString('en-US') + ' used · market avg Rs ' + p.adDollar.avg + ' · paid Rs ' + (Math.round((p.adDollar.avg + p.adDollar.extra / p.adDollar.usd) * 100) / 100) + ' per $') : '') +
+      cmLine('CM3 · After ads', p.cm3, 'what is left to pay the business costs') +
       exp.map(function (k) { return line(esc(k), minus(p.expenses[k]), '', '', pct(p.expenses[k])); }).join('') +
       line('Net profit', signed(p.net), p.net < 0 ? 'neg' : 'b', '', pct(p.net)) + '</div>' +
       ((p.trend || []).length > 1 ? '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>Month by month</b><span>tap a month</span></div>' + p.trend.slice().reverse().map(function (x) {
@@ -4720,10 +4755,21 @@ function openPnl(period) {
           '<div class="prow-2"><span>sales ' + rs(x.sales) + ' · ads ' + rs(x.ads) + '</span></div>' +
           '<div style="height:4px;border-radius:2px;margin-top:6px;width:' + w + '%;background:' + (x.net < 0 ? 'var(--red)' : 'var(--green)') + '"></div></div></div>';
       }).join('') + '</div>' : '') +
+      (p.closed ? '<div class="tk ok" style="margin:0 0 10px"><i class="ti ti-lock"></i> Closed ' + esc(p.closed.at) + ' by ' + esc(p.closed.by) + ' · net then ' + signed(p.closed.net) +
+          (Math.abs(p.closed.diff) >= 1 ? ' · changed since: ' + (p.closed.diff > 0 ? '+ ' : '− ') + rs(Math.abs(p.closed.diff)) + ' (late courier data)' : '') +
+          (p.canClose ? '<br><button class="btn mini" id="plReopen" type="button" style="margin-top:6px"><i class="ti ti-lock-open"></i>Reopen</button>' : '') + '</div>'
+        : p.canClose && isMonth && cur < pkDay(new Date()).slice(0, 7) ? '<button class="btn" id="plCloseM" type="button" style="width:100%;margin:0 0 10px"><i class="ti ti-lock"></i>Close ' + esc(pnlLabel(cur)) + '</button>' : '') +
       '<div class="card"><div class="h"><b>Cash in the period</b></div>' + line('Money in', rs(p.cash.in), '', p.cash.courier != null ? 'courier payments ' + rs(p.cash.courier) + ' · advances & other ' + rs(p.cash.other) : '') + line('Money out', minus(p.cash.out), '', 'expenses, stock bought, owner draws') + '</div>' +
       '<div class="btns" style="margin-top:10px"><button class="btn" id="plClose">Close</button></div>';
     openPanel(true);
     el('plClose').onclick = closePanel;
+    var closeMonth = function (close) {
+      if (close && !confirm('Close ' + pnlLabel(cur) + '? Its P&L is kept as it is now, and no entry can be added in it by hand.')) return;
+      api('appCloseMonth', [TOKEN, cur, close], function (r) { toast(close ? 'Closed' + (r.open ? ' · ' + r.open + ' parcels were still with the courier' : '') : 'Reopened'); viewClear(); openPnl(cur); },
+        function (e) { toast((e && e.message) || 'Not saved'); });
+    };
+    if (el('plCloseM')) el('plCloseM').onclick = function () { closeMonth(true); };
+    if (el('plReopen')) el('plReopen').onclick = function () { closeMonth(false); };
     el('panel').querySelectorAll('[data-fm]').forEach(function (b) { b.onclick = function () { openPnl(fnMonth(FN.pnl, Number(b.getAttribute('data-fm')))); }; });
     el('plPer').onclick = function () { // the period list (a dropdown under the button)
       var opts = pers.concat([['dates', 'Choose dates…', 'dates']]);
@@ -4739,8 +4785,39 @@ function openPnl(period) {
     el('ppGo').onclick = function () { var f = el('ppF').value, to = el('ppT').value; if (!f || !to) return; openPnl((f <= to ? f : to) + '..' + (f <= to ? to : f)); };
   }, function () { closePanel(); toast('You don\'t have access to this'); }, '<h3>Profit & loss</h3>');
 }
+// Cash forecast (13 weeks, direct method) + courier money waiting, by age (2026-11-02)
+function openCashPlan() {
+  apiMem('cashplan', 'getAppCashForecast', [TOKEN], function (d) {
+    var signed = function (n) { return (n < 0 ? '− ' : '') + rs(Math.abs(n)); };
+    var wk = function (ymd) { return niceDay(ymd); };
+    var maxAbs = Math.max.apply(null, d.weeks.map(function (w) { return Math.abs(w.end); }).concat([1]));
+    var cour = Object.keys(d.aging);
+    el('panel').innerHTML = '<h3>Cash forecast</h3><p>Next 13 weeks · from today\'s bank balance · an estimate</p>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px">' +
+        '<div class="card" style="margin:0;padding:12px"><small style="color:var(--muted)">Bank now</small><b class="num" style="display:block;font-size:20px">' + signed(d.balance) + '</b></div>' +
+        '<div class="card" style="margin:0;padding:12px"><small style="color:var(--muted)">Lowest week</small><b class="num" style="display:block;font-size:20px;color:' + (d.lowest.low ? 'var(--red)' : 'var(--text)') + '">' + signed(d.lowest.end) + '</b><small style="color:var(--muted)">week of ' + wk(d.lowest.from) + '</small></div></div>' +
+      (d.lowest.low ? '<div class="tk bad" style="margin:0 0 10px"><i class="ti ti-alert-triangle"></i> Cash goes under ' + rs(d.minCash) + ' in the week of ' + wk(d.lowest.from) + ' · slow down spending or chase courier payments</div>' : '') +
+      '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>Week by week</b><span>in · out · end</span></div>' + d.weeks.map(function (w) {
+        var bw = Math.round(Math.abs(w.end) / maxAbs * 100);
+        return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><b>' + wk(w.from) + '</b><b class="num"' + (w.low ? ' style="color:var(--red)"' : '') + '>' + signed(w.end) + '</b></div>' +
+          '<div class="prow-2"><span>in ' + rs(w.in) + (w.courier ? ' (courier ' + rs(w.courier) + ')' : '') + ' · out ' + rs(w.out) + (w.suppliers ? ' (suppliers ' + rs(w.suppliers) + ')' : '') + '</span></div>' +
+          '<div style="height:4px;border-radius:2px;margin-top:6px;width:' + bw + '%;background:' + (w.low ? 'var(--red)' : 'var(--green)') + '"></div></div></div>';
+      }).join('') + '</div>' +
+      (cour.length ? '<div class="card"><div class="h"><b>Courier money waiting</b><span>by days since delivery</span></div>' + cour.map(function (c) {
+        var a = d.aging[c];
+        return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><b>' + esc(c) + '</b><b class="num">' + rs(a.total) + '</b></div>' +
+          '<div class="prow-2"><span>0–7 d ' + rs(a.d7) + ' · 8–14 d ' + rs(a.d14) + ' · 15–30 d ' + rs(a.d30) + ' · older ' + rs(a.older) + '</span></div>' +
+          '<div class="prow-2"><span style="color:var(--muted)">' + a.n + ' parcels · usually pays ' + a.lag + ' days after delivery</span></div></div></div>';
+      }).join('') + '</div>' : '') +
+      '<small class="mnote" style="display:block;margin:0 0 10px">Money in = courier COD already delivered (on its usual payout day) + parcels on the way (' + d.basis.onWay + ' parcels × ' + d.basis.rate + '% delivered × ' + rs(d.basis.avgNet) + '). Money out = ads ' + rs(d.basis.ads) + ' and expenses ' + rs(d.basis.exp) + ' a week (recent average) + supplier bills still to pay ' + rs(d.basis.suppliers) + '. Minimum cash: W1 Store Settings.</small>' +
+      '<div class="btns" style="margin-top:10px"><button class="btn" id="cpClose">Close</button></div>';
+    openPanel(true);
+    el('cpClose').onclick = closePanel;
+  }, function () { closePanel(); toast('You don\'t have access to this'); }, '<h3>Cash forecast</h3>');
+}
 el('btnExp').onclick = fromMenu(function () { openExpenses(''); });
 el('btnPnl').onclick = fromMenu(function () { openPnl(''); });
+el('btnCashPlan').onclick = fromMenu(function () { openCashPlan(); });
 el('btnAcct').onclick = fromMenu(function () { openAccounts(); });
 el('btnTeam').onclick = fromMenu(function () { openTeam(); });
 el('btnAds').onclick = fromMenu(function () { openAds(3); });
