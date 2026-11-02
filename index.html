@@ -3099,7 +3099,7 @@ function cutoffText() {
   var cut = (+m[1] % 12 + (/pm/i.test(m[3]) ? 12 : 0)) * 60 + +m[2];
   var p = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Karachi', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date()).split(':');
   var now = +p[0] * 60 + +p[1], lbl = String(s).replace(':00', '').replace(/\s+/, ' ');
-  return now < cut ? 'Send by ' + lbl + ' for tomorrow\'s attempt' : 'Past ' + lbl + ' · may miss tomorrow, send now';
+  return now < cut ? 'Send by ' + lbl + ' for tomorrow\'s attempt' : 'Past ' + lbl + ' · send any time before ' + lbl + ' tomorrow'; // the list waits here until it is sent
 }
 // the 4 steps of a case, each with its time: Called → In list → Sent → Courier (late parcels: Asked instead of Called)
 function ndrSteps(c, slot) {
@@ -3405,7 +3405,7 @@ function obItem(kind, it, i) {
     else if (kind === 'late') say.push((it.hours ? it.hours + ' ghante se update nahi' : 'Late') + (it.now ? ' (abhi: ' + waSafe(String(it.now).replace(/_/g, ' ').toLowerCase()) + ')' : '') + '. Location aur delivery ka din batayen.');
     else if (kind === 'check') say.push('Delivered ho to POD share karein, warna current location batayen.');
     else {
-      if (it.reattempt) say.push(waSafe(it.reattempt) + ' ·'); // the day only: no fixed instruction lines, no icons (user 2026-11-01)
+      if (it.reattempt && !(it.reattemptDay && it.reattemptDay < pkDay(new Date()))) say.push(waSafe(it.reattempt) + ' ·'); // a day already gone (list sent late) is not sent // the day only: no fixed instruction lines, no icons (user 2026-11-01)
       var w = waSays(it.says), info = waSafe(it.newInfo);
       // "Naya pata diya hai." says nothing the Naya pata / phone lines below do not
       if (w && !(info && (w.indexOf(info) !== -1 || /^Naya (pata|phone)( aur phone)? diya hai\.?$/i.test(w)))) say.push(/[.!?]$/.test(w) ? w : w + '.');
