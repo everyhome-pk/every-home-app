@@ -576,6 +576,9 @@ body.locked{overflow:hidden;overscroll-behavior:none}
 .pf-phone{display:flex;align-items:center;justify-content:center;gap:6px;font-weight:600;font-size:15px;margin:4px 0 2px}.pf-phone i{color:var(--muted);font-size:18px}
 .login-box .pf-note{font-size:11.5px;margin:0 0 12px}
 .login-box select,.login-box input{width:100%;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:14px;padding:13px 14px;font:400 15px Inter,sans-serif;margin-bottom:10px;text-align:center}
+/* sheet reminder under a courier line (With courier tab) */
+.sh-rem{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:-2px 0 4px;padding:6px 10px;border-radius:10px;background:var(--bg);font-size:12px;color:var(--muted)}
+.sh-rem i{margin-right:4px}.sh-rem.late{background:var(--amber-bg);color:var(--amber)}.sh-rem .btn{flex:none;height:30px;padding:0 10px}
 /* case history (parcel page) */
 .ch-f{display:flex;gap:6px;margin-bottom:6px}.ch-f button{border:1px solid var(--line);background:var(--card);border-radius:99px;height:30px;padding:0 12px;font:500 12px Inter,sans-serif;color:var(--muted);cursor:pointer}
 .ch-f button.on{background:var(--text);color:var(--bg);border-color:var(--text)}
@@ -845,7 +848,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 (function () {
   if (window.google && google.script) return;
   window.EH_PWA = true; // installed app: notifications are possible
-  window.EH_BUILD = '2026-11-01'; // shown at the bottom of the menu
+  window.EH_BUILD = '2026-11-02'; // shown at the bottom of the menu
   var API = "https://script.google.com/macros/s/AKfycbyqtyrClenCG1_iqTSDK5KhtFItfX6rUsYdIexwQ3qPFbSv9d1n8jy06ItjvWXXtB-I/exec";
   function call(fn, args, ok, fail) {
     fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: fn, args: args }) })
@@ -2833,7 +2836,10 @@ function renderNdr() {
   var replyH = function () { var h = Object.keys(N.data.couriers || {}).map(function (n) { return N.data.couriers[n].replyHours ? n + ' ~' + N.data.couriers[n].replyHours + ' h' : ''; }).filter(Boolean); return h.length ? 'usual reply: ' + h.join(' · ') : ''; };
   var html = N.tab === 'courier' ? '<div class="cstrip">' + Object.keys(N.data.couriers || {}).map(function (name) {
     var s = N.data.couriers[name];
-    return '<button class="cs-line" data-cour="' + esc(name) + '"><b>' + esc(name) + '</b><span>' + s.open + ' open · ' + s.replied + ' replied' + (s.notActed ? ' · <i class="down">' + s.notActed + ' no action</i>' : '') + '</span><i class="ti ti-chevron-right"></i></button>';
+    var sp = sheetPending(name);
+    return '<button class="cs-line" data-cour="' + esc(name) + '"><b>' + esc(name) + '</b><span>' + s.open + ' open · ' + s.replied + ' replied' + (s.notActed ? ' · <i class="down">' + s.notActed + ' no action</i>' : '') + '</span><i class="ti ti-chevron-right"></i></button>' +
+      (sp.n && s.link && can('ndr.work') ? '<div class="sh-rem' + (sp.late ? ' late' : '') + '"><span><i class="ti ti-table"></i>On the sheet: ' + sp.n + (sp.late ? ' · ' + sp.late + ' over 24 h' : '') + '</span>' +
+        '<a class="btn mini wa" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(sheetReminderText(name, sp)) + '"><i class="ti ti-brand-whatsapp"></i>Remind</a></div>' : '');
   }).join('') + '</div>' : '';
   NDR_GH[N.tab].forEach(function (g) {
     var arr = (by[N.tab][g[0]] || []).slice();
@@ -2871,7 +2877,7 @@ var TICKET_WORDS = [[/Amal nahi hua/, 'No action'], [/Amal hua/, 'Acted'], [/Int
   [/Return shuru – reattempt nahi hua/, 'Return started · not reattempted'], [/Return shuru ho gaya/, 'Return started'], [/Return ho gaya/, 'Returned'],
   [/Attempt hua – phir fail/, 'Attempted · failed again'], [/Claim – courier ne jawab diya/, 'Claim · courier replied'], [/Courier ne jawab diya/, 'Courier replied'],
   [/DOBARA – (\d+h), amal nahi/, 'Follow-up · no action in $1'], [/Case band/, 'Case closed'], [/Outbox/, 'Not sent yet'],
-  [/Done \(marked in sheet\)/, 'Done (marked in sheet)'], [/Done \(WhatsApp\)/, 'Done (WhatsApp)']];
+  [/Done \(marked in sheet\)/, 'Done (marked in sheet)'], [/Done \(WhatsApp\)/, 'Done (WhatsApp)'], [/↪️ Nayi request: (\w+)/, 'Replaced by a new $1 request']];
 function ticketResult(s) { s = String(s || ''); TICKET_WORDS.forEach(function (w) { s = s.replace(w[0], w[1]); }); return s; }
 var REQ_KIND = { reattempt: 'Reattempt', return: 'Return', claim: 'Claim', check: 'Status check', late: 'Late delivery' };
 var SENT_NOW = {}; // type|cn → { channel, at } sent from this phone, until W1 records it
@@ -3056,9 +3062,21 @@ function courierSheetLink(name, kind) {
 }
 // WhatsApp text that points the courier's group to their sheet
 function sheetShareText(name, kind, n) {
-  var k = OB_KINDS.filter(function (x) { return x[0] === kind; })[0];
-  return '*' + STORE.toUpperCase() + ' → ' + name + '*\n\nAssalam-o-Alaikum,\n*' + n + ' new request' + (n > 1 ? 's' : '') + '* aap ki sheet mein (' + k[1] + ' ' + k[2] + '):\n' +
-    courierSheetLink(name, kind) + '\n\nStatus aur jawab sheet mein likh dein. Kaam ho jaye to ☑️ Done tick karein.\n\nShukriya 🙏\n_' + STORE + ' · Operations_';
+  return '*' + STORE + ' · Sheet update*\n' + name + ' · ' + n + ' new request' + (n > 1 ? 's' : '') + ' on your sheet\n' + courierSheetLink(name, kind) +
+    '\nStatus aur jawab sheet mein likh dein, kaam ho jaye to Done tick karein.\nShukriya · ' + STORE;
+}
+// requests waiting on a courier's sheet: how many, how many 24 h+ (open tickets sent by sheet)
+function sheetPending(name) {
+  var tk = ((N.data.couriers || {})[name] || {}).tickets || {}, n = 0, late = 0;
+  Object.keys(tk).forEach(function (cn) { var t = tk[cn]; if (!/Sheet/.test(t.channel || '') || /Done/.test(t.result || '')) return; n++; if (t.sentMs && Date.now() - t.sentMs >= 86400000) late++; });
+  return { n: n, late: late };
+}
+// a short nudge for the courier's WhatsApp group: the count + the sheet link, never the whole list again
+function sheetReminderText(name, s) {
+  var day = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Karachi', day: 'numeric', month: 'short' }).format(new Date());
+  return '*' + STORE + ' · Sheet reminder*\n' + name + ' · ' + day + ' · ' + s.n + ' parcel' + (s.n > 1 ? 's' : '') + ' pending\n' +
+    (s.late ? s.late + ' parcel' + (s.late > 1 ? 's' : '') + ' 24 ghante se zyada se pending hain.\n' : '') +
+    'Sheet check kar ke status likh dein:\n' + courierSheetLink(name, 'deliver') + '\nShukriya · ' + STORE;
 }
 // After "Send by Sheet": optional — share the link in the courier's WhatsApp group, or open the sheet
 function sheetSent(name, kind, n) {
@@ -3205,7 +3223,7 @@ function courierCardsHtml(only) {
       (s.notActed ? '\n*' + s.notActed + '* purane cases par ab tak action nahi hua.' : '') +
       '\n\nSheet mein status aur jawab likh dein, kaam ho jaye to ☑️ Done tick karein:\n' + s.link + '\n\nShukriya 🙏';
     return '<div class="card"><div class="h"><b>' + name + ' escalations</b><span>' + (s.replyHours != null ? 'avg. reply ~' + s.replyHours + 'h' : '') + '</span></div>' +
-      // Open = still on the courier's Issues tab; closed tickets move to its Done tab and are counted by outcome.
+      // Open = still on the courier's sheet; closed tickets leave it and are counted by outcome.
       '<div class="cs-h">Open in sheet</div>' +
       '<div class="cs"><div data-esc="' + esc(name) + '|open"><b>' + s.open + '</b><small>Open</small></div><div data-esc="' + esc(name) + '|replied"><b>' + s.replied + '</b><small>Replied</small></div><div data-esc="' + esc(name) + '|acted"><b class="up">' + s.acted + '</b><small>Actioned</small></div><div data-esc="' + esc(name) + '|none"><b class="down">' + s.notActed + '</b><small>No action</small></div></div>' +
       '<div class="cs-done"><div class="cs-h" style="margin:0"><i class="ti ti-archive"></i>Closed · last ' + (s.closedDays || 30) + ' days<small>' + (s.total || 0) + ' sent in total</small></div>' +
