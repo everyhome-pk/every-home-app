@@ -500,12 +500,20 @@ body.nb-on #nlist{padding-bottom:84px}
 .tl-i:last-child:before{display:none}
 .tl-d{width:12px;height:12px;border-radius:50%;background:var(--line);margin-top:3px;flex:none;position:relative;z-index:1}
 .tl-i:first-child .tl-d{background:var(--brand)}
+.pp-proof{margin-left:auto;display:inline-flex;align-items:center;gap:4px;font:600 12px Inter,sans-serif;color:var(--brand);text-decoration:none;text-transform:none;letter-spacing:0}.pp-proof i{font-size:15px}
 .tl-pf{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}.tl-pf a{display:block;width:84px;border-radius:10px;overflow:hidden;border:1px solid var(--line);text-decoration:none;color:var(--brand);font-size:11.5px;font-weight:600;background:var(--bg)}
 .tl-pf img{display:block;width:84px;height:84px;object-fit:cover}.tl-pf span{display:block;padding:4px 6px}.tl-pf a.nf{width:auto;padding:6px 10px}.tl-pf a.nf span{padding:0}.tl-pf a.nf span:before{content:"\1F4F7 "}
 .tl-i b{font-size:12.5px;font-weight:600;display:block}.tl-i small{font-size:11.5px;color:var(--muted)}
 .more{display:block;width:100%;margin:6px 0 10px}
 .prio{font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px}
 .pr-1{background:var(--red-bg);color:var(--red)}.pr-2{background:var(--amber-bg);color:var(--amber)}.pr-3{background:var(--blue-bg);color:var(--blue)}
+.nc-cn{display:flex;align-items:center;gap:6px;margin:-2px 0 4px;font-size:12.5px;color:var(--muted)}.nc-cn .num{letter-spacing:.3px;font-family:ui-monospace,Menlo,Consolas,monospace}
+.cn-copy{border:0;background:none;color:var(--faint);cursor:pointer;padding:2px;display:grid;place-items:center}.cn-copy i{font-size:14px}
+.pcn{display:none;font-style:normal}@media (min-width:1024px){body:not(.pp-side) #plist .pcn{display:inline}}
+/* new cases in a tab: a small red count beside the tab's number (like an unread count) */
+.nt-l{display:block}.ntabs button b{position:relative;display:inline-block}.nt-new{display:inline-block;vertical-align:3px;margin-left:5px;min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:var(--red);color:#fff;font:700 10px/16px Inter,sans-serif;font-style:normal;text-align:center}
+.new-pill{display:inline-block;vertical-align:2px;margin-right:6px;padding:1px 6px;border-radius:6px;background:var(--red);color:#fff;font:700 10px Inter,sans-serif;letter-spacing:.5px;animation:newBlink 1.2s ease-in-out infinite}
+@keyframes newBlink{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(220,38,38,.5)}50%{opacity:.55;box-shadow:0 0 0 4px rgba(220,38,38,0)}}
 .new-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-right:6px;animation:pulse 1.4s infinite}
 @keyframes pulse{50%{opacity:.3}}
 .done-line{font-size:12px;color:var(--green);margin-top:8px;display:flex;gap:6px;align-items:center}
@@ -1195,11 +1203,17 @@ function drawSyncStatus() {
       '<div class="sx-more" hidden>' + esc(exact(j.ms)) + (j.note ? ' · ' + esc(j.note) : '') + '</div></div>';
   }).join('') + '</div>' : '<div class="card empty"><i class="ti ti-clock"></i>System times appear after the next sync (≤5 min)</div>') +
     (stale ? '<div class="sx-old"><i class="ti ti-clock"></i>Your screen is ' + ago(oldest) + ' old · tap Refresh</div>' : '') +
+    (SYNCD && SYNCD.hooks ? '<div class="card" style="padding:12px 14px"><div class="h"><b>Instant courier updates</b><span>webhooks</span></div>' + SYNCD.hooks.map(function (h) {
+      var where = h.courier === 'Trax' ? 'Trax portal → Settings → Shipment Status Subscription → turn on, paste' : 'Leopards ECOM portal → Settings → Push API Management → Push API URL, paste, Update';
+      return '<div style="margin-top:10px"><b style="font-size:13px">' + esc(h.courier) + '</b>' + (h.today ? ' <small style="color:var(--green)">· ' + h.today + ' today</small>' : '') +
+        '<small style="display:block;color:var(--muted)">' + (h.last ? 'Last: ' + esc(h.last) : 'Nothing received yet · ' + where) + '</small>' +
+        '<div class="inrow" style="margin-top:6px"><input type="text" readonly value="' + esc(h.url) + '" style="font-size:12px"><button class="btn" type="button" data-copy="' + esc(h.url) + '">Copy</button></div></div>';
+    }).join('') + '</div>' : '') +
     (SYNCD && SYNCD.shopBills ? '<div class="card" style="padding:12px 14px"><div class="h"><b>Shopify bills from Gmail</b><span>' + esc(SYNCD.shopBills.at) + '</span></div><small style="display:block;color:' + (SYNCD.shopBills.error ? 'var(--red)' : 'var(--muted)') + '">' +
-      (SYNCD.shopBills.error ? esc(/40[13]/.test(SYNCD.shopBills.error) ? 'Gmail not allowed yet · run authorizeShopifyBills once in the App Server script' : SYNCD.shopBills.error) : SYNCD.shopBills.added + ' new bill' + (SYNCD.shopBills.added === 1 ? '' : 's') + ' added this check · they are in Finance → Expenses (Shopify & apps)') + '</small>' +
+      (SYNCD.shopBills.error ? esc(/has not been used|is disabled|SERVICE_DISABLED/i.test(SYNCD.shopBills.error) ? 'Gmail API is being switched on · try again in a few minutes (' + SYNCD.shopBills.error.slice(0, 60) + ')' : /401|insufficient|scope|PERMISSION/i.test(SYNCD.shopBills.error) ? 'Gmail not allowed yet · run authorizeShopifyBills once in the App Server script' : SYNCD.shopBills.error) : SYNCD.shopBills.added + ' new bill' + (SYNCD.shopBills.added === 1 ? '' : 's') + ' added this check · they are in Finance → Expenses (Shopify & apps)') + '</small>' +
       ((SYNCD.shopBills.unread || []).length ? '<small style="display:block;color:var(--amber);margin-top:4px">Could not read the amount: ' + esc(SYNCD.shopBills.unread.join(' · ')) + '</small>' : '') + '</div>' : '') +
     ((SYNCD && SYNCD.courierFields) || []).map(function (c) {
-      var ph = c.fields.filter(function (f) { return /img|image|photo|pic|proof|pod|sign|attach|file/i.test(f); });
+      var ph = c.fields.filter(function (f) { var leaf = f.split(/[.[]]+/).filter(Boolean).pop() || ''; return /(^|_)(img|image|images|photo|photos|picture|pictures|pic|pics|proof|pod|signature|attachment|attachments|file|files)(_|$)/i.test(leaf); });
       return '<div class="card" style="padding:12px 14px"><div class="h"><b>' + esc(c.courier) + ' tracking · attempt photos</b><span>' + esc(c.at) + '</span></div>' +
         '<small style="display:block;color:' + (ph.length ? 'var(--green)' : 'var(--muted)') + '">' + (ph.length ? 'Photo fields: ' + esc(ph.join(', ')) : 'No photo field in ' + esc(c.courier) + '\'s tracking answer') + '</small>' +
         '<details style="margin-top:6px"><summary style="font-size:12px;color:var(--muted);cursor:pointer">All ' + c.fields.length + ' fields it sends</summary><small style="display:block;color:var(--muted);word-break:break-word;margin-top:4px">' + esc(c.fields.join(' · ')) + '</small></details></div>';
@@ -1575,7 +1589,10 @@ function openParcel(key, given) {
     (!p.done && can('cash.edit') && (p.due == null || p.due > 0) ? '<button class="btn" id="pdAdv" style="width:100%;padding:12px;margin-bottom:12px"><i class="ti ti-cash"></i>Record advance payment</button>' : '') +
     (p.rcv ? '<button class="btn" data-rh="' + esc(p.cn) + '" style="width:100%;padding:12px;margin-bottom:12px"><i class="ti ti-history"></i>Return history</button>' : '') +
     (p.cn && (ndr || p.attempts) ? '<div class="pp-card"><div class="pp-h"><span>Case history</span></div><div id="pdch"><div class="sk" style="height:80px"></div></div></div>' : '') +
-    (p.cn ? '<div class="pp-card"><div class="pp-h"><span>Tracking</span></div><div class="tl-sheet" id="pdtl" style="margin-bottom:8px"><div class="sk" style="height:100px"></div></div></div>' : '');
+    (p.cn ? '<div class="pp-card"><div class="pp-h"><span>Tracking</span>' +
+      // Trax keeps the rider's proof of each attempt (photo, call recording, location) only on its portal, not in its API
+      // (API Document SONIC 2.0 checked 2026-11-02): one tap opens that parcel there (the phone / laptop must be logged in)
+      (/trax|sonic/i.test(p.courier || '') ? '<a class="pp-proof" target="_blank" rel="noopener" href="https://sonic.pk/cod/tracking?tracking_number=' + encodeURIComponent(p.cn) + '"><i class="ti ti-photo"></i>Proof · photo, call, location</a>' : '') + '</div><div class="tl-sheet" id="pdtl" style="margin-bottom:8px"><div class="sk" style="height:100px"></div></div></div>' : '');
   // the actions stay at the bottom, within thumb reach
   var bar = (p.phone ? '<a class="btn"' + (ndr ? ' data-call="' + esc(ndr.cn) + '"' : '') + ' href="' + telHref(p.phone) + '"><i class="ti ti-phone"></i>Call</a>' : '') +
     (p.wa ? '<a class="btn wa" target="_blank" href="' + waLink(p.wa, '') + '"><i class="ti ti-brand-whatsapp"></i>WhatsApp</a>' : '') +
@@ -2940,7 +2957,7 @@ function parcelRow(p) {
   if ((p.stage === 'pending' || p.stage === 'confirmed') && can('orders.tag') && p.ref) call = '<span class="prow-acts"><button class="prow-call" type="button" data-tagref="' + esc(p.ref) + '" aria-label="Change tags"><i class="ti ti-tag"></i></button>' + call + '</span>';
   return '<div class="prow" data-p="' + esc(p.cn || p.ref) + '" style="--c:' + s[1] + '"><span class="prow-d"></span><div class="prow-m">' +
     '<div class="prow-1"><b>' + esc(p.name || p.ref) + '</b><span class="num">' + rs(p.total) + '</span></div>' +
-    '<div class="prow-2"><span>' + [esc(p.ref) + (/^Draft/.test(p.src || '') ? ' · Draft' : ''), esc(p.city), esc(p.courier)].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + s[1] + '">' + (STAGE_SHORT[p.stage] || s[0]) + '</span></div>' +
+    '<div class="prow-2"><span>' + [esc(p.ref) + (/^Draft/.test(p.src || '') ? ' · Draft' : '') + (p.cn ? '<i class="pcn"> · ' + esc(p.cn) + '</i>' : ''), esc(p.city), esc(p.courier)].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + s[1] + '">' + (STAGE_SHORT[p.stage] || s[0]) + '</span></div>' +
     (issue ? '<div class="prow-3"><i class="ti ti-alert-circle"></i>' + esc(issue) + '</div>' : '') +
     // customer record while the parcel is still open (before it is delivered / returned / cancelled)
     (['delivered', 'returned', 'cancelled'].indexOf(p.stage) === -1 ? riskLine(p) : '') + '</div>' + call + '</div>';
@@ -2954,9 +2971,40 @@ el('pchips').onclick = function (e) {
 
 // ---------- NDR + Parcel Watch ----------
 var N = { data: snap('ndr'), tab: 'todo', limit: 20 };
+document.addEventListener('click', function (e) {
+  var b = e.target.closest('[data-copy]'); if (!b) return;
+  e.stopPropagation(); e.preventDefault();
+  try { navigator.clipboard.writeText(b.getAttribute('data-copy')); toast(/^https?:/.test(b.getAttribute('data-copy')) ? 'Link copied' : 'Tracking ID copied'); } catch (er) {}
+}, true);
 function caseKey(c) { return c.cn + '|' + c.type.slice(0, 12); }
 function seenSet() { try { return JSON.parse(store('eh_ndr_seen') || '[]'); } catch (e) { return []; } }
 function markNdrSeen() { if (N.data) store('eh_ndr_seen', JSON.stringify(N.data.cases.map(caseKey))); updateBadge(); }
+// "New" dot (user 2026-11-02: every new NDR case, To do or Urgent, blinks until it is looked at). A case is new for this
+// phone until its card is opened, called or updated (eh_ndr_ack, keys CN|attempts: a new failed attempt is new again).
+// First run on a phone: today's cases count as seen (no flood).
+function ackKey(c) { return c.cn + '|' + (c.attempts || 0); }
+function ackSet() { try { return JSON.parse(store('eh_ndr_ack') || 'null'); } catch (e) { return null; } }
+function isNewCase(c) { var a = ackSet(); return !!a && a.indexOf(ackKey(c)) === -1; }
+function ackInit() { if (N.data && !ackSet()) store('eh_ndr_ack', JSON.stringify(N.data.cases.map(ackKey))); }
+function ackCase(cn) {
+  if (!N.data) return;
+  var c = N.data.cases.filter(function (x) { return x.cn === cn; })[0]; if (!c) return;
+  var live = N.data.cases.map(ackKey), a = (ackSet() || []).filter(function (k) { return live.indexOf(k) !== -1; });
+  if (a.indexOf(ackKey(c)) === -1) { a.push(ackKey(c)); store('eh_ndr_ack', JSON.stringify(a)); }
+  document.querySelectorAll('.nc[data-p="' + cn + '"] .new-pill').forEach(function (d) { d.remove(); });
+}
+// touching a case card (open, call, update, ask) = seen
+document.addEventListener('click', function (e) { var c = e.target.closest('.nc[data-p]'); if (c && N.data) setTimeout(function () { ackCase(c.getAttribute('data-p')); if (curTab === 'ndr') renderNdrTabsDot(); }, 0); }, true);
+function renderNdrTabsDot() {
+  if (!N.data) return;
+  var has = {}; N.data.cases.forEach(function (c) { if (isNewCase(c)) { var sl = ndrSlot(c); has[sl[0]] = (has[sl[0]] || 0) + 1; } });
+  // how many new cases a tab holds: a small red count on its number (like an unread count), nothing when none
+  document.querySelectorAll('[data-nt]').forEach(function (b) {
+    var n = has[b.getAttribute('data-nt')] || 0, old = b.querySelector('.nt-new'); if (old) old.remove();
+    if (n) b.querySelector('b').insertAdjacentHTML('beforeend', '<i class="nt-new" title="' + n + ' new">' + n + '</i>');
+  });
+  // only the main tabs carry the dot (Material / Apple: badges on navigation, not on filter / segmented buttons — user 2026-11-02)
+}
 function newCases() { var s = seenSet(); return N.data ? N.data.cases.filter(function (c) { return s.indexOf(caseKey(c)) === -1; }) : []; }
 // To do = needs a call now: never called · no answer and the last call was 3+ hours ago · the courier's new attempt failed.
 // The NDR badge, the app icon number and the TO DO list all count exactly these.
@@ -3164,7 +3212,8 @@ function ndrCard(c, seen, inGroup) {
   else if (t && t.channel) { main = '<button class="btn ton grow" data-wr="' + esc(t.id) + '" data-wc="' + esc(c.courier) + '"><i class="ti ti-message-reply"></i>Note courier reply</button>'; side = [B.callSq, B.wa]; }
   else { main = '<button class="btn grow" data-rec="' + esc(c.cn) + '"><i class="ti ti-pencil"></i>Update case</button>'; side = [B.callSq, B.wa]; }
   return '<div class="nc" data-p="' + esc(c.cn) + '">' +
-    '<div class="nc-h"><b>' + (seen && seen.indexOf(caseKey(c)) === -1 ? '<span class="new-dot"></span>' : '') + esc(c.ref) + ' · ' + esc(c.name) + '</b>' + (tagT ? '<span class="nc-tag t-' + (slot === 'again' && tagT !== tag[0] ? 'red' : tag[1]) + '">' + esc(tagT) + '</span>' : '') + '</div>' +
+    '<div class="nc-h"><b>' + (isNewCase(c) ? '<span class="new-pill">NEW</span>' : '') + esc(c.ref) + ' · ' + esc(c.name) + '</b>' + (tagT ? '<span class="nc-tag t-' + (slot === 'again' && tagT !== tag[0] ? 'red' : tag[1]) + '">' + esc(tagT) + '</span>' : '') + '</div>' +
+    '<div class="nc-cn"><span class="num">' + esc(c.cn) + '</span><button type="button" class="cn-copy" data-copy="' + esc(c.cn) + '" aria-label="Copy tracking ID"><i class="ti ti-copy"></i></button></div>' +
     '<div class="nc-m">' + [esc(c.city), esc(c.courier), rs(c.cod), p && /^Draft/.test(p.src || '') ? 'Draft order' : '', c.hours ? (c.hours < 48 ? c.hours + ' h' : Math.floor(c.hours / 24) + ' d') + ' in NDR' : 'new'].filter(Boolean).join(' · ') + '</div>' +
     (items ? '<div class="nc-it">' + esc(items) + '</div>' : '') +
     (c.watch ? '<div class="nc-box"><b>' + esc(c.courier) + ':</b> ' + esc(lateText(c.type)) + '</div>' : '<div class="nc-box">' + says[0] + esc(says[1]) + '</div>') +
@@ -3181,6 +3230,7 @@ function ndrClosedCard(x) {
   var did = [x.outcome && !/^Not called/.test(x.outcome) ? x.outcome : 'Not called', /^(Sent|Courier confirmed)$/.test(x.sent) ? 'request sent' : '', x.by && x.by !== 'Owner' ? 'by ' + x.by : ''].filter(Boolean).join(' · ');
   return '<div class="nc" data-p="' + esc(x.cn) + '"><div class="nc-h"><b>' + esc(x.ref || x.cn) + (x.name ? ' · ' + esc(x.name) : '') + '</b><span class="nc-tag t-' + (ok ? 'green' : back ? 'red' : 'grey') + '">' +
       (ok ? 'Delivered' : home ? 'Returned' : back ? 'Returning' : esc(x.final || 'Closed')) + '</span></div>' +
+    '<div class="nc-cn"><span class="num">' + esc(x.cn) + '</span><button type="button" class="cn-copy" data-copy="' + esc(x.cn) + '" aria-label="Copy tracking ID"><i class="ti ti-copy"></i></button></div>' +
     '<div class="nc-m">' + [esc(x.city), esc(x.courier), x.cod ? rs(x.cod) : '', x.attempts ? x.attempts + (x.attempts === 1 ? ' attempt' : ' attempts') : '', x.days != null ? (x.days < 1 ? 'same day' : x.days + ' d in NDR') : ''].filter(Boolean).join(' · ') + '</div>' +
     '<div class="nc-box">' + esc(did) + '</div><div class="nc-ln"><i class="ti ti-clock"></i><span>closed ' + esc(x.at) + '</span></div></div>';
 }
@@ -3226,7 +3276,7 @@ function renderNdr() {
   if (!N.tab || !by[N.tab]) N.tab = 'todo';
   if (N.type && !cnt(N.tab)) N.tab = (NDR_TABS.filter(function (t) { return cnt(t[0]); })[0] || ['todo'])[0];
   var obars = outboxBars();
-  var tabs = '<div class="ntabs">' + NDR_TABS.map(function (t) { var n = cnt(t[0]); return '<button data-nt="' + t[0] + '" class="' + (t[0] === N.tab ? 'on' : '') + '">' + t[1] + '<b class="num">' + n + '</b></button>'; }).join('') + '</div>';
+  var tabs = '<div class="ntabs">' + NDR_TABS.map(function (t) { var n = cnt(t[0]); return '<button data-nt="' + t[0] + '" class="' + (t[0] === N.tab ? 'on' : '') + '"><span class="nt-l">' + t[1] + '</span><b class="num">' + n + '</b></button>'; }).join('') + '</div>';
   // the courier lists (what is ready to send, Send, the cut-off) stay on top of every NDR tab (user 2026-11-02); the
   // parcels in them stay under To do → In list
   el('ncour').innerHTML = score + (obars ? '<div class="ob-top">' + obars + '</div>' : '') + tabs;
@@ -3291,6 +3341,7 @@ function renderNdr() {
   if (!html) html = '<div class="card empty"><i class="ti ti-circle-check"></i>' + (N.tab === 'todo' ? 'Nothing to do · every case is with the courier or waiting' : N.tab === 'closed' ? 'No case closed today yet' : 'No cases here') + '</div>';
   el('nlist').innerHTML = html;
   drawNextBar();
+  ackInit(); renderNdrTabsDot();
   el('nlist').querySelectorAll('[data-usub]').forEach(function (b) { b.onclick = function () { N.usub = b.getAttribute('data-usub'); N.usubPicked = true; renderNdr(); }; });
   el('nlist').querySelectorAll('[data-nsub]').forEach(function (b) { b.onclick = function () { N.sub = b.getAttribute('data-nsub'); N.subPicked = true; renderNdr(); }; });
   el('nlist').querySelectorAll('[data-ready]').forEach(function (b) { b.onclick = function () { N.readyOpen = b.getAttribute('data-ready') === '1'; renderNdr(); }; });
