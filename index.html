@@ -1194,6 +1194,9 @@ function drawSyncStatus() {
       '<div class="sx-more" hidden>' + esc(exact(j.ms)) + (j.note ? ' · ' + esc(j.note) : '') + '</div></div>';
   }).join('') + '</div>' : '<div class="card empty"><i class="ti ti-clock"></i>System times appear after the next sync (≤5 min)</div>') +
     (stale ? '<div class="sx-old"><i class="ti ti-clock"></i>Your screen is ' + ago(oldest) + ' old · tap Refresh</div>' : '') +
+    (SYNCD && SYNCD.shopBills ? '<div class="card" style="padding:12px 14px"><div class="h"><b>Shopify bills from Gmail</b><span>' + esc(SYNCD.shopBills.at) + '</span></div><small style="display:block;color:' + (SYNCD.shopBills.error ? 'var(--red)' : 'var(--muted)') + '">' +
+      (SYNCD.shopBills.error ? esc(/40[13]/.test(SYNCD.shopBills.error) ? 'Gmail not allowed yet · run authorizeShopifyBills once in the App Server script' : SYNCD.shopBills.error) : SYNCD.shopBills.added + ' new bill' + (SYNCD.shopBills.added === 1 ? '' : 's') + ' added this check · they are in Finance → Expenses (Shopify & apps)') + '</small>' +
+      ((SYNCD.shopBills.unread || []).length ? '<small style="display:block;color:var(--amber);margin-top:4px">Could not read the amount: ' + esc(SYNCD.shopBills.unread.join(' · ')) + '</small>' : '') + '</div>' : '') +
     ((SYNCD && SYNCD.courierFields) || []).map(function (c) {
       var ph = c.fields.filter(function (f) { return /img|image|photo|pic|proof|pod|sign|attach|file/i.test(f); });
       return '<div class="card" style="padding:12px 14px"><div class="h"><b>' + esc(c.courier) + ' tracking · attempt photos</b><span>' + esc(c.at) + '</span></div>' +
@@ -1563,7 +1566,7 @@ function openParcel(key, given) {
     (ndr ? card('Delivery problem', row('NDR case', esc(ndr.type)) + (ndr.outcome && ndr.outcome !== 'Not called yet' ? row('Call result', esc(ndr.outcome)) : '') + (ndr.says ? row('Customer says', esc(String(ndr.says).replace(/\s*Please reattempt again\.?\s*$/i, ''))) : '') +
       (p.attempts ? row('Delivery attempts', p.attempts) : '')) : '') +
     card('Customer', row('Name', esc(p.name)) + row('Phone', esc(phoneText(p.phone))) + row('City', esc(p.city)) + row('Address', esc(p.address))) +
-    card('Order', row('Order date', esc(p.ordered || p.date)) + (p.dispatched ? row('Shipped', esc(p.dispatched)) : '') + row('Items', esc(p.items)) +
+    card('Order', row('Order from', p.src ? esc(p.src) : '') + row('Order date', esc(p.ordered || p.date)) + (p.dispatched ? row('Shipped', esc(p.dispatched)) : '') + row('Items', esc(p.items)) +
       (!ndr && p.attempts ? row('Delivery attempts', p.attempts) : '') + (p.reason || p.lastRaw ? row('Last update', esc(p.reason || p.lastRaw)) : '')) +
     card('Money', (p.adv ? row('Order total', rs(p.total)) + row('Paid in advance', rs(p.adv) + (p.advMethod ? ' · ' + esc(p.advMethod) : '')) + row('COD to collect', p.due > 0 ? rs(p.due) : 'None (prepaid)') : row('COD', rs(p.total))) + (p.charge ? row('Courier fees', rs(p.charge) + chargeParts(p.cb)) : '') + (p.cb && (p.cb[5] + p.cb[6]) ? row('Taxes (WHT + SST)', rs(p.cb[5] + p.cb[6])) : '') +
       (cash ? row('Settlement', esc(cash.note || cash.cat)) + row(cash.returned ? 'Courier fees' : 'Net payout', rs(cash.returned ? cash.charges : cash.net)) + (cash.over ? row('Above rate card', rs(cash.over)) : '') : ''),
@@ -2936,7 +2939,7 @@ function parcelRow(p) {
   if ((p.stage === 'pending' || p.stage === 'confirmed') && can('orders.tag') && p.ref) call = '<span class="prow-acts"><button class="prow-call" type="button" data-tagref="' + esc(p.ref) + '" aria-label="Change tags"><i class="ti ti-tag"></i></button>' + call + '</span>';
   return '<div class="prow" data-p="' + esc(p.cn || p.ref) + '" style="--c:' + s[1] + '"><span class="prow-d"></span><div class="prow-m">' +
     '<div class="prow-1"><b>' + esc(p.name || p.ref) + '</b><span class="num">' + rs(p.total) + '</span></div>' +
-    '<div class="prow-2"><span>' + [esc(p.ref), esc(p.city), esc(p.courier)].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + s[1] + '">' + (STAGE_SHORT[p.stage] || s[0]) + '</span></div>' +
+    '<div class="prow-2"><span>' + [esc(p.ref) + (/^Draft/.test(p.src || '') ? ' · Draft' : ''), esc(p.city), esc(p.courier)].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + s[1] + '">' + (STAGE_SHORT[p.stage] || s[0]) + '</span></div>' +
     (issue ? '<div class="prow-3"><i class="ti ti-alert-circle"></i>' + esc(issue) + '</div>' : '') +
     // customer record while the parcel is still open (before it is delivered / returned / cancelled)
     (['delivered', 'returned', 'cancelled'].indexOf(p.stage) === -1 ? riskLine(p) : '') + '</div>' + call + '</div>';
@@ -3161,7 +3164,7 @@ function ndrCard(c, seen, inGroup) {
   else { main = '<button class="btn grow" data-rec="' + esc(c.cn) + '"><i class="ti ti-pencil"></i>Update case</button>'; side = [B.callSq, B.wa]; }
   return '<div class="nc" data-p="' + esc(c.cn) + '">' +
     '<div class="nc-h"><b>' + (seen && seen.indexOf(caseKey(c)) === -1 ? '<span class="new-dot"></span>' : '') + esc(c.ref) + ' · ' + esc(c.name) + '</b>' + (tagT ? '<span class="nc-tag t-' + (slot === 'again' && tagT !== tag[0] ? 'red' : tag[1]) + '">' + esc(tagT) + '</span>' : '') + '</div>' +
-    '<div class="nc-m">' + [esc(c.city), esc(c.courier), rs(c.cod), c.hours ? (c.hours < 48 ? c.hours + ' h' : Math.floor(c.hours / 24) + ' d') + ' in NDR' : 'new'].filter(Boolean).join(' · ') + '</div>' +
+    '<div class="nc-m">' + [esc(c.city), esc(c.courier), rs(c.cod), p && /^Draft/.test(p.src || '') ? 'Draft order' : '', c.hours ? (c.hours < 48 ? c.hours + ' h' : Math.floor(c.hours / 24) + ' d') + ' in NDR' : 'new'].filter(Boolean).join(' · ') + '</div>' +
     (items ? '<div class="nc-it">' + esc(items) + '</div>' : '') +
     (c.watch ? '<div class="nc-box"><b>' + esc(c.courier) + ':</b> ' + esc(lateText(c.type)) + '</div>' : '<div class="nc-box">' + says[0] + esc(says[1]) + '</div>') +
     (cust ? '<div class="nc-box cu"><b>Customer:</b> ' + esc(cust) + '</div>' : '') +
