@@ -420,6 +420,7 @@ body.nb-on #nlist{padding-bottom:84px}
 /* NDR (2026-11-01): tabs, score, group headers, case card, courier list bars */
 .ntabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;background:var(--line);border-radius:12px;padding:4px;margin:0 0 6px}
 .ntabs button{border:0;border-radius:9px;padding:6px 2px;font:500 12px Inter,sans-serif;background:transparent;color:var(--muted);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ob-top{margin:0 0 8px}.ob-top .obar{margin-bottom:8px}
 .nsub{display:flex;gap:6px;margin:4px 0 12px}.nsub button{flex:1 1 auto;height:36px;border-radius:99px;border:1px solid var(--line);background:var(--card);font:500 13px Inter,sans-serif;color:var(--muted);cursor:pointer;white-space:nowrap}
 .nsub button b{font-weight:600;color:var(--text);margin-left:2px}.nsub button.on{background:var(--brand);border-color:var(--brand);color:#fff}.nsub button.on b{color:#fff}
 .ntabs button b{display:block;font-size:15px;font-weight:600}.ntabs button.on{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(15,23,42,.12)}
@@ -3223,7 +3224,9 @@ function renderNdr() {
   if (N.type && !cnt(N.tab)) N.tab = (NDR_TABS.filter(function (t) { return cnt(t[0]); })[0] || ['todo'])[0];
   var obars = outboxBars();
   var tabs = '<div class="ntabs">' + NDR_TABS.map(function (t) { var n = cnt(t[0]); return '<button data-nt="' + t[0] + '" class="' + (t[0] === N.tab ? 'on' : '') + '">' + t[1] + '<b class="num">' + n + '</b></button>'; }).join('') + '</div>';
-  el('ncour').innerHTML = score + tabs;
+  // the courier lists (what is ready to send, Send, the cut-off) stay on top of every NDR tab (user 2026-11-02); the
+  // parcels in them stay under To do → In list
+  el('ncour').innerHTML = score + (obars ? '<div class="ob-top">' + obars + '</div>' : '') + tabs;
   // search: tracking ID, order #, phone (any way it is written) or name — across all tabs
   if (N.last) {
     var lt = typed.filter(function (c) { return c.attempts && triesLeft(c) <= 1 && caseType(c) !== 'premature' && caseType(c) !== 'rto' && !c.watch; })
@@ -3270,7 +3273,7 @@ function renderNdr() {
     if (subGroups && subGroups.indexOf(g[0]) === -1) return;
     var arr = (by[N.tab][g[0]] || []).slice();
     if (N.tab === 'special') arr = arr.filter(function (c) { return ucat(c) === N.usub; });
-    var bars = g[0] === 'ready' ? obars : '';
+    var bars = '';
     if (!arr.length && !bars) return;
     if (N.tab !== 'closed') arr.sort(order);
     html += (subGroups && subGroups.length === 1 ? '' : '<div class="ngh"><i class="ti ti-' + g[1] + '"></i><div><div class="ngh-t"><span>' + g[2] + '</span><em class="num">' + arr.length + '</em></div>' +
@@ -3280,7 +3283,7 @@ function renderNdr() {
           (g[0] === 'ready' && arr.length && !subGroups ? '<button class="ngh-more" type="button" data-ready="0"><i class="ti ti-chevron-up"></i>Hide the list</button>' : ''));
   });
   if (N.tab === 'special' && !/class="nc/.test(html)) html += '<div class="card empty"><i class="ti ti-circle-check"></i>' + ({ act: 'Nothing urgent to act on now', list: 'No urgent request in the courier lists', sent: 'No urgent request with the courier' })[N.usub] + '</div>';
-  if (N.tab === 'todo' && !/class="nc/.test(html) && !/obar/.test(html)) html += '<div class="card empty"><i class="ti ti-circle-check"></i>' + ({ call: 'Nobody to call right now', called: 'No called case is waiting', list: 'Nothing in the courier lists' })[N.sub] + '</div>';
+  if (N.tab === 'todo' && !/class="nc/.test(html)) html += '<div class="card empty"><i class="ti ti-circle-check"></i>' + ({ call: 'Nobody to call right now', called: 'No called case is waiting', list: 'Nothing in the courier lists' })[N.sub] + '</div>';
   if (!html) html = '<div class="card empty"><i class="ti ti-circle-check"></i>' + (N.tab === 'todo' ? 'Nothing to do · every case is with the courier or waiting' : N.tab === 'closed' ? 'No case closed today yet' : 'No cases here') + '</div>';
   el('nlist').innerHTML = html;
   drawNextBar();
@@ -3321,6 +3324,7 @@ function inOutbox(c) {
   return k || '';
 }
 el('ncour').onclick = function (e) {
+  var ob = e.target.closest('[data-ob]'); if (ob) return openOutbox(ob.getAttribute('data-ob'));
   var ns = e.target.closest('[data-ns]');
   if (ns) {
     var k = ns.getAttribute('data-ns');
