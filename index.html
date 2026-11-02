@@ -402,6 +402,7 @@ html[data-mode="dark"] .hd-tall small,html[data-mode="dark"] .hd-tall span{color
 .prow.dim{opacity:.7}.found-items{display:flex;align-items:center;gap:8px;font-size:13px;background:var(--bg);border-radius:12px;padding:9px 11px;margin:4px 0 6px}.found-items span{flex:1}.found-items i{color:var(--muted)}
 .prow.in{padding-left:0;padding-right:0}.prow.in:first-child{border-top:1px solid var(--line)}
 .prow-btn{flex:none !important;width:auto !important;padding:7px 11px;font-size:12px;align-self:center;gap:5px}
+.prow-acts{display:flex;gap:6px;flex:none}.pp-tags{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:-2px 0 10px}.pp-tags small{color:var(--muted)}.pp-tags .btn{margin-left:auto}
 .prow-call{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);color:var(--brand);margin-top:2px}[data-mode="dark"] .prow-call{color:var(--accent)}
 /* NDR (2026-11-01): tabs, score, group headers, case card, courier list bars */
 .ntabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;background:var(--line);border-radius:12px;padding:4px;margin:0 0 6px}
@@ -1457,7 +1458,9 @@ function openParcel(key, given) {
     '<div class="pp-hero">' + ppSteps(p.stage, s[1]) +
     // the amount to collect: total − advance ("Prepaid" when nothing is due on delivery)
     '<div class="pp-cod"><b class="num' + (p.adv && !(p.due > 0) ? ' pre' : '') + '">' + (p.adv ? (p.due > 0 ? rs(p.due) : '<i class="ti ti-circle-check"></i> Prepaid') : rs(p.total)) + '</b><span>' + (p.adv ? (p.due > 0 ? 'COD · ' + rs(p.adv) + ' paid in advance' : rs(p.adv) + ' paid in advance') + ' · ' : '') + (p.cn ? esc(p.courier) + ' · ' + esc(p.cn) : 'Not booked yet') + '</span></div></div>' +
-    ((p.flags || []).length ? '<div style="margin:-2px 0 10px">' + p.flags.map(function (f) { return '<span class="flag">' + esc(f) + '</span>'; }).join('') + '</div>' : '') +
+    (can('orders.tag') && p.ref ? '<div class="pp-tags">' + (tagList(p.tags).map(function (t) { return '<span class="flag">' + esc(t) + '</span>'; }).join('') || '<small>No tags</small>') +
+      '<button class="btn mini" type="button" data-tagref="' + esc(p.ref) + '"><i class="ti ti-tag"></i>Change tags</button></div>'
+    : (p.flags || []).length ? '<div style="margin:-2px 0 10px">' + p.flags.map(function (f) { return '<span class="flag">' + esc(f) + '</span>'; }).join('') + '</div>' : '') +
     histBlock(p) +
     (ndr ? card('Delivery problem', row('NDR case', esc(ndr.type)) + (ndr.outcome && ndr.outcome !== 'Not called yet' ? row('Call result', esc(ndr.outcome)) : '') + (ndr.says ? row('Customer says', esc(ndr.says)) : '') +
       (p.attempts ? row('Delivery attempts', p.attempts) : '')) : '') +
@@ -2557,6 +2560,65 @@ function riskLine(p, cls) {
 }
 // Short stage names for the one-line rows (full names stay in filters and the parcel sheet)
 var STAGE_SHORT = { pending: 'Pending', confirmed: 'Confirmed', booked: 'Booked', picked: 'Picked up', transit: 'In transit', atdest: 'At city', ofd: 'Out for delivery', ndr: 'Delivery failed', returning: 'Returning', rtoback: 'Returned', delivered: 'Delivered', returned: 'Returned', cancelled: 'Cancelled' };
+// ---------- order tags (2026-11-02, user): the store's own Shopify tags, changed here; Shopify gets them within 5 min ----------
+function tagList(s) { return String(s || '').split(',').map(function (t) { return t.trim(); }).filter(Boolean); }
+document.addEventListener('click', function (e) {
+  var b = e.target.closest('[data-tagref]'); if (!b) return;
+  e.preventDefault(); e.stopPropagation(); openOrderTags(b.getAttribute('data-tagref'));
+}, true);
+function openOrderTags(ref) {
+  el('panel').innerHTML = '<h3>Tags · ' + esc(ref) + '</h3><p>Shopify gets the change within 5 minutes</p>' + skList(3);
+  openPanel();
+  api('getAppOrderTags', [TOKEN, ref], function (d) {
+    var cur = d.tags.filter(function (t) { return !t.courier; }).map(function (t) { return t.tag; });
+    var courierTags = d.tags.filter(function (t) { return t.courier; }).map(function (t) { return t.tag; });
+    var conf = (d.tags.filter(function (t) { return t.conf; })[0] || {}).tag || '';
+    var confTags = d.conf.map(function (c) { return c.tag; });
+    if (conf && confTags.indexOf(conf) === -1) d.conf.forEach(function (c) { if (c.key === (d.tags.filter(function (t) { return t.tag === conf; })[0] || {}).conf) c.tag = conf; });
+    confTags = d.conf.map(function (c) { return c.tag; });
+    var on = {}; cur.forEach(function (t) { if (!d.tags.some(function (x) { return x.tag === t && x.conf; })) on[t] = 1; });
+    var others = d.other.slice(); Object.keys(on).forEach(function (t) { if (others.indexOf(t) === -1) others.unshift(t); });
+    var draw = function () {
+      el('tgConf').innerHTML = d.conf.map(function (c) { return '<button class="chip' + (conf === c.tag ? ' on' : '') + '" type="button" data-c="' + esc(c.tag) + '">' + esc(c.tag) + '</button>'; }).join('');
+      el('tgOther').innerHTML = others.map(function (t) { return '<button class="chip' + (on[t] ? ' on' : '') + '" type="button" data-t="' + esc(t) + '">' + esc(t) + '</button>'; }).join('') || '<small>No other tags on this store yet</small>';
+    };
+    el('panel').innerHTML = '<h3>Tags · ' + esc(ref) + '</h3><p>Same tags as Shopify · Shopify gets the change within 5 minutes</p>' +
+      '<label>Confirmation</label><div class="chips wrapc" id="tgConf"></div>' +
+      '<label style="margin-top:12px;display:block">Other tags</label><div class="chips wrapc" id="tgOther"></div>' +
+      '<div class="inrow" style="margin-top:10px"><input id="tgNew" type="text" maxlength="40" placeholder="New tag"><button class="btn" id="tgAdd" type="button">Add</button></div>' +
+      (courierTags.length ? '<small class="mnote" style="display:block;margin-top:8px">Courier tag ' + courierTags.map(esc).join(', ') + ' stays as it is.</small>' : '') +
+      '<div class="err" id="tgErr"></div><div class="btns"><button class="btn" id="tgCancel" type="button">Cancel</button><button class="btn pri" id="tgSave" type="button">Save</button></div>';
+    draw();
+    el('tgConf').onclick = function (e) { var b = e.target.closest('[data-c]'); if (!b) return; var t = b.getAttribute('data-c'); conf = conf === t ? '' : t; draw(); };
+    el('tgOther').onclick = function (e) { var b = e.target.closest('[data-t]'); if (!b) return; var t = b.getAttribute('data-t'); if (on[t]) delete on[t]; else on[t] = 1; draw(); };
+    el('tgAdd').onclick = function () {
+      var t = el('tgNew').value.replace(/[,|]/g, ' ').replace(/s+/g, ' ').trim(); if (!t) return;
+      var same = others.concat(confTags).filter(function (x) { return x.toLowerCase() === t.toLowerCase(); })[0];
+      if (same && confTags.indexOf(same) !== -1) conf = same; else { t = same || t; if (others.indexOf(t) === -1) others.unshift(t); on[t] = 1; }
+      el('tgNew').value = ''; draw();
+    };
+    el('tgNew').onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); el('tgAdd').click(); } };
+    el('tgCancel').onclick = closePanel;
+    el('tgSave').onclick = function () {
+      var want = Object.keys(on).concat(conf ? [conf] : []);
+      var add = want.filter(function (t) { return cur.indexOf(t) === -1; }), remove = cur.filter(function (t) { return want.indexOf(t) === -1; });
+      if (!add.length && !remove.length) return closePanel();
+      api('appSetOrderTags', [TOKEN, ref, add, remove], function (r) {
+        closePanel();
+        var p = findParcel(ref);
+        if (p) {
+          p.tags = (r.tags || []).join(', '); p.flags = r.flags || p.flags;
+          if (r.conf === 'Confirmed' && p.stage === 'pending') p.stage = 'confirmed';
+          else if (r.conf === 'Pending' && p.stage === 'confirmed') p.stage = 'pending';
+          else if (r.conf === 'Cancelled' && (p.stage === 'pending' || p.stage === 'confirmed')) p.stage = 'cancelled';
+          if (P.data) { snap('parcels', P.data); if (curTab === 'parcels') renderParcels(); }
+          if (!el('page').hidden && el('pgTitle').textContent === 'Parcel') openParcel(p.cn || p.ref, p);
+        }
+        toast(r.same ? 'No change' : 'Saved · Shopify updates within 5 minutes');
+      }, function (e) { el('tgErr').textContent = (e && e.message) || 'Not saved · try again'; });
+    };
+  }, function (e) { closePanel(); toast((e && e.message) || 'Could not load the tags'); });
+}
 function parcelRow(p) {
   var s = STAGE[p.stage] || ['', 'var(--line)'];
   var issue = p.stage === 'ndr' ? niceReason(p.reason || p.lastRaw) + (p.attempts ? ' · ' + p.attempts + (p.attempts > 1 ? ' attempts' : ' attempt') : '')
@@ -2564,6 +2626,7 @@ function parcelRow(p) {
     : p.stage === 'rtoback' ? 'Handed back by courier · scan it in Returns'
     : (p.flags || []).join(' · ');
   var call = (p.stage === 'ndr' || p.stage === 'pending') && p.phone ? '<a class="prow-call" href="' + telHref(p.phone) + '" aria-label="Call"><i class="ti ti-phone"></i></a>' : '';
+  if ((p.stage === 'pending' || p.stage === 'confirmed') && can('orders.tag') && p.ref) call = '<span class="prow-acts"><button class="prow-call" type="button" data-tagref="' + esc(p.ref) + '" aria-label="Change tags"><i class="ti ti-tag"></i></button>' + call + '</span>';
   return '<div class="prow" data-p="' + esc(p.cn || p.ref) + '" style="--c:' + s[1] + '"><span class="prow-d"></span><div class="prow-m">' +
     '<div class="prow-1"><b>' + esc(p.name || p.ref) + '</b><span class="num">' + rs(p.total) + '</span></div>' +
     '<div class="prow-2"><span>' + [esc(p.ref), esc(p.city), esc(p.courier)].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + s[1] + '">' + (STAGE_SHORT[p.stage] || s[0]) + '</span></div>' +
@@ -3374,6 +3437,7 @@ function openNdrForm(cn, afterCall) {
       (c.attempts && !c.watch ? fact('hourglass', left <= 1 ? 'var(--red)' : 'var(--muted)', '', '<span style="color:' + (left <= 1 ? 'var(--red)' : 'var(--muted)') + '">' +
         (left <= 0 ? 'No tries left · ' + esc(cour) + ' may return it now' : left === 1 ? 'Last try left · ' + esc(cour) + ' returns it after attempt ' + ndrMax() : left + ' tries left') + '</span>') : '') +
       (calls ? fact('phone', 'var(--muted)', '', calls + (calls === 1 ? ' call' : ' calls') + ' before' + (c.lastCall ? ' · last ' + esc(c.lastCall) : '')) : '') +
+      '<button class="btn" type="button" id="fFull" style="width:100%;margin-top:6px"><i class="ti ti-file-description"></i>Full details · order, dates, tracking</button>' +
     '</div>' +
     '<div class="ac-q">What happened on the call?</div><div class="ac-grid" id="fAns">' + NDR_ANS.map(function (a) {
       return '<button type="button" class="ac-t" data-a="' + a[0] + '"><i class="ti ti-' + a[1] + '" style="color:' + a[4] + '"></i><span><b>' + a[2] + '</b><small>' + a[3] + '</small></span>' +
@@ -3424,6 +3488,7 @@ function openNdrForm(cn, afterCall) {
   el('fDate').onchange = function () { st.day = el('fDate').value; on('fDay', st.day === addDays(today, 1) || st.day === addDays(today, 2) ? st.day : 'pick'); draw(); };
   ['fNote', 'fNewAddr', 'fNewPhone', 'fNotes'].forEach(function (id) { el(id).oninput = function () { el('fErr').textContent = ''; draw(); }; });
   if (el('fCopy')) el('fCopy').onclick = function () { try { navigator.clipboard.writeText(addr); toast('Address copied'); } catch (e) {} };
+  el('fFull').onclick = function () { openParcel(c.cn); }; // the parcel page opens above; Back returns here
   el('fNoteBtn').onclick = function () { el('dNotes').hidden = false; el('fNoteBtn').hidden = true; el('fNotes').focus(); };
   if (c.notes) el('fNoteBtn').hidden = true;
   el('fPhr').onclick = function (e) {
@@ -3553,10 +3618,13 @@ function openNdrForm(cn, afterCall) {
 // the next case to call, in a small sheet: tap Call → the phone dials → back in the app the after-call window opens
 function openNextCall(c) {
   if (!c || !N.data.cases.some(function (x) { return x.cn === c.cn; })) return;
-  var left = triesLeft(c);
+  var left = triesLeft(c), pp = findParcel(c.cn) || {}, item = String(c.items || pp.items || '').split(/\n|;/).filter(Boolean)[0] || '';
   el('panel').innerHTML = '<h3>Next call</h3><p>' + esc(c.ref) + ' · ' + esc(c.name) + ' · ' + [esc(c.city), esc(c.courier), rs(c.cod)].join(' · ') + '</p>' +
     '<div class="nc-box" style="margin:0"><b>' + esc(c.courier) + ':</b> ' + esc(niceReason(c.reason || c.courierStatus) || 'Delivery failed') + (c.attempts ? ' · attempt ' + c.attempts : '') + '</div>' +
     (c.attempts ? '<div class="nc-ln" style="color:' + (left <= 1 ? 'var(--red)' : 'var(--muted)') + '"><i class="ti ti-hourglass"></i>' + (left <= 0 ? 'No tries left' : left === 1 ? 'Last try left' : left + ' tries left') + '</div>' : '') +
+    (item ? '<div class="nc-ln"><i class="ti ti-package"></i>' + esc(item) + '</div>' : '') +
+    (pp.dispatched || pp.ordered ? '<div class="nc-ln"><i class="ti ti-truck"></i>' + (pp.dispatched ? 'Shipped ' + esc(pp.dispatched) : 'Ordered ' + esc(pp.ordered)) + '</div>' : '') +
+    '<button class="btn" id="ncFull" type="button" style="width:100%;margin-top:8px"><i class="ti ti-file-description"></i>Full details</button>' +
     '<div class="nc-act" style="border:0;padding-top:4px"><a class="btn pri grow" id="ncGo" data-call="' + esc(c.cn) + '" href="' + telHref(c.phone) + '"><i class="ti ti-phone"></i>Call ' + esc(String(c.name || '').split(' ')[0]) + '</a>' +
     (c.wa ? '<a class="btn sq wa" target="_blank" href="' + waLink(c.wa, '') + '" aria-label="WhatsApp"><i class="ti ti-brand-whatsapp"></i></a>' : '') +
     '<button class="btn" id="ncSkip" style="flex:none;padding:0 14px">Not now</button></div>';
@@ -3564,6 +3632,8 @@ function openNextCall(c) {
   // the sheet must be closed when the call starts, or the after-call window will not open on return
   el('ncGo').onclick = function () { setTimeout(closePanel, 0); };
   el('ncSkip').onclick = closePanel;
+  // the whole parcel (order, items, address, dates, courier timeline) on its page; Back returns to this sheet
+  el('ncFull').onclick = function () { openParcel(c.cn); };
 }
 
 // ---------- Cash ----------
