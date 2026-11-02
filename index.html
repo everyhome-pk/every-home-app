@@ -331,6 +331,12 @@ html[data-mode="dark"] .hd-tall small,html[data-mode="dark"] .hd-tall span{color
 .pay .d{flex:1;min-width:0}.pay .d b{font-size:13px;font-weight:600;display:block}.pay .d small{font-size:12px;color:var(--muted)}
 .pill{font-size:11px;font-weight:600;padding:3px 8px;border-radius:99px}
 .p-ok{background:var(--green-bg);color:var(--green)}.p-no{background:var(--red-bg);color:var(--red)}
+.nextbar{position:fixed;left:10px;right:10px;bottom:calc(74px + env(safe-area-inset-bottom));z-index:21;display:flex;align-items:center;gap:10px;background:var(--card);border-radius:16px;padding:10px 10px 10px 14px;box-shadow:0 8px 28px rgba(2,6,23,.18);border:1px solid var(--line);animation:nbIn .2s ease}
+@keyframes nbIn{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
+.nb-t{flex:1;min-width:0;cursor:pointer}.nb-t u{text-decoration:none;color:var(--muted);font-weight:500;text-transform:none;letter-spacing:0}.nb-t small{display:block;font-size:11px;color:var(--brand);font-weight:600;text-transform:uppercase;letter-spacing:.4px}.nb-t b{display:block;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.nb-t span{display:block;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.nb-on #nlist{padding-bottom:84px}
+.nextbar .btn{flex:none;height:40px;padding:0 16px}.nb-x{flex:none;width:34px;height:34px;border-radius:50%;border:0;background:var(--bg);color:var(--muted);cursor:pointer;display:grid;place-items:center}
+@media (min-width:1024px){.nextbar{left:auto;right:24px;bottom:24px;width:420px}}
 .nav{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--card) 94%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--line);box-shadow:0 -4px 18px rgba(2,6,23,.05);padding:7px 0 calc(7px + env(safe-area-inset-bottom));z-index:10}
 .nav div{max-width:460px;margin:0 auto;display:flex}
 .nav>div:not(.dr-panel)>button{flex:1;border:0;background:none;color:var(--muted);font:500 11px Inter,sans-serif;letter-spacing:.1px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;position:relative;-webkit-tap-highlight-color:transparent}
@@ -493,6 +499,8 @@ html[data-mode="dark"] .hd-tall small,html[data-mode="dark"] .hd-tall span{color
 .tl-i:last-child:before{display:none}
 .tl-d{width:12px;height:12px;border-radius:50%;background:var(--line);margin-top:3px;flex:none;position:relative;z-index:1}
 .tl-i:first-child .tl-d{background:var(--brand)}
+.tl-pf{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}.tl-pf a{display:block;width:84px;border-radius:10px;overflow:hidden;border:1px solid var(--line);text-decoration:none;color:var(--brand);font-size:11.5px;font-weight:600;background:var(--bg)}
+.tl-pf img{display:block;width:84px;height:84px;object-fit:cover}.tl-pf span{display:block;padding:4px 6px}.tl-pf a.nf{width:auto;padding:6px 10px}.tl-pf a.nf span{padding:0}.tl-pf a.nf span:before{content:"\1F4F7 "}
 .tl-i b{font-size:12.5px;font-weight:600;display:block}.tl-i small{font-size:11.5px;color:var(--muted)}
 .more{display:block;width:100%;margin:6px 0 10px}
 .prio{font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px}
@@ -796,6 +804,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   </section>
 </div>
 
+<div class="nextbar" id="nextbar" hidden></div>
 <div class="nav"><div>
   <button class="on" data-tab="home"><span class="nv-i"><i class="ti ti-home-2"></i></span>Home</button>
   <button data-tab="parcels"><span class="nv-i"><i class="ti ti-package"></i></span>Parcels</button>
@@ -1184,7 +1193,13 @@ function drawSyncStatus() {
       '<i class="sx-bar"><u style="width:' + (st ? 100 : fill) + '%"></u></i>' +
       '<div class="sx-more" hidden>' + esc(exact(j.ms)) + (j.note ? ' · ' + esc(j.note) : '') + '</div></div>';
   }).join('') + '</div>' : '<div class="card empty"><i class="ti ti-clock"></i>System times appear after the next sync (≤5 min)</div>') +
-    (stale ? '<div class="sx-old"><i class="ti ti-clock"></i>Your screen is ' + ago(oldest) + ' old · tap Refresh</div>' : '');
+    (stale ? '<div class="sx-old"><i class="ti ti-clock"></i>Your screen is ' + ago(oldest) + ' old · tap Refresh</div>' : '') +
+    ((SYNCD && SYNCD.courierFields) || []).map(function (c) {
+      var ph = c.fields.filter(function (f) { return /img|image|photo|pic|proof|pod|sign|attach|file/i.test(f); });
+      return '<div class="card" style="padding:12px 14px"><div class="h"><b>' + esc(c.courier) + ' tracking · attempt photos</b><span>' + esc(c.at) + '</span></div>' +
+        '<small style="display:block;color:' + (ph.length ? 'var(--green)' : 'var(--muted)') + '">' + (ph.length ? 'Photo fields: ' + esc(ph.join(', ')) : 'No photo field in ' + esc(c.courier) + '\'s tracking answer') + '</small>' +
+        '<details style="margin-top:6px"><summary style="font-size:12px;color:var(--muted);cursor:pointer">All ' + c.fields.length + ' fields it sends</summary><small style="display:block;color:var(--muted);word-break:break-word;margin-top:4px">' + esc(c.fields.join(' · ')) + '</small></details></div>';
+    }).join('');
   box.querySelectorAll('[data-sx]').forEach(function (r) { r.onclick = function () { var m = r.querySelector('.sx-more'); m.hidden = !m.hidden; }; });
 }
 el('upd').onclick = function () { if (TOKEN) openSyncStatus(); };
@@ -1244,6 +1259,7 @@ function showTab(t, fromBack) {
   if (el('drawer').classList.contains('show')) closeDrawer(); // a sheet from the menu led to a tab
   if (!fromBack && t !== curTab) navPush(t);
   curTab = t;
+  if (typeof drawNextBar === 'function') drawNextBar();
   document.querySelectorAll('.nav>div:not(.dr-panel)>button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-tab') === t); });
   Object.keys(TABS).forEach(function (k) { el(TABS[k]).hidden = k !== t; });
   window.scrollTo(0, 0);
@@ -1302,7 +1318,7 @@ function openTrack(cn) {
   api('getAppParcelTimeline', [cn, TOKEN], function (ev) {
     if (!el('tlbox')) return;
     el('tlbox').innerHTML = '<div class="tl">' + (ev.length ? ev.map(function (x) {
-      return '<div class="tl-i"><div class="tl-d"></div><div><b>' + esc(x.status) + '</b><small>' + esc(x.when) + (x.place ? ' · ' + esc(x.place) : '') + (x.note ? ' · ' + esc(x.note) : '') + '</small></div></div>';
+      return '<div class="tl-i"><div class="tl-d"></div><div><b>' + esc(x.status) + '</b><small>' + esc(x.when) + (x.place ? ' · ' + esc(x.place) : '') + (x.note ? ' · ' + esc(x.note) : '') + '</small>' + tlProof(x.proof) + '</div></div>';
     }).join('') : '<small style="color:var(--muted)">No courier scans yet</small>') + '</div>';
   });
 }
@@ -1510,6 +1526,14 @@ function ppSteps(stage, color) {
     return '<div class="pp-step' + (i <= at ? ' done' : '') + (i === at ? ' now' : '') + '"><i></i>' + s + '</div>';
   }).join('') + '</div>';
 }
+// courier attempt / delivery photos on a tracking scan
+function tlProof(list) {
+  if (!list || !list.length) return '';
+  return '<div class="tl-pf">' + list.map(function (u) {
+    return /^https:/i.test(u) ? '<a href="' + esc(u) + '" target="_blank" rel="noopener"><img src="' + esc(u) + '" alt="Courier proof" loading="lazy" onerror="this.parentNode.classList.add(\'nf\');this.remove()"><span>Proof photo</span></a>'
+      : '<a href="' + esc(u) + '" target="_blank" rel="noopener" class="nf"><span>Proof photo</span></a>';
+  }).join('') + '</div>';
+}
 function openParcel(key, given) {
   markRow(key);
   var p = given || findParcel(key);
@@ -1574,6 +1598,8 @@ function openParcel(key, given) {
   } else if (p.cn) {
     api('getAppParcelTimeline', [p.cn, TOKEN], function (ev) { if (!live) drawTl(ev, '<i class="ti ti-loader-2 spin"></i>Checking ' + esc(p.courier || 'courier') + ' for the latest…'); });
     api('appLiveTrack', [TOKEN, p.cn, p.courier], function (r) {
+      // a photo sent on the parcel itself goes with the newest attempt / delivery scan
+      if (r && r.ok && r.proof && r.proof.length) { var hit = (r.events || []).filter(function (x) { return /attempt|deliver|refus|pending|unsuccess/i.test(x.status + ' ' + x.note); })[0] || r.events[0]; if (hit) hit.proof = (hit.proof || []).concat(r.proof.filter(function (u) { return (hit.proof || []).indexOf(u) === -1; })); }
       if (r && r.ok) { live = true; drawTl(r.events, '<i class="ti ti-broadcast"></i>Live from ' + esc(r.courier) + ' · ' + esc(r.at)); }
       else if (el('pdtl')) { var s = el('pdtl').querySelector('.tl-src'); if (s) s.innerHTML = '<i class="ti ti-clock"></i>Saved tracking (updates every 15 min)'; }
     }, function () { if (el('pdtl')) { var s = el('pdtl').querySelector('.tl-src'); if (s) s.innerHTML = '<i class="ti ti-clock"></i>Saved tracking (updates every 15 min)'; } });
@@ -3254,6 +3280,7 @@ function renderNdr() {
   if (N.tab === 'todo' && !/class="nc/.test(html) && !/obar/.test(html)) html += '<div class="card empty"><i class="ti ti-circle-check"></i>' + ({ call: 'Nobody to call right now', called: 'No called case is waiting', list: 'Nothing in the courier lists' })[N.sub] + '</div>';
   if (!html) html = '<div class="card empty"><i class="ti ti-circle-check"></i>' + (N.tab === 'todo' ? 'Nothing to do · every case is with the courier or waiting' : N.tab === 'closed' ? 'No case closed today yet' : 'No cases here') + '</div>';
   el('nlist').innerHTML = html;
+  drawNextBar();
   el('nlist').querySelectorAll('[data-usub]').forEach(function (b) { b.onclick = function () { N.usub = b.getAttribute('data-usub'); N.usubPicked = true; renderNdr(); }; });
   el('nlist').querySelectorAll('[data-nsub]').forEach(function (b) { b.onclick = function () { N.sub = b.getAttribute('data-nsub'); N.subPicked = true; renderNdr(); }; });
   el('nlist').querySelectorAll('[data-ready]').forEach(function (b) { b.onclick = function () { N.readyOpen = b.getAttribute('data-ready') === '1'; renderNdr(); }; });
@@ -3802,7 +3829,7 @@ function openNdrForm(cn, afterCall) {
     '<button class="ac-note" id="fNoteBtn" type="button"><i class="ti ti-pencil"></i><span>' + (c.notes ? 'Internal note' : 'Add internal note') + '</span><small>not sent</small></button>' +
     '<div class="ac-box" id="dNotes"' + (c.notes ? '' : ' hidden') + '><label>Internal note (not sent)</label><textarea id="fNotes" rows="2">' + esc(c.notes) + '</textarea></div>' +
     '<div class="err" id="fErr"></div>' +
-    '<div class="ac-bar"><label class="ac-next"><span>Then open the next call<b id="fNextN"></b></span><input type="checkbox" id="fNext"' + (store('eh_nextcall') === '0' ? '' : ' checked') + '></label>' +
+    '<div class="ac-bar"><label class="ac-next"><span>Then show the next call<b id="fNextN"></b></span><input type="checkbox" id="fNext"' + (store('eh_nextcall') === '0' ? '' : ' checked') + '></label>' +
       '<div class="ac-btns"><button class="btn" id="fSaveOnly" type="button" hidden>Save only</button><button class="btn pri" id="fGo" type="button" disabled>Pick what happened</button></div></div>';
   openPanel(true);
 
@@ -3947,13 +3974,32 @@ function openNdrForm(cn, afterCall) {
       Object.assign(c, JSON.parse(keep)); renderNdr(); updateBadge();
       toast('Not saved: ' + ((e && e.message) || 'try again'));
     });
-    if (goNext) setTimeout(function () { openNextCall(goNext); }, 350);
+    if (goNext) setTimeout(function () { showNextBar(goNext); }, 350);
   };
   el('fGo').onclick = function () { var a = st.ans; save(a === 'deliver' || a === 'address' || a === 'other', a === 'refuse'); };
   el('fSaveOnly').onclick = function () { save(false, false); };
   el('fRet').onclick = function () { save(false, true); };
 }
 // the next case to call, in a small sheet: tap Call → the phone dials → back in the app the after-call window opens
+// Next call (user 2026-11-02, choice 1: no popup): a slim bar above the bottom bar — the next case, Call, ✕. It never
+// blocks the list (like Aircall / Kixie's next-up line); it goes on ✕, on Call (the after-call window opens on return),
+// when that case leaves To call, or outside the NDR tab.
+var NEXT_CN = '';
+function showNextBar(c) { NEXT_CN = c ? c.cn : ''; drawNextBar(); }
+function drawNextBar() {
+  var bar = el('nextbar'); if (!bar) return;
+  setTimeout(function () { document.body.classList.toggle('nb-on', !bar.hidden); }, 0); // room under the list for the bar
+  var c = NEXT_CN && N.data && N.data.cases.filter(function (x) { return x.cn === NEXT_CN; })[0];
+  var g = c && ndrSlot(c)[1];
+  if (!c || !(g === 'new' || g === 'again') || curTab !== 'ndr' || !c.phone) { bar.hidden = true; if (c === undefined || (c && !(g === 'new' || g === 'again'))) NEXT_CN = ''; return; }
+  var left = triesLeft(c);
+  // tap the text: the whole parcel (order, items, address, dates, tracking) opens; Back returns here
+  bar.innerHTML = '<div class="nb-t" data-p="' + esc(c.cn) + '" role="button" title="Open the parcel"><small>Next call · <u>details ›</u></small><b>' + esc(c.ref) + ' · ' + esc(c.name) + '</b><span>' + [esc(c.city), esc(c.courier), c.attempts ? (left <= 0 ? 'no tries left' : left === 1 ? 'last try' : left + ' tries left') : ''].filter(Boolean).join(' · ') + '</span></div>' +
+    '<a class="btn pri" data-call="' + esc(c.cn) + '" href="' + telHref(c.phone) + '" id="nbCall"><i class="ti ti-phone"></i>Call</a><button class="nb-x" id="nbX" type="button" aria-label="Not now"><i class="ti ti-x"></i></button>';
+  bar.hidden = false;
+  el('nbCall').onclick = function () { NEXT_CN = ''; setTimeout(function () { bar.hidden = true; }, 0); };
+  el('nbX').onclick = function () { NEXT_CN = ''; bar.hidden = true; };
+}
 function openNextCall(c) {
   if (!c || !N.data.cases.some(function (x) { return x.cn === c.cn; })) return;
   var left = triesLeft(c), pp = findParcel(c.cn) || {}, item = String(c.items || pp.items || '').split(/\n|;/).filter(Boolean)[0] || '';
