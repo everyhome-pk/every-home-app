@@ -1079,18 +1079,25 @@ function loadSync() {
   }, function () {});
 }
 function openSyncStatus() {
-  el('panel').innerHTML = '<h3>Data status</h3><p>Last run · how often</p><div id="syncBox"></div>' +
+  el('panel').innerHTML = '<h3>Data status</h3><p>The system updates by itself every 5 min · Refresh brings the newest to this phone</p><div id="syncBox"></div>' +
     '<div class="btns" style="margin-top:10px"><button class="btn" id="sxClose">Close</button><button class="btn pri" id="sxRefresh"><i class="ti ti-refresh"></i>Refresh</button></div>';
   openPanel();
   drawSyncStatus();
   el('sxClose').onclick = closePanel;
+  // user 2026-11-02: it worked but showed nothing → a turning circle until the answer, then "Refreshed · time"
   el('sxRefresh').onclick = function () {
+    var b = el('sxRefresh'); if (b.classList.contains('wait')) return;
+    b.classList.add('wait');
     if (can('home.view')) loadHome(true);
     if (can('ndr.view')) loadNdr(true);
     if (can('parcels.view')) loadParcels(true);
     if (can('returns.view')) loadReturns(true);
     if (can('cash.view')) loadCash(true);
-    loadSync();
+    api('getAppSyncStatus', [TOKEN], function (d) {
+      SYNCD = d; greet(); drawSyncWarn(); drawSyncStatus();
+      if (el('sxRefresh')) el('sxRefresh').classList.remove('wait');
+      toast('Refreshed · ' + new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Karachi', hour: 'numeric', minute: '2-digit' }).format(new Date()));
+    }, function () { if (el('sxRefresh')) el('sxRefresh').classList.remove('wait'); toast('Could not refresh · check internet'); });
   };
   loadSync();
 }
@@ -2838,8 +2845,8 @@ function renderNdr() {
     var s = N.data.couriers[name];
     var sp = sheetPending(name);
     return '<button class="cs-line" data-cour="' + esc(name) + '"><b>' + esc(name) + '</b><span>' + s.open + ' open · ' + s.replied + ' replied' + (s.notActed ? ' · <i class="down">' + s.notActed + ' no action</i>' : '') + '</span><i class="ti ti-chevron-right"></i></button>' +
-      (sp.n && s.link && can('ndr.work') ? '<div class="sh-rem' + (sp.late ? ' late' : '') + '"><span><i class="ti ti-table"></i>On the sheet: ' + sp.n + (sp.late ? ' · ' + sp.late + ' over 24 h' : '') + '</span>' +
-        '<a class="btn mini wa" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(sheetReminderText(name, sp)) + '"><i class="ti ti-brand-whatsapp"></i>Remind</a></div>' : '');
+      (sp.n && s.link && can('ndr.work') ? '<div class="sh-rem' + (sp.untouched ? ' late' : '') + '"><span><i class="ti ti-table"></i>On the sheet: ' + sp.n + (sp.untouched ? ' · ' + sp.untouched + ' without update' : ' · all answered') + '</span>' +
+        (sp.untouched ? '<a class="btn mini wa" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(sheetReminderText(name)) + '"><i class="ti ti-brand-whatsapp"></i>Remind</a>' : '') + '</div>' : '');
   }).join('') + '</div>' : '';
   NDR_GH[N.tab].forEach(function (g) {
     var arr = (by[N.tab][g[0]] || []).slice();
@@ -3060,23 +3067,51 @@ function courierSheetLink(name, kind) {
   var s = (N.data.couriers || {})[name] || {}, g = s.tabs && s.tabs[kind || 'reattempt'];
   return s.link ? s.link + (g != null ? '#gid=' + g : '') : '';
 }
-// WhatsApp text that points the courier's group to their sheet
-function sheetShareText(name, kind, n) {
-  return '*' + STORE + ' · Sheet update*\n' + name + ' · ' + n + ' new request' + (n > 1 ? 's' : '') + ' on your sheet\n' + courierSheetLink(name, kind) +
-    '\nStatus aur jawab sheet mein likh dein, kaam ho jaye to Done tick karein.\nShukriya · ' + STORE;
+// The courier group's message about their sheet (user 2026-11-02): title, "Open queries: n", one bold block per tab with a
+// list by date (today, the day before, "<date> ya pehle"), the sheet link and one line of what to do; no icons, no times.
+// reminder = only the queries the courier has not touched yet ("Update nahi aaya"). extra = {kind, n} just sent (today).
+var SHEET_TABS = [['deliver', 'Reattempt'], ['return', 'Mark for Return'], ['claim', 'Return Claim']];
+function sheetTabOf(type) { return type === 'return' ? 'return' : type === 'claim' ? 'claim' : 'deliver'; }
+function sheetCounts(name, reminder, extra) {
+  var tk = ((N.data.couriers || {})[name] || {}).tickets || {}, c = { deliver: [], return: [], claim: [] };
+  Object.keys(tk).forEach(function (cn) {
+    var t = tk[cn];
+    if (!/Sheet/.test(t.channel || '') || /Done/.test(t.result || '')) return;
+    if (reminder && (t.status || t.reply || t.cBy)) return;
+    c[sheetTabOf(t.type)].push(t.sentMs || Date.now());
+  });
+  if (extra && extra.n) for (var i = 0; i < extra.n; i++) c[sheetTabOf(extra.kind)].push(Date.now());
+  return c;
 }
-// requests waiting on a courier's sheet: how many, how many 24 h+ (open tickets sent by sheet)
+function sheetMessage(name, reminder, extra) {
+  var c = sheetCounts(name, reminder, extra), today = pkDay(new Date()), yest = addDays(today, -1), older = addDays(today, -2);
+  var head = '*' + STORE + ' → ' + name + (reminder ? ' · Reminder' : '') + ' · ' + niceDay(today) + '*';
+  var total = c.deliver.length + c.return.length + c.claim.length;
+  if (!total) return head + '\n' + (reminder ? 'Sab queries par update aa gaya.' : 'Koi open query nahi.') + '\nShukriya · ' + STORE;
+  var blocks = SHEET_TABS.filter(function (t) { return c[t[0]].length; }).map(function (t) {
+    var d = { a: 0, b: 0, c: 0 };
+    c[t[0]].forEach(function (ms) { var day = pkDay(new Date(ms)); if (day >= today) d.a++; else if (day === yest) d.b++; else d.c++; });
+    return '*' + t[1] + ' · ' + c[t[0]].length + '*' + (d.a ? '\n- ' + niceDay(today) + ': ' + d.a : '') + (d.b ? '\n- ' + niceDay(yest) + ': ' + d.b : '') + (d.c ? '\n- ' + niceDay(older) + ' ya pehle: ' + d.c : '');
+  });
+  return head + '\n' + (reminder ? 'Update nahi aaya: ' : 'Open queries: ') + total + '\n\n' + blocks.join('\n\n') + '\n\n' + courierSheetLink(name, 'deliver') + '\n' +
+    (reminder ? 'In queries ko jaldi solve kar ke status update karein' : 'Har query solve kar ke status update karein') + ' aur sheet mein apna naam zaroor likhein.\nShukriya · ' + STORE;
+}
+function sheetShareText(name, kind, n) { return sheetMessage(name, false, { kind: kind, n: n }); }
+// requests waiting on a courier's sheet: all, and the ones the courier has not touched yet (for Remind)
 function sheetPending(name) {
-  var tk = ((N.data.couriers || {})[name] || {}).tickets || {}, n = 0, late = 0;
-  Object.keys(tk).forEach(function (cn) { var t = tk[cn]; if (!/Sheet/.test(t.channel || '') || /Done/.test(t.result || '')) return; n++; if (t.sentMs && Date.now() - t.sentMs >= 86400000) late++; });
-  return { n: n, late: late };
+  var c = sheetCounts(name, false), r = sheetCounts(name, true);
+  return { n: c.deliver.length + c.return.length + c.claim.length, untouched: r.deliver.length + r.return.length + r.claim.length };
 }
-// a short nudge for the courier's WhatsApp group: the count + the sheet link, never the whole list again
-function sheetReminderText(name, s) {
-  var day = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Karachi', day: 'numeric', month: 'short' }).format(new Date());
-  return '*' + STORE + ' · Sheet reminder*\n' + name + ' · ' + day + ' · ' + s.n + ' parcel' + (s.n > 1 ? 's' : '') + ' pending\n' +
-    (s.late ? s.late + ' parcel' + (s.late > 1 ? 's' : '') + ' 24 ghante se zyada se pending hain.\n' : '') +
-    'Sheet check kar ke status likh dein:\n' + courierSheetLink(name, 'deliver') + '\nShukriya · ' + STORE;
+function sheetReminderText(name) { return sheetMessage(name, true); }
+// from the 11 AM / 4 PM notification (./?remind=<courier>): the reminder ready, one tap to WhatsApp
+function openSheetRemind(name) {
+  if (!N.data) { loadNdr(); return setTimeout(function () { if (N.data) openSheetRemind(name); }, 4000); }
+  var txt = sheetReminderText(name), sp = sheetPending(name);
+  el('panel').innerHTML = '<h3>' + esc(name) + ' sheet</h3><p>' + sp.untouched + ' of ' + sp.n + ' queries without an update</p>' +
+    '<div class="msgprev"><small>Reminder for the ' + esc(name) + ' group</small><div style="white-space:pre-line">' + esc(txt.replace(/\*/g, '')) + '</div></div>' +
+    (sp.untouched ? '<a class="btn wa" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(txt) + '" style="width:100%;margin:10px 0 8px"><i class="ti ti-brand-whatsapp"></i>Send in ' + esc(name) + ' group</a>' : '') +
+    '<a class="btn" target="_blank" href="' + esc(courierSheetLink(name, 'deliver')) + '" style="width:100%"><i class="ti ti-table"></i>Open ' + esc(name) + ' sheet</a>';
+  openPanel();
 }
 // After "Send by Sheet": optional — share the link in the courier's WhatsApp group, or open the sheet
 function sheetSent(name, kind, n) {
@@ -5914,6 +5949,8 @@ function start() {
   // Opened from a notification: ?tab=ndr / returns / parcels
   var qs = new URLSearchParams(location.search), qt = qs.get('tab'), qp = qs.get('p'), qb = qs.get('brief');
   if (qb) setTimeout(function () { showTab('home'); openBrief(/^\d{4}-\d{2}-\d{2}$/.test(qb) ? qb : '', null); }, 600);
+  var qrm = qs.get('remind');
+  if (qrm && can('ndr.work')) setTimeout(function () { showTab('ndr'); openSheetRemind(qrm); }, 700);
   var qsy = qs.get('sync'), qpay = qs.get('pay'), qst = qs.get('stock'), qfin = qs.get('fin'), qacct = qs.get('acct'), qpur = qs.get('pur'), qads = qs.get('ads'), qteam = qs.get('team'), qchg = qs.get('charge');
   if (qfin && (can('finance.add') || can('finance.approve'))) setTimeout(function () { openExpenses(''); }, 600);
   if (qacct && can('finance.view')) setTimeout(openAccounts, 600);
