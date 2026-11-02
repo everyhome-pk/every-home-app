@@ -5029,8 +5029,8 @@ function fnRow(x, act) {
   var st = x.status === 'Pending' ? ['Pending', 'var(--amber)'] : x.status === 'Rejected' ? ['Rejected', 'var(--red)'] : ['', 'var(--line)'];
   var sign = x.type === 'Income' || x.type === 'Capital' ? '+' : '';
   return '<div class="prow" style="cursor:default;--c:' + st[1] + '"><span class="prow-d"></span><div class="prow-m">' +
-    '<div class="prow-1"><b>' + (x.receipt ? '<i class="ti ti-paperclip" data-rcpt="' + esc(x.id) + '" style="cursor:pointer;color:var(--brand)" aria-label="Receipt"></i> ' : '') + esc(x.desc) + '</b><span class="num">' + sign + rs(x.amount) + '</span></div>' +
-    '<div class="prow-2"><span>' + esc([x.date.slice(5), x.type === 'Expense' ? x.cat : x.type + ' · ' + x.cat, x.from === 'Own pocket' ? 'paid by ' + (x.by || x.enteredBy) : x.from, x.status === 'Pending' ? 'by ' + x.enteredBy : ''].filter(Boolean).join(' · ')) + '</span>' +
+    '<div class="prow-1"><b>' + (x.receipt ? '<i class="ti ti-paperclip" data-rcpt="' + esc(x.id) + '" style="cursor:pointer;color:var(--brand)" aria-label="Receipt"></i> ' : '') + esc(x.desc.replace(/ · \$[\d.,]+$/, '')) + '</b><span class="num">' + sign + (x.usd ? '$' + x.usd.toFixed(2) : rs(x.amount)) + '</span></div>' +
+    '<div class="prow-2"><span>' + esc([x.date.slice(5), x.usd ? rs(x.amount) + ' at Rs ' + Math.round(x.amount / x.usd) + '/$' : '', x.type === 'Expense' ? x.cat : x.type + ' · ' + x.cat, x.from === 'Own pocket' ? 'paid by ' + (x.by || x.enteredBy) : x.from, x.status === 'Pending' ? 'by ' + x.enteredBy : ''].filter(Boolean).join(' · ')) + '</span>' +
     (st[0] ? '<span class="st" style="--c:' + st[1] + '">' + st[0] + '</span>' : '') + '</div>' + (act || '') + '</div></div>';
 }
 function renderExpenses() {
