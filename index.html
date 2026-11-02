@@ -298,7 +298,14 @@ body{overscroll-behavior-y:contain}
 .hd-th{display:flex;justify-content:space-between;align-items:center}.hd-th b{font-size:15px;font-weight:500}.hd-rg{display:flex;align-items:center;gap:4px;border:1px solid var(--line);background:var(--card);border-radius:99px;height:30px;padding:0 10px;font:500 12px Inter,sans-serif;color:var(--text);cursor:pointer}.hd-rg i{font-size:14px;color:var(--muted)}
 .hd-chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 6px}
 .hd-tv{display:flex;align-items:baseline;gap:8px}.hd-tv b{font-size:20px;font-weight:500}.hd-tv span{font-size:12px;color:var(--muted)}
-.hd-trend svg{display:block;width:100%;height:auto;margin-top:6px}.hd-trend text{font-size:9px;fill:var(--faint);font-family:Inter,sans-serif}
+.hd-trend{position:relative}.hd-plot{position:relative;margin-top:8px}.hd-trend svg{display:block;max-width:100%;overflow:visible}.hd-trend text{font-size:10.5px;fill:var(--faint);font-family:Inter,sans-serif}
+.hd-gl{stroke:var(--line);stroke-width:1}.hd-zero{stroke:var(--muted);stroke-width:1;opacity:.5}.hd-ln{fill:none;stroke:var(--brand);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}.hd-pl{fill:none;stroke:var(--faint);stroke-width:1.6;stroke-dasharray:4 4;opacity:.8}
+.hd-dot{fill:var(--brand);stroke:var(--card);stroke-width:2}.hd-dot.open{fill:var(--card);stroke:var(--brand)}.hd-cur{stroke:var(--faint);stroke-dasharray:3 3}
+.hd-seg{display:flex;background:var(--bg);border-radius:12px;padding:3px;margin:12px 0 12px;gap:2px}.hd-seg button{flex:1 1 auto;border:0;background:none;height:30px;border-radius:9px;font:500 12.5px Inter,sans-serif;color:var(--muted);cursor:pointer;white-space:nowrap;padding:0 4px}.hd-seg button.on{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(2,6,23,.12)}
+.hd-cmp{display:flex;align-items:center;gap:6px;margin-top:4px}.hd-dl{font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--bg);color:var(--muted)}.hd-dl.up{color:var(--green);background:color-mix(in srgb,var(--green) 12%,transparent)}.hd-dl.down{color:var(--red);background:color-mix(in srgb,var(--red) 12%,transparent)}.hd-vs{font-size:12px;color:var(--muted)}
+.hd-tip{position:absolute;top:0;pointer-events:none;background:var(--text);color:var(--card);border-radius:10px;padding:7px 10px;line-height:1.35;white-space:nowrap;box-shadow:0 6px 18px rgba(2,6,23,.22);opacity:0;transition:opacity .12s;z-index:2}.hd-tip.on{opacity:1}.hd-tip small{display:block;font-size:11.5px;opacity:.75}.hd-tip b{display:block;font-size:15px;font-weight:600}.hd-tip .pv{opacity:.6}
+.hd-leg{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);margin:4px 0 6px}.hd-leg i{display:inline-block;width:14px;height:0;border-top:2px solid var(--brand);vertical-align:middle;margin-right:5px}.hd-leg i.pre{border-top:2px dashed var(--faint)}.hd-leg i.part{border-top:2px dashed var(--brand)}
+.sheet-list .sl small{display:block;color:var(--muted);font-weight:400}
 html[data-mode="dark"] .hd-tall{background:#12302C}html[data-mode="dark"] .hd-blue{background:#16223A}html[data-mode="dark"] .hd-amber{background:#2A2210}
 html[data-mode="dark"] .hd-tall small,html[data-mode="dark"] .hd-tall span{color:#9FC9C1}html[data-mode="dark"] .hd-blue small{color:#93B4FF}html[data-mode="dark"] .hd-amber small{color:#F5C77A}
 .act:first-of-type{border-top:0}
@@ -326,12 +333,12 @@ html[data-mode="dark"] .hd-tall small,html[data-mode="dark"] .hd-tall span{color
 .p-ok{background:var(--green-bg);color:var(--green)}.p-no{background:var(--red-bg);color:var(--red)}
 .nav{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--card) 94%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--line);box-shadow:0 -4px 18px rgba(2,6,23,.05);padding:7px 0 calc(7px + env(safe-area-inset-bottom));z-index:10}
 .nav div{max-width:460px;margin:0 auto;display:flex}
-.nav button{flex:1;border:0;background:none;color:var(--muted);font:500 11px Inter,sans-serif;letter-spacing:.1px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;position:relative;-webkit-tap-highlight-color:transparent}
+.nav>div:not(.dr-panel)>button{flex:1;border:0;background:none;color:var(--muted);font:500 11px Inter,sans-serif;letter-spacing:.1px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;position:relative;-webkit-tap-highlight-color:transparent}
 .nv-i{position:relative;display:grid;place-items:center;width:58px;height:30px;border-radius:15px;transition:background .2s ease}
 .nv-i i{font-size:23px;line-height:1}
-.nav button.on{color:var(--brand);font-weight:600}.nav button.on .nv-i{background:rgba(0,133,122,.12)}
-[data-mode="dark"] .nav button.on .nv-i{background:rgba(63,224,168,.14)}
-[data-mode="dark"] .nav button.on,[data-mode="dark"] .brief i{color:var(--accent)}
+.nav>div:not(.dr-panel)>button.on{color:var(--brand);font-weight:600}.nav>div:not(.dr-panel)>button.on .nv-i{background:rgba(0,133,122,.12)}
+[data-mode="dark"] .nav>div:not(.dr-panel)>button.on .nv-i{background:rgba(63,224,168,.14)}
+[data-mode="dark"] .nav>div:not(.dr-panel)>button.on,[data-mode="dark"] .brief i{color:var(--accent)}
 /* Tab badges: small count on the icon's corner, ringed with the bar colour (NDR = needs action, Returns = soft) */
 .badge{position:absolute;top:-3px;left:calc(50% + 7px);min-width:17px;height:17px;padding:0 5px;box-sizing:border-box;border-radius:9px;background:#E5484D;color:#fff;
   font:700 10px/17px Inter,sans-serif;text-align:center;box-shadow:0 0 0 2px var(--card);font-variant-numeric:tabular-nums}
@@ -410,6 +417,9 @@ html[data-mode="dark"] .hd-tall small,html[data-mode="dark"] .hd-tall span{color
 .ntabs button b{display:block;font-size:15px;font-weight:600}.ntabs button.on{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(15,23,42,.12)}
 .nscore{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0 0 10px}
 .nscore>div{background:var(--card);border-radius:12px;padding:8px 10px;box-shadow:var(--shadow);min-width:0}.nscore b{display:block;font-size:16px;font-weight:600}
+.ncalls b small{font-size:11px;font-weight:500;color:var(--muted)}.ncalls b i{font-style:normal}
+.nbar{display:block;height:4px;border-radius:2px;background:var(--line);margin:5px 0 3px;overflow:hidden}.nbar i{display:block;height:100%;background:var(--green);border-radius:2px}
+.ngh-more{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;border:1px dashed var(--line);background:none;border-radius:12px;height:40px;margin:0 0 12px;font:500 13px Inter,sans-serif;color:var(--muted);cursor:pointer}
 .nscore span{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
 .ngh{display:flex;align-items:flex-start;gap:8px;margin:16px 2px 8px}.ngh>i{font-size:17px;color:var(--brand);margin-top:-1px;flex:none}.ngh>div{min-width:0;flex:1}
 .ngh-t{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;letter-spacing:.4px;text-transform:uppercase}.ngh-t span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -505,8 +515,8 @@ html[data-mode="dark"] .hd-tall small,html[data-mode="dark"] .hd-tall span{color
   body{padding-left:232px}
   .nav{top:0;bottom:0;left:0;right:auto;width:232px;border-top:0;border-right:1px solid var(--line);box-shadow:none;padding:calc(var(--toph, 72px) + 8px) 12px 16px;background:var(--card)}
   .nav div{flex-direction:column;max-width:none;gap:4px}
-  .nav button{flex:none;flex-direction:row;justify-content:flex-start;gap:12px;padding:8px 10px;border-radius:12px;font-size:14px;text-align:left}
-  .nav button.on{background:rgba(0,133,122,.10)}.nav button.on .nv-i{background:none}
+  .nav>div:not(.dr-panel)>button{flex:none;flex-direction:row;justify-content:flex-start;gap:12px;padding:8px 10px;border-radius:12px;font-size:14px;text-align:left}
+  .nav>div:not(.dr-panel)>button.on{background:rgba(0,133,122,.10)}.nav button.on .nv-i{background:none}
   .nv-i{width:28px;height:28px}.nv-i i{font-size:21px}
   .badge{left:auto;right:-10px;top:-4px}
   .top{left:232px;max-width:1160px;padding-left:32px;padding-right:32px}
@@ -521,13 +531,35 @@ html[data-mode="dark"] .hd-tall small,html[data-mode="dark"] .hd-tall span{color
   #view>#todo{grid-column:1}#view>#hstock{grid-column:1}#view>.hjr{grid-column:2;grid-row:2/span 6}
   #view>.card:not(#todo):not(.hjr),#view>.oc-warn:not(#hstock){grid-column:1/-1}
   /* the parcel page: a panel on the right, the list stays visible */
-  .page{left:auto;width:min(620px,100vw);border-left:1px solid var(--line);box-shadow:-12px 0 40px rgba(2,6,23,.12)}
+  .page{left:auto;width:var(--ppw);border-left:1px solid var(--line);box-shadow:-12px 0 40px rgba(2,6,23,.12)}
   /* full pages (reports, NDR form, stock, P&L …): a centred window */
-  .overlay.full{align-items:center;justify-content:center;background:rgba(2,6,23,.45)}
+  .overlay.full{left:232px;align-items:center;justify-content:center;background:rgba(2,6,23,.32)}
   .overlay.full .panel{max-width:820px;height:calc(100vh - 64px);border-radius:22px;box-shadow:0 20px 60px rgba(2,6,23,.25)}
   .overlay.full .panel>:not(.fs-top){max-width:none}
   .drawer .dr-in, .drawer>div{max-width:320px}
+  /* 2026-11-02 desktop study: the ☰ menu lives in the side bar (no hidden menu on a big screen) */
+  #btnMenu{display:none}
+  .nav{display:flex;flex-direction:column;overflow-y:auto;padding-top:16px}
+  .nav>div:not(.dr-panel){flex:none;width:100%}
+  .nav .dr-panel{position:static;width:auto;animation:none;padding:12px 0 0;margin-top:12px;border-top:1px solid var(--line);background:none;overflow:visible;flex:1}
+  .nav .dr-panel .dr-i{padding:9px 10px;border-radius:12px;font-size:14px}
+  .nav .dr-panel .dr-i:hover,.nav>div:not(.dr-panel)>button:hover{background:var(--bg)}
+  .nav .dr-panel{display:flex;flex-direction:column}.nav .dr-panel>*{flex:none}
+  .nav .dr-user{order:20;margin-top:auto;padding-top:14px;border-top:1px solid var(--line)}.nav #btnOut{order:21}.nav .dr-ver{order:22}
+  .nav .dr-ver{font-size:11px}
+  /* NDR: cases in two columns */
+  section#tab-ndr{max-width:1160px}
+  #nlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:0 16px;align-items:start}
+  #nlist>:not(.nc){grid-column:1/-1}
+  /* parcel page open: the list moves left and stays usable (list + details side by side) */
+  :root{--ppw:clamp(440px,42vw,620px)}
+  body.pp-side section:not(#tab-home){margin-left:24px;margin-right:calc(var(--ppw) + 24px);max-width:none}
+  body.pp-side #tab-ndr #nlist{grid-template-columns:minmax(0,1fr)}
+  .prow:hover,.nc:hover{background:color-mix(in srgb,var(--brand) 4%,var(--card))}
+  .prow.sel{background:color-mix(in srgb,var(--brand) 9%,var(--card));box-shadow:inset 3px 0 0 var(--brand)}
+  .kbd-hint{display:inline-block}
 }
+.kbd-hint{display:none;font:500 11px Inter,sans-serif;color:var(--faint);border:1px solid var(--line);border-radius:6px;padding:1px 6px;margin-left:auto}
 [hidden]{display:none !important} /* hidden always wins over a component's own display */
 body.locked{overflow:hidden;overscroll-behavior:none}
 .drawer,.menu-bd,.overlay{overscroll-behavior:contain;touch-action:pan-y}
@@ -654,6 +686,36 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 .btn:active,.chip:active,.tile[data-go]:active,.card[data-go]:active,.act:active,.opt:active,.seg button:active,.nav button:active{transform:scale(.97);transition:transform .08s}
 .chips.wrapc{flex-wrap:wrap;margin:0 0 6px;padding:0}
 .tl-sheet .tl{border-top:0;padding-top:4px;margin-top:0}
+/* Desktop sizes and order (2026-11-02 study): one type scale (nothing under 12 px on a computer: phone sizes +1 / +1.5 px), every tab starts at the same left edge and uses the full width, lists read like a table (one line per parcel), Cash in two columns */
+@media (min-width:1024px){
+  .sx-h,.sx-r b em,.sheet-list .sl-h,.pp-step,.pp-card > .pp-h,.flag,.jr-tiles small,.jr-gt,.jr-gt em,.jr-gn small,.late-b,.jr-name small,.jr-sep,.hero-row em,.oc-kp small,.col small,.col .tot,.days-l,.pill,.pday,.prow-2 .st,.cf-pct,.mtab th,.mnote,.cp em,.ccl-3,.ccbest,.hist-r .st,.dl-now span,.dl-share,.al em,.nscore span,.ngh-t em,.nc-st b,.nc-st small,.tage,.tsteps-l,.msgprev small,.st,.prio,.ch-d,.cs small,.cs-h,.cs-done .cs-h small,.rw-sub em{font-size:12px}
+  .pd-sub,.prow .prow-3,.sheet-list .sl small,.stk-top small,.stk-in small,.jr-disp small,.jr-amt,.hero-row span,.tile .s,.hd-small > span:last-child,.cf-r small,.ccl-2,.hist-h span,.pref small,.ngh small,.nc-tag,.obar .tx small,.tl-src,.tl-i small,.login-box .pf-note,.pl-cm .prow-2 span,.ch-t small,.ch-by,.ac-t small,.ac-sugn,.ac-box > small,.mini{font-size:12.5px}
+  .hello span,.sx-more,.bf-l small,.sx small,.sx span,.ob-it small,.btn.mini,.list-end,.fbar .pbtn b,.mini-l,.pg-t small,.hero small,.hero-later,.tile .lbl,.h span,.legend,.hd-tall span,.hd-rg,.hd-tv span,.act small,.cmp .k,.pay .d small,.prow-2,.prow-3,.mr-pick span,.mtab,.cp,.al small,.rh-s small,.prow-btn,.ntabs button,.ngh-t,.nc-m,.nc-ln,.tcalls,.pc-meta,.done-line,.fld label,.err,.lg-brand,.sh-rem,.ch-f button,.ac-tick,.ac-box > label,.ac-prev small,.ac-note small,.ac-next,.tk,.li .d small,.rw-sub{font-size:13px}
+  .sx-r small,.sx-old,.rc-card,.pp-cod span,.offbar,.jr-cancel,.jr-disp,.jr-now,.jr-sum,.brief,.chip,.seg button,.oc-warn,.hd-quick button,.psum,.hist,.rh-s ul,.nc-it,.nc-box,.nc-hint,.tw,.tsays,.og,.fmore summary,.pc-note,.btn,.tl-i b,.panel p,.ch-s,.ac-f .btn,.ac-phr button{font-size:13.5px}
+  .title{font-size:24px;margin:4px 0 14px}
+  section:not(#tab-home){max-width:none;margin-left:0;margin-right:0}
+  #tab-parcels .search,#tab-parcels #pchips,#tab-returns .scan{max-width:720px}
+  #plist .prow-m,#rview .prow-m{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.7fr) 150px 110px;column-gap:20px;align-items:center}
+  #plist .prow-1,#plist .prow-2,#rview .prow-1,#rview .prow-2{display:contents}
+  #plist .prow-1>b,#rview .prow-1>b{grid-column:1;grid-row:1}
+  #plist .prow-2>span:first-child,#rview .prow-2>span:first-child{grid-column:2;grid-row:1}
+  #plist .prow-2>.st,#rview .prow-2>.st{grid-column:3;grid-row:1;justify-self:start}
+  #plist .prow-1>span,#rview .prow-1>span{grid-column:4;grid-row:1;text-align:right}
+  #plist .prow-m>:not(.prow-1):not(.prow-2),#rview .prow-m>:not(.prow-1):not(.prow-2){grid-column:1/-1}
+  #plist .prow,#rview .prow{display:grid;grid-template-columns:10px minmax(0,1fr) 104px;column-gap:12px;align-items:center;padding:12px 18px}
+  #plist .prow>:nth-child(n+3),#rview .prow>:nth-child(n+3){justify-self:end}
+  body.pp-side #plist .prow,body.pp-side #rview .prow{display:flex}
+  body.pp-side #plist .prow-m,body.pp-side #rview .prow-m{display:block}
+  body.pp-side #plist .prow-1,body.pp-side #plist .prow-2,body.pp-side #rview .prow-1,body.pp-side #rview .prow-2{display:flex}
+  #cview{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 20px;align-items:start}
+  #cview>.cflow{grid-column:1;grid-row:1/span 4}#cview>:not(.cflow){grid-column:2}#cview>#cparcels{grid-column:1/-1}
+  body.pp-side #cview{display:block}
+  /* Home: no empty space under Quick create — Action items follow it, Order journey follows the trend */
+  #view>#hdash{display:contents}
+  #view>#hdash>.hd-cards{grid-column:1/-1;grid-row:1}#view>#hdash>.hd-qh{grid-column:1;grid-row:2}#view>#hdash>.hd-quick{grid-column:1;grid-row:3}
+  #view>#hdash>#hdTrend{grid-column:2;grid-row:2/span 3;align-self:stretch;margin-bottom:12px;display:flex}#view>#hdash>#hdTrend>.hd-trend{flex:1;display:flex;flex-direction:column}#view>#hdash>#hdTrend>.hd-trend>.hd-plot{margin-top:auto}
+  #view>#todo{grid-column:1;grid-row:4}#view>#hstock{grid-column:1;grid-row:5}#view>.hjr{grid-column:2;grid-row:5/span 6}
+}
 </style>
 <link rel="manifest" href="ordi.webmanifest">
 <link rel="icon" href="ordi-192.png">
@@ -1143,7 +1205,8 @@ function setPerms(r) {
   if (changed && TOKEN) loadAllowed();
 }
 function applyPerms() {
-  document.querySelectorAll('.nav button').forEach(function (b) { b.hidden = !canTab(b.getAttribute('data-tab')); });
+  setTimeout(placeMenu, 0);
+  document.querySelectorAll('.nav>div:not(.dr-panel)>button').forEach(function (b) { b.hidden = !canTab(b.getAttribute('data-tab')); });
   document.querySelectorAll('[data-rep]').forEach(function (b) {
     b.hidden = b.getAttribute('data-rep') === 'escalations' ? !can('ndr.view') : !(can('reports.view') && can('home.view'));
   });
@@ -1178,7 +1241,7 @@ function showTab(t, fromBack) {
   if (el('drawer').classList.contains('show')) closeDrawer(); // a sheet from the menu led to a tab
   if (!fromBack && t !== curTab) navPush(t);
   curTab = t;
-  document.querySelectorAll('.nav button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-tab') === t); });
+  document.querySelectorAll('.nav>div:not(.dr-panel)>button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-tab') === t); });
   Object.keys(TABS).forEach(function (k) { el(TABS[k]).hidden = k !== t; });
   window.scrollTo(0, 0);
   if (t === 'parcels') { if (P.data) renderParcels(); loadParcels(false); }
@@ -1186,9 +1249,10 @@ function showTab(t, fromBack) {
   if (t === 'cash') { if (C.data) renderCash(); loadCash(false); }
   if (t === 'returns') { if (R.data) renderReturns(); loadReturns(false); setTimeout(scanFocus, 50); }
 }
-document.querySelectorAll('.nav button').forEach(function (b) {
+document.querySelectorAll('.nav>div:not(.dr-panel)>button').forEach(function (b) {
   b.onclick = function () {
     var t = b.getAttribute('data-tab');
+    if (DESK.matches) { if (el('overlay').classList.contains('show')) closePanel(); if (!el('page').hidden) closePage(); } // desktop: the side bar leaves an open screen
     // Bottom bar = full lists; Home taps keep their filters.
     if (t === 'parcels') P.ctx = null;
     if (t === 'ndr') N.type = '';
@@ -1332,7 +1396,13 @@ function openPage(o) {
   el('page').hidden = false; el('pgBody').scrollTop = 0;
   pageLock();
 }
+// desktop: the open parcel is marked in the list beside it
+function markRow(key) {
+  document.querySelectorAll('[data-p].sel').forEach(function (r) { r.classList.remove('sel'); });
+  if (key) document.querySelectorAll('[data-p]').forEach(function (r) { if (r.getAttribute('data-p') === String(key)) r.classList.add('sel'); });
+}
 function closePage() {
+  markRow('');
   el('page').hidden = true; el('pgBody').innerHTML = ''; el('pgBar').innerHTML = '';
   if (PAGE_SHEET) { PAGE_SHEET = false; el('overlay').classList.add('show'); }
   pageLock();
@@ -1438,6 +1508,7 @@ function ppSteps(stage, color) {
   }).join('') + '</div>';
 }
 function openParcel(key, given) {
+  markRow(key);
   var p = given || findParcel(key);
   if (!p && !can('parcels.view')) { // returns / stock staff: this one parcel from the server, same page
     openPage({ title: 'Parcel', body: skList(4) });
@@ -1608,18 +1679,39 @@ el('panel').addEventListener('click', function (e) {
 
 // ---------- ☰ menu ----------
 function openDrawer() {
-  el('drName').textContent = USER || 'Every Home';
-  var cs = (N.data && N.data.couriers) || {};
-  el('drStore').textContent = (store('eh_phone') ? store('eh_phone') + ' · ' : '') + (ROLE && ROLE !== 'Owner' ? ROLE : 'My profile');
-  el('drVer').textContent = BRAND + ' · ' + STORE + (window.EH_BUILD ? ' · version ' + window.EH_BUILD : '');
+  if (DESK.matches) return placeMenu(); // the menu is already in the side bar
+  fillDrawer();
   if (!el('drawer').classList.contains('show')) { try { google.script.history.push({ tab: curTab, drawer: 1 }, null, curTab); } catch (e) {} }
   el('drawer').classList.add('show');
   pageLock();
 }
 function closeDrawer() { el('drawer').classList.remove('show'); pageLock(); }
+// Desktop (2026-11-02): the ☰ menu panel moves into the side bar and stays open; on a phone it goes back into the drawer
+var DESK = window.matchMedia ? matchMedia('(min-width:1024px)') : { matches: false };
+function fillDrawer() {
+  el('drName').textContent = USER || 'Every Home';
+  el('drStore').textContent = (store('eh_phone') ? store('eh_phone') + ' · ' : '') + (ROLE && ROLE !== 'Owner' ? ROLE : 'My profile');
+  el('drVer').textContent = BRAND + ' · ' + STORE + (window.EH_BUILD ? ' · version ' + window.EH_BUILD : '');
+}
+function placeMenu() {
+  var panel = document.querySelector('.dr-panel'), nav = document.querySelector('.nav');
+  if (!panel || !nav) return;
+  if (DESK.matches) { fillDrawer(); if (panel.parentNode !== nav) nav.appendChild(panel); el('drawer').classList.remove('show'); }
+  else if (panel.parentNode !== el('drawer')) el('drawer').appendChild(panel);
+  pageLock();
+}
+try { DESK.addEventListener('change', placeMenu); } catch (e) {}
+// keyboard on a computer: "/" = search on Parcels / NDR
+addEventListener('keydown', function (e) {
+  if (e.key !== '/' || e.ctrlKey || e.metaKey || /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || '')) return;
+  var box = curTab === 'parcels' ? el('q') : curTab === 'ndr' ? el('nq') : null;
+  if (box && el('overlay').className.indexOf('show') === -1 && el('page').hidden) { e.preventDefault(); box.focus(); }
+});
 // The page behind stays still while the ☰ menu, a dropdown or a sheet is open (their own scroll never spills into it)
 function pageLock() {
-  var open = el('drawer').classList.contains('show') || el('overlay').classList.contains('show') || !el('menuBd').hidden || !el('page').hidden ||
+  var side = DESK.matches && !el('page').hidden; // desktop: the parcel page sits beside the list, the list keeps scrolling
+  document.body.classList.toggle('pp-side', side);
+  var open = el('drawer').classList.contains('show') || el('overlay').classList.contains('show') || !el('menuBd').hidden || (!el('page').hidden && !side) ||
     ['login', 'profbox', 'pinbox', 'scanner'].some(function (id) { return !el(id).hidden; });
   document.body.classList.toggle('locked', open);
 }
@@ -1636,14 +1728,20 @@ function drGroups() {
     g.setAttribute('aria-expanded', String(id === open && !g.hidden)); sub.hidden = id !== open || g.hidden;
   });
 }
-el('drawer').addEventListener('click', function (e) {
+// the handlers sit on the menu panel itself: on a computer the panel lives in the side bar, not in the drawer
+var DR_PANEL = document.querySelector('.dr-panel');
+DR_PANEL.addEventListener('click', function (e) {
   var g = e.target.closest('.dr-g'); if (!g) return;
   e.stopPropagation(); var id = g.getAttribute('data-g');
   store('eh_drg', g.getAttribute('aria-expanded') === 'true' ? '' : id); drGroups();
   if (id === store('eh_drg')) { var sub = document.querySelector('[data-gsub="' + id + '"]'); setTimeout(function () { sub.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }, 30); }
 }, true);
-el('drawer').onclick = function (e) {
-  if (e.target === el('drawer')) return closeDrawer();
+el('drawer').onclick = function (e) { if (e.target === el('drawer')) closeDrawer(); };
+// desktop: a menu item replaces the screen that is open (the side bar is always there); capture = before the item opens its own
+DR_PANEL.addEventListener('click', function (e) {
+  if (DESK.matches && e.target.closest('.dr-i:not(.dr-g), [data-rep], [data-go]') && el('overlay').classList.contains('show')) closePanel();
+}, true);
+DR_PANEL.onclick = function (e) {
   var r = e.target.closest('[data-rep]'); if (r) return fromMenu(openReport)(r.getAttribute('data-rep'));
   var g = e.target.closest('[data-go]'); if (g) { closeDrawer(); return go(g.getAttribute('data-go')); }
   if (e.target.closest('a')) closeDrawer();
@@ -2033,6 +2131,7 @@ function homeQuick() {
 // (finance.view). Only chips with data are shown; the choice is kept on this phone. Tap the chart → that point's value.
 // The card's own choice (dropdown, kept on this phone): 'period' = the days of the period chosen on top (default),
 // '30d' = last 30 days, '3m' = last 3 months a week each, '12m' = last 12 months a month each
+var HD_EVERY = { period: 'a point a day', '30d': 'a point a day', '3m': 'a point a week', '12m': 'a point a month' };
 var HD_RANGES = [['period', 'This period'], ['30d', '30 days'], ['3m', '3 months'], ['12m', '12 months']];
 // the first choice is named after the period chosen on top (user 2026-11-01: 'This period' was not clear)
 function hdRangeName(x, d) { return x[0] === 'period' ? (d && d.range && d.range.from === d.range.to ? '14 days' : (d && d.monthLabel) || 'This period') : x[1]; }
@@ -2048,22 +2147,41 @@ function hdWeeks(list, keys) {
   });
   return out;
 }
+function hdDayAdd(k, n) { var t = new Date(k + 'T12:00:00Z'); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); }
+// the window just before this one, same number of days (daily views), from the last-90-days data; null when it is not all there
+function hdPrevDays(src, keys, fn) {
+  if (!keys.length || keys[0].length !== 10) return null;
+  var by = {}; (src || []).forEach(function (x) { by[x.k] = x; });
+  var n = keys.length, out = [];
+  for (var i = 0; i < n; i++) { var x = by[hdDayAdd(keys[0], i - n)]; if (!x) return null; out.push(fn(x)); }
+  return out;
+}
+// Trend study (2026-11-02, user: the card, its dropdown, its functions and its preview on phone and laptop):
+// every series point carries v (+ d / f for Delivery %: delivered / finished, so totals are weighted, not an average of
+// days); prev = the same-length window before (daily views from the 90-day data, 12 months from the 24-month trend)
 function homeTrendSeries(d) {
-  var rg = hdRange(), hs, ps;
+  var rg = hdRange(), hs, ps, hsPrev = null, psPrev = null;
+  var hsOf = function (x) { return x; }, rate = function (x) { var f = (x.delivered || 0) + (x.returned || 0); return { v: f ? Math.round(x.delivered / f * 100) : null, d: x.delivered || 0, f: f }; };
   if (rg === '30d') { hs = (d.days90 || []).slice(-30); ps = (HD.pnl90 || []).slice(-30); }
   else if (rg === '3m') { hs = hdWeeks(d.days90 || [], ['orders', 'delivered', 'returned', 'sale']); ps = hdWeeks(HD.pnl90 || [], ['net', 'ads', 'sales']); }
   else if (rg === '12m') {
-    hs = (d.trend || []).slice(-12).map(function (x) { return { k: x.key, orders: x.orders, delivered: x.delivered, returned: x.returned, sale: x.sale }; });
-    ps = (HD.pnlMonths || []).slice(-12);
+    var tr = (d.trend || []).map(function (x) { return { k: x.key, orders: x.orders, delivered: x.delivered, returned: x.returned, sale: x.sale }; });
+    hs = tr.slice(-12); if (tr.length >= 24) hsPrev = tr.slice(-24, -12);
+    var pm = HD.pnlMonths || []; ps = pm.slice(-12); if (pm.length >= 24) psPrev = pm.slice(-24, -12);
   } else { hs = d.series || []; ps = HD.pnlSeries || []; }
+  if (rg === '30d' || rg === 'period') {
+    hsPrev = hdPrevDays(d.days90, hs.map(function (x) { return x.k; }), hsOf);
+    psPrev = hdPrevDays(HD.pnl90, ps.map(function (x) { return x.k; }), hsOf);
+  }
+  var mk = function (list, f) { return list.map(function (x) { var o = f(x); o.m = x.k; o.w = x.week; return o; }); };
   var s = [];
   if (ps.length) {
-    s.push({ k: 'profit', l: 'Profit', pts: ps.map(function (x) { return { m: x.k, w: x.week, v: x.net }; }) });
-    s.push({ k: 'ads', l: 'Ad spend', pts: ps.map(function (x) { return { m: x.k, w: x.week, v: x.ads }; }) });
+    s.push({ k: 'profit', l: 'Profit', good: 1, pts: mk(ps, function (x) { return { v: x.net }; }), prev: psPrev && mk(psPrev, function (x) { return { v: x.net }; }) });
+    s.push({ k: 'ads', l: 'Ad spend', good: 0, pts: mk(ps, function (x) { return { v: x.ads }; }), prev: psPrev && mk(psPrev, function (x) { return { v: x.ads }; }) });
   }
   if (hs.length) {
-    s.push({ k: 'sales', l: 'Sales', pts: hs.map(function (x) { return { m: x.k, w: x.week, v: x.sale }; }) });
-    s.push({ k: 'rate', l: 'Delivery %', pc: true, pts: hs.map(function (x) { var f = x.delivered + x.returned; return { m: x.k, w: x.week, v: f ? Math.round(x.delivered / f * 100) : null }; }) });
+    s.push({ k: 'sales', l: 'Sales', good: 1, pts: mk(hs, function (x) { return { v: x.sale }; }), prev: hsPrev && mk(hsPrev, function (x) { return { v: x.sale }; }) });
+    s.push({ k: 'rate', l: 'Delivery %', good: 1, pc: true, pts: mk(hs, rate), prev: hsPrev && mk(hsPrev, rate) });
   }
   return s;
 }
@@ -2071,52 +2189,126 @@ function homeTrendSeries(d) {
 function hdFirstI(p) { for (var i = 0; i < p.length; i++) if (p[i].v != null) return i; return 0; }
 function hdLastI(p) { for (var i = p.length - 1; i >= 0; i--) if (p[i].v != null) return i; return 0; }
 function hdLabel(k, week) { return k.length === 7 ? fnMonthName(k) : week ? 'Week of ' + niceDay(k) : niceDay(k); }
+// total of a series: money adds up; Delivery % = delivered ÷ finished over the whole window
+function hdTotal(cur, pts) {
+  if (!pts) return null;
+  if (cur.pc) { var dd = 0, ff = 0; pts.forEach(function (x) { dd += x.d || 0; ff += x.f || 0; }); return ff ? Math.round(dd / ff * 100) : null; }
+  var any = false, t = 0; pts.forEach(function (x) { if (x.v != null) { any = true; t += x.v; } }); return any ? t : null;
+}
+// short axis numbers: 950 · 12k · 1.5L (lakh) · 80%
+function hdShort(v, pc) {
+  if (pc) return Math.round(v) + '%';
+  var a = Math.abs(v), s = a >= 100000 ? (Math.round(a / 10000) / 10) + 'L' : a >= 1000 ? (Math.round(a / 100) / 10) + 'k' : String(Math.round(a));
+  return (v < 0 ? '−' : '') + s.replace('.0', '');
+}
+function hdNice(v) { if (v <= 0) return 0; var p = Math.pow(10, Math.floor(Math.log10(v))), f = v / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p; }
+// is the last point still running (today / this week / this month)?
+function hdPartial(p) { var t = pkDay(new Date()); if (!p) return false; return p.m.length === 7 ? p.m === t.slice(0, 7) : p.w ? hdDayAdd(p.m, 6) >= t : p.m === t; }
+function hdWindowName(cur, pts, d) {
+  var rg = hdRange(), n = pts.length;
+  if (rg === '12m') return 'previous 12 months';
+  if (rg === '3m') return '';
+  return 'previous ' + n + (n === 1 ? ' day' : ' days');
+}
 function homeTrend(d) {
-  var all = homeTrendSeries(d);
+  var all = homeTrendSeries(d), rg = hdRange(), title = hdRangeName(HD_RANGES.filter(function (x) { return x[0] === rg; })[0], d);
+  var top = '<div class="hd-th"><b>Trend</b><button class="hd-rg" id="hdRg" type="button">' + esc(title) + '<i class="ti ti-chevron-down"></i></button></div>';
   if (!all.length) {
     // nothing for this choice (yet): keep the card and its dropdown so another choice can be picked
-    if (hdRange() === 'period' && !(d.days90 || []).length && !(HD.pnl90 || []).length) return '';
-    return '<div class="hd-trend"><div class="hd-th"><b>Trend</b><button class="hd-rg" id="hdRg" type="button">' + esc(hdRangeName(HD_RANGES.filter(function (x) { return x[0] === hdRange(); })[0], d)) + '<i class="ti ti-chevron-down"></i></button></div><div class="empty" style="padding:22px 0">No data for this view yet</div></div>';
+    if (rg === 'period' && !(d.days90 || []).length && !(HD.pnl90 || []).length) return '';
+    return '<div class="hd-trend">' + top + '<div class="empty" style="padding:22px 0">No data for this view yet</div></div>';
   }
   var key = store('eh_hdtrend') || all[0].k, cur = all.filter(function (x) { return x.k === key; })[0] || all[0];
-  var pts = cur.pts, n = pts.length, monthly = pts[0] && pts[0].m.length === 7;
-  var one = hdRange() === 'period' && d.range && d.range.from === d.range.to ? d.range.to : '';
-  var vals = pts.map(function (x) { return x.v; }).filter(function (v) { return v != null; });
-  var max = Math.max.apply(null, vals.concat([1])), min = Math.min.apply(null, vals.concat([0])), W = 320, H = 110;
-  var X = function (i) { return 8 + i * (W - 16) / Math.max(1, n - 1); }, Y = function (v) { return 10 + (H - 20) * (1 - (v - min) / Math.max(1, max - min)); };
-  var line = '', started = false;
-  pts.forEach(function (x, i) { if (x.v == null) return; line += (started ? ' L' : 'M') + X(i).toFixed(1) + ' ' + Y(x.v).toFixed(1); started = true; });
+  var pts = cur.pts, n = pts.length, monthly = pts[0] && pts[0].m.length === 7, prev = cur.prev && cur.prev.length === n ? cur.prev : null;
+  var one = rg === 'period' && d.range && d.range.from === d.range.to ? d.range.to : '';
   var fmtV = function (v) { return v == null ? '–' : cur.pc ? v + '%' : (v < 0 ? '− ' : '') + rs(Math.abs(v)); };
-  var tot = cur.pc ? null : vals.reduce(function (a, v) { return a + v; }, 0);
-  var sel = one ? pts.map(function (x) { return x.m; }).indexOf(one) : -1;
-  var head = sel >= 0 ? fmtV(pts[sel].v) + '|' + hdLabel(one) : cur.pc ? fmtV(Math.round(vals.reduce(function (a, v) { return a + v; }, 0) / Math.max(1, vals.length))) + '|average' : fmtV(tot) + '|' + (hdRange() === 'period' ? (monthly ? 'all time' : 'in this period') : 'in these ' + (hdRange() === '12m' ? '12 months' : hdRange() === '3m' ? '3 months' : '30 days'));
-  var every = Math.ceil(n / 6), labels = pts.map(function (x, i) {
+  var tot = hdTotal(cur, pts), ptot = prev ? hdTotal(cur, prev) : null;
+  // change vs the window before: % for money, points for Delivery %
+  var dl = '';
+  if (tot != null && ptot != null && (cur.pc || ptot !== 0)) {
+    var ch = cur.pc ? tot - ptot : Math.round((tot - ptot) / Math.abs(ptot) * 100), up = ch >= 0;
+    var tone = ch === 0 || cur.k === 'ads' ? 'flat' : up ? 'up' : 'down'; // more ad spend is neither good nor bad
+    if (!cur.pc && Math.abs(ch) > 300) dl = '<span class="hd-vs">' + fmtV(ptot) + ' in the ' + esc(hdWindowName(cur, pts, d)) + '</span>';
+    else dl = '<span class="hd-dl ' + tone + '">' + (ch === 0 ? '' : up ? '▲ ' : '▼ ') + Math.abs(ch) + (cur.pc ? ' pts' : '%') + '</span><span class="hd-vs">vs ' + esc(hdWindowName(cur, pts, d)) + '</span>';
+  }
+  var sub = one ? hdLabel(one) : cur.pc ? 'delivered of finished' : rg === 'period' ? (monthly ? 'all time' : 'in this period') : 'in these ' + (rg === '12m' ? '12 months' : rg === '3m' ? '3 months' : '30 days');
+  var head = '<div class="hd-tv"><b class="num">' + fmtV(one ? (pts.filter(function (x) { return x.m === one; })[0] || {}).v : tot) + '</b><span>' + esc(sub) + '</span></div>' + (dl && !one ? '<div class="hd-cmp">' + dl + '</div>' : '');
+  var vals = pts.concat(prev || []).map(function (x) { return x.v; }).filter(function (v) { return v != null; });
+  var segBar = '<div class="hd-seg">' + all.map(function (x) { return '<button type="button" class="' + (x.k === cur.k ? 'on' : '') + '" data-ht="' + x.k + '">' + x.l + '</button>'; }).join('') + '</div>';
+  if (!vals.some(function (v) { return v; })) return '<div class="hd-trend">' + top + segBar + head + '<div class="empty" style="padding:26px 0">No ' + esc(cur.l.toLowerCase()) + ' in this window yet</div></div>';
+  // drawn at the card's real width (crisp text and lines on a laptop), taller on a computer
+  var box = el('hdTrend'), W = Math.max(260, Math.round((box && box.clientWidth ? box.clientWidth : Math.min(innerWidth, 560)) - 28)), H = DESK.matches ? 170 : 118, L = 34, R = 8, T = 8;
+  var mx = Math.max.apply(null, vals.concat([0])), mn = Math.min.apply(null, vals.concat([0]));
+  if (cur.pc) { mx = 100; mn = Math.min(mn, 50) >= 50 ? 50 : 0; } else { mx = hdNice(mx) || 1; mn = mn < 0 ? -hdNice(-mn) : 0; }
+  var X = function (i) { return L + (n === 1 ? (W - L - R) / 2 : i * (W - L - R) / (n - 1)); }, Y = function (v) { return T + (H - T) * (1 - (v - mn) / Math.max(1, mx - mn)); };
+  var path = function (list, upto) { var s = '', on = false; list.forEach(function (x, i) { if (x.v == null || i > upto) return; s += (on ? ' L' : 'M') + X(i).toFixed(1) + ' ' + Y(x.v).toFixed(1); on = true; }); return s; };
+  var part = hdPartial(pts[n - 1]) && n > 1 && pts[n - 1].v != null && pts[n - 2].v != null, lastFull = part ? n - 2 : n - 1;
+  var grid = [mx, (mx + mn) / 2, mn].map(function (g) { return '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(g).toFixed(1) + '" y2="' + Y(g).toFixed(1) + '" class="hd-gl"></line><text x="' + (L - 6) + '" y="' + (Y(g) + 3.5).toFixed(1) + '" text-anchor="end">' + hdShort(g, cur.pc) + '</text>'; }).join('') +
+    (mn < 0 ? '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(0).toFixed(1) + '" y2="' + Y(0).toFixed(1) + '" class="hd-zero"></line>' : '');
+  var line = path(pts, lastFull), fi = hdFirstI(pts), li = hdLastI(pts), base = Y(Math.max(mn, 0));
+  var area = line ? '<path d="' + path(pts, n) + ' L' + X(li).toFixed(1) + ' ' + base.toFixed(1) + ' L' + X(fi).toFixed(1) + ' ' + base.toFixed(1) + ' Z" fill="url(#hdFill)"></path>' : '';
+  var dash = part ? '<path d="M' + X(n - 2).toFixed(1) + ' ' + Y(pts[n - 2].v).toFixed(1) + ' L' + X(n - 1).toFixed(1) + ' ' + Y(pts[n - 1].v).toFixed(1) + '" class="hd-ln" stroke-dasharray="4 4"></path>' : '';
+  var lastDot = pts[li] && pts[li].v != null ? '<circle cx="' + X(li).toFixed(1) + '" cy="' + Y(pts[li].v).toFixed(1) + '" r="3.5" class="hd-dot' + (part && li === n - 1 ? ' open' : '') + '"></circle>' : '';
+  var oneDot = one ? (function () { var i = pts.map(function (x) { return x.m; }).indexOf(one); return i >= 0 && pts[i].v != null ? '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(pts[i].v).toFixed(1) + '" r="5" class="hd-dot open"></circle>' : ''; })() : '';
+  // x labels: about 5 (6 on a computer), the month written on the first one and where the month changes
+  var every = Math.max(1, Math.ceil(n / (DESK.matches ? 7 : 5))), lastMon = '', labels = pts.map(function (x, i) {
     if (i % every && i !== n - 1) return '';
-    return '<text x="' + X(i).toFixed(1) + '" y="' + (H + 13) + '" text-anchor="middle">' + esc(monthly ? fnMonthName(x.m).slice(0, 3) : x.w ? niceDay(x.m) : String(Number(x.m.slice(8)))) + '</text>';
+    if (i !== n - 1 && n - 1 - i < every * .6) return ''; // no label squeezed against the last one
+    var t = monthly ? fnMonthName(x.m).slice(0, 3) + (x.m.slice(5) === '01' || i === 0 ? ' ' + x.m.slice(2, 4) : '') : x.w || x.m.slice(0, 7) !== lastMon ? niceDay(x.m) : String(Number(x.m.slice(8)));
+    lastMon = x.m.slice(0, 7);
+    return '<text x="' + X(i).toFixed(1) + '" y="' + (H + 15) + '" text-anchor="' + (i === 0 && n > 1 ? 'start' : i === n - 1 && n > 1 ? 'end' : 'middle') + '">' + esc(t) + '</text>';
   }).join('');
-  var mark = sel >= 0 && pts[sel].v != null ? '<circle cx="' + X(sel).toFixed(1) + '" cy="' + Y(pts[sel].v).toFixed(1) + '" r="4.5" fill="var(--card)" stroke="var(--brand)" stroke-width="2"></circle>' : '';
-  var rg = hdRange(), title = hdRangeName(HD_RANGES.filter(function (x) { return x[0] === rg; })[0], d);
-  return '<div class="hd-trend"><div class="hd-th"><b>Trend</b><button class="hd-rg" id="hdRg" type="button">' + esc(title) + '<i class="ti ti-chevron-down"></i></button></div>' +
-    '<div class="hd-chips">' + all.map(function (x) { return '<button class="chip' + (x.k === cur.k ? ' on' : '') + '" data-ht="' + x.k + '">' + x.l + '</button>'; }).join('') + '</div>' +
-    '<div class="hd-tv" id="hdTv"><b class="num">' + head.split('|')[0] + '</b><span>' + esc(head.split('|')[1]) + '</span></div>' +
-    '<svg id="hdSvg" viewBox="0 0 ' + W + ' ' + (H + 16) + '" role="img" aria-label="' + esc(cur.l) + ' ' + title.toLowerCase() + '">' +
-    (line ? '<path d="' + line + ' L' + X(hdLastI(pts)).toFixed(1) + ' ' + H + ' L' + X(hdFirstI(pts)).toFixed(1) + ' ' + H + ' Z" fill="var(--brand)" opacity=".08"></path><path d="' + line + '" fill="none" stroke="var(--brand)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>' : '') +
-    mark + '<line id="hdCur" x1="0" x2="0" y1="6" y2="' + H + '" stroke="var(--faint)" stroke-dasharray="3 3" opacity="0"></line>' + labels + '</svg></div>';
+  var leg = prev ? '<div class="hd-leg"><span><i class="cur"></i>' + esc(title) + '</span><span><i class="pre"></i>' + esc(hdWindowName(cur, pts, d).replace(/^previous/, 'Previous')) + '</span>' + (part ? '<span><i class="part"></i>so far</span>' : '') + '</div>' : part ? '<div class="hd-leg"><span><i class="part"></i>' + (monthly ? 'this month' : pts[n - 1].w ? 'this week' : 'today') + ' so far</span></div>' : '';
+  return '<div class="hd-trend">' + top + segBar + head +
+    '<div class="hd-plot"><svg id="hdSvg" data-w="' + W + '" width="' + W + '" height="' + (H + 20) + '" viewBox="0 0 ' + W + ' ' + (H + 20) + '" role="img" aria-label="' + esc(cur.l) + ' · ' + esc(title) + '">' +
+    '<defs><linearGradient id="hdFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--brand)" stop-opacity=".18"></stop><stop offset="1" stop-color="var(--brand)" stop-opacity="0"></stop></linearGradient></defs>' +
+    grid + (prev ? '<path d="' + path(prev, n) + '" class="hd-pl"></path>' : '') + area + (line ? '<path d="' + line + '" class="hd-ln"></path>' : '') + dash + lastDot + oneDot +
+    '<line id="hdCur" x1="0" x2="0" y1="' + T + '" y2="' + H + '" class="hd-cur" opacity="0"></line><circle id="hdPt" r="4.5" class="hd-dot" opacity="0"></circle>' + labels + '</svg>' +
+    '<div class="hd-tip" id="hdTip"></div></div>' + leg + '</div>';
 }
-// tap / drag on the chart: the value of the nearest point
+// preview: hover (computer) or touch / drag (phone) → a line on the nearest point and a small box with its date, value,
+// the same point of the window before and, for Delivery %, delivered of finished; it goes when the pointer leaves
 function homeTrendTap(d) {
   var svg = el('hdSvg'); if (!svg) return;
   var all = homeTrendSeries(d), key = store('eh_hdtrend') || (all[0] && all[0].k), cur = all.filter(function (x) { return x.k === key; })[0] || all[0];
   if (!cur) return;
-  var pick = function (ev) {
-    var r = svg.getBoundingClientRect(), x = ((ev.touches ? ev.touches[0].clientX : ev.clientX) - r.left) / r.width * 320, n = cur.pts.length;
-    var i = Math.max(0, Math.min(n - 1, Math.round((x - 8) / ((320 - 16) / Math.max(1, n - 1))))), p = cur.pts[i], X = 8 + i * (320 - 16) / Math.max(1, n - 1);
-    var v = p.v == null ? '–' : cur.pc ? p.v + '%' : (p.v < 0 ? '− ' : '') + rs(Math.abs(p.v));
-    el('hdTv').innerHTML = '<b class="num">' + v + '</b><span>' + esc(hdLabel(p.m, p.w)) + '</span>';
-    var c = el('hdCur'); c.setAttribute('x1', X); c.setAttribute('x2', X); c.setAttribute('opacity', '1');
+  var pts = cur.pts, n = pts.length, prev = cur.prev && cur.prev.length === n ? cur.prev : null, W = Number(svg.getAttribute('data-w')), L = 34, R = 8;
+  var fmtV = function (v) { return v == null ? '–' : cur.pc ? v + '%' : (v < 0 ? '− ' : '') + rs(Math.abs(v)); };
+  var hide = null;
+  var show = function (cx) {
+    var r = svg.getBoundingClientRect(), x = (cx - r.left) / r.width * W;
+    var i = n === 1 ? 0 : Math.max(0, Math.min(n - 1, Math.round((x - L) / ((W - L - R) / (n - 1))))), p = pts[i], px = L + (n === 1 ? (W - L - R) / 2 : i * (W - L - R) / (n - 1));
+    var c = el('hdCur'); c.setAttribute('x1', px); c.setAttribute('x2', px); c.setAttribute('opacity', '1');
+    var dot = el('hdPt');
+    if (p.v != null) {
+      var gl = svg.querySelectorAll('.hd-gl'), y0 = Number(gl[0].getAttribute('y1')), y2 = Number(gl[2].getAttribute('y1'));
+      var top = hdTipScale(cur, pts, prev); dot.setAttribute('cx', px); dot.setAttribute('cy', (y0 + (y2 - y0) * (top.mx - p.v) / Math.max(1, top.mx - top.mn)).toFixed(1)); dot.setAttribute('opacity', '1');
+    } else dot.setAttribute('opacity', '0');
+    var q = prev && prev[i], extra = cur.pc && p.f ? p.d + ' of ' + p.f + ' delivered' : '';
+    var tip = el('hdTip');
+    tip.innerHTML = '<small>' + esc(hdLabel(p.m, p.w)) + (hdPartial(p) && i === n - 1 ? ' · so far' : '') + '</small><b class="num">' + fmtV(p.v) + '</b>' + (extra ? '<small>' + extra + '</small>' : '') +
+      (q ? '<small class="pv">' + esc(hdLabel(q.m, q.w)) + ': ' + fmtV(q.v) + '</small>' : '');
+    // beside the point, inside the chart (never over the total above it): right of the line, or left near the right edge
+    var left = px / W * r.width, tw = tip.offsetWidth || 120;
+    tip.style.left = (left + 10 + tw <= r.width ? left + 10 : Math.max(0, left - 10 - tw)) + 'px'; tip.classList.add('on');
+    clearTimeout(hide);
   };
-  svg.addEventListener('click', pick); svg.addEventListener('touchmove', function (ev) { pick(ev); }, { passive: true });
+  var off = function (ms) { clearTimeout(hide); hide = setTimeout(function () { el('hdTip') && el('hdTip').classList.remove('on'); if (el('hdCur')) el('hdCur').setAttribute('opacity', '0'); if (el('hdPt')) el('hdPt').setAttribute('opacity', '0'); }, ms); };
+  svg.addEventListener('mousemove', function (ev) { show(ev.clientX); });
+  svg.addEventListener('mouseleave', function () { off(80); });
+  svg.addEventListener('click', function (ev) { show(ev.clientX); off(3000); });
+  svg.addEventListener('touchstart', function (ev) { show(ev.touches[0].clientX); }, { passive: true });
+  svg.addEventListener('touchmove', function (ev) { show(ev.touches[0].clientX); }, { passive: true });
+  svg.addEventListener('touchend', function () { off(2500); });
 }
+// the scale homeTrend drew with (same rules), for the preview dot
+function hdTipScale(cur, pts, prev) {
+  var vals = pts.concat(prev || []).map(function (x) { return x.v; }).filter(function (v) { return v != null; });
+  var mx = Math.max.apply(null, vals.concat([0])), mn = Math.min.apply(null, vals.concat([0]));
+  if (cur.pc) { mx = 100; mn = Math.min(mn, 50) >= 50 ? 50 : 0; } else { mx = hdNice(mx) || 1; mn = mn < 0 ? -hdNice(-mn) : 0; }
+  return { mx: mx, mn: mn };
+}
+var HD_RS = null; addEventListener('resize', function () { clearTimeout(HD_RS); HD_RS = setTimeout(function () { if (HD.redraw) HD.redraw(); }, 150); });
 function homeDash(d) { return '<div id="hdash">' + homeCards(d) + homeQuick() + '<div id="hdTrend">' + homeTrend(d) + '</div></div>'; }
 function homeDashWire(d) {
   var box = el('hdash'); if (!box) return;
@@ -2126,12 +2318,14 @@ function homeDashWire(d) {
     el('hdTrend').querySelectorAll('[data-ht]').forEach(function (b) { b.onclick = function () { store('eh_hdtrend', b.getAttribute('data-ht')); el('hdTrend').innerHTML = homeTrend(d); wireTrend(); }; });
     if (el('hdRg')) el('hdRg').onclick = function () {
       var cur = hdRange();
-      showPick('Trend', '', '<div class="sheet-list">' + HD_RANGES.map(function (x) { return '<div class="sl' + (x[0] === cur ? ' on' : '') + '" data-hr="' + x[0] + '"><span>' + esc(hdRangeName(x, d)) + '</span>' + (x[0] === cur ? '<i class="ti ti-check"></i>' : '') + '</div>'; }).join('') + '</div>',
+      showPick('Trend', '', '<div class="sheet-list">' + HD_RANGES.map(function (x) { return '<div class="sl' + (x[0] === cur ? ' on' : '') + '" data-hr="' + x[0] + '"><span>' + esc(hdRangeName(x, d)) + '<small>' + HD_EVERY[x[0]] + '</small></span>' + (x[0] === cur ? '<i class="ti ti-check"></i>' : '') + '</div>'; }).join('') + '</div>',
         function (ev) { var r = ev.target.closest('[data-hr]'); if (!r) return; closePick(); store('eh_hdrange', r.getAttribute('data-hr')); el('hdTrend').innerHTML = homeTrend(d); wireTrend(); });
     };
     homeTrendTap(d);
   };
   wireTrend();
+  HD.redraw = function () { if (el('hdTrend') && el('hdSvg') && Math.abs(Number(el('hdSvg').getAttribute('data-w')) - (el('hdTrend').clientWidth - 28)) > 8) { el('hdTrend').innerHTML = homeTrend(d); wireTrend(); } };
+  setTimeout(HD.redraw, 0);
   homePnl(d, function (p) {
     HD.net = p.net; HD.netFor = homePnlPeriod(d); HD.pnlSeries = p.series || []; HD.pnl90 = p.days90 || []; HD.pnlMonths = (p.trend || []).map(function (x) { return { k: x.month, net: x.net, ads: x.ads, sales: x.sales }; });
     if (el('hdNet')) el('hdNet').textContent = (p.net < 0 ? '− ' : '') + rs(Math.abs(p.net));
@@ -2725,8 +2919,9 @@ function caseType(c) {
 var NDR_TABS = [['todo', 'To do'], ['courier', 'With courier'], ['special', 'Special'], ['closed', 'Closed today']];
 var NDR_GH = {
   todo: [['new', 'circle-plus', 'New cases', 'not called yet · fewest tries left first'], ['again', 'phone-call', 'Call again', 'failed again · no answer 3 h+ · their time came'],
-    ['later', 'clock', 'Call back at their time', 'comes back by itself with a reminder'], ['ready', 'send', 'Ready to send', 'in the courier lists'],
-    ['wait', 'hourglass', 'Called · next try later', 'no answer · call again after 3 h']],
+    ['later', 'clock', 'Call back at their time', 'comes back by itself with a reminder'],
+    ['wait', 'hourglass', 'Called · next try later', 'no answer · call again after 3 h'],
+    ['ready', 'send', 'In the courier list', 'called · request made · only the send is left']],
   courier: [['replied', 'message-2', 'Courier replied', 'read it · keep with courier or call the customer'], ['reattempt', 'repeat', 'Reattempt requested', ''],
     ['return', 'arrow-back-up', 'Return requested', ''], ['late', 'clock-exclamation', 'Late · asked to trace', ''], ['check', 'search', 'Status check', '']],
   special: [['premature', 'alert-octagon', 'Premature return', 'started before the last try · stop it'], ['rtostop', 'arrow-back-up', 'Return started · can stop', 'within 72 h'],
@@ -2737,6 +2932,17 @@ function ndrMax() { return (N.data && N.data.options && N.data.options.maxAttemp
 function ticketOf(c) { var co = N.data.couriers && N.data.couriers[c.courier]; return co && co.tickets ? co.tickets[c.cn] : null; }
 // tries the courier still makes before sending the parcel back (Store Settings "Courier attempts before return")
 function triesLeft(c) { return c.attempts ? ndrMax() - c.attempts : 9; }
+// NDR order everywhere (user 2026-11-02, like Shiprocket / ClickPost "Action required" before "Action requested" and a
+// call-centre queue): people still to contact on top, then what waits for a time, then requests in the courier list,
+// then what is already with the courier
+var NDR_RANK = { new: 0, again: 0, premature: 0, rtostop: 0, stalled: 1, later: 2, wait: 3, ready: 4 };
+function ndrRank(c) {
+  var sl = ndrSlot(c), r = NDR_RANK[sl[1]];
+  if (r == null) r = 5; // with the courier
+  if (r <= 1 && (inOutbox(c) || c.sent === 'Queued')) r = 4; // a special case whose request is already made goes down too
+  else if (r <= 1 && /^(Sent|Courier confirmed)$/.test(c.sent || '')) r = 5;
+  return r;
+}
 // where a case sits: [tab, group]
 function ndrSlot(c) {
   var k = caseType(c), t = ticketOf(c), ob = inOutbox(c);
@@ -2883,8 +3089,14 @@ function renderNdr() {
   var wk = N.data.week || { saved: 0, done: 0 }, fresh = typed.filter(function (c) { return ndrSlot(c)[1] === 'new'; });
   var oldest = fresh.reduce(function (m, c) { return Math.max(m, c.hours || 0); }, 0);
   var last = typed.filter(function (c) { return c.attempts && triesLeft(c) <= 1 && caseType(c) !== 'premature' && caseType(c) !== 'rto' && !c.watch; }).length;
+  // calls today: cases called since midnight (Pakistan) vs cases that still need a call now (New + Call again)
+  var today0 = Date.parse(pkDay(new Date()) + 'T00:00:00+05:00');
+  var doneToday = cs.filter(function (c) { return c.lastCallMs >= today0; }).length;
+  var left = typed.filter(function (c) { var g = ndrSlot(c)[1]; return g === 'new' || g === 'again'; }).length;
   var score = '<div class="nscore"><div><b class="num" style="color:var(--green)">' + (wk.done ? Math.round(wk.saved / wk.done * 100) + '%' : '—') + '</b><span>Saved · ' + (wk.done ? wk.saved + ' of ' + wk.done : '7 days') + '</span></div>' +
-    '<div><b class="num">' + fresh.length + (fresh.length ? ' <small style="font-size:11px;font-weight:500;color:var(--muted)">oldest ' + (oldest < 1 ? 'new' : oldest < 48 ? oldest + ' h' : Math.floor(oldest / 24) + ' d') + '</small>' : '') + '</b><span>Not called yet</span></div>' +
+    '<div class="ncalls"><b class="num">' + doneToday + ' <small>done</small> · <i style="color:' + (left ? 'var(--amber)' : 'var(--green)') + '">' + left + '</i> <small>left</small></b>' +
+      '<span class="nbar"><i style="width:' + (doneToday + left ? Math.round(doneToday / (doneToday + left) * 100) : 100) + '%"></i></span>' +
+      '<span>Calls today</span></div>' +
     '<div><b class="num" style="color:' + (last ? 'var(--red)' : 'var(--text)') + '">' + last + '</b><span>On their last try</span></div></div>';
   // cases per tab / group
   var by = {}; NDR_TABS.forEach(function (t) { by[t[0]] = {}; });
@@ -2900,13 +3112,13 @@ function renderNdr() {
   var q = String(N.q || '').toLowerCase().trim(), qd = q.replace(/[^0-9]/g, '');
   if (q) {
     var hit = function (c) { return String(c.cn).toLowerCase().indexOf(q) !== -1 || String(c.ref).toLowerCase().replace('#', '').indexOf(q.replace('#', '')) !== -1 || String(c.name).toLowerCase().indexOf(q) !== -1 || (qd.length >= 4 && phoneDigits(c.phone).indexOf(qd.replace(/^0/, '')) !== -1); };
-    var found = typed.filter(hit);
+    var found = typed.filter(hit).sort(function (a, b) { return ndrRank(a) - ndrRank(b) || triesLeft(a) - triesLeft(b) || (b.hours || 0) - (a.hours || 0); });
     el('nlist').innerHTML = found.length ? found.map(function (c) { return ndrCard(c, seen); }).join('') : '<div class="card empty"><i class="ti ti-search"></i>No NDR case for "' + esc(N.q) + '"</div>';
     return saveFilters();
   }
   if (N.scrollOnce) { N.scrollOnce = false; scrollToCard('nchips'); }
   // most urgent first: fewest tries left, then the oldest
-  var order = function (a, b) { return triesLeft(a) - triesLeft(b) || (b.hours || 0) - (a.hours || 0); };
+  var order = function (a, b) { return ndrRank(a) - ndrRank(b) || triesLeft(a) - triesLeft(b) || (b.hours || 0) - (a.hours || 0); };
   var replyH = function () { var h = Object.keys(N.data.couriers || {}).map(function (n) { return N.data.couriers[n].replyHours ? n + ' ~' + N.data.couriers[n].replyHours + ' h' : ''; }).filter(Boolean); return h.length ? 'usual reply: ' + h.join(' · ') : ''; };
   var html = N.tab === 'courier' ? '<div class="cstrip">' + Object.keys(N.data.couriers || {}).map(function (name) {
     var s = N.data.couriers[name];
@@ -2922,10 +3134,13 @@ function renderNdr() {
     if (N.tab !== 'closed') arr.sort(order);
     html += '<div class="ngh"><i class="ti ti-' + g[1] + '"></i><div><div class="ngh-t"><span>' + g[2] + '</span><em class="num">' + arr.length + '</em></div>' +
       ((g[0] === 'reattempt' ? replyH() : g[3]) ? '<small>' + esc(g[0] === 'reattempt' ? replyH() : g[3]) + '</small>' : '') + '</div></div>' + bars +
-      arr.map(function (c) { return N.tab === 'closed' ? ndrClosedCard(c) : ndrCard(c, seen); }).join('');
+      (g[0] === 'ready' && arr.length && !N.readyOpen ? '<button class="ngh-more" type="button" data-ready="1"><i class="ti ti-chevron-down"></i>Show ' + arr.length + (arr.length === 1 ? ' parcel' : ' parcels') + ' in the list</button>'
+        : arr.map(function (c) { return N.tab === 'closed' ? ndrClosedCard(c) : ndrCard(c, seen); }).join('') +
+          (g[0] === 'ready' && arr.length ? '<button class="ngh-more" type="button" data-ready="0"><i class="ti ti-chevron-up"></i>Hide the list</button>' : ''));
   });
   if (!html) html = '<div class="card empty"><i class="ti ti-circle-check"></i>' + (N.tab === 'todo' ? 'Nothing to do · every case is with the courier or waiting' : N.tab === 'closed' ? 'No case closed today yet' : 'No cases here') + '</div>';
   el('nlist').innerHTML = html;
+  el('nlist').querySelectorAll('[data-ready]').forEach(function (b) { b.onclick = function () { N.readyOpen = b.getAttribute('data-ready') === '1'; renderNdr(); }; });
   saveFilters();
 }
 // What the team has to do, in plain words (the W1 case type stays in the parcel sheet)
@@ -5965,6 +6180,11 @@ function lgSubmit() {
   }).appLogin(n, p);
 }
 el('lgPad').onclick = function (e) { var b = e.target.closest('[data-k]'); if (b) lgKey(b.getAttribute('data-k')); };
+addEventListener('keydown', function (e) {
+  if (el('login').hidden || el('lgStepPin').hidden || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (/^[0-9]$/.test(e.key)) { e.preventDefault(); lgKey(e.key); }
+  else if (e.key === 'Backspace') { e.preventDefault(); lgKey('del'); }
+});
 document.addEventListener('keydown', function (e) {
   if (el('login').hidden || document.activeElement === el('lgName')) return;
   if (/^\d$/.test(e.key)) lgKey(e.key); else if (e.key === 'Backspace') lgKey('del'); else if (e.key === 'Enter') lgKey('go');
