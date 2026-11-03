@@ -376,6 +376,19 @@ body.nb-on #nlist{padding-bottom:84px}
 .prow-1>:last-child:not(:first-child){flex:none;white-space:nowrap}
 .prow-2{min-width:0}.prow-2>span:first-child{min-width:0;overflow-wrap:anywhere}
 .prow-2{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-top:3px}.prow-2>span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.prow-2 .st{flex:none;font-size:10.5px;padding:2px 8px}
+.rc-c.flash{background:rgba(0,133,122,.10);border-radius:12px;transition:background .3s}
+.rc-c{padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:8px}.rc-c:last-child{border-bottom:0;margin-bottom:0;padding-bottom:0}
+.rc-next{display:flex;align-items:center;gap:8px;font-size:13px;margin:6px 0 0;padding:8px 10px;border-radius:10px;background:rgba(0,133,122,.08)}.rc-next span{flex:1}.rc-next.late{background:rgba(220,38,38,.08);color:var(--red)}.rc-next i{font-size:16px}
+.rc-age{display:flex;gap:2px;height:6px;border-radius:3px;overflow:hidden;margin:10px 0 6px;background:var(--line)}.rc-age i{display:block}
+.a0{--ac:#00857A}.a1{--ac:#E0A33F}.a2{--ac:#E07B39}.a3{--ac:#DC2626}.rc-age i{background:var(--ac)}
+.rc-agel{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted)}.rc-agel span{display:inline-flex;align-items:center;gap:5px}.rc-agel i{width:8px;height:8px;border-radius:2px;background:var(--ac)}
+.sp-sum{padding:14px}.sp-tot{display:flex;flex-direction:column;gap:2px;margin-bottom:10px}.sp-tot small{color:var(--muted);font-size:12.5px}.sp-tot b{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}.sp-tot span{font-size:12.5px;font-weight:500}
+.sp-g{display:flex;align-items:center;gap:10px;width:100%;padding:9px 6px;border:0;background:none;border-top:1px solid var(--line);color:inherit;font:inherit;text-align:left;cursor:pointer;border-radius:8px}.sp-g.on{background:rgba(0,133,122,.09)}
+.sp-g > i{font-size:18px;color:var(--brand);width:22px;text-align:center}.sp-n{flex:1;min-width:0;font-size:14px;font-weight:500}.sp-bar{display:block;height:5px;border-radius:3px;background:var(--line);margin-top:5px;overflow:hidden}.sp-bar i{display:block;height:100%;background:var(--brand);border-radius:3px}
+.sp-a{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;font-size:14px}.sp-a small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.sp-more{display:inline-flex;align-items:center;gap:4px;margin-top:6px;padding:0;border:0;background:none;color:var(--brand);font:inherit;font-size:12.5px;font-weight:500;cursor:pointer}.sp-more.open .sp-cv{transform:rotate(180deg)}
+.sp-x{cursor:pointer}.sp-x .prow-2{display:flex;align-items:center;justify-content:space-between}.sp-cv{transition:transform .2s;color:var(--muted)}.sp-x.open .sp-cv{transform:rotate(180deg)}
+.sp-det{margin-top:8px;border-top:1px dashed var(--line);padding-top:6px}.sp-dr{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:3px 0}.sp-dr.sub{padding-left:12px;color:var(--muted);font-size:12.5px}
 .prow-3{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--amber);margin-top:4px}.prow-3 i{font-size:14px}
 .cf-r{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:13.5px}.cf-r small{display:block;font-size:11.5px;color:var(--muted);margin-top:1px}.cf-r.tap{cursor:pointer}
 .cflow .cf-r:first-of-type{border-top:0}.cf-pct{display:block;font-size:11px;color:var(--muted);margin-bottom:4px}
@@ -935,11 +948,19 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 (function () {
   if (window.google && google.script) return;
   window.EH_PWA = true; // installed app: notifications are possible
-  window.EH_BUILD = '2026-11-02'; // shown at the bottom of the menu
-  var API = "https://script.google.com/macros/s/AKfycbyqtyrClenCG1_iqTSDK5KhtFItfX6rUsYdIexwQ3qPFbSv9d1n8jy06ItjvWXXtB-I/exec";
+  window.EH_BUILD = '2026-11-03'; // shown at the bottom of the menu
+  var API = "https://script.google.com/macros/s/AKfycbyqtyrClenCG1_iqTSDK5KhtFItfX6rUsYdIexwQ3qPFbSv9d1n8jy06ItjvWXXtB-I/exec", RELAY = "", relayOff = 0;
+  // through the relay when there is one; if it fails, straight to Google and skip the relay for 10 min. A save goes
+  // straight only when the relay could not be reached at all (never sent twice).
+  function post(url, body) {
+    return fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: body })
+      .then(function (r) { if (!r.ok) { var e = new Error('HTTP ' + r.status); e.reached = true; throw e; } return r.json(); });
+  }
   function call(fn, args, ok, fail) {
-    fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: fn, args: args }) })
-      .then(function (r) { return r.json(); })
+    var body = JSON.stringify({ fn: fn, args: args }), save = /^app[A-Z]/.test(fn);
+    (RELAY && Date.now() > relayOff
+      ? post(RELAY, body).catch(function (e) { relayOff = Date.now() + 600000; if (save && e.reached) throw e; return post(API, body); })
+      : post(API, body))
       .then(function (j) { if (j.ok) { if (ok) ok(j.data); } else if (fail) fail(new Error(j.error)); })
       .catch(function () { if (fail) fail(new Error('No connection. Check the internet and try again.')); });
   }
@@ -4095,6 +4116,7 @@ function loadCash(fresh) {
     if (cashKey() !== key) return;
     C.data = d; if (curTab === 'cash') renderCash();
     openPayIfReady(); // opened from a payment notification
+    openAskIfReady(); // or from a payment reminder
   });
 }
 var CASH_F = [
@@ -4186,8 +4208,64 @@ function advCard(d) {
         '<div class="prow-2"><span>' + esc([x.date, x.method, x.via === 'App' ? 'recorded in the app' : 'paid in Shopify'].filter(Boolean).join(' · ')) + '</span>' + (x.prepaid ? '<span class="st" style="--c:var(--green)">Prepaid</span>' : '') + '</div></div></div>';
     }).join('') + (a.n > 8 ? '<small class="mnote">+ ' + (a.n - 8) + ' more in Finance → Expenses (Money in)</small>' : '') + '</div>';
 }
-// Courier receivables: per courier, the COD still to be paid out, how many parcels, how old the oldest is (tap = those parcels)
+// Courier receivables (user 2026-11-03, like Shiprocket COD remittance + an AR aging report): all time, per courier —
+// next payment (~ day · money due by then), how many days after delivery it pays, money by age, its reminder days and
+// "Remind <courier> on WhatsApp" (a short message, no list). Tap the courier = its parcels.
+var AGE_L = ['0–7 days', '8–14', '15–30', '30+'];
 function owesCard(d) {
+  if (d.recv) return recvCard(d.recv) + claimsCard(d.recv);
+  return owesCardOld(d);
+}
+function recvCard(r) {
+  var cs = r.couriers.filter(function (c) { return c.n; });
+  if (!cs.length) return '';
+  var tot = cs.reduce(function (a, c) { return a + c.total; }, 0), edit = can('cash.edit');
+  return '<div class="card rc"><div class="h"><b>Courier receivables</b><span>' + rs(tot) + '</span></div><small class="mnote" style="display:block;margin:-6px 0 6px">All delivered parcels not paid yet · any period</small>' +
+    cs.map(function (c) {
+      var col = c.late ? 'var(--red)' : 'var(--amber)', ageT = c.age.reduce(function (a, x) { return a + x; }, 0) || 1;
+      return '<div class="rc-c"><div class="prow in" data-owe="' + esc(c.courier) + '" style="--c:' + col + '"><span class="prow-d"></span><div class="prow-m">' +
+        '<div class="prow-1"><b>' + esc(c.courier) + '</b><span class="num">' + rs(c.total) + '</span></div>' +
+        '<div class="prow-2"><span>' + c.n + (c.n === 1 ? ' parcel' : ' parcels') + ' · pays ~' + c.lag + ' days after delivery' + (c.remindDays && c.remindDays.length ? ' · remind ' + c.remindDays.map(function (d) { return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d]; }).join(' / ') : '') + '</span><span class="st" style="--c:' + col + '">' + (c.late ? c.late + ' late' : 'On time') + '</span></div></div>' +
+        '<i class="ti ti-chevron-right" style="color:var(--faint);align-self:center"></i></div>' +
+        '<div class="rc-next' + (c.nextLate ? ' late' : '') + '"><i class="ti ti-calendar-dollar"></i><span>' + (c.nextLate ? 'Payment expected by now' + (c.last ? ' · last paid ' + esc(c.last) : '') : 'Next payment ~ <b>' + esc(c.next) + '</b>') + '</span><b class="num">' + rs(c.nextAmt) + '</b></div>' +
+        '<div class="rc-age">' + c.age.map(function (a, i) { return '<i class="a' + i + '" style="flex:' + Math.max(a / ageT, a ? 0.04 : 0) + '"></i>'; }).join('') + '</div>' +
+        '<div class="rc-agel">' + c.age.map(function (a, i) { return a ? '<span class="a' + i + '"><i></i>' + AGE_L[i] + ' · ' + rs(a) + '</span>' : ''; }).join('') + '</div>' +
+        (edit && c.remindDays.length ? '<a class="btn wa" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(payRemindText(c.courier)) + '" style="width:100%;margin-top:8px"><i class="ti ti-brand-whatsapp"></i>Remind ' + esc(c.courier) + ' on WhatsApp' + (c.remindToday ? ' · today' : '') + '</a>' : '') +
+        '</div>';
+    }).join('') + '</div>';
+}
+// the payment reminder (user 2026-11-03: short, no parcel list)
+function payRemindText(courier) { return 'Assalam o Alaikum ' + courier + ' team,\n' + STORE + ' ki COD payment ka reminder hai. Barah-e-karam payment transfer karwa dein.\nShukriya'; }
+// Money to claim: COD paid short, charges above the rate card — 7 days to dispute; Claim (WhatsApp) / Accept / Recovered
+var CLM_K = { short: 'COD short', over: 'Overcharged' };
+function claimsCard(r) {
+  var ls = r.claims; if (!ls.length) return '';
+  var edit = can('cash.edit'), lim = C.clim || 6, open = {};
+  ls.forEach(function (x) { if (x.status === 'Open') (open[x.courier] = open[x.courier] || []).push(x); });
+  return '<div class="card" id="cclaim"><div class="h"><b>Money to claim</b><span>' + rs(r.claimTotal) + '</span></div>' +
+    '<small class="mnote" style="display:block;margin:-6px 0 6px">Couriers allow about ' + 7 + ' days to dispute after the payment</small>' +
+
+    ls.slice(0, lim).map(function (x) {
+      var col = x.status === 'Claimed' ? 'var(--amber)' : x.left != null && x.left < 0 ? 'var(--faint)' : 'var(--red)';
+      var when = x.status === 'Claimed' ? 'Claimed ' + x.at : x.left == null ? '' : x.left >= 0 ? x.left + (x.left === 1 ? ' day' : ' days') + ' left to dispute' : 'past the 7 days';
+      return '<div class="prow" style="cursor:default;--c:' + col + '"><span class="prow-d"></span><div class="prow-m">' +
+        '<div class="prow-1"><b>' + esc(x.order || x.cn) + ' · ' + esc(CLM_K[x.kind]) + '</b><span class="num down">' + rs(x.amount) + '</span></div>' +
+        '<div class="prow-2"><span>' + esc([x.courier, x.why].join(' · ')) + '</span><span class="st" style="--c:' + col + '">' + esc(when || x.status) + '</span></div>' +
+        (edit ? '<div class="btns" style="margin-top:6px">' + (x.status === 'Claimed' ? '<button class="btn mini" type="button" data-clm="Recovered" data-k="' + esc(x.key) + '"><i class="ti ti-check"></i>Recovered</button>' : '<button class="btn mini" type="button" data-clm="Claimed" data-k="' + esc(x.key) + '">Claimed</button>') +
+          '<button class="btn mini" type="button" data-clm="Accepted" data-k="' + esc(x.key) + '">Let it go</button></div>' : '') + '</div></div>';
+    }).join('') + (ls.length > lim ? '<button class="btn more" type="button" id="clmore">See all ' + ls.length + '</button>' : '') + '</div>';
+}
+function cashClaimSet(keys, status, courier, done) {
+  var am = {}; C.data.recv.claims.forEach(function (x) { if (keys.indexOf(x.key) !== -1) am[x.key] = x.amount; });
+  api('appCashClaim', [TOKEN, { keys: keys, status: status, courier: courier || '', amounts: am }], function () {
+    toast(status === 'Claimed' ? 'Marked claimed · ' + keys.length : status === 'Recovered' ? 'Marked recovered' : 'Set aside');
+    C.data.recv.claims.forEach(function (x) { if (keys.indexOf(x.key) !== -1) { x.status = status; x.at = niceDay(pkDay(new Date())); } });
+    C.data.recv.claims = C.data.recv.claims.filter(function (x) { return x.status !== 'Accepted' && x.status !== 'Recovered'; });
+    C.data.recv.claimTotal = C.data.recv.claims.reduce(function (a, x) { return a + x.amount; }, 0);
+    renderCash(); if (done) done();
+  }, function (e) { toast((e && e.message) || 'Not saved'); });
+}
+function owesCardOld(d) {
   var by = {};
   d.parcels.forEach(function (p) {
     if (p.cat === 'paid' || p.returned) return;
@@ -4312,6 +4390,14 @@ function openRecord(i, back) {
   setTimeout(function () { el('bAmt').focus(); }, 80);
 }
 var PAY_OPEN = ''; // a payment to open once Cash has its data (from a "💰 payment" notification)
+// from a "Remind <courier> to send the payment" notification: Cash at that courier (its WhatsApp button is there)
+var ASK_OPEN = '';
+function openAskIfReady() {
+  if (!ASK_OPEN || !C.data || !C.data.recv) return;
+  var name = ASK_OPEN.toLowerCase(); ASK_OPEN = '';
+  var box = [].filter.call(document.querySelectorAll('.rc-c'), function (b) { var o = b.querySelector('[data-owe]'); return o && o.getAttribute('data-owe').toLowerCase() === name; })[0];
+  if (box) { box.scrollIntoView({ block: 'center' }); box.classList.add('flash'); setTimeout(function () { box.classList.remove('flash'); }, 2500); }
+}
 function openPayIfReady() {
   if (!PAY_OPEN || !C.data) return;
   var i = C.data.batches.map(function (b) { return b.ref; }).indexOf(PAY_OPEN);
@@ -4323,7 +4409,8 @@ function renderCashList(list, f) {
   el('clist').innerHTML = list.length ? list.slice(0, lim).map(function (p) {
     var tone = p.cat === 'late' ? 'down' : p.cat === 'paid' ? 'up' : '';
     var c = p.cat === 'paid' ? 'var(--green)' : p.cat === 'late' ? 'var(--red)' : 'var(--amber)';
-    var stx = f[0] === 'over' ? 'charged ' + rs(p.charges) : p.cat === 'paid' ? 'Paid' + (p.paidOn ? ' ' + p.paidOn : '') : p.cat === 'late' ? 'Overdue' : 'Pending';
+    var stx = f[0] === 'over' ? 'charged ' + rs(p.charges) : p.cat === 'paid' ? 'Paid' + (p.paidOn ? ' ' + p.paidOn : '') : p.due ? (p.dueLate ? 'Late · due ' + p.due : p.duePast ? 'Due ' + p.due : 'Payment ~ ' + p.due) : p.cat === 'late' ? 'Overdue' : 'Pending';
+    if (p.dueLate && p.cat !== 'paid') c = 'var(--red)';
     return '<div class="prow in" data-cr="' + esc(p.cn) + '" style="--c:' + c + '"><span class="prow-d"></span><div class="prow-m">' +
       '<div class="prow-1"><b>' + esc(p.order) + (p.returned ? ' · returned' : '') + '</b><span class="num ' + (f[0] === 'over' ? 'down' : tone) + '">' + (f[0] === 'over' ? '+' + rs(p.over) : rs(p.net)) + '</span></div>' +
       '<div class="prow-2"><span>' + [esc(p.courier), esc(p.note)].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + c + '">' + esc(stx) + '</span></div>' +
@@ -4354,6 +4441,8 @@ el('cview').onclick = function (e) {
     if (pf.closest('.cflow') && el('cparcels')) el('cparcels').scrollIntoView({ behavior: 'smooth', block: 'start' });
     return;
   }
+  var cm = e.target.closest('[data-clm]'); if (cm) return cashClaimSet([cm.getAttribute('data-k')], cm.getAttribute('data-clm'));
+  if (e.target.closest('#clmore')) { C.clim = 1000; renderCash(); return; }
   var ow = e.target.closest('[data-owe]');
   if (ow) { C.q = ow.getAttribute('data-owe'); C.pf = 'due'; C.plim = PAGE; renderCashParcels(); el('cparcels').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
   if (e.target.closest('#bmore')) { C.blim = 1000; renderCash(); return; }
@@ -5084,17 +5173,69 @@ function openExpenses(m) {
   FN.month = m || FN.month || pkDay(new Date()).slice(0, 7);
   apiMem('fin_' + FN.month, 'getAppFinance', [TOKEN, FN.month], function (d) { FN.data = d; renderExpenses(); fnBadge(); }, function () { closePanel(); toast('You don\'t have access to this'); }, '<h3>Expenses</h3>');
 }
+function fnDay(d) { return d ? Number(d.slice(8, 10)) + ' ' + ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][Number(d.slice(5, 7)) - 1] : ''; }
+// the name shown for an entry: emailed Shopify bills by the vendor, not the mail's subject line
+function fnTitle(x) {
+  var t = x.desc.replace(/ · \$[\d.,]+$/, '');
+  if (/^Shopify bill/.test(x.source)) return 'Shopify · ' + (/has been charged/i.test(t) ? 'Store bill' : t.replace(/^Shopify\s*[·:-]?\s*/i, ''));
+  return t;
+}
 function fnRow(x, act) {
   var st = x.status === 'Pending' ? ['Pending', 'var(--amber)'] : x.status === 'Rejected' ? ['Rejected', 'var(--red)'] : ['', 'var(--line)'];
   var sign = x.type === 'Income' || x.type === 'Capital' ? '+' : '';
   return '<div class="prow" style="cursor:default;--c:' + st[1] + '"><span class="prow-d"></span><div class="prow-m">' +
-    '<div class="prow-1"><b>' + (x.receipt ? '<i class="ti ti-paperclip" data-rcpt="' + esc(x.id) + '" style="cursor:pointer;color:var(--brand)" aria-label="Receipt"></i> ' : '') + esc(x.desc.replace(/ · \$[\d.,]+$/, '')) + '</b><span class="num">' + sign + (x.usd ? '$' + x.usd.toFixed(2) : rs(x.amount)) + '</span></div>' +
-    '<div class="prow-2"><span>' + esc([x.date.slice(5), x.usd ? rs(x.amount) + ' at Rs ' + Math.round(x.amount / x.usd) + '/$' : '', x.type === 'Expense' ? x.cat : x.type + ' · ' + x.cat, x.from === 'Own pocket' ? 'paid by ' + (x.by || x.enteredBy) : x.from, x.status === 'Pending' ? 'by ' + x.enteredBy : ''].filter(Boolean).join(' · ')) + '</span>' +
+    '<div class="prow-1"><b>' + (x.receipt ? '<i class="ti ti-paperclip" data-rcpt="' + esc(x.id) + '" style="cursor:pointer;color:var(--brand)" aria-label="Receipt"></i> ' : '') + esc(fnTitle(x)) + '</b><span class="num">' + sign + (x.usd ? '$' + x.usd.toFixed(2) : rs(x.amount)) + '</span></div>' +
+    '<div class="prow-2"><span>' + esc([fnDay(x.date), x.usd ? rs(x.amount) + ' at Rs ' + Math.round(x.amount / x.usd) + '/$' : '', x.type === 'Expense' ? x.cat : x.type === 'Inventory purchase' ? 'Stock · ' + x.cat : x.type + ' · ' + x.cat, x.from === 'Own pocket' ? 'paid by ' + (x.by || x.enteredBy) : x.from, x.status === 'Pending' ? 'by ' + x.enteredBy : ''].filter(Boolean).join(' · ')) + '</span>' +
     (st[0] ? '<span class="st" style="--c:' + st[1] + '">' + st[0] + '</span>' : '') + '</div>' +
     // an emailed Shopify bill waiting for its check: its lines, and a likely twin already in Finance
     (x.status === 'Pending' && /^Shopify bill · /.test(x.source) ? (/^Possible duplicate/.test(x.note) ? '<div class="prow-3" style="color:var(--red)"><i class="ti ti-copy"></i>' + esc(x.note.split(' · ')[0]) + ' · check it is not the same bill</div>' : '') +
       '<div class="prow-3" style="color:var(--muted)"><i class="ti ti-receipt"></i>' + esc(x.note.replace(/^Possible duplicate of [^·]*· /, '')) + '</div>' : '') +
     (act || '') + '</div></div>';
+}
+// Every kind of spend of the month (user 2026-11-02): total vs the month before, one bar per kind (tap = only that kind),
+// then every line — entries, stock / cargo, ads per platform (days inside), courier charges + taxes per courier (details inside)
+var SP_ICON = { 'Ads': 'ti-speakerphone', 'Stock & cargo': 'ti-package', 'Courier charges': 'ti-truck-delivery', 'Shopify & apps': 'ti-brand-shopify', 'Salaries': 'ti-users', 'Rent': 'ti-building', 'Packing': 'ti-box' };
+function spSummary(d) {
+  var p = d.spend, ch = p.prev ? Math.round((p.total - p.prev) / p.prev * 100) : null;
+  return '<div class="card sp-sum"><div class="sp-tot"><small>Total spent · ' + fnMonthName(d.month) + '</small><b>' + rs(p.total) + '</b>' +
+    (ch != null ? '<span style="color:' + (ch > 0 ? 'var(--red)' : 'var(--green)') + '">' + (ch > 0 ? '▲ ' : '▼ ') + Math.abs(ch) + '% vs ' + fnMonthName(p.prevMonth).slice(0, 3) + ' (' + rs(p.prev) + ')</span>' : '') + '</div>' +
+    p.groups.map(function (g) {
+      var pc = p.total ? Math.round(g.total / p.total * 100) : 0;
+      return '<button class="sp-g' + (FN.grp === g.name ? ' on' : '') + '" type="button" data-fg="' + esc(g.name) + '"><i class="ti ' + (SP_ICON[g.name] || 'ti-receipt') + '"></i><span class="sp-n">' + esc(g.name) + '<i class="sp-bar"><i style="width:' + Math.max(2, pc) + '%"></i></i></span><span class="sp-a">' + rs(g.total) + '<small>' + pc + '%</small></span></button>';
+    }).join('') + '</div>';
+}
+function spRow(lab, v, sub) { return '<div class="sp-dr' + (sub ? ' sub' : '') + '"><span>' + esc(lab) + '</span><span class="num">' + v + '</span></div>'; }
+function spLine(x, i) {
+  if (x.k === 'e') {
+    if (!x.po || !x.po.lines.length) return fnRow(x);
+    // a stock payment: its purchase's products (qty × rate), the bill and what is paid
+    var p = x.po;
+    return fnRow(x, '<button class="sp-more" type="button" data-sx="' + i + '">' + p.lines.length + ' product' + (p.lines.length === 1 ? '' : 's') + '<i class="ti ti-chevron-down sp-cv"></i></button>' +
+      '<div class="sp-det" id="spd' + i + '" hidden>' + p.lines.map(function (l) { return spRow(l.p + ' · ' + spQty(l) + ' × ' + rs(l.price).replace('Rs ', ''), rs(l.amt)); }).join('') +
+      spRow('Bill (goods)', rs(p.goods), 1) + (p.cargo ? spRow('Cargo', rs(p.cargo), 1) : '') + spRow('Paid so far', rs(p.paid), 1) + '</div>');
+  }
+  var det, sub;
+  if (x.k === 'ads') {
+    sub = [x.usd ? '$' + x.usd.toFixed(2) + ' at the rate paid' : '', x.days.length + ' day' + (x.days.length === 1 ? '' : 's'), 'till ' + fnDay(x.date)];
+    det = (x.extra ? spRow('of which dollar extra', rs(x.extra), 1) : '') + x.days.map(function (z) { return spRow(fnDay(z.d), (z.usd ? '$' + z.usd.toFixed(2) + ' · ' : '') + rs(z.pkr)); }).join('');
+  } else {
+    sub = [x.del + ' delivered', x.ret + ' returned', 'taken from COD'];
+    det = spRow('Delivery fees (' + x.del + ')', rs(x.fees - x.retFees)) + spRow('Return fees (' + x.ret + ')', rs(x.retFees)) +
+      spRow('weight', rs(x.weight), 1) + spRow('fuel', rs(x.fuel), 1) + spRow('cash handling', rs(x.handling), 1) + spRow('GST on charges', rs(x.gst), 1) +
+      spRow('Income tax (WHT)', rs(x.wht)) + spRow('Sales tax' + (x.sstAdj ? ' · adjustable, not counted' : ''), rs(x.sst));
+  }
+  return '<div class="prow sp-x" data-sx="' + i + '" style="--c:var(--line)"><span class="prow-d"></span><div class="prow-m"><div class="prow-1"><b>' + esc(x.k === 'cour' ? x.name + ' · courier charges' : x.name) + '</b><span class="num">' + rs(x.amount) + '</span></div>' +
+    '<div class="prow-2"><span>' + esc(sub.filter(Boolean).join(' · ')) + '</span><i class="ti ti-chevron-down sp-cv"></i></div>' +
+    '<div class="sp-det" id="spd' + i + '" hidden>' + det + '</div></div></div>';
+}
+function spQty(l) { return (Math.round(l.qty * 100) / 100).toLocaleString('en-IN') + (l.ft ? ' ft' : ' pcs'); }
+function spList(d) {
+  var ls = d.spend.lines.filter(function (x) { return !FN.grp || x.group === FN.grp; }), pr = d.spend.products || [];
+  return (FN.grp === 'Stock & cargo' && pr.length ? '<div class="card"><div class="h"><b>Stock bought by product</b><span>' + pr.length + '</span></div>' +
+    pr.map(function (l) { return spRow(l.p + ' · ' + spQty(l), rs(l.amt)); }).join('') + '</div>' : '') +
+    '<div class="card" id="spList" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>' + (FN.grp ? esc(FN.grp) : 'All spending') + '</b><span>' +
+    (FN.grp ? '<button class="btn mini" type="button" data-fg="' + esc(FN.grp) + '"><i class="ti ti-x"></i>All</button>' : ls.length) + '</span></div>' +
+    (ls.length ? ls.map(spLine).join('') : '<div class="empty">Nothing this month</div>') + '</div>';
 }
 function renderExpenses() {
   var d = FN.data;
@@ -5103,7 +5244,7 @@ function renderExpenses() {
   var owedK = Object.keys(d.owed || {});
   el('panel').innerHTML = '<h3>Expenses</h3><p>' + (d.canApprove ? 'Entered by one person, approved by another' : 'Your entries wait for approval') + '</p>' +
     fnNav('fn', d.month) +
-    '<div class="stk-top"><div><b>' + rs(d.totals.expense) + '</b><small>Expenses</small></div><div><b>' + rs(d.totals.inventory) + '</b><small>Stock bought</small></div><div><b>' + rs(d.totals.income) + '</b><small>Money in</small></div></div>' +
+    (d.spend ? spSummary(d) : '<div class="stk-top"><div><b>' + rs(d.totals.expense) + '</b><small>Expenses</small></div><div><b>' + rs(d.totals.inventory) + '</b><small>Stock bought</small></div></div>') +
     (d.canAdd || d.canApprove ? '<button class="btn pri" id="fnAdd" style="width:100%;padding:12px;margin:0 0 12px"><i class="ti ti-plus"></i>Add expense</button>' : '') +
     (d.canApprove && toApprove.length ? '<div class="card" style="padding:0 0 4px"><div class="h" style="padding:12px 14px 0"><b>To approve</b><span>' + toApprove.length + '</span></div>' +
       toApprove.map(function (x) { return fnRow(x, '<div class="btns" style="margin-top:8px"><button class="btn" data-fr="' + esc(x.id) + '"><i class="ti ti-x"></i>Reject</button>' +
@@ -5113,12 +5254,14 @@ function renderExpenses() {
       return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><b>' + esc(k) + '</b><span class="num">' + rs(d.owed[k].total) + '</span></div>' +
         (d.canApprove ? '<div class="btns" style="margin-top:8px"><button class="btn" data-fb="' + esc(k) + '"><i class="ti ti-cash"></i>Mark paid back</button></div>' : '') + '</div></div>';
     }).join('') + '</div>' : '') +
-    '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>' + fnMonthName(d.month) + '</b><span>' + d.list.length + '</span></div>' +
-    (d.list.length ? d.list.map(function (x) { return fnRow(x); }).join('') : '<div class="empty">Nothing this month</div>') + '</div>' +
+    (d.spend ? spList(d) : '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>' + fnMonthName(d.month) + '</b></div>' +
+    (d.list.length ? d.list.filter(function (x) { return x.type === 'Expense' || x.type === 'Inventory purchase'; }).map(function (x) { return fnRow(x); }).join('') : '<div class="empty">Nothing this month</div>') + '</div>') +
     '<div class="btns" style="margin-top:10px"><button class="btn" id="fnClose">Close</button></div>';
   openPanel(true);
   el('fnClose').onclick = closePanel;
-  el('panel').querySelectorAll('[data-fm]').forEach(function (b) { b.onclick = function () { openExpenses(fnMonth(FN.month, Number(b.getAttribute('data-fm')))); }; });
+  el('panel').querySelectorAll('[data-fm]').forEach(function (b) { b.onclick = function () { FN.grp = ''; openExpenses(fnMonth(FN.month, Number(b.getAttribute('data-fm')))); }; });
+  el('panel').querySelectorAll('[data-fg]').forEach(function (b) { b.onclick = function () { var g = b.getAttribute('data-fg'); FN.grp = FN.grp === g ? '' : g; renderExpenses(); if (FN.grp && el('spList')) el('spList').scrollIntoView({ block: 'start', behavior: 'smooth' }); }; });
+  el('panel').querySelectorAll('[data-sx]').forEach(function (b) { b.onclick = function () { var x = el('spd' + b.getAttribute('data-sx')); if (x) { x.hidden = !x.hidden; b.classList.toggle('open', !x.hidden); } }; });
   if (el('fnAdd')) el('fnAdd').onclick = function () { openAddExpense(); };
   var act = function (ids, action, note) {
     api('appApproveFinance', [TOKEN, ids, action, note || ''], function () { toast(action === 'approve' ? '✅ Approved' : action === 'reject' ? 'Rejected' : action === 'duplicate' ? 'Set aside · already entered' : '✅ Marked paid back'); openExpenses(FN.month); },
@@ -6145,6 +6288,8 @@ function drawAlerts() {
       if (a.kind === 'sync') { openSyncStatus(); SHEET_BACK = toList; return; }
       var pr = (String(a.url).match(/pay=([^&]+)/) || [])[1];
       if (pr) { PAY_OPEN = decodeURIComponent(pr); closePanel(); showTab('cash'); openPayIfReady(); return; }
+      var ak = (String(a.url).match(/ask=([^&]+)/) || [])[1];
+      if (ak) { ASK_OPEN = decodeURIComponent(ak); closePanel(); showTab('cash'); return; } // scrolls once the fresh Cash data is drawn
       if (a.kind === 'brief') {
         // the brief sent on day D is about D-1 (older log rows have no ?brief= in their link)
         var bd = (String(a.url).match(/brief=([\d-]{10})/) || [])[1] || (a.ms ? pkDay(new Date(a.ms - 86400000)) : '');
@@ -6573,6 +6718,7 @@ function start() {
   if (qst === 'link' && can('inventory.edit')) setTimeout(openStockLink, 600);
   else if (qst && can('inventory.view')) setTimeout(function () { openStock(qst); }, 600);
   if (qpay) { PAY_OPEN = qpay; setTimeout(function () { showTab('cash'); openPayIfReady(); }, 700); }
+  if (qs.get('ask')) { ASK_OPEN = qs.get('ask'); setTimeout(function () { showTab('cash'); }, 700); }
   if (qsy) setTimeout(openSyncStatus, 600);
   applyPerms();
   if (qt && TABS[qt] && canTab(qt)) showTab(qt);
