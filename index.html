@@ -1735,9 +1735,30 @@ function openReturnHistory(key) {
       (d.scans.length ? '<div class="sl-h" style="margin:10px 0 6px">Courier scans (saved)</div><div class="tl-sheet"><div class="tl">' + d.scans.map(function (x) {
         return '<div class="tl-i"><div class="tl-d"></div><div><b>' + esc(x.status) + '</b><small>' + esc(x.when) + (x.place ? ' · ' + esc(x.place) : '') + (x.note ? ' · ' + esc(x.note) : '') + '</small></div></div>';
       }).join('') + '</div></div>' : '') +
-      '<div class="btns" style="margin-top:10px"><button class="btn" id="rhClose">Close</button></div>';
+      '<div class="btns" style="margin-top:10px"><button class="btn" id="rhClose">Close</button>' + (d.canChange ? '<button class="btn" id="rhCond"><i class="ti ti-edit"></i>Change condition</button>' : '') + '</div>';
     openPanel(true); el('rhClose').onclick = closePanel;
+    if (el('rhCond')) el('rhCond').onclick = function () { openReturnCondition(d, key); };
   }, function () { closePanel(); toast('You don\'t have access to this'); });
+}
+// Change a scanned return's condition (opened later and found broken, or the other way): stock and P&L follow by themselves
+function openReturnCondition(d, key) {
+  var cur = String(d.condition || '').split(' (changed')[0], st = { c: '' };
+  el('panel').innerHTML = '<button class="btn mini" id="rcBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Return history</button><h3>Change condition</h3>' +
+    '<p>' + esc(d.order) + ' · ' + esc(d.cn) + ' · now <b>' + esc(cur || 'not set') + '</b></p>' +
+    '<div class="fld"><label>Condition found</label><div class="chips wrapc" id="rcC">' + (d.conditions || []).filter(function (c) { return c !== cur; }).map(function (c) { return '<button class="chip" type="button" data-v="' + esc(c) + '">' + esc(c) + '</button>'; }).join('') + '</div></div>' +
+    '<div class="fld"><label for="rcWhy">What you found</label><input id="rcWhy" placeholder="e.g. opened later · glass broken"></div>' +
+    '<small class="mnote" style="display:block;margin:-4px 0 10px">Stock and profit &amp; loss change by themselves within 15 minutes · the change is kept with your name</small>' +
+    '<div class="err" id="rcErr"></div><button class="btn pri" id="rcGo" style="width:100%;padding:12px">Save</button>';
+  openPanel(true);
+  el('rcBack').onclick = function () { openReturnHistory(key); };
+  el('rcC').onclick = function (e) { var b = e.target.closest('[data-v]'); if (!b) return; st.c = b.getAttribute('data-v'); el('rcC').querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x === b); }); };
+  el('rcGo').onclick = function () {
+    if (!st.c) { el('rcErr').textContent = 'Pick the condition'; return; }
+    if (!el('rcWhy').value.trim()) { el('rcErr').textContent = 'Write what you found'; return; }
+    api('appChangeReturnCondition', [TOKEN, { cn: d.cn, condition: st.c, note: el('rcWhy').value.trim() }], function () {
+      toast('✅ Changed to ' + st.c + ' · stock follows within 15 min'); loadReturns(true); openReturnHistory(key);
+    }, function (e) { el('rcErr').textContent = (e && e.message) || 'Not saved'; });
+  };
 }
 
 // Opening a sheet is a history step too, so Back closes it (even on Home).
@@ -5641,7 +5662,7 @@ function openPnl(period) {
       '<button class="btn pri" id="ppGo" type="button" style="width:100%;margin-top:8px">Show</button></div>';
     var maxNet = Math.max.apply(null, (p.trend || []).map(function (x) { return Math.abs(x.net); }).concat([1]));
     el('panel').innerHTML = '<h3>Profit & loss</h3><p>Parcels in the month they were dispatched · counted once delivered or returned</p>' + bar +
-      (p.open && p.open.n ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-truck"></i> ' + p.open.n + ' of ' + p.booked + ' parcels still with the courier · ' + rs(p.open.value) + ' · they join when finished</div>'
+      (p.open && p.open.n ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-truck"></i> ' + p.open.n + ' of ' + p.booked + ' parcels still with the courier · ' + rs(p.open.value) + (p.open.goods > 0 ? ' · goods cost ' + rs(p.open.goods) : '') + ' · sale and goods cost join when delivered</div>'
         : p.booked ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-circle-check"></i> Final · all ' + p.booked + ' parcels finished</div>' : '') +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px">' +
         tile('Sales', rs(p.sales), p.delivered + ' delivered · ' + p.returned + ' returned') + tile('Product margin', signed(p.cm1 != null ? p.cm1 : p.gross), pct(p.cm1 != null ? p.cm1 : p.gross) + ' of sales') +
@@ -5656,7 +5677,7 @@ function openPnl(period) {
       '<div class="card" style="padding:0">' +
       line('Sales (delivered orders)', rs(p.sales), '', p.advanceSales ? 'incl. ' + rs(p.advanceSales) + ' paid in advance' : '') +
       line('Cost of goods', minus(p.cogs), '', p.cogsEst ? 'incl. ' + rs(p.cogsEst) + ' estimated (before the stock count, at product costs)' + (p.unknownLines ? ' · ' + p.unknownLines + ' line' + (p.unknownLines > 1 ? 's' : '') + ' without a cost' : '') : 'from stock: average cost of what was sent', pct(p.cogs)) +
-      (p.stockLoss ? line('Stock loss', p.stockLoss > 0 ? minus(p.stockLoss) : '+ ' + rs(-p.stockLoss), '', [p.lossBy.count ? 'count differences ' + rs(p.lossBy.count) : '', p.lossBy.damaged ? 'damaged ' + rs(p.lossBy.damaged) : '', p.lossBy.adjust ? 'lost / gift / own use ' + rs(p.lossBy.adjust) : ''].filter(Boolean).join(' · ').replace(/Rs -/g, 'found Rs '), pct(p.stockLoss)) : '') +
+      (p.stockLoss ? line('Stock loss', p.stockLoss > 0 ? minus(p.stockLoss) : '+ ' + rs(-p.stockLoss), '', [p.lossBy.count ? 'count differences ' + rs(p.lossBy.count) : '', p.lossBy.damaged ? 'damaged ' + rs(p.lossBy.damaged) : '', p.lossBy.adjust ? 'lost / gift / own use ' + rs(p.lossBy.adjust) : '', p.lossBy.returned ? 'returns damaged / missing ' + rs(p.lossBy.returned) : ''].filter(Boolean).join(' · ').replace(/Rs -/g, 'found Rs '), pct(p.stockLoss)) : '') +
       cmLine('CM1 · Product margin', p.cm1, 'what the products leave') +
       line('Courier fees', minus(p.fees), '', 'delivery + return charges, GST' + (p.returnFees ? ' · returns ' + rs(p.returnFees) : ''), pct(p.fees)) +
       line(p.sstAdjustable ? 'Income tax withheld (WHT)' : 'Taxes (WHT + SST)', minus(p.taxes), '', p.wht != null ? (p.sstAdjustable ? 'final tax on COD (section 153)' : 'WHT ' + rs(p.wht) + ' · sales tax ' + rs(p.sst)) : '', pct(p.taxes)) +
