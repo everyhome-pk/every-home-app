@@ -47,6 +47,9 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,syst
 .sx-r.bad span,.sx-r.bad b{font-weight:700}
 .sx-bar{grid-column:1/-1;height:2px;border-radius:99px;background:var(--bg);overflow:hidden}.sx-bar u{display:block;height:100%;background:var(--brand);opacity:.55;border-radius:99px}
 .sx-more{grid-column:1/-1;font-size:12px;color:var(--muted)}
+.sx-sum{display:flex;align-items:center;gap:8px;margin:0 0 10px;padding:12px 14px;border-radius:14px;background:var(--card);font-size:14px;font-weight:600}.sx-sum i{font-size:20px;color:var(--brand)}.sx-sum.bad i{color:var(--red)}
+.sx-card .sx-r:first-child{border-top:0}.sx-r{grid-template-columns:1fr auto}.sx-r span small{display:block;text-align:left;font-size:12px;color:var(--muted);font-weight:400}.sx-r.bad b em{color:var(--red)}
+.sx-fix{grid-column:1/-1;font-size:12.5px;color:var(--text);background:rgba(220,38,38,.07);border-radius:10px;padding:8px 10px;line-height:1.4}
 .sx-old{display:flex;align-items:center;gap:6px;margin:2px 2px 0;font-size:12.5px;color:var(--muted)}.sx-old i{font-size:15px}
 .top .icon-btn{width:40px;height:40px;border-radius:50%;border:0;background:var(--card);box-shadow:0 1px 2px rgba(2,6,23,.06),0 2px 8px rgba(2,6,23,.05);font-size:19px;color:var(--text)}
 .top .icon-btn:active{transform:scale(.94)}
@@ -286,7 +289,7 @@ body{overscroll-behavior-y:contain}
 .hd-tall small,.hd-small small{display:block;font-size:13px;color:#4A5C58}
 .hd-tall b{display:block;font-size:21px;font-weight:500;margin-top:4px}.hd-tall span{display:block;font-size:12px;color:#4A5C58;margin-top:2px}
 .hd-small{padding:13px 14px 11px}.hd-small small{font-weight:500}.hd-small>span:last-child{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
-.hd-n{display:flex;justify-content:space-between;align-items:center}.hd-n b{font-size:22px;font-weight:500}.hd-n i{color:var(--faint);font-size:17px}
+.hd-n{display:flex;justify-content:space-between;align-items:center}.hd-n b{font-size:22px;font-weight:500}.hd-n b.hd-none{font-size:15px;font-weight:600}.hd-n i{color:var(--faint);font-size:17px}
 .hd-blue{background:#DEE7FA}.hd-blue small{color:#2F4DB3}.hd-amber{background:#FAE5C2}.hd-amber small{color:#7A5C2E}
 .hd-small em{font-style:normal;font-weight:500}.hd-small em.up{color:var(--green)}.hd-small em.down{color:var(--red)}
 .hd-qh{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;letter-spacing:1px;margin:4px 0 12px}.hd-qh i{font-size:18px}
@@ -866,6 +869,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   <div class="dr-sub" data-gsub="set" hidden>
     <button class="dr-i" id="btnPush" hidden><i class="ti ti-bell-off"></i>Notifications · Off</button>
     <button class="dr-i" id="btnSync"><i class="ti ti-activity"></i>Data status</button>
+    <button class="dr-i" id="btnConn" hidden><i class="ti ti-plug-connected"></i>Connections</button>
     <button class="dr-i" id="btnBio" hidden><i class="ti ti-fingerprint"></i>Fingerprint login</button>
     <button class="dr-i" id="btnLock"><i class="ti ti-lock"></i>App lock · Off</button>
     <button class="dr-i" id="btnMode"><i class="ti ti-moon"></i>Dark mode</button>
@@ -1187,7 +1191,7 @@ function loadSync() {
   }, function () {});
 }
 function openSyncStatus() {
-  el('panel').innerHTML = '<h3>Data status</h3><p>The system updates by itself every 5 min · Refresh brings the newest to this phone</p><div id="syncBox"></div>' +
+  el('panel').innerHTML = '<h3>Data status</h3><p>Updates by itself every 5 min · Refresh brings the newest to this phone</p><div id="syncBox"></div>' +
     '<div class="btns" style="margin-top:10px"><button class="btn" id="sxClose">Close</button><button class="btn pri" id="sxRefresh"><i class="ti ti-refresh"></i>Refresh</button></div>';
   openPanel();
   drawSyncStatus();
@@ -1209,37 +1213,56 @@ function openSyncStatus() {
   };
   loadSync();
 }
+// Data status (user 2026-11-03, after a study of status pages — Atlassian Statuspage, status.io — and integration
+// health pages): one summary line from the worst state, one line per data source (last GOOD update + a word only when
+// something is wrong), problems first with what to do, tap a line = exact time, last note, cycle. Setup (webhook
+// links, Gmail) moved to Settings → Connections (owners).
 function drawSyncStatus() {
   var box = el('syncBox'); if (!box) return;
-  var jobs = (SYNCD && SYNCD.jobs) || [];
+  var jobs = ((SYNCD && SYNCD.jobs) || []).slice();
   var exact = function (ms) { return ms ? new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Karachi', weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true }).format(new Date(ms)) : '—'; };
-  // this phone: only said when the screen is old (the app refreshes by itself, so usually nothing to say)
+  var hooks = {}; ((SYNCD && SYNCD.hooks) || []).forEach(function (h) { hooks[h.courier.toLowerCase()] = h; });
+  var bad = jobs.filter(jobState), word = { key: 'login refused', failed: 'failing', late: 'not updating' };
+  jobs.sort(function (x, y) { return (jobState(y) ? 1 : 0) - (jobState(x) ? 1 : 0); }); // problems first
+  var newest = jobs.reduce(function (m, j) { return Math.max(m, j.ms || 0); }, 0);
   var seen = Object.keys(LOADED).map(function (k) { return LOADED[k]; }), oldest = seen.length ? Math.min.apply(null, seen) : 0;
   var stale = oldest && Date.now() - oldest > 10 * 60000;
-  box.innerHTML = (jobs.length ? '<div class="card sx-card"><div class="sx-h"><span>System</span><span>Last</span><span>Cycle</span></div>' + jobs.map(function (j, i) {
-    var st = jobState(j), fill = j.cycle && j.ms ? Math.min(100, 100 * (Date.now() - j.ms) / (j.cycle * 60000)) : 0;
-    return '<div class="sx-r' + (st ? ' bad' : '') + '" data-sx="' + i + '"><span>' + esc(j.name) + '</span><b class="num">' + (j.ms ? ago(j.ms) : '—') +
-      (st ? ' <em>' + ({ key: 'login refused', failed: 'failing', late: 'late' }[st] || st) + '</em>' : '') + '</b><small>' + cycleText(j.cycle) + '</small>' +
-      '<i class="sx-bar"><u style="width:' + (st ? 100 : fill) + '%"></u></i>' +
-      '<div class="sx-more" hidden>' + esc(exact(j.ms)) + (j.note ? ' · ' + esc(j.note) : '') + '</div></div>';
-  }).join('') + '</div>' : '<div class="card empty"><i class="ti ti-clock"></i>System times appear after the next sync (≤5 min)</div>') +
-    (stale ? '<div class="sx-old"><i class="ti ti-clock"></i>Your screen is ' + ago(oldest) + ' old · tap Refresh</div>' : '') +
-    (SYNCD && SYNCD.hooks ? '<div class="card" style="padding:12px 14px"><div class="h"><b>Instant courier updates</b><span>webhooks</span></div>' + SYNCD.hooks.map(function (h) {
+  var sb = SYNCD && SYNCD.shopBills;
+  box.innerHTML = (jobs.length ? '<div class="sx-sum' + (bad.length ? ' bad' : '') + '"><i class="ti ' + (bad.length ? 'ti-alert-circle' : 'ti-circle-check') + '"></i><span>' +
+      (bad.length ? bad.length + (bad.length === 1 ? ' problem' : ' problems') + ': ' + esc(bad.map(function (j) { return j.name; }).join(', ')) : 'All systems working') +
+      (newest ? ' · updated ' + ago(newest) + (ago(newest) === 'now' ? '' : ' ago') : '') + '</span></div>' +
+    '<div class="card sx-card">' + jobs.map(function (j, i) {
+      var st = jobState(j), h = hooks[j.job], good = j.lastOk || j.ms;
+      return '<div class="sx-r' + (st ? ' bad' : '') + '" data-sx="' + i + '"><span>' + esc(j.name) + (h && h.today ? '<small>' + h.today + ' instant today</small>' : '') + '</span>' +
+        '<b class="num">' + (st ? '<em>' + word[st] + '</em>' : (good ? ago(good) + (ago(good) === 'now' ? '' : ' ago') : '—')) + '</b>' +
+        (st && j.fix ? '<div class="sx-fix">' + esc(j.fix) + '</div>' : '') +
+        '<div class="sx-more" hidden>Last run ' + esc(exact(j.ms)) + (st && j.lastOk ? ' · last good ' + esc(exact(j.lastOk)) : '') + (j.cycle ? ' · every ' + cycleText(j.cycle) : '') + (j.note && !st ? ' · ' + esc(j.note) : '') + '</div></div>';
+    }).join('') +
+    (sb ? '<div class="sx-r' + (sb.error ? ' bad' : '') + '" data-sx="b"><span>Shopify bills</span><b class="num">' + (sb.error ? '<em>failing</em>' : esc(sb.at)) + '</b>' +
+      (sb.error ? '<div class="sx-fix">Open Settings → Connections</div>' : '') + '<div class="sx-more" hidden>Read from Gmail · ' + (sb.added || 0) + ' new last check</div></div>' : '') +
+    '</div>' : '<div class="card empty"><i class="ti ti-clock"></i>System times appear after the next sync (≤5 min)</div>') +
+    (stale ? '<div class="sx-old"><i class="ti ti-clock"></i>Your screen is ' + ago(oldest) + ' old · tap Refresh</div>' : '');
+  box.querySelectorAll('[data-sx]').forEach(function (r) { r.onclick = function () { var m = r.querySelector('.sx-more'); m.hidden = !m.hidden; }; });
+}
+// Settings → Connections (owners): what was set up once — courier webhook links, Shopify bills from Gmail
+function openConnections() {
+  el('panel').innerHTML = '<h3>Connections</h3><p>Set up once · links the couriers send updates to, and Gmail for Shopify bills</p><div id="cnBox"><div class="sk" style="height:200px"></div></div>';
+  openPanel(true);
+  var draw = function () {
+    if (!el('cnBox')) return;
+    el('cnBox').innerHTML = (SYNCD && SYNCD.hooks ? '<div class="card" style="padding:12px 14px"><div class="h"><b>Instant courier updates</b><span>webhooks</span></div>' + SYNCD.hooks.map(function (h) {
       var where = h.courier === 'Trax' ? 'Trax portal → Settings → Shipment Status Subscription → turn on, paste' : 'Leopards ECOM portal → Settings → Push API Management → Push API URL, paste, Update';
       return '<div style="margin-top:10px"><b style="font-size:13px">' + esc(h.courier) + '</b>' + (h.today ? ' <small style="color:var(--green)">· ' + h.today + ' today</small>' : '') +
         '<small style="display:block;color:var(--muted)">' + (h.last ? 'Last: ' + esc(h.last) : 'Nothing received yet · ' + where) + '</small>' +
         '<div class="inrow" style="margin-top:6px"><input type="text" readonly value="' + esc(h.url) + '" style="font-size:12px"><button class="btn" type="button" data-copy="' + esc(h.url) + '">Copy</button></div></div>';
     }).join('') + '</div>' : '') +
+    
     (SYNCD && SYNCD.shopBills ? '<div class="card" style="padding:12px 14px"><div class="h"><b>Shopify bills from Gmail</b><span>' + esc(SYNCD.shopBills.at) + '</span></div><small style="display:block;color:' + (SYNCD.shopBills.error ? 'var(--red)' : 'var(--muted)') + '">' +
       (SYNCD.shopBills.error ? esc(/has not been used|is disabled|SERVICE_DISABLED/i.test(SYNCD.shopBills.error) ? 'Gmail API is being switched on · try again in a few minutes (' + SYNCD.shopBills.error.slice(0, 60) + ')' : /401|insufficient|scope|PERMISSION/i.test(SYNCD.shopBills.error) ? 'Gmail not allowed yet · run authorizeShopifyBills once in the App Server script' : SYNCD.shopBills.error) : SYNCD.shopBills.added + ' new bill' + (SYNCD.shopBills.added === 1 ? '' : 's') + ' added this check · they are in Finance → Expenses (Shopify & apps)') + '</small>' +
-      ((SYNCD.shopBills.unread || []).length ? '<small style="display:block;color:var(--amber);margin-top:4px">Could not read the amount: ' + esc(SYNCD.shopBills.unread.join(' · ')) + '</small>' : '') + '</div>' : '') +
-    ((SYNCD && SYNCD.courierFields) || []).map(function (c) {
-      var ph = c.fields.filter(function (f) { var leaf = f.split(/[.[]]+/).filter(Boolean).pop() || ''; return /(^|_)(img|image|images|photo|photos|picture|pictures|pic|pics|proof|pod|signature|attachment|attachments|file|files)(_|$)/i.test(leaf); });
-      return '<div class="card" style="padding:12px 14px"><div class="h"><b>' + esc(c.courier) + ' tracking · attempt photos</b><span>' + esc(c.at) + '</span></div>' +
-        '<small style="display:block;color:' + (ph.length ? 'var(--green)' : 'var(--muted)') + '">' + (ph.length ? 'Photo fields: ' + esc(ph.join(', ')) : 'No photo field in ' + esc(c.courier) + '\'s tracking answer') + '</small>' +
-        '<details style="margin-top:6px"><summary style="font-size:12px;color:var(--muted);cursor:pointer">All ' + c.fields.length + ' fields it sends</summary><small style="display:block;color:var(--muted);word-break:break-word;margin-top:4px">' + esc(c.fields.join(' · ')) + '</small></details></div>';
-    }).join('');
-  box.querySelectorAll('[data-sx]').forEach(function (r) { r.onclick = function () { var m = r.querySelector('.sx-more'); m.hidden = !m.hidden; }; });
+      ((SYNCD.shopBills.unread || []).length ? '<small style="display:block;color:var(--amber);margin-top:4px">Could not read the amount: ' + esc(SYNCD.shopBills.unread.join(' · ')) + '</small>' : '') + '</div>' : '') || '<div class="empty">Nothing to set up</div>';
+  };
+  if (SYNCD) draw();
+  api('getAppSyncStatus', [TOKEN], function (d) { SYNCD = d; draw(); }, function () {});
 }
 el('upd').onclick = function () { if (TOKEN) openSyncStatus(); };
 
@@ -1274,6 +1297,7 @@ function applyPerms() {
   el('btnCashPlan').hidden = !can('finance.view');
   el('btnAcct').hidden = !can('finance.view');
   el('btnTeam').hidden = !can('users.manage');
+  el('btnConn').hidden = !can('users.manage');
   el('btnAds').hidden = !(can('reports.view') || can('finance.view'));
   drGroups();
   if (!canTab(curTab)) { var ft = firstTab(); if (ft) showTab(ft, true); else toast('No screens are assigned to your role · contact your admin'); }
@@ -2146,20 +2170,36 @@ function homePnl(d, done) {
   HD.pnlAt[k] = Date.now();
   api('getAppPnl', [TOKEN, per], function (p) { viewKeep(k, p); done(p); }, function () {});
 }
+// Card names (user 2026-11-03, after a study of KPI cards: a clear name, one context line, no "–"): Net profit · so far
+// (+ expected when all parcels finish), COD to receive (+ next payment from Cash), Orders (+ vs the period before),
+// Delivery rate (+ delivered · returned; "No results yet" when nothing has finished)
+function homeNetLines(p) {
+  var open = p && p.open && p.open.n > 0;
+  if (el('hdNetL')) el('hdNetL').textContent = open ? 'Net profit · so far' : 'Net profit';
+  if (el('hdExp')) { el('hdExp').textContent = open && p.expected ? 'Expected ' + (p.expected.net < 0 ? '− ' : '') + rs(Math.abs(p.expected.net)) + ' when all parcels finish' : ''; el('hdExp').hidden = !el('hdExp').textContent; }
+}
+function homeCodLine(c) {
+  var n = c.pendingDelivered || 0, txt = n + ' delivered parcel' + (n === 1 ? '' : 's');
+  if (!n) return 'Nothing waiting';
+  if (c.overdue) return txt + ' · ' + c.overdue + ' overdue';
+  var r = C.data && C.data.recv && C.data.recv.couriers.filter(function (x) { return x.n; })[0]; // the courier owing most
+  return txt + (r ? ' · ' + (r.nextLate ? 'payment due' : 'next payment ~ ' + r.next.split(' ')[0]) : '');
+}
 function homeCards(d) {
   var k = d.kpis, p = d.prev, c = d.cash || {};
-  var dlt = function (cur, prev) { if (prev == null || !prev) return ''; var x = Math.round((cur - prev) / prev * 100); return '<em class="' + (x >= 0 ? 'up' : 'down') + '">' + (x >= 0 ? '↗ ' : '↘ ') + Math.abs(x) + '%</em>'; };
+  var dlt = function (cur, prev) { if (prev == null || !prev) return ''; var x = Math.round((cur - prev) / prev * 100); return '<em class="' + (x >= 0 ? 'up' : 'down') + '">' + (x >= 0 ? '▲ ' : '▼ ') + Math.abs(x) + '% vs ' + esc(d.prevLabel || 'before') + '</em>'; };
+  var cod = '<div><small>COD to receive</small><b class="num">' + rs(c.pending || 0) + '</b><span>' + esc(homeCodLine(c)) + '</span></div>';
   var tall;
-  if (can('finance.view')) tall = '<div><small>Net profit</small><b class="num" id="hdNet">' + (HD.net != null && HD.netFor === homePnlPeriod(d) ? (HD.net < 0 ? '− ' : '') + rs(Math.abs(HD.net)) : '…') + '</b></div>' +
-    '<div><small>With couriers</small><b class="num">' + rs(c.pending || 0) + '</b><span>' + (c.overdue ? c.overdue + ' parcels overdue' : (c.pendingDelivered || 0) + ' parcels unpaid') + '</span></div>';
-  else if (can('cash.view')) tall = '<div><small>Net payout</small><b class="num">' + rs(c.net || 0) + '</b></div>' +
-    '<div><small>With couriers</small><b class="num">' + rs(c.pending || 0) + '</b><span>' + (c.overdue ? c.overdue + ' parcels overdue' : (c.pendingDelivered || 0) + ' parcels unpaid') + '</span></div>';
+  if (can('finance.view')) tall = '<div><small id="hdNetL">Net profit</small><b class="num" id="hdNet">' + (HD.net != null && HD.netFor === homePnlPeriod(d) ? (HD.net < 0 ? '− ' : '') + rs(Math.abs(HD.net)) : '…') + '</b><span id="hdExp" hidden></span></div>' + cod;
+  else if (can('cash.view')) tall = '<div><small>Net payout</small><b class="num">' + rs(c.net || 0) + '</b></div>' + cod;
   else tall = '<div><small>Shipped</small><b class="num">' + k.booked + '</b></div><div><small>On the way</small><b class="num">' + k.onTheWay + '</b><span>' + k.notBooked + ' not booked yet</span></div>';
   var tallGo = can('finance.view') ? 'pnl' : can('cash.view') ? 'cash' : 'parcels:moving';
   return '<div class="hd-cards">' +
     '<button class="hd-tall" data-hd="' + tallGo + '">' + tall + '</button>' +
     '<button class="hd-small hd-blue" data-hd="parcels"><span class="hd-n"><b class="num">' + k.orders + '</b><i class="ti ti-chevron-right"></i></span><small>Orders</small><span>' + (dlt(k.orders, p && p.orders) || '&nbsp;') + '</span></button>' +
-    '<button class="hd-small hd-amber" data-hd="success"><span class="hd-n"><b class="num">' + (k.success == null ? '–' : pct(k.success)) + '</b><i class="ti ti-chevron-right"></i></span><small>Delivered</small><span>' + k.returned + ' returned</span></button>' +
+    (k.success == null
+      ? '<button class="hd-small hd-amber" data-hd="success"><span class="hd-n"><b class="hd-none">No results yet</b><i class="ti ti-chevron-right"></i></span><small>Delivery rate</small><span>' + (k.onTheWay || 0) + ' on the way</span></button>'
+      : '<button class="hd-small hd-amber" data-hd="success"><span class="hd-n"><b class="num">' + pct(k.success) + '</b><i class="ti ti-chevron-right"></i></span><small>Delivery rate</small><span>' + k.delivered + ' delivered · ' + k.returned + ' returned</span></button>') +
     '</div>';
 }
 // Quick create: the first 4 this person may use, in this order (each opens a screen the app already has)
@@ -2484,6 +2524,7 @@ function homeDashWire(d) {
   homePnl(d, function (p) {
     HD.net = p.net; HD.netFor = homePnlPeriod(d); HD.pnlSeries = p.series || []; HD.pnl90 = p.days90 || []; HD.pnlMonths = (p.trend || []).map(function (x) { return { k: x.month, net: x.net, ads: x.ads, sales: x.sales }; });
     if (el('hdNet')) el('hdNet').textContent = (p.net < 0 ? '− ' : '') + rs(Math.abs(p.net));
+    homeNetLines(p);
     if (el('hdTrend')) { el('hdTrend').innerHTML = homeTrend(d); wireTrend(); }
   });
 }
@@ -6665,6 +6706,7 @@ function showProfile(forced, next) {
 el('drUser').onclick = function () { closeDrawer(); showProfile(false); };
 el('btnDispatch').onclick = fromMenu(function () { openDispatchLog(); });
 el('btnSync').onclick = fromMenu(function () { openSyncStatus(); });
+el('btnConn').onclick = fromMenu(function () { openConnections(); });
 el('btnBio').onclick = function () {
   closeDrawer();
   if (store('eh_bio_id')) {
