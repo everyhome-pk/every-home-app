@@ -385,6 +385,39 @@ body.nb-on #nlist{padding-bottom:84px}
 .rc-age{display:flex;gap:2px;height:6px;border-radius:3px;overflow:hidden;margin:10px 0 6px;background:var(--line)}.rc-age i{display:block}
 .a0{--ac:#00857A}.a1{--ac:#E0A33F}.a2{--ac:#E07B39}.a3{--ac:#DC2626}.rc-age i{background:var(--ac)}
 .rc-agel{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted)}.rc-agel span{display:inline-flex;align-items:center;gap:5px}.rc-agel i{width:8px;height:8px;border-radius:2px;background:var(--ac)}
+.ae-snap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;min-height:96px;border:1.5px dashed #9FC9C1;border-radius:16px;background:rgba(0,133,122,.06);color:var(--brand);font:inherit;cursor:pointer;margin:0 0 14px}.ae-snap i{font-size:26px}.ae-snap b{font-size:14px}.ae-snap small{font-size:12px;color:var(--muted)}
+.ae-ph{position:relative;margin:0 0 14px}.ae-ph img{display:block;max-width:100%;max-height:180px;border-radius:12px}.ae-ph .btn{position:absolute;top:6px;right:6px}
+.ae-l{display:block;font-size:12.5px;color:var(--muted)}.ae-amt{display:flex;align-items:baseline;gap:6px;border-bottom:2px solid var(--brand);margin:2px 0 16px}.ae-amt span{font-size:20px;color:var(--muted)}.ae-amt input{border:0;outline:0;background:none;font:inherit;font-size:32px;font-weight:700;width:100%;color:var(--text);padding:4px 0}
+.ae-rec{margin-top:8px;font-size:12.5px;color:var(--muted)}.ae-rec button{border:0;background:none;padding:4px 0;font:inherit;color:var(--brand);cursor:pointer}
+.ae-hint{font-weight:400;color:var(--muted)}.ae-mc{border-style:dashed}.ae-more{border:0;background:none;padding:6px 0 10px;font:inherit;font-size:13.5px;color:var(--brand);cursor:pointer;min-height:44px}
+.ae-bar{position:sticky;bottom:0;display:flex;flex-direction:column;gap:8px;padding:10px 0 4px;background:var(--card)}.ae-bar .btn{width:100%;min-height:48px}
+.ac-card{background:rgba(0,133,122,.09);border-radius:18px;padding:16px;margin:0 0 12px;display:flex;flex-direction:column;gap:6px}
+.ac-top{display:flex;justify-content:space-between;align-items:center}.ac-top b{font-size:14px}.ac-pill{font-size:12px;background:var(--card);color:var(--green);border-radius:10px;padding:3px 8px}.ac-pill.off{color:var(--amber)}
+.ac-bal{font-size:28px;font-weight:700}.ac-sub{font-size:12.5px;color:var(--muted)}
+.ac-io{display:flex;justify-content:space-between;font-size:12.5px;margin-top:4px}.ac-io .in{color:var(--green)}.ac-io .out{color:var(--red)}
+.ac-flow{display:flex;gap:2px;height:7px;border-radius:4px;overflow:hidden;line-height:0}.ac-bi{background:var(--brand)}.ac-bo{background:#E07B39}
+.ac-total{display:flex;justify-content:space-between;padding:0 4px 12px;font-size:14px}
+.acx-row{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:13.5px}.acx-row small{display:block;font-size:12px;color:var(--muted)}.acx-row b.up{color:var(--green)}.ac-yr{font-style:normal;color:var(--muted)}
+.ac-all{border:0;background:none;font:inherit;font-size:12.5px;color:var(--brand);cursor:pointer}
+.ac-fold summary{display:flex;justify-content:space-between;cursor:pointer;list-style:none;padding:2px 0}.ac-fold summary::-webkit-details-marker{display:none}.ac-fold summary span{color:var(--muted);font-size:12.5px}.ac-fold[open] summary{margin-bottom:8px}
+.ac-grp{margin:0 0 14px}.ac-grp > b{display:block;font-size:12px;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);margin:0 0 6px}.ac-grp.in > b{color:var(--green)}.ac-grp.out > b{color:#B45309}.ac-grp.mv > b{color:#2C4A9A}
+.ac-it{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;border:1px solid var(--line);border-radius:14px;background:var(--card);padding:10px 12px;margin:0 0 8px;font:inherit;color:var(--text);text-align:left;cursor:pointer}.ac-it i{font-size:20px;color:var(--brand)}.ac-it small{display:block;font-size:12px;color:var(--muted)}
+.pk-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-height:48px;padding:0 14px;border:1px solid var(--line);border-radius:14px;background:var(--card);font:inherit;font-size:15px;color:var(--text);text-align:left;cursor:pointer}.pk-btn span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pk-btn span.ph{color:var(--muted)}.pk-btn i{color:var(--muted)}
+.pk-ov{position:fixed;inset:0;z-index:90;background:rgba(15,23,30,0);display:flex;align-items:flex-end;justify-content:center;transition:background .18s}.pk-ov.show{background:rgba(15,23,30,.38)}
+.pk-sheet{width:100%;max-width:560px;max-height:82vh;display:flex;flex-direction:column;background:var(--card);border-radius:22px 22px 0 0;padding:14px 16px calc(12px + env(safe-area-inset-bottom));box-sizing:border-box;transform:translateY(100%);transition:transform .18s ease-out;font-family:Inter,sans-serif}.pk-ov.show .pk-sheet{transform:none}
+.pk-h{display:flex;align-items:center;justify-content:space-between;margin:0 0 10px}.pk-h b{font-size:17px;font-weight:600}.pk-x{width:40px;height:40px;border:0;border-radius:20px;background:var(--bg);color:var(--text);font-size:18px;cursor:pointer}
+.pk-s{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:14px;padding:0 12px;margin:0 0 8px}.pk-s i{color:var(--muted)}.pk-s input{flex:1;border:0;outline:0;background:none;font:inherit;font-size:15px;min-height:44px;color:var(--text)}
+.pk-list{overflow-y:auto;flex:1;min-height:0;margin:0 -4px}.pk-g{font-size:11.5px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);padding:12px 4px 4px}
+.pk-o{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:8px 6px;border:0;border-bottom:1px solid var(--line);background:none;font:inherit;color:var(--text);text-align:left;cursor:pointer}.pk-o span{flex:1;min-width:0}.pk-o b{display:block;font-size:14.5px;font-weight:500}.pk-o small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}.pk-o.on b{color:var(--brand);font-weight:600}.pk-o i{color:var(--brand);font-size:18px}.pk-o:active{background:var(--bg)}
+.pk-none{padding:24px 0;text-align:center;color:var(--muted);font-size:13.5px}.pk-new{display:flex;flex-direction:column;gap:8px;padding-top:10px}.pk-new button{display:flex;align-items:center;justify-content:center;gap:6px;min-height:46px;border:1px dashed var(--brand);border-radius:14px;background:none;color:var(--brand);font:inherit;font-size:14.5px;font-weight:600;cursor:pointer}
+@media (min-width:1024px){.pk-ov{align-items:center}.pk-sheet{border-radius:22px;max-height:70vh}}
+.neg-card{display:flex;align-items:center;gap:10px;width:100%;margin:0 0 10px;padding:12px 14px;border:1px solid rgba(220,38,38,.25);border-radius:14px;background:rgba(220,38,38,.06);font:inherit;color:var(--text);text-align:left;cursor:pointer}.neg-card > i:first-child{color:var(--red);font-size:20px}.neg-card span{flex:1}.neg-card small{display:block;font-size:12.5px;color:var(--muted)}.neg-card > i:last-child{color:var(--muted)}
+.neg-box{margin:0 0 12px;padding:14px;border-radius:14px;background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.25)}.neg-box b{color:var(--red);font-size:15px}.neg-box p{margin:4px 0 10px;font-size:13px;color:var(--text)}
+.cn-prog{display:flex;flex-direction:column;gap:6px;margin:0 0 10px;font-size:13.5px}.cn-bar{display:block;height:6px;border-radius:3px;background:var(--line);overflow:hidden}.cn-bar u{display:block;height:100%;background:var(--brand);border-radius:3px}
+.cn-row{padding:12px 0;border-top:1px solid var(--line)}.cn-row:first-child{border-top:0}.cn-row.done{opacity:.72}.cn-top{display:flex;align-items:flex-start;gap:8px}.cn-name{flex:1;min-width:0}.cn-name b{display:block;font-size:14.5px;font-weight:600}.cn-name small{display:block;font-size:12px;color:var(--muted);margin-top:2px}.cn-ok{color:var(--green);font-size:20px}
+.cn-in{display:flex;align-items:center;gap:6px;margin-top:8px}.cn-in input{width:84px;min-height:44px;text-align:center;font-size:18px;font-weight:600;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--text);padding:0 6px}.cn-step{width:44px;height:44px;border:1px solid var(--line);border-radius:12px;background:var(--card);font-size:20px;color:var(--text);cursor:pointer}.cn-zero{margin-left:auto;white-space:nowrap}
+.cn-d{display:block;font-size:12.5px;color:var(--amber);margin-top:6px}.cn-d.ok{color:var(--green)}.cn-d.big{color:var(--red);font-weight:600}
+.cn-sum{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}.cn-sum span{font-size:12.5px;padding:5px 10px;border-radius:12px;background:var(--bg);color:var(--muted)}.cn-sum .ok{background:rgba(22,163,74,.1);color:var(--green)}.cn-sum .df{background:rgba(217,119,6,.12);color:#B45309}.cn-sum .ng{background:rgba(220,38,38,.1);color:var(--red)}
 .sp-sum{padding:14px}.sp-tot{display:flex;flex-direction:column;gap:2px;margin-bottom:10px}.sp-tot small{color:var(--muted);font-size:12.5px}.sp-tot b{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}.sp-tot span{font-size:12.5px;font-weight:500}
 .sp-g{display:flex;align-items:center;gap:10px;width:100%;padding:9px 6px;border:0;background:none;border-top:1px solid var(--line);color:inherit;font:inherit;text-align:left;cursor:pointer;border-radius:8px}.sp-g.on{background:rgba(0,133,122,.09)}
 .sp-g > i{font-size:18px;color:var(--brand);width:22px;text-align:center}.sp-n{flex:1;min-width:0;font-size:14px;font-weight:500}.sp-bar{display:block;height:5px;border-radius:3px;background:var(--line);margin-top:5px;overflow:hidden}.sp-bar i{display:block;height:100%;background:var(--brand);border-radius:3px}
@@ -4849,6 +4882,7 @@ function renderStock() {
   var list = d.items.filter(function (i) {
     if (STK.f === 'low' && i.status !== 'Low') return false;
     if (STK.f === 'out' && i.status !== 'Out') return false;
+    if (STK.f === 'neg' && !stkNeg(i)) return false;
     if (STK.f === 'parts' && (i.kind !== 'Item' || !stkIsPart(i))) return false;
     if (STK.f === 'kits' ? i.kind !== 'Kit' : STK.f === 'all' && i.kind === 'Kit') return false;
     return !q || (i.name + ' ' + i.sku).toLowerCase().indexOf(q) !== -1;
@@ -4858,19 +4892,22 @@ function renderStock() {
   list.sort(function (a, b) { var da = stkDays(a), db = stkDays(b); return rank(a) - rank(b) || (da == null ? 1e9 : da) - (db == null ? 1e9 : db) || String(a.name).localeCompare(b.name); });
   var um = edit ? stkUnmatched() : [];
   var chip = function (k, l) { return '<button class="chip' + (STK.f === k ? ' on' : '') + '" type="button" data-sf="' + k + '">' + l + '</button>'; };
+  var negs = d.started ? items.filter(stkNeg) : [], negVal = negs.reduce(function (a, i) { return a + (i.cost ? -i.onHand * i.cost : 0); }, 0);
   el('panel').innerHTML = '<h3>Stock</h3><p>' + (d.started ? 'Stock updates by itself from orders, returns and purchases' : 'Not counted yet') + '</p>' +
     (!d.started && edit ? '<div class="card" style="margin-bottom:12px"><div class="h"><b>Start: count your stock</b></div><p style="margin:0 0 10px;color:var(--muted);font-size:13px">Count what is on the shelf now (not parcels already with couriers). From then on sales, returns and purchases update the stock by themselves.</p><button class="btn pri" id="stCount0" style="width:100%"><i class="ti ti-list-numbers"></i>Count stock</button></div>' : '') +
 
     (d.pending.length ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-clock"></i> ' + d.pending.length + ' new entr' + (d.pending.length > 1 ? 'ies' : 'y') + ' · already in the numbers below · saved to the sheet within 15 minutes</div>' : '') +
     (d.errors && d.errors.length && edit ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-alert-triangle"></i> Not posted: ' + d.errors.map(esc).join(' · ') + '</div>' : '') +
+    (edit && negs.length ? '<button class="neg-card" type="button" data-sf="neg"><i class="ti ti-alert-triangle"></i><span><b>' + negs.length + ' product' + (negs.length > 1 ? 's' : '') + ' below zero</b>' + (negVal ? ' · ' + rs(negVal) : '') +
+      '<small>Booked without stock · find the reason before counting</small></span><i class="ti ti-chevron-right"></i></button>' : '') +
     (d.value != null && d.started ? '<div class="psum" style="margin:0 0 10px"><span>Stock value</span><b class="num">' + rs(d.value) + '</b></div>' : '') +
     (edit && items.some(function (i) { return i.countDue; }) ? '<div class="oc-warn" id="stDue" style="margin:0 0 10px;cursor:pointer"><i class="ti ti-list-numbers"></i><span><b>' + items.filter(function (i) { return i.countDue; }).length + ' to count</b> · quick check of fast movers</span><i class="ti ti-chevron-right"></i></div>' : '') +
     ((d.plan || []).length ? '<div class="oc-warn" id="stPlan" style="margin:0 0 10px;cursor:pointer"><i class="ti ti-shopping-cart"></i><span><b>' + d.plan.length + ' to order soon</b> · ' + esc(d.plan.slice(0, 3).map(function (x) { return x.name; }).join(', ')) + (d.plan.length > 3 ? '…' : '') + '</span><i class="ti ti-chevron-right"></i></div>' : '') +
     (edit ? '<div class="btns" style="margin:0 0 12px"><button class="btn pri" id="stNew"><i class="ti ti-plus"></i>New purchase</button><button class="btn" id="stPur"><i class="ti ti-list-details"></i>Orders</button><button class="btn" id="stSup"><i class="ti ti-users"></i>Suppliers</button><button class="btn" id="stKits"><i class="ti ti-box-multiple"></i>Kits</button></div>' : '') +
     '<div class="search"><i class="ti ti-search"></i><input id="stQ" placeholder="Find a product" value="' + esc(STK.q) + '"></div>' +
-    '<div class="chips">' + chip('all', 'All · ' + items.length) + chip('low', 'Low · ' + low) + chip('out', 'Out · ' + out) + (d.items.some(stkIsPart) ? chip('parts', 'Parts') : '') + chip('kits', 'Bundles & lines') + '</div>' +
+    '<div class="chips">' + chip('all', 'All · ' + items.length) + chip('low', 'Low · ' + low) + chip('out', 'Out · ' + out) + (negs.length ? chip('neg', 'Below zero · ' + negs.length) : '') + (d.items.some(stkIsPart) ? chip('parts', 'Parts') : '') + chip('kits', 'Bundles & lines') + '</div>' +
     '<div class="card" style="padding:0">' + (list.length ? list.map(function (i) {
-      var st = STK_ST[i.status] || ['', 'var(--line)'];
+      var st = STK.data.started && stkNeg(i) ? ['Below zero', 'var(--red)'] : STK_ST[i.status] || ['', 'var(--line)'];
       return '<div class="prow" data-sk="' + esc(i.sku) + '" style="--c:' + st[1] + '"><span class="prow-d"></span><div class="prow-m">' +
         '<div class="prow-1"><b>' + esc(i.name) + '</b><span class="num">' + stkQty(i.available, i.unit) + '</span></div>' +
         '<div class="prow-2"><span>' + (i.kind === 'Kit' ? (function () { var l = stkLimit(i); return l ? 'can make ' + l.can + ' · limited by ' + l.name : 'made from parts'; })() :
@@ -4991,7 +5028,7 @@ function openStockDay(d) {
 function openStockItem(sku) {
   var d = STK.data, i = d.items.filter(function (x) { return x.sku === sku; })[0];
   if (!i) return renderStock();
-  var st = STK_ST[i.status] || ['', 'var(--line)'], edit = can('inventory.edit') && i.kind === 'Item';
+  var st = STK.data.started && stkNeg(i) ? ['Below zero', 'var(--red)'] : STK_ST[i.status] || ['', 'var(--line)'], edit = can('inventory.edit') && i.kind === 'Item';
   var mv = d.moves.filter(function (m) { return m.sku === sku; }).slice(0, 20);
   var row = function (l, v) { return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span>' + l + '</span><b class="num">' + v + '</b></div></div></div>'; };
   el('panel').innerHTML = '<button class="btn mini" id="siBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Stock</button>' +
@@ -5004,6 +5041,8 @@ function openStockItem(sku) {
       (edit ? '<div class="prow" id="siListed"><div class="prow-m"><div class="prow-1"><span>' + (i.status === 'Listed only' ? 'Listed only · no stock alerts' : 'Selling · stock alerts on') + '</span><b class="num" style="color:var(--brand)">' + (i.status === 'Listed only' ? 'Track stock' : 'Listed only') + '</b></div><div class="prow-2"><span>Listed only = on the store to be seen, no ads, no sales</span></div></div></div>' : '') +
       (edit ? '<div class="prow" id="siRe"><div class="prow-m"><div class="prow-1"><span>Low stock alert at</span><b class="num">' + stkQty(i.reorder, i.unit) + ' <i class="ti ti-pencil" style="color:var(--muted)"></i></b></div></div></div>' : row('Low stock alert at', stkQty(i.reorder, i.unit))) +
       (i.cost != null ? row('Average cost', rs(i.cost)) + row('Stock value', rs(i.value)) : '') : '') + '</div>' +
+    (edit && d.started && stkNeg(i) ? '<div class="neg-box"><b>' + stkQty(i.onHand, i.unit) + ' · below zero</b><p>Booked ' + stkQty(-i.onHand, i.unit) + ' more than the app had. Usually goods came but were not received in the app, or orders are linked to the wrong product.</p>' +
+      '<div class="btns"><button class="btn pri" type="button" id="siNegIn"><i class="ti ti-truck-loading"></i>Goods came · Stock in</button><button class="btn" type="button" id="siNegLink"><i class="ti ti-link"></i>Check order links</button></div></div>' : '') +
     (edit ? '<div class="btns" style="margin:0 0 12px"><button class="btn pri" id="siIn"><i class="ti ti-truck-loading"></i>Stock in</button><button class="btn" id="siAdj"><i class="ti ti-adjustments"></i>Adjust</button></div>' : '') +
     (can('inventory.edit') ? '<button class="btn' + (i.kind === 'Kit' ? ' pri' : '') + '" id="siBuy" style="width:100%;margin:0 0 12px"><i class="ti ti-shopping-cart-plus"></i>Order more' + (i.kind === 'Kit' ? ' (its parts)' : '') + '</button>' : '') +
     (i.kind === 'Kit' ? kitPartsHtml(i) + '<p style="color:var(--muted);font-size:12.5px">A bundle / clothes line has no stock of its own: its parts go down when it is booked.</p>' : '') +
@@ -5012,6 +5051,8 @@ function openStockItem(sku) {
         '<div class="prow-2"><span>' + esc([m.at, m.by !== 'system' ? m.by : '', m.note].filter(Boolean).join(' · ')) + '</span></div></div></div>';
     }).join('') : '<div class="empty">No changes yet</div>') + '</div>';
   openPanel(true);
+  if (el('siNegIn')) el('siNegIn').onclick = function () { openStockIn(sku, { qty: -i.onHand, note: 'came but not entered · was below zero' }); };
+  if (el('siNegLink')) el('siNegLink').onclick = openStockLink;
   el('siBack').onclick = renderStock;
   if (el('siIn')) el('siIn').onclick = function () { openStockIn(sku); };
   if (el('siAdj')) el('siAdj').onclick = function () { openStockAdjust(sku); };
@@ -5091,16 +5132,20 @@ function stkSave(list, back) {
   }, function (e) { toast('❌ Not saved: ' + ((e && e.message) || 'try again')); });
 }
 // Goods received from a supplier: quantity, rejected, unit price + extra cost per unit (freight, packing) → average cost
-function openStockIn(sku) {
-  var back = function () { if (sku) openStockItem(sku); else renderStock(); };
+function stkNeg(i) { return i.kind === 'Item' && i.onHand != null && i.onHand < 0; }
+// pre = { qty, note, back } (from a below-zero product or a count that found the reason)
+function openStockIn(sku, pre) {
+  pre = pre || {};
+  var back = pre.back || function () { if (sku) openStockItem(sku); else renderStock(); };
   el('panel').innerHTML = '<button class="btn mini" id="sxBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Back</button><h3>Stock in</h3><p>Goods received</p>' +
     '<div class="fld"><label>Product</label><select id="sxSku">' + stkItemOptions(sku) + '</select></div>' +
-    '<div class="fld"><label>Received</label><input id="sxQty" type="text" inputmode="decimal" placeholder="e.g. 100"></div>' +
+    (pre.qty ? '<div class="tk" style="margin:0 0 10px">Receiving the goods that came but were not entered · the price sets the cost of what was sold</div>' : '') +
+    '<div class="fld"><label>Received</label><input id="sxQty" type="text" inputmode="decimal" placeholder="e.g. 100"' + (pre.qty ? ' value="' + pre.qty + '"' : '') + '></div>' +
     '<div class="fld"><label>Rejected / damaged on arrival</label><input id="sxRej" type="text" inputmode="decimal" placeholder="0"></div>' +
     '<div class="fld"><label>Price per unit (PKR)</label><input id="sxCost" type="text" inputmode="decimal" placeholder="e.g. 450"></div>' +
     '<div class="fld"><label>Extra cost per unit · freight, packing (PKR)</label><input id="sxExtra" type="text" inputmode="decimal" placeholder="0"></div>' +
     '<div class="fld"><label>Supplier</label><input id="sxSup" list="sxSupL" placeholder="Supplier name"><datalist id="sxSupL">' + (STK.data.suppliers || []).map(function (s) { return '<option value="' + esc(s) + '">'; }).join('') + '</datalist></div>' +
-    '<div class="fld"><label>Note (optional)</label><input id="sxNote" placeholder="e.g. bill #, batch"></div><div class="err" id="sxErr"></div>' +
+    '<div class="fld"><label>Note (optional)</label><input id="sxNote" placeholder="e.g. bill #, batch"' + (pre.note ? ' value="' + esc(pre.note) + '"' : '') + '></div><div class="err" id="sxErr"></div>' +
     '<button class="btn pri" id="sxGo" style="width:100%;padding:12px">Save stock in</button>';
   openPanel(true);
   el('sxBack').onclick = back;
@@ -5139,35 +5184,127 @@ function openStockAdjust(sku) {
   };
 }
 // Count: what is on the shelf now, product by product (empty = not counted). The first count starts inventory.
+// (user 2026-11-03, after a study of count apps — count, then review, then save): progress "n of N counted", search,
+// below zero first (owners), then due, then the rest; each line has − / + and "0 · shelf empty", a counted line is ticked;
+// owners see the difference vs the system and a big one asks to count again (staff count blind). Review: what matches,
+// what differs, below zero, not counted → Save count (the below-zero question follows, stkCountNeg).
+var CNT = { v: {}, q: '', all: false };
 function openStockCount(dueOnly) {
-  var all = STK.data.items.filter(function (i) { return i.kind === 'Item'; }), due = all.filter(function (i) { return i.countDue; });
-  var items = dueOnly && due.length ? due : all, blind = !can('users.manage');
-  el('panel').innerHTML = '<button class="btn mini" id="scBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Stock</button><h3>Count stock</h3>' +
-    '<p>' + (dueOnly && due.length ? due.length + ' due today · ' : '') + 'Write what is on the shelf now. Do not count booked / packed parcels. Leave empty what you did not count.</p>' +
-    (dueOnly && due.length ? '<button class="btn mini" id="scAll" type="button" style="margin:0 0 10px">Show all ' + all.length + ' products</button>' : '') +
-    '<div class="card">' + items.map(function (i) {
-      return '<div class="stk-in"><div><b style="font-size:13.5px">' + esc(i.name) + '</b><small>' + esc(i.sku) + (i.onHand != null && STK.data.started && !blind ? ' · system ' + stkQty(i.onHand, i.unit) : '') + (i.lastCount ? ' · counted ' + esc(i.lastCount) : '') + (i.unit === 'ft' ? ' · in feet' : '') + '</small></div>' +
-        '<input type="text" inputmode="decimal" data-cs="' + esc(i.sku) + '" placeholder="' + (i.unit === 'ft' ? 'ft' : 'pcs') + '"></div>' +
-        (STK.data.started && i.onHand != null && !blind ? '<small class="mnote" data-cd="' + esc(i.sku) + '" style="display:block;text-align:right;margin:-4px 0 6px"></small>' : '');
-    }).join('') + '</div><div class="err" id="scErr"></div>' +
-    '<button class="btn pri" id="scGo" style="width:100%;padding:12px">Save count</button>';
-  openPanel(true);
-  el('scBack').onclick = renderStock;
-  if (el('scAll')) el('scAll').onclick = function () { openStockCount(false); };
-  el('panel').querySelectorAll('[data-cs]').forEach(function (x) {
-    x.oninput = function () {
-      var sku = x.getAttribute('data-cs'), out = el('panel').querySelector('[data-cd="' + sku + '"]'), i = items.filter(function (y) { return y.sku === sku; })[0];
-      if (!out || !i) return;
-      var v = String(x.value).trim(), n = Number(v.replace(/[^0-9.]/g, '')), dif = Math.round((n - i.onHand) * 100) / 100;
-      out.innerHTML = v === '' ? '' : !dif ? '<span style="color:var(--green)">matches the system</span>' : '<b style="color:' + (dif < 0 ? 'var(--red)' : 'var(--amber)') + '">' + (dif > 0 ? '+' : '') + stkQty(dif, i.unit) + '</b> vs system ' + stkQty(i.onHand, i.unit);
-    };
-  });
-  el('scGo').onclick = function () {
-    var list = [].slice.call(el('panel').querySelectorAll('[data-cs]')).filter(function (x) { return String(x.value).trim() !== ''; })
-      .map(function (x) { return { type: 'Count', sku: x.getAttribute('data-cs'), qty: Number(String(x.value).replace(/[^0-9.]/g, '')) || 0, note: 'stock count' }; });
-    if (!list.length) { el('scErr').textContent = 'Write at least one count'; return; }
-    stkSave(list, renderStock);
+  var d = STK.data, blind = !can('users.manage'), sys = d.started && !blind;
+  var all = d.items.filter(function (i) { return i.kind === 'Item'; }), due = all.filter(function (i) { return i.countDue; });
+  if (dueOnly !== undefined) { CNT.all = !(dueOnly && due.length); CNT.v = {}; CNT.q = ''; }
+  var rank = function (i) { return sys && stkNeg(i) ? 0 : i.countDue ? 1 : 2; };
+  var items = (CNT.all || !due.length ? all : due).slice().sort(function (x, y) { return rank(x) - rank(y) || String(x.name).localeCompare(y.name); });
+  var num = function (v) { return Number(String(v).replace(/[^0-9.]/g, '')) || 0; };
+  var counted = function () { return items.filter(function (i) { return CNT.v[i.sku] != null && String(CNT.v[i.sku]).trim() !== ''; }); };
+  var big = function (i, n) { var dif = n - i.onHand; return Math.abs(dif) >= Math.max(3, Math.abs(i.onHand) * 0.2); };
+  var line = function (i) {
+    var v = CNT.v[i.sku], has = v != null && String(v).trim() !== '', n = num(v), dif = has && sys && i.onHand != null ? Math.round((n - i.onHand) * 100) / 100 : null;
+    return '<div class="cn-row' + (has ? ' done' : '') + '" data-row="' + esc(i.sku) + '"><div class="cn-top"><span class="cn-name"><b>' + esc(i.name) + '</b>' +
+      '<small>' + esc([sys && stkNeg(i) ? 'below zero' : i.countDue ? 'due' : '', i.lastCount ? 'counted ' + i.lastCount : 'not counted yet', sys && i.onHand != null ? 'system ' + stkQty(i.onHand, i.unit) : ''].filter(Boolean).join(' · ')) + '</small></span>' +
+      (has ? '<i class="ti ti-circle-check-filled cn-ok"></i>' : '') + '</div>' +
+      '<div class="cn-in"><button type="button" class="cn-step" data-st="-1" aria-label="One less">−</button><input type="text" inputmode="decimal" data-cs="' + esc(i.sku) + '" value="' + (has ? esc(v) : '') + '" placeholder="' + (i.unit === 'ft' ? 'ft' : 'pcs') + '" aria-label="' + esc(i.name) + ' counted">' +
+      '<button type="button" class="cn-step" data-st="1" aria-label="One more">+</button><button type="button" class="chip cn-zero" data-z="1">0 · shelf empty</button></div>' +
+      (dif == null ? '' : !dif ? '<small class="cn-d ok">matches the system</small>' : '<small class="cn-d' + (big(i, n) ? ' big' : '') + '">' + (dif > 0 ? '+' : '') + stkQty(dif, i.unit) + ' vs system' + (big(i, n) ? ' · big difference, count again?' : '') + '</small>') + '</div>';
   };
+  var drawList = function () {
+    var q = CNT.q.toLowerCase().trim(), shown = items.filter(function (i) { return !q || (i.name + ' ' + i.sku).toLowerCase().indexOf(q) !== -1; });
+    el('cnList').innerHTML = shown.length ? shown.map(line).join('') : '<div class="empty">Nothing found</div>';
+  };
+  var drawTop = function () {
+    var n = counted().length;
+    el('cnProg').innerHTML = '<span><b>' + n + '</b> of ' + items.length + ' counted</span><i class="cn-bar"><u style="width:' + (items.length ? 100 * n / items.length : 0) + '%"></u></i>';
+    el('cnGo').disabled = !n; el('cnGo').textContent = n ? 'Review · ' + n + ' counted' : 'Count at least one product';
+  };
+  el('panel').innerHTML = '<button class="btn mini" id="scBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Stock</button><h3>Count stock</h3>' +
+    '<p>What is on the shelf now · not booked / packed parcels</p>' +
+    '<div class="cn-prog" id="cnProg"></div>' +
+    '<div class="search"><i class="ti ti-search"></i><input id="cnQ" placeholder="Find a product" value="' + esc(CNT.q) + '"></div>' +
+    (due.length ? '<button class="btn mini" id="scAll" type="button" style="margin:0 0 10px">' + (CNT.all ? 'Only the ' + due.length + ' due' : 'Show all ' + all.length + ' products') + '</button>' : '') +
+    '<div class="card" id="cnList" style="padding:0 14px"></div>' +
+    '<div class="ae-bar"><button class="btn pri" id="cnGo" type="button">Review</button></div>';
+  openPanel(true); drawList(); drawTop();
+  el('scBack').onclick = renderStock;
+  if (el('scAll')) el('scAll').onclick = function () { CNT.all = !CNT.all; openStockCount(); };
+  el('cnQ').oninput = function () { CNT.q = el('cnQ').value; drawList(); };
+  var set = function (sku, v) {
+    CNT.v[sku] = v;
+    var i = items.filter(function (x) { return x.sku === sku; })[0], row = el('cnList').querySelector('[data-row="' + sku + '"]');
+    if (i && row) { var tmp = document.createElement('div'); tmp.innerHTML = line(i); var nr = tmp.firstChild; var inp = row.querySelector('input'), focused = document.activeElement === inp, pos = focused ? inp.selectionStart : 0;
+      row.replaceWith(nr); if (focused) { var ni = nr.querySelector('input'); ni.focus(); try { ni.setSelectionRange(pos, pos); } catch (e) {} } }
+    drawTop();
+  };
+  el('cnList').oninput = function (e) { var x = e.target.closest('[data-cs]'); if (x) set(x.getAttribute('data-cs'), x.value); };
+  el('cnList').onclick = function (e) {
+    var row = e.target.closest('[data-row]'); if (!row) return; var sku = row.getAttribute('data-row');
+    var st = e.target.closest('[data-st]');
+    // − / + on an empty box start from the system number for owners (staff count blind: from 0)
+    if (st) { var it = items.filter(function (x) { return x.sku === sku; })[0], has = CNT.v[sku] != null && String(CNT.v[sku]).trim() !== '';
+      var cur = has ? num(CNT.v[sku]) : sys && it && it.onHand > 0 ? it.onHand - Number(st.getAttribute('data-st')) : 0; set(sku, String(Math.max(0, Math.round((cur + Number(st.getAttribute('data-st'))) * 100) / 100))); return; }
+    if (e.target.closest('[data-z]')) set(sku, '0');
+  };
+  el('cnGo').onclick = function () { openCountReview(items, blind, sys); };
+}
+function openCountReview(items, blind, sys) {
+  var num = function (v) { return Number(String(v).replace(/[^0-9.]/g, '')) || 0; };
+  var done = items.filter(function (i) { return CNT.v[i.sku] != null && String(CNT.v[i.sku]).trim() !== ''; });
+  var miss = items.length - done.length, diff = sys ? done.filter(function (i) { return num(CNT.v[i.sku]) !== i.onHand; }) : [], neg = sys ? done.filter(stkNeg) : [];
+  var row = function (i) { var n = num(CNT.v[i.sku]), d = Math.round((n - i.onHand) * 100) / 100;
+    return '<div class="acx-row"><span>' + esc(i.name) + '<small>counted ' + stkQty(n, i.unit) + (sys ? ' · system ' + stkQty(i.onHand, i.unit) : '') + '</small></span>' + (sys ? '<b class="num" style="color:' + (d < 0 ? 'var(--red)' : d > 0 ? 'var(--amber)' : 'var(--green)') + '">' + (d > 0 ? '+' : '') + stkQty(d, i.unit) + '</b>' : '') + '</div>'; };
+  el('panel').innerHTML = '<button class="btn mini" id="crBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Count</button><h3>Review count</h3>' +
+    '<div class="cn-sum">' + (sys ? '<span class="ok">' + (done.length - diff.length) + ' match</span><span class="df">' + diff.length + ' differ</span>' + (neg.length ? '<span class="ng">' + neg.length + ' below zero</span>' : '') : '<span class="ok">' + done.length + ' counted</span>') +
+    (miss ? '<span>' + miss + ' not counted · stay as they are</span>' : '') + '</div>' +
+    '<div class="card" style="padding:4px 14px"><div class="h" style="padding:8px 0 4px"><b>' + (sys ? (diff.length ? 'Differences' : 'All match the system') : 'Counted') + '</b></div>' +
+    (sys ? diff : done).map(row).join('') + '</div>' +
+    '<div class="err" id="crErr"></div><div class="ae-bar"><button class="btn pri" id="crGo" type="button">Save count · ' + done.length + '</button></div>';
+  openPanel(true);
+  el('crBack').onclick = function () { openStockCount(); };
+  el('crGo').onclick = function () {
+    var list = done.map(function (i) { return { type: 'Count', sku: i.sku, qty: num(CNT.v[i.sku]), note: 'stock count' }; });
+    CNT.v = {};
+    stkCountNeg(list, blind);
+  };
+}
+// Below zero (user 2026-11-03, after a study: negative stock is a signal to investigate, not a number to overwrite):
+// a count of a product the app has below zero first asks why (owners). "Goods came" = the count is not saved for it, Stock in
+// opens with the missing pieces (counted − system) so the cost is right; "Wrong product link" / "Not sure" = the count is
+// saved with the reason in its note (product page → Recent changes) and the order links open for the first. Staff count
+// blind: their count is saved with "system was below zero" in the note for the owner.
+function stkCountNeg(list, blind) {
+  var item = function (sku) { return STK.data.items.filter(function (x) { return x.sku === sku; })[0] || {}; };
+  var negs = STK.data.started ? list.filter(function (e) { return stkNeg(item(e.sku)); }) : [];
+  if (blind || !negs.length) {
+    negs.forEach(function (e) { e.note = 'stock count · system was ' + item(e.sku).onHand + ' (below zero)'; });
+    return stkSave(list, renderStock);
+  }
+  var came = [], link = false, k = 0;
+  var ask = function () {
+    if (k >= negs.length) {
+      var save = list.filter(function (e) { return came.indexOf(e) === -1; });
+      var then = function () {
+        if (came.length) { var c = came[0], i = item(c.sku); toast(came.length > 1 ? came.length + ' products to receive · one by one' : 'Now enter the goods that came');
+          return openStockIn(c.sku, { qty: Math.round((c.qty - i.onHand) * 100) / 100, note: 'came but not entered · found at count', back: renderStock }); }
+        if (link) return openStockLink();
+        renderStock();
+      };
+      return save.length ? stkSave(save, then) : then();
+    }
+    var e = negs[k], i = item(e.sku), miss = Math.round((e.qty - i.onHand) * 100) / 100;
+    el('panel').innerHTML = '<h3>' + esc(i.name) + '</h3><p>The app has ' + stkQty(i.onHand, i.unit) + ', you counted ' + stkQty(e.qty, i.unit) + ' · ' + stkQty(miss, i.unit) + ' were booked without stock in the app</p>' +
+      '<div class="fld"><label>What happened?</label></div>' +
+      '<button class="ac-it" type="button" data-nr="came"><i class="ti ti-truck-loading"></i><span><b>Goods came, not entered in the app</b><small>Enter them now with the price (Stock in) · the count is not needed</small></span></button>' +
+      '<button class="ac-it" type="button" data-nr="link"><i class="ti ti-link"></i><span><b>Orders linked to the wrong product</b><small>Save the count, then check the order links</small></span></button>' +
+      '<button class="ac-it" type="button" data-nr="unsure"><i class="ti ti-help-circle"></i><span><b>Not sure</b><small>Save the count · the reason stays open in its note</small></span></button>' +
+      (negs.length > 1 ? '<small class="mnote">' + (k + 1) + ' of ' + negs.length + ' below zero</small>' : '');
+    openPanel(true);
+    el('panel').querySelectorAll('[data-nr]').forEach(function (b) { b.onclick = function () {
+      var r = b.getAttribute('data-nr');
+      if (r === 'came') came.push(e);
+      else { e.note = 'stock count · was ' + i.onHand + ' (below zero) · ' + (r === 'link' ? 'orders linked to the wrong product' : 'reason not found'); if (r === 'link') link = true; }
+      k++; ask();
+    }; });
+  };
+  ask();
 }
 el('btnStock').onclick = fromMenu(function () { openStock(''); });
 
@@ -5319,6 +5456,51 @@ function fromField(id, list, cur, label) {
   if (list.length < 2) return '<div class="fld"><label>' + (label || 'Paid from') + '</label><div class="pf-phone" id="' + id + '" style="justify-content:flex-start;font-size:14px"><i class="ti ti-building-bank"></i><span>' + esc(list[0] || 'Business account') + '</span></div></div>';
   return '<div class="fld"><label>' + (label || 'Paid from') + '</label><div class="chips wrapc" id="' + id + '">' + list.map(function (x) { return '<button class="chip' + (x === cur ? ' on' : '') + '" type="button" data-v="' + esc(x) + '">' + esc(x === 'Own pocket' ? 'My own pocket' : x) + '</button>'; }).join('') + '</div></div>';
 }
+// Picker sheet for long choice lists (user 2026-11-03, after a study — Baymard / long-dropdown guidance: the phone's own
+// list for 20+ options is hard to use; a sheet with search on top, groups, a second line per option, "+ New" apart).
+// pickerize(select, {title}) keeps the <select> (all form logic stays the same), hides it and shows a field-like button;
+// choosing sets select.value and fires 'change'. Options may carry data-sub (grey second line); optgroups become headings;
+// values starting with "__" (+ New …) go to the bottom as their own button.
+function pickerize(sel, o) {
+  if (!sel || sel.dataset.pk) return; o = o || {}; sel.dataset.pk = '1'; sel.hidden = true;
+  var btn = document.createElement('button'); btn.type = 'button'; btn.className = 'pk-btn';
+  sel.parentNode.insertBefore(btn, sel.nextSibling);
+  var label = function () { var op = sel.options[sel.selectedIndex]; btn.innerHTML = '<span' + (sel.value ? '' : ' class="ph"') + '>' + esc(op ? op.textContent : '') + '</span><i class="ti ti-chevron-down"></i>'; };
+  label(); sel.addEventListener('change', label); new MutationObserver(label).observe(sel, { childList: true, subtree: true });
+  btn.onclick = function () { openPicker(sel, o.title || 'Choose'); };
+}
+function openPicker(sel, title) {
+  var rows = [], extra = [];
+  [].forEach.call(sel.children, function (n) {
+    var add = function (op, grp) { if (!op.value) return; (op.value.indexOf('__') === 0 ? extra : rows).push({ v: op.value, t: op.textContent, sub: op.getAttribute('data-sub') || '', g: grp, on: op.value === sel.value }); };
+    if (n.tagName === 'OPTGROUP') [].forEach.call(n.children, function (op) { add(op, n.label); }); else add(n, '');
+  });
+  var ov = document.createElement('div'); ov.className = 'pk-ov';
+  ov.innerHTML = '<div class="pk-sheet" role="dialog" aria-label="' + esc(title) + '"><div class="pk-h"><b>' + esc(title) + '</b><button type="button" class="pk-x" aria-label="Close"><i class="ti ti-x"></i></button></div>' +
+    (rows.length > 6 ? '<div class="pk-s"><i class="ti ti-search"></i><input type="search" placeholder="Search" aria-label="Search"></div>' : '') +
+    '<div class="pk-list"></div>' + (extra.length ? '<div class="pk-new">' + extra.map(function (r) { return '<button type="button" data-v="' + esc(r.v) + '"><i class="ti ti-plus"></i>' + esc(r.t.replace(/^\+\s*/, '')) + '</button>'; }).join('') + '</div>' : '') + '</div>';
+  document.body.appendChild(ov);
+  var list = ov.querySelector('.pk-list'), q = ov.querySelector('.pk-s input');
+  var draw = function () {
+    var w = q ? q.value.trim().toLowerCase() : '', g = null, h = '';
+    rows.filter(function (r) { return !w || (r.t + ' ' + r.sub + ' ' + r.v).toLowerCase().indexOf(w) !== -1; }).forEach(function (r) {
+      if (r.g !== g) { g = r.g; if (g) h += '<div class="pk-g">' + esc(g) + '</div>'; }
+      h += '<button type="button" class="pk-o' + (r.on ? ' on' : '') + '" data-v="' + esc(r.v) + '"><span><b>' + esc(r.t) + '</b>' + (r.sub ? '<small>' + esc(r.sub) + '</small>' : '') + '</span>' + (r.on ? '<i class="ti ti-check"></i>' : '') + '</button>';
+    });
+    list.innerHTML = h || '<div class="pk-none">Nothing found</div>';
+  };
+  draw();
+  var close = function () { ov.classList.remove('show'); setTimeout(function () { ov.remove(); }, 180); document.removeEventListener('keydown', key); };
+  var key = function (e) { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', key);
+  ov.onclick = function (e) {
+    if (e.target === ov || e.target.closest('.pk-x')) return close();
+    var b = e.target.closest('[data-v]'); if (!b) return;
+    sel.value = b.getAttribute('data-v'); close(); sel.dispatchEvent(new Event('change'));
+  };
+  if (q) q.oninput = draw;
+  requestAnimationFrame(function () { ov.classList.add('show'); if (q && window.matchMedia('(min-width: 1024px)').matches) q.focus(); });
+}
 // A photo box (bill / invoice): camera or gallery, made small on the phone (1280 px JPEG) before it is sent.
 // photoField(id, label) is the markup; photoWire(id, cb) calls cb(dataUrl) ('' when removed).
 function photoField(id, label) {
@@ -5351,62 +5533,84 @@ function openReceipt(id) {
     el('panel').querySelector('.sk').outerHTML = '<img alt="Receipt" src="data:' + r.type + ';base64,' + r.data + '" style="display:block;width:100%;border-radius:12px">';
   }, function () { toast('Receipt not found'); renderExpenses(); });
 }
+// Add expense (user 2026-11-03, after a study of Expensify / QuickBooks / form guides; canvas "Add expense · now vs new"):
+// the bill photo first, a big amount, Paid to (recent payees suggested; picking one sets its last category), the most
+// used categories (+ More), Today / Yesterday / a date, bill # and note under More details, a sticky Save · Rs X and
+// Save & add another. Expenses only — other money in is recorded in Accounts & payouts → Record → Money in.
 function openAddExpense() {
-  var d = FN.data, st = { type: 'Expense', cat: '', from: d.from[0] };
-  var draw = function () {
-    el('aeCats').innerHTML = (st.type === 'Income' ? ['Other income'] : d.cats[st.type] || []).map(function (c) { return '<button class="chip' + (st.cat === c ? ' on' : '') + '" type="button" data-v="' + esc(c) + '">' + esc(c) + '</button>'; }).join('');
+  var d = FN.data, st = { cat: '', from: d.from[0], day: 'today', more: false, catSet: false };
+  var cats = (d.cats.Expense || []).slice(), top = (d.topCats || []).filter(function (c) { return cats.indexOf(c) !== -1; });
+  cats.forEach(function (c) { if (top.indexOf(c) === -1) top.push(c); });
+  var recent = d.recent || [];
+  var drawCats = function () {
+    var shown = st.more ? top : top.slice(0, 5);
+    if (st.cat && shown.indexOf(st.cat) === -1) shown = shown.concat([st.cat]);
+    el('aeCats').innerHTML = shown.map(function (c) { return '<button class="chip' + (st.cat === c ? ' on' : '') + '" type="button" data-v="' + esc(c) + '">' + esc(c) + '</button>'; }).join('') +
+      (!st.more && top.length > 5 ? '<button class="chip ae-mc" type="button" data-more="1">More ▾</button>' : '');
   };
   el('panel').innerHTML = '<button class="btn mini" id="aeBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Expenses</button><h3>Add expense</h3>' +
-    '<p>' + (d.canApprove && !can('users.manage') ? 'Another approver will check it' : can('users.manage') ? 'Your entries are approved at once' : 'Waits for approval') + '</p>' +
-    '<div class="fld"><label>Type</label><div class="chips wrapc" id="aeType">' + [['Expense', 'Expense'], ['Income', 'Other income']].map(function (x) { return '<button class="chip' + (x[0] === 'Expense' ? ' on' : '') + '" type="button" data-v="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div></div>' +
-    '<small class="mnote" style="display:block;margin:-6px 0 10px">Stock is bought in Stock → New purchase. Payouts, transfers and money put in: ☰ Accounts & payouts.</small>' +
-    '<div class="fld"><label>Amount (PKR)</label><input id="aeAmt" type="text" inputmode="decimal" placeholder="e.g. 2500"></div>' +
-    '<div class="fld"><label>Category</label><div class="chips wrapc" id="aeCats"></div></div>' +
-    '<div class="fld"><label>What was it for</label><input id="aeDesc" placeholder="e.g. Meta ads, office rent October"></div>' +
+    '<p>' + (d.canApprove && !can('users.manage') ? 'Another approver will check it' : can('users.manage') ? 'Approved at once' : 'Waits for approval') + '</p>' +
+    '<input id="aeFile" type="file" accept="image/*" hidden><button class="ae-snap" id="aeBtn" type="button"><i class="ti ti-camera"></i><b>Snap the bill</b><small>or choose from gallery · optional</small></button>' +
+    '<div id="aeBox" class="ae-ph" hidden><img id="aeImg" alt="Bill photo"><button class="btn mini" id="aeRm" type="button" aria-label="Remove photo"><i class="ti ti-x"></i></button></div>' +
+    '<label class="ae-l" for="aeAmt">Amount</label><div class="ae-amt"><span>Rs</span><input id="aeAmt" type="text" inputmode="decimal" placeholder="0" autocomplete="off"></div>' +
+    '<div class="fld"><label for="aeDesc">Paid to</label><input id="aeDesc" list="aeList" placeholder="e.g. Ali Packaging, K-Electric, office rent" autocomplete="off">' +
+    '<datalist id="aeList">' + recent.map(function (r) { return '<option value="' + esc(r.v) + '">'; }).join('') + '</datalist>' +
+    (recent.length ? '<div class="ae-rec">Recent: ' + recent.slice(0, 4).map(function (r, i) { return '<button type="button" data-rec="' + i + '">' + esc(r.v) + '</button>'; }).join(' · ') + '</div>' : '') + '</div>' +
+    '<div class="fld"><label>Category <small id="aeHint" class="ae-hint"></small></label><div class="chips wrapc" id="aeCats"></div></div>' +
+    '<div class="fld"><label>Date</label><div class="chips" id="aeDay"><button class="chip on" type="button" data-v="today">Today</button><button class="chip" type="button" data-v="yday">Yesterday</button><button class="chip" type="button" data-v="pick">Pick a date</button></div>' +
+    '<input id="aeDate" type="date" value="' + pkDay(new Date()) + '" hidden style="margin-top:8px"></div>' +
     fromField('aeFrom', d.from, st.from) +
-    '<div class="fld"><label>Date</label><input id="aeDate" type="date" value="' + pkDay(new Date()) + '"></div>' +
-    '<div class="fld"><label>Receipt photo (optional)</label><input id="aeFile" type="file" accept="image/*" capture="environment" hidden>' +
-    '<button class="btn" id="aePhoto" type="button" style="width:100%"><i class="ti ti-camera"></i>Add a photo of the bill</button><img id="aeThumb" alt="" hidden style="display:block;max-width:100%;max-height:180px;margin-top:8px;border-radius:12px"></div>' +
-    '<div class="fld"><label>Receipt / bill # (optional)</label><input id="aeRef" placeholder="e.g. INV-102"></div>' +
-    '<div class="fld"><label>Note (optional)</label><input id="aeNote"></div><div class="err" id="aeErr"></div>' +
-    '<button class="btn pri" id="aeGo" style="width:100%;padding:12px">Save</button>';
-  openPanel(true); draw();
+    '<button class="ae-more" id="aeMore" type="button">+ More details (bill #, note)</button>' +
+    '<div id="aeMoreBox" hidden><div class="fld"><label for="aeRef">Bill # (optional)</label><input id="aeRef" placeholder="e.g. INV-102"></div><div class="fld"><label for="aeNote">Note (optional)</label><input id="aeNote"></div></div>' +
+    '<div class="err" id="aeErr"></div>' +
+    '<div class="ae-bar"><button class="btn pri" id="aeGo" type="button">Save</button><button class="btn" id="aeAgain" type="button">Save &amp; add another</button></div>';
+  openPanel(true); drawCats();
   el('aeBack').onclick = renderExpenses;
-  var pick = function (box, key, after) { el(box).onclick = function (e) { var b = e.target.closest('[data-v]'); if (!b) return; st[key] = b.getAttribute('data-v'); el(box).querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x === b); }); if (after) after(); }; };
-  pick('aeType', 'type', function () { st.cat = ''; draw(); }); pick('aeCats', 'cat'); pick('aeFrom', 'from');
-  // receipt: made small on the phone (longest side 1280 px, JPEG) before sending
-  el('aePhoto').onclick = function () { el('aeFile').click(); };
-  el('aeFile').onchange = function () {
-    var file = el('aeFile').files && el('aeFile').files[0]; if (!file) return;
-    var img = new Image(), url = URL.createObjectURL(file);
-    img.onload = function () {
-      var k = Math.min(1, 1280 / Math.max(img.width, img.height)), cv = document.createElement('canvas');
-      cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
-      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
-      st.receipt = cv.toDataURL('image/jpeg', 0.72); URL.revokeObjectURL(url);
-      el('aeThumb').src = st.receipt; el('aeThumb').hidden = false;
-      el('aePhoto').innerHTML = '<i class="ti ti-refresh"></i>Change photo';
-    };
-    img.src = url;
+  photoWire('ae', function (data) { st.receipt = data; });
+  el('aeAmt').oninput = function () { var n = Number(String(el('aeAmt').value).replace(/[^0-9.]/g, '')); el('aeGo').textContent = n > 0 ? 'Save · ' + rs(n) : 'Save'; };
+  var setPayee = function (v) {
+    var r = recent.filter(function (x) { return x.v.toLowerCase() === String(v).trim().toLowerCase(); })[0];
+    if (r && !st.catSet && cats.indexOf(r.cat) !== -1) { st.cat = r.cat; el('aeHint').textContent = '· set from ' + r.v; drawCats(); }
   };
-  el('aeGo').onclick = function () {
+  el('aeDesc').oninput = function () { setPayee(el('aeDesc').value); };
+  el('panel').querySelectorAll('[data-rec]').forEach(function (b) { b.onclick = function () { var r = recent[Number(b.getAttribute('data-rec'))]; el('aeDesc').value = r.v; setPayee(r.v); }; });
+  el('aeCats').onclick = function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    if (b.getAttribute('data-more')) { st.more = true; return drawCats(); }
+    st.cat = b.getAttribute('data-v'); st.catSet = true; el('aeHint').textContent = ''; drawCats();
+  };
+  el('aeDay').onclick = function (e) {
+    var b = e.target.closest('[data-v]'); if (!b) return;
+    st.day = b.getAttribute('data-v');
+    el('aeDay').querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x === b); });
+    var t = pkDay(new Date());
+    if (st.day === 'today') el('aeDate').value = t; else if (st.day === 'yday') el('aeDate').value = addDays(t, -1);
+    el('aeDate').hidden = st.day !== 'pick';
+  };
+  if (el('aeFrom').classList.contains('chips')) el('aeFrom').onclick = function (e) { var b = e.target.closest('[data-v]'); if (!b) return; st.from = b.getAttribute('data-v'); el('aeFrom').querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x === b); }); };
+  el('aeMore').onclick = function () { el('aeMoreBox').hidden = false; el('aeMore').hidden = true; };
+  var go = function (again) {
     var amt = Number(String(el('aeAmt').value).replace(/[^0-9.]/g, ''));
     if (!(amt > 0)) { el('aeErr').textContent = 'Enter the amount'; return; }
+    if (!el('aeDesc').value.trim()) { el('aeErr').textContent = 'Who was it paid to?'; return; }
     if (!st.cat) { el('aeErr').textContent = 'Pick a category'; return; }
-    if (!el('aeDesc').value.trim()) { el('aeErr').textContent = 'Write what it was for'; return; }
-    el('aeGo').disabled = true;
-    var f = { type: st.type, cat: st.cat, amount: amt, desc: el('aeDesc').value.trim(), from: st.from, date: el('aeDate').value, ref: el('aeRef').value.trim(), note: el('aeNote').value.trim(), receipt: st.receipt || '' };
+    el('aeGo').disabled = el('aeAgain').disabled = true;
+    var f = { type: 'Expense', cat: st.cat, amount: amt, desc: el('aeDesc').value.trim(), from: st.from, date: el('aeDate').value, ref: el('aeRef').value.trim(), note: el('aeNote').value.trim(), receipt: st.receipt || '' };
     var send = function () {
-      api('appAddFinance', [TOKEN, f], function (r) { toast(r.status === 'Approved' ? '✅ Saved' : '✅ Saved · waiting for approval'); openExpenses(FN.month); },
-        function (e) {
-          var m = String((e && e.message) || '').split('|');
-          // the same Shopify bill already came from email: ask before entering it twice
-          if (m[0] === 'DUP' && confirm('This Shopify bill already came from email (' + m[1] + ', ' + m[2] + ', Rs ' + Number(m[3]).toLocaleString('en-PK') + ').\nEnter it again anyway?')) { f.dupOk = true; return send(); }
-          el('aeGo').disabled = false; el('aeErr').textContent = m[0] === 'DUP' ? 'Not added · the emailed bill is already in Finance' : (e && e.message) || 'Not saved';
-        });
+      api('appAddFinance', [TOKEN, f], function (r) {
+        var msg = (r.status === 'Approved' ? '✅ Saved' : '✅ Saved · waiting for approval') + ' · ' + rs(amt);
+        if (again) { toast(msg + ' · add the next'); openAddExpense(); } else { toast(msg); openExpenses(FN.month); }
+      }, function (e) {
+        var m = String((e && e.message) || '').split('|');
+        // the same Shopify bill already came from email: ask before entering it twice
+        if (m[0] === 'DUP' && confirm('This Shopify bill already came from email (' + m[1] + ', ' + m[2] + ', Rs ' + Number(m[3]).toLocaleString('en-PK') + ').\nEnter it again anyway?')) { f.dupOk = true; return send(); }
+        el('aeGo').disabled = el('aeAgain').disabled = false; el('aeErr').textContent = m[0] === 'DUP' ? 'Not added · the emailed bill is already in Finance' : (e && e.message) || 'Not saved';
+      });
     };
     send();
   };
+  el('aeGo').onclick = function () { go(false); };
+  el('aeAgain').onclick = function () { go(true); };
 }
 // Profit & loss (user 2026-10-27): any period (month, last month, 3 months, this year, all time, own dates), 4 big numbers,
 // per delivered order, every line with its % of sales, month by month (tap → that month), open parcels, cash.
@@ -5678,34 +5882,58 @@ function acDollars(x) {
     '<button class="pp-more" id="acChg" style="padding:0 14px 10px">Meta charges ›</button></div>';
 }
 function acMoney(n) { return (n < 0 ? '− ' : '') + rs(Math.abs(n)); }
+// Accounts & payouts (user 2026-11-03, after a study of Xero bank panels / owner draw practice; canvas "Accounts &
+// payouts · now vs new"): one card per account (balance, what the bank showed and when, this month in / out, Bank check
+// on the card), recent activity (tap = the account's ledger), partner payouts, Meta ad dollars folded, and ONE + Record
+// (owners) → Money in / Money out / Move (+ Opening balance while an account has none).
 function renderAccounts() {
-  var d = AC.data, total = d.accounts.reduce(function (a, x) { return a + x.balance; }, 0), pk = Object.keys(d.drawn || {});
-  var unk = Object.keys(d.unknown || {});
-  el('panel').innerHTML = '<h3>Accounts & payouts</h3><p>Money in the business, like a bank book</p>' +
-    (unk.length ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-alert-triangle"></i> ' + unk.map(function (k) { return d.unknown[k] + ' entr' + (d.unknown[k] > 1 ? 'ies' : 'y') + ' on "' + esc(k) + '"'; }).join(', ') + ' · this account is not in W1 Store Settings "Money Accounts", so it is not counted. Add the name back there.</div>' : '') +
-    '<div class="card" style="padding:0">' + d.accounts.map(function (a) {
-      var c = a.check, off = c && c.diff;
-      return '<div class="prow" data-acc="' + esc(a.name) + '"><div class="prow-m"><div class="prow-1"><b>' + esc(a.name) + '</b><b class="num">' + acMoney(a.balance) + '</b></div>' +
-        '<div class="prow-2"><span>' + (a.opened ? 'this month in ' + rs(a.ins) + ' · out ' + rs(a.outs) : 'set the opening balance to start') + '</span>' +
-        (c ? '<span class="st" style="--c:' + (off ? 'var(--amber)' : 'var(--green)') + '">' + (off ? 'bank ' + (c.diff > 0 ? '+' : '−') + rs(Math.abs(c.diff)) : 'matches bank') + '</span>' : '') + '</div></div></div>';
-    }).join('') + '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><b>Total</b><b class="num">' + acMoney(total) + '</b></div></div></div></div>' +
-    (d.owner ? '<div class="btns" style="margin:0 0 8px"><button class="btn pri" id="acPay"><i class="ti ti-cash-banknote"></i>Partner payout</button><button class="btn" id="acBank"><i class="ti ti-building-bank"></i>Bank check</button></div>' +
-      '<div class="btns" style="margin:0 0 8px"><button class="btn" id="acAds"><i class="ti ti-speakerphone"></i>Ad account top-up</button></div>' +
-      '<div class="btns" style="margin:0 0 12px"><button class="btn" id="acMove"><i class="ti ti-arrows-exchange"></i>Transfer</button><button class="btn" id="acIn"><i class="ti ti-plus"></i>Money put in</button><button class="btn" id="acOpen"><i class="ti ti-flag"></i>Opening</button></div>' : '') +
-    acDollars(d.dollars) +
-    (Object.keys(d.topups || {}).length ? '<div class="card"><div class="h"><b>Ad accounts topped up</b><span>' + esc(fnMonthName(d.month)) + '</span></div>' + Object.keys(d.topups).map(function (k) { return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span>' + esc(k) + '</span><b class="num">' + rs(d.topups[k]) + '</b></div></div></div>'; }).join('') + '<small class="mnote" style="display:block;padding:0 0 4px">Spend is in Profit & loss (synced from the platform)</small></div>' : '') +
-    '<div class="card"><div class="h"><b>Partner payouts</b><span>' + esc(fnMonthName(d.month)) + '</span></div>' +
-    (pk.length ? pk.map(function (k) { var p = d.drawn[k]; return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><b>' + esc(k) + '</b><span class="num">' + rs(p.month) + '</span></div><div class="prow-2"><span>this year ' + rs(p.year) + ' · all ' + rs(p.all) + '</span></div></div></div>'; }).join('')
+  var d = AC.data, pk = Object.keys(d.drawn || {}), unk = Object.keys(d.unknown || {}), today = pkDay(new Date());
+  var daysAgo = function (day) { var n = Math.round((new Date(today + 'T12:00:00Z') - new Date(day + 'T12:00:00Z')) / 86400000); return n <= 0 ? 'today' : n === 1 ? 'yesterday' : n + ' days ago'; };
+  var recent = [];
+  d.accounts.forEach(function (x) { x.lines.forEach(function (l) { if (l.amt != null) recent.push({ acc: x.name, l: l }); }); });
+  recent.sort(function (p, q) { return p.l.day < q.l.day ? 1 : p.l.day > q.l.day ? -1 : 0; });
+  var tops = Object.keys(d.topups || {}), dl = d.dollars, left = dl && dl.all.bought.usd ? Math.round((dl.all.bought.usd - dl.all.used.usd) * 100) / 100 : null;
+  el('panel').innerHTML = '<h3>Accounts & payouts</h3>' +
+    (unk.length ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-alert-triangle"></i> ' + unk.map(function (k) { return d.unknown[k] + ' entr' + (d.unknown[k] > 1 ? 'ies' : 'y') + ' on "' + esc(k) + '"'; }).join(', ') + ' · not one of the store\'s money accounts</div>' : '') +
+    d.accounts.map(function (x) {
+      var c = x.check, tot = (x.ins + x.outs) || 1;
+      return '<section class="ac-card"><div class="ac-top"><b>' + esc(x.name) + '</b>' + (c ? '<span class="ac-pill' + (c.diff ? ' off' : '') + '">' + (c.diff ? 'bank ' + (c.diff > 0 ? '+' : '−') + rs(Math.abs(c.diff)) : '✓ matches bank') + '</span>' : '') + '</div>' +
+        '<b class="ac-bal num">' + acMoney(x.balance) + '</b>' +
+        '<small class="ac-sub">' + (!x.opened ? 'Set the opening balance to start' : c ? 'Bank showed ' + rs(c.bank) + ' on ' + esc(fnDay(c.day)) + ' · checked ' + daysAgo(c.day) : 'Not checked with the bank yet') + '</small>' +
+        (x.opened ? '<div class="ac-io"><span class="in">In this month · ' + rs(x.ins) + '</span><span class="out">Out · ' + rs(x.outs) + '</span></div><div class="ac-flow"><span class="ac-bi" style="flex:' + x.ins / tot + '"></span><span class="ac-bo" style="flex:' + x.outs / tot + '"></span></div>' : '') +
+        '<div class="btns" style="margin-top:10px">' + (d.owner ? '<button class="btn" type="button" data-acbank="' + esc(x.name) + '"><i class="ti ti-building-bank"></i>Bank check</button>' : '') + '<button class="btn" type="button" data-acc="' + esc(x.name) + '"><i class="ti ti-list"></i>All entries</button></div></section>';
+    }).join('') +
+    (d.accounts.length > 1 ? '<div class="ac-total"><span>Total in all accounts</span><b class="num">' + acMoney(d.accounts.reduce(function (p, x) { return p + x.balance; }, 0)) + '</b></div>' : '') +
+    '<div class="card" style="padding:4px 14px"><div class="h" style="padding:8px 0 4px"><b>Recent activity</b>' + (d.accounts.length === 1 ? '<button class="ac-all" type="button" data-acc="' + esc(d.accounts[0].name) + '">All ›</button>' : '') + '</div>' +
+    (recent.length ? recent.slice(0, 4).map(function (r) {
+      return '<div class="acx-row"><span>' + esc(r.l.text) + '<small>' + esc([fnDay(r.l.day), r.l.cat, d.accounts.length > 1 ? r.acc : ''].filter(Boolean).join(' · ')) + '</small></span><b class="num' + (r.l.amt > 0 ? ' up' : '') + '">' + (r.l.amt > 0 ? '+' : '−') + rs(Math.abs(r.l.amt)) + '</b></div>';
+    }).join('') : '<div class="empty">No entries yet</div>') + '</div>' +
+    '<div class="card" style="padding:4px 14px"><div class="h" style="padding:8px 0 4px"><b>Partner payouts</b><span>' + esc(fnMonthName(d.month).slice(0, 3)) + ' · this year</span></div>' +
+    (pk.length ? pk.map(function (k) { var p = d.drawn[k]; return '<div class="acx-row"><span>' + esc(k) + '</span><span class="num">' + rs(p.month) + ' · <i class="ac-yr">' + rs(p.year) + '</i></span></div>'; }).join('')
       : '<div class="empty">No payouts yet' + (d.partners.length ? '' : ' · add partner names in W1 Store Settings "Partners"') + '</div>') + '</div>' +
-    '<div class="btns" style="margin-top:10px"><button class="btn" id="acClose">Close</button></div>';
+    (dl || tops.length ? '<details class="card ac-fold"><summary><b>Meta ad dollars</b><span>' + (left != null ? '$' + left.toLocaleString('en-US') + ' left' : '') + '</span></summary>' +
+      (tops.length ? '<div class="acx-row"><span>Topped up this month<small>' + esc(tops.join(', ')) + '</small></span><b class="num">' + rs(tops.reduce(function (p, k) { return p + d.topups[k]; }, 0)) + '</b></div>' : '') +
+      acDollars(dl) + '</details>' : '') +
+    (d.owner ? '<div class="ae-bar"><button class="btn pri" id="acRec" type="button"><i class="ti ti-plus"></i>Record</button></div>' : '<div class="btns" style="margin-top:10px"><button class="btn" id="acClose">Close</button></div>');
   openPanel(true);
-  el('acClose').onclick = closePanel;
+  if (el('acClose')) el('acClose').onclick = closePanel;
   if (el('acChg')) el('acChg').onclick = openAdCharges;
   el('panel').querySelectorAll('[data-acc]').forEach(function (r) { r.onclick = function () { openLedger(r.getAttribute('data-acc')); }; });
-  if (el('acPay')) {
-    el('acPay').onclick = function () { openAcForm('payout'); }; el('acBank').onclick = function () { openAcForm('bank'); };
-    el('acMove').onclick = function () { openAcForm('transfer'); }; el('acAds').onclick = function () { openAcForm('ads'); }; el('acIn').onclick = function () { openAcForm('capital'); }; el('acOpen').onclick = function () { openAcForm('opening'); };
-  }
+  el('panel').querySelectorAll('[data-acbank]').forEach(function (r) { r.onclick = function () { openAcForm('bank', r.getAttribute('data-acbank')); }; });
+  if (el('acRec')) el('acRec').onclick = openAcRecord;
+}
+// + Record: what kind of money movement (owners)
+function openAcRecord() {
+  var d = AC.data, noOpen = d.accounts.filter(function (x) { return !x.opened; }).length;
+  var item = function (k, icon, t, sub) { return '<button class="ac-it" type="button" data-rk="' + k + '"><i class="ti ti-' + icon + '"></i><span><b>' + t + '</b><small>' + sub + '</small></span></button>'; };
+  el('panel').innerHTML = '<button class="btn mini" id="arBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Accounts</button><h3>Record</h3>' +
+    '<div class="ac-grp in"><b>Money in</b>' + item('capital', 'circle-plus', 'Money put in', 'Owner investment, loan or other income') + '</div>' +
+    '<div class="ac-grp out"><b>Money out</b>' + item('payout', 'cash-banknote', 'Partner payout', 'Profit taken out by a partner') + item('ads', 'speakerphone', 'Ad account top-up', 'Money into Meta / TikTok / Google ads') + '</div>' +
+    '<div class="ac-grp mv"><b>Move</b>' + item('transfer', 'arrows-exchange', 'Transfer', 'Between two of your accounts') + '</div>' +
+    (noOpen ? '<div class="ac-grp"><b>Set up</b>' + item('opening', 'flag', 'Opening balance', 'The balance on the day you start') + '</div>' : '');
+  openPanel(true);
+  el('arBack').onclick = renderAccounts;
+  el('panel').querySelectorAll('[data-rk]').forEach(function (b) { b.onclick = function () { openAcForm(b.getAttribute('data-rk')); }; });
 }
 function openLedger(name) {
   var a = AC.data.accounts.filter(function (x) { return x.name === name; })[0]; if (!a) return renderAccounts();
@@ -5719,15 +5947,15 @@ function openLedger(name) {
   el('lgBack').onclick = renderAccounts;
 }
 // one form for the five owner actions
-function openAcForm(kind) {
-  var d = AC.data, acc = d.accounts.map(function (a) { return a.name; }), st = { from: acc[0], to: kind === 'ads' ? d.platforms[0] : acc[1] || '', who: d.partners[0] || '', cat: 'Owner investment' };
+function openAcForm(kind, acct) {
+  var d = AC.data, acc = d.accounts.map(function (a) { return a.name; }), st = { from: acct || acc[0], to: kind === 'ads' ? d.platforms[0] : acc[1] || '', who: d.partners[0] || '', cat: 'Owner investment' };
   var T = { ads: 'Ad account top-up', payout: 'Partner payout', bank: 'Bank check', transfer: 'Transfer between accounts', capital: 'Money put in', opening: 'Opening balance' }[kind];
   var chips = function (id, list, cur) { return '<div class="chips wrapc" id="' + id + '">' + list.map(function (x) { return '<button class="chip' + (x === cur ? ' on' : '') + '" type="button" data-v="' + esc(x) + '">' + esc(x) + '</button>'; }).join('') + '</div>'; };
   var a0 = function (n) { return (d.accounts.filter(function (x) { return x.name === n; })[0] || {}).balance || 0; };
   el('panel').innerHTML = '<button class="btn mini" id="afBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Accounts</button><h3>' + T + '</h3>' +
     '<p>' + { ads: 'Money paid into an ad account (it leaves the bank; the spend itself comes from the platform)', payout: 'Profit taken out by a partner', bank: 'What the bank / cash box shows now · the app compares', transfer: 'e.g. cash deposited in the bank', capital: 'Owner investment or a loan into the business', opening: 'The balance on the day you start' }[kind] + '</p>' +
     (kind === 'payout' ? '<div class="fld"><label>Partner</label>' + (d.partners.length ? chips('afWho', d.partners, st.who) : '<input id="afWhoT" placeholder="Name">') + '</div>' : '') +
-    (kind === 'capital' ? '<div class="fld"><label>What</label>' + chips('afCat', ['Owner investment', 'Loan'], st.cat) + '</div>' : '') +
+    (kind === 'capital' ? '<div class="fld"><label>What</label>' + chips('afCat', ['Owner investment', 'Loan', 'Other income'], st.cat) + '</div>' : '') +
     '<div class="fld"><label>' + (kind === 'transfer' ? 'From' : kind === 'payout' ? 'Paid from' : kind === 'capital' ? 'Into' : 'Account') + '</label>' + chips('afFrom', acc, st.from) + '</div>' +
     (kind === 'transfer' ? '<div class="fld"><label>To</label>' + chips('afTo', acc, st.to) + '</div>' : '') +
     (kind === 'ads' ? '<div class="fld"><label>Ad account</label>' + chips('afTo', d.platforms, st.to) + '</div>' : '') +
@@ -5738,7 +5966,7 @@ function openAcForm(kind) {
     '<div class="fld"><label>Note (optional)</label><input id="afNote"></div><div class="err" id="afErr"></div>' +
     '<button class="btn pri" id="afGo" style="width:100%;padding:12px">Save</button>' + (kind === 'bank' ? '<button class="btn" id="afFix" style="width:100%;margin-top:8px" hidden>Save and add a correction to match</button>' : '');
   openPanel(true);
-  el('afBack').onclick = renderAccounts;
+  el('afBack').onclick = acct || kind === 'bank' ? renderAccounts : openAcRecord;
   var diff = function () {
     if (kind !== 'bank') return; var n = Number(String(el('afAmt').value).replace(/[^0-9.\-]/g, '')), app = a0(st.from), dd = Math.round(n - app);
     el('afDiff').innerHTML = el('afAmt').value.trim() === '' ? 'App balance ' + rs(app) : !dd ? '✅ Matches the app (' + rs(app) + ')' : 'App ' + rs(app) + ' · bank ' + (dd > 0 ? 'has ' + rs(dd) + ' more' : 'has ' + rs(-dd) + ' less');
@@ -5755,7 +5983,7 @@ function openAcForm(kind) {
     if (kind === 'payout' && !who) { el('afErr').textContent = 'Choose the partner'; return; }
     if (kind === 'transfer' && st.from === st.to) { el('afErr').textContent = 'Choose two different accounts'; return; }
     var f = { ads: { type: 'Transfer', cat: 'Ad account top-up', desc: st.to + ' top-up', to: st.to }, payout: { type: 'Owner draw', cat: 'Profit share', desc: 'Payout · ' + who, by: who }, bank: { type: 'Balance', cat: 'Bank statement', desc: st.from + ' statement' },
-      transfer: { type: 'Transfer', cat: 'Between accounts', desc: st.from + ' → ' + st.to, to: st.to }, capital: { type: 'Capital', cat: st.cat, desc: st.cat }, opening: { type: 'Balance', cat: 'Opening balance', desc: st.from + ' opening balance' } }[kind];
+      transfer: { type: 'Transfer', cat: 'Between accounts', desc: st.from + ' → ' + st.to, to: st.to }, capital: st.cat === 'Other income' ? { type: 'Income', cat: 'Other income', desc: el('afNote').value.trim() || 'Other income' } : { type: 'Capital', cat: st.cat, desc: st.cat }, opening: { type: 'Balance', cat: 'Opening balance', desc: st.from + ' opening balance' } }[kind];
     f.amount = n; f.from = st.from; f.date = el('afDate').value; f.note = el('afNote').value.trim(); if (el('afUsd')) f.usd = Number(el('afUsd').value) || 0;
     var calls = [f];
     if (fix) { var dd = Math.round(n - a0(st.from)); calls.push({ type: 'Balance', cat: dd > 0 ? 'Correction (+)' : 'Correction (−)', desc: 'Match bank · ' + st.from, amount: Math.abs(dd), from: st.from, date: el('afDate').value, note: 'bank showed ' + n }); }
@@ -5886,6 +6114,7 @@ function openSupplierProduct(sup, sku, back) {
     (l && l.saved ? '<button class="btn" id="spRm" style="width:100%;margin-top:8px"><i class="ti ti-trash"></i>Remove</button>' : '');
   openPanel(true);
   el('spBack').onclick = back;
+  if (el('spSup')) pickerize(el('spSup'), { title: 'Supplier' }); if (el('spSku')) pickerize(el('spSku'), { title: 'Product' });
   if (el('spSku')) el('spSku').onchange = function () { var x = purItem(el('spSku').value); el('spPl').textContent = (x.unit === 'ft' ? 'Rate per ft' : 'Rate per piece') + ' (what they quoted)'; };
   var send = function (f) {
     api('appSupplierProduct', [TOKEN, f], function (r) { toast(f.remove ? 'Removed' : '✅ Saved'); purReload(back, r); },
@@ -5962,7 +6191,8 @@ function openNewPurchase(opt) {
   var supOpts = function () {
     var lk = supLinked(), opt = function (s) {
       var x = lk[s.name];
-      return '<option value="' + esc(s.name) + '"' + (s.name === st.supplier ? ' selected' : '') + '>' + (x && x.main ? '⭐ ' : '') + esc(s.name) + (s.city ? ' · ' + esc(s.city) : '') + (x && x.rate.length && st.lines.length === 1 ? ' · ' + x.rate[0] : '') + '</option>';
+      var sub = [s.toPay > 0 ? 'to pay ' + rs(s.toPay) : '', x && x.rate.length && st.lines.length === 1 ? 'rate ' + x.rate[0] : ''].filter(Boolean).join(' · ');
+      return '<option value="' + esc(s.name) + '" data-sub="' + esc(sub) + '"' + (s.name === st.supplier ? ' selected' : '') + '>' + (x && x.main ? '⭐ ' : '') + esc(s.name) + (s.city ? ' · ' + esc(s.city) : '') + '</option>';
     };
     var mine = d.suppliers.filter(function (s) { return lk[s.name]; }).sort(function (a, b) { return (lk[b.name].main ? 1 : 0) - (lk[a.name].main ? 1 : 0) || lk[b.name].n - lk[a.name].n; });
     var rest = d.suppliers.filter(function (s) { return !lk[s.name]; });
@@ -5988,7 +6218,10 @@ function openNewPurchase(opt) {
   };
   var itemOpts = function () {
     var mine = supItems(), skus = mine.map(function (x) { return x.it.sku; });
-    var o = function (i, rate) { return '<option value="' + esc(i.sku) + '">' + esc(i.name) + (i.isNew ? ' (new)' : '') + (rate ? ' · ' + rs2(rate) + (i.unit === 'ft' ? '/ft' : '') : '') + '</option>'; };
+    var o = function (i, rate) {
+      var sub = [i.available == null ? '' : i.available <= 0 ? 'Out of stock' : 'Stock ' + i.available + (i.unit === 'ft' ? ' ft' : ''), i.incoming ? i.incoming + ' on the way' : '', rate ? 'rate ' + rs2(rate) + (i.unit === 'ft' ? '/ft' : '') : '', st.lines.some(function (l) { return l.sku === i.sku; }) ? '✓ on this bill' : ''].filter(Boolean).join(' · ');
+      return '<option value="' + esc(i.sku) + '" data-sub="' + esc(sub) + '">' + esc(i.name) + (i.isNew ? ' (new)' : '') + '</option>';
+    };
     var rest = d.items.filter(function (i) { return skus.indexOf(i.sku) === -1; });
     return '<option value="">' + (st.lines.length ? '+ Add another product…' : 'Choose a product…') + '</option>' +
       (mine.length ? '<optgroup label="From ' + esc(st.supplier) + '">' + mine.map(function (x) { return o(x.it, x.rate); }).join('') + '</optgroup><optgroup label="Other products">' + rest.map(function (i) { return o(i); }).join('') + '</optgroup>' : rest.map(function (i) { return o(i); }).join('')) + '<option value="__newp">+ New product (not on the store yet)</option>'; };
@@ -6071,6 +6304,7 @@ function openNewPurchase(opt) {
   drawFrom();
   photoWire('npInv', function (x) { st.inv = x; });
   el('npBack').onclick = back;
+  pickerize(el('npSup'), { title: 'Supplier' }); pickerize(el('npAdd'), { title: 'Add a product' });
   el('npSup').onchange = function () {
     if (el('npSup').value === '__new') { el('npNewSup').hidden = false; el('nsName').focus(); return; }
     el('npNewSup').hidden = true; st.supplier = el('npSup').value;
