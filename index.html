@@ -401,6 +401,7 @@ body.nb-on #nlist{padding-bottom:84px}
 .eq-p{margin-top:12px;padding-top:10px;border-top:2px solid var(--line)}.eq-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:15px;margin-bottom:2px}.eq-h b.num{font-size:18px}.eq-n{display:block;margin-top:4px}
 .eq-sum{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;margin-top:6px;font-size:12.5px;color:var(--muted)}.eq-sum .ac-all{margin-left:auto}.eh-src{padding:12px 14px 4px}.eh-src>b{display:block;margin-bottom:4px}.eh-row{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0}.eh-i{font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--green)}.eh-i.neg{color:var(--red)}
 .eq-take{color:var(--green);font-weight:600}.eq-open{margin-top:12px;padding-top:10px;border-top:2px solid var(--line)}.eq-open b{display:block;font-size:13.5px}.eq-open small{display:block;font-size:12px;color:var(--muted);margin-top:2px}.eh-i.pf{color:var(--amber)}.pm-st{display:block;font-weight:500;font-size:11.5px;color:var(--amber)}.pm-st.closed{color:var(--muted)}.pm-st.cash{color:var(--green)}
+.cd-new{display:block;width:100%;text-align:left;margin-top:10px;padding:10px 12px;border:1px dashed var(--amber);border-radius:12px;background:none;font:inherit;color:var(--text);cursor:pointer}.cd-new b{display:block;font-size:13.5px}.cd-new span{font-size:12px;color:var(--muted)}.cd-row{padding:12px 14px;margin-bottom:8px}.ck-seg{margin:6px 0 0}
 .mo-seg button{display:flex;flex-direction:column;align-items:center;gap:1px;font-weight:600;color:var(--text)}.mo-seg button small{font-weight:500;font-size:11.5px;color:var(--muted)}.mo-seg button.on{color:var(--brand-ink)}.mo-seg button.on small{color:inherit;opacity:.85}.mo-flow{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:12px 14px}.mo-flow>div{flex:1;min-width:0}.mo-flow small{display:block;font-size:11.5px;color:var(--muted)}.mo-flow b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mo-flow span{font-size:12px;color:var(--muted)}.mo-flow>i{color:var(--brand);font-size:20px}.mo-more{margin:4px 0 8px}.mo-more summary{font-size:13px;color:var(--brand);cursor:pointer;padding:6px 0}
 .ac-all{border:0;background:none;font:inherit;font-size:12.5px;color:var(--brand);cursor:pointer}
 .ac-fold summary{display:flex;justify-content:space-between;cursor:pointer;list-style:none;padding:2px 0}.ac-fold summary::-webkit-details-marker{display:none}.ac-fold summary span{color:var(--muted);font-size:12.5px}.ac-fold[open] summary{margin-bottom:8px}
@@ -5867,8 +5868,10 @@ function openAdCharge(id, back) {
       '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span>In rupees</span><b class="num" id="chPkr">' + rs(c.pkr) + '</b></div><div class="prow-2"><span>' + (c.by && c.by !== 'default' ? 'rate set by ' + esc(c.by) : 'rate not checked yet') + '</span></div></div></div></div>' +
       (d.canSet ? '<div class="fld"><label>What one dollar cost (PKR)</label><input id="chRate" type="text" inputmode="decimal" value="' + (c.rate || d.def || '') + '"></div>' +
         '<small class="mnote" style="display:block;margin:-6px 0 10px">The spend this charge paid for is counted at this rate in Profit & loss</small><div class="err" id="chErr"></div>' +
-        '<button class="btn pri" id="chGo" style="width:100%;padding:12px">' + (c.by && c.by !== 'default' ? 'Save rate' : 'Confirm rate') + '</button>' : '');
+        '<button class="btn pri" id="chGo" style="width:100%;padding:12px">' + (c.by && c.by !== 'default' ? 'Save rate' : 'Confirm rate') + '</button>' : '') +
+      (d.canSet && d.card ? '<label class="ae-l" style="margin-top:16px">Paid with ' + esc(d.card) + ' · count it as</label>' + kindSeg(c.kind, d.cardOwner) : '');
     openPanel(true);
+    if (d.canSet && d.card) kindWire(el('panel'), ['META-' + c.id]);
     if (!el('chRate')) return;
     el('chRate').oninput = function () { var r = Number(el('chRate').value) || 0; el('chPkr').textContent = c.cur === 'PKR' ? rs(Math.round(c.pkr / (c.rate || r) * r)) : rs(Math.round(c.usd * r)); };
     el('chGo').onclick = function () { // closes at once; the save runs behind (the spend is priced again on the server)
@@ -5959,6 +5962,7 @@ function acCardCard(c) {
     acRow('Counted as capital', c.until ? 'charges up to ' + fnDay(c.until) : 'every charge so far', c.capital, 1) +
     acRow('Card bills', 'to pay back', c.bills, 1) + acRow('Bills paid back', '', c.paidBack, -1) +
     (c.credit ? '<small class="mnote eq-n">Paid ' + rs(c.credit) + ' more than the bills · counts against the next bills</small>' : '') +
+    ((c.toDecide || []).length ? '<button class="cd-new" type="button" id="acDecide"><b>' + c.toDecide.length + ' new charge' + (c.toDecide.length > 1 ? 's' : '') + ' · ' + rs(c.toDecide.reduce(function (s, x) { return s + x.amt; }, 0)) + '</b><span>counted as capital until you choose · Capital or Pay back ›</span></button>' : '') +
     '<div class="btns" style="margin-top:10px">' + (AC.data.owner ? '<button class="btn' + (c.owed ? ' pri' : '') + '" type="button" id="acPayCard"><i class="ti ti-credit-card"></i>Pay the card</button>' : '') +
     '<button class="btn" type="button" data-acc="' + esc(c.name) + '"><i class="ti ti-list"></i>All charges</button></div>' +
     (AC.data.owner ? '<button class="pp-more" type="button" id="acCardMode" style="padding:10px 0 0">' + (c.until ? 'Count new charges as capital again ›' : 'Business pays the card from now on ›') + '</button>' : '') + '</section>';
@@ -6023,6 +6027,7 @@ function renderAccounts() {
   if (el('acRec')) el('acRec').onclick = openAcRecord;
   if (el('acPayCard')) el('acPayCard').onclick = function () { openAcForm('cardpay'); };
   if (el('acCardMode')) el('acCardMode').onclick = openCardMode;
+  if (el('acDecide')) el('acDecide').onclick = openCardDecide;
   el('panel').querySelectorAll('[data-eqh]').forEach(function (b) { b.onclick = function () { openEquityHistory(b.getAttribute('data-eqh')); }; });
 }
 // switch: card charges = the owner's capital, or bills the business pays back from now on
@@ -6086,6 +6091,45 @@ function openMoneyOut(kind) {
   };
   draw();
 }
+// capital or pay back for card charges (user 2026-11-03): a two-way switch saved at once
+function kindSeg(cur, owner) {
+  return '<div class="seg mo-seg ck-seg"><button type="button" data-k="capital" class="' + (cur === 'capital' ? 'on' : '') + '">Capital<small>' + esc(owner || 'partner') + '\'s money in</small></button>' +
+    '<button type="button" data-k="bill" class="' + (cur === 'bill' ? 'on' : '') + '">Pay back<small>business owes ' + esc(owner || 'partner') + '</small></button></div>';
+}
+function kindWire(box, ids, done) {
+  box.querySelectorAll('.ck-seg [data-k]').forEach(function (b) {
+    b.onclick = function () {
+      var k = b.getAttribute('data-k'), seg = b.parentNode; if (b.classList.contains('on')) return;
+      seg.querySelectorAll('[data-k]').forEach(function (x) { x.classList.toggle('on', x === b); });
+      api('appSetCardKind', [TOKEN, ids, k], function () { toast(k === 'bill' ? '✅ To pay back' : '✅ Counted as capital'); if (done) done(k); }, function (e) { toast('❌ ' + ((e && e.message) || 'Not saved')); });
+    };
+  });
+}
+// new card charges to decide: each one capital or pay back, or all at once
+function openCardDecide() {
+  var c = AC.data.card, list = c.toDecide || [];
+  el('panel').innerHTML = '<button class="btn mini" id="cdBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Accounts</button><h3>Card charges to decide</h3>' +
+    '<p>Paid with ' + esc(c.name) + ' · Capital = ' + esc(c.owner) + '\'s money in the business · Pay back = the business pays it back from the bank</p>' +
+    (list.length ? '<div class="btns" style="margin:0 0 10px"><button class="btn" id="cdAllC" type="button">All capital</button><button class="btn" id="cdAllB" type="button">All pay back</button></div>' +
+      list.map(function (x) { return '<div class="card cd-row" data-id="' + esc(x.id) + '"><div class="acx-row" style="border:0;padding:0 0 8px"><span>' + esc(x.text) + '<small>' + esc(fnDay(x.day)) + '</small></span><b class="num">' + rs(x.amt) + '</b></div>' + kindSeg('capital', c.owner) + '</div>'; }).join('')
+      : '<div class="empty">Nothing to decide</div>');
+  openPanel(true);
+  el('cdBack').onclick = openAccounts;
+  el('panel').querySelectorAll('.cd-row').forEach(function (r) { kindWire(r, [r.getAttribute('data-id')]); });
+  var all = function (k) { api('appSetCardKind', [TOKEN, list.map(function (x) { return x.id; }), k], function () { toast('✅ ' + list.length + (k === 'bill' ? ' to pay back' : ' counted as capital')); openAccounts(); }, function (e) { toast('❌ ' + ((e && e.message) || 'Not saved')); }); };
+  if (el('cdAllC')) el('cdAllC').onclick = function () { all('capital'); };
+  if (el('cdAllB')) el('cdAllB').onclick = function () { all('bill'); };
+}
+// one card charge from the card's entries: capital or pay back
+function openCardCharge(l, back) {
+  var c = AC.data.card;
+  el('panel').innerHTML = '<button class="btn mini" id="ccBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>' + esc(c.name) + '</button><h3>' + esc(l.text) + '</h3>' +
+    '<p>' + esc(fnDay(l.day)) + ' · ' + rs(Math.abs(l.amt)) + ' · paid with ' + esc(c.name) + '</p><label class="ae-l">Count it as</label>' + kindSeg(l.kind, c.owner) +
+    (l.kind === 'bill' && l.paid ? '<small class="mnote eq-n">' + (l.paid === 'yes' ? 'Paid back' : l.paid === 'part' ? 'Part paid back' : 'Not paid back yet') + '</small>' : '');
+  openPanel(true);
+  el('ccBack').onclick = back;
+  kindWire(el('panel'), [l.id], function (k) { l.kind = k; api('getAppAccounts', [TOKEN], function (d2) { AC.data = d2; }); });
+}
 var EQ_SHOW = 40; // entries shown on a partner's history page before "Show all"
 // a month's stage in words: open (n parcels with the courier) → final (Rs to come from the couriers) → cash in → closed
 function acStage(m) {
@@ -6132,21 +6176,33 @@ function openLedger(name) {
   el('panel').innerHTML = '<button class="btn mini" id="lgBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Accounts</button><h3>' + esc(name) + '</h3><p>Balance ' + acMoney(a.balance) + (a.opened ? ' · since ' + esc(a.opened) : '') + '</p>' +
     (a.check ? '<div class="tk' + (a.check.diff ? '' : ' ok') + '" style="margin:0 0 10px">' + (a.check.diff ? 'On ' + esc(a.check.day) + ' the bank showed ' + rs(a.check.bank) + ', the app ' + rs(a.check.app) + ' · difference ' + (a.check.diff > 0 ? '+' : '−') + rs(Math.abs(a.check.diff)) + '. Look for an entry not made, or add a correction.' : 'Matched the bank on ' + esc(a.check.day)) + '</div>' : '') +
     '<div class="card" style="padding:0">' + (a.lines.length ? a.lines.map(function (l) {
-      var mv = AC.data.owner && AC.data.accounts.length > 1 && l.amt != null && l.id && !/^(META|ADS)-/.test(l.id) && !/^(Top-up|To |From )/.test(l.text) ? ' data-mv="' + esc(l.id) + '"' : '';
+      var isCard = AC.data.card && name === AC.data.card.name && l.charge; // a card charge: tap = capital or pay back
+      var mv = isCard && AC.data.owner ? ' data-ck="' + esc(l.id) + '"' : AC.data.owner && AC.data.accounts.length > 1 && l.amt != null && l.id && !/^(META|ADS)-/.test(l.id) && !/^(Top-up|To |From )/.test(l.text) ? ' data-mv="' + esc(l.id) + '"' : '';
       return '<div class="prow"' + mv + ' style="' + (mv ? '' : 'cursor:default;') + '--c:' + (l.amt == null ? 'var(--line)' : l.amt < 0 ? 'var(--red)' : 'var(--green)') + '"><span class="prow-d"></span><div class="prow-m"><div class="prow-1"><span>' + esc(l.text) + '</span><b class="num">' + (l.amt == null ? '' : (l.amt > 0 ? '+' : '− ') + rs(Math.abs(l.amt))) + '</b></div>' +
-        '<div class="prow-2"><span>' + esc([l.day.slice(5), l.cat === 'Card charge' ? '' : l.cat].filter(Boolean).join(' · ')) + (l.charge ? ' <span class="st" style="--c:' + (l.paid === 'yes' ? 'var(--green)' : 'var(--amber)') + '">' + (l.paid === 'yes' ? 'paid back' : l.paid === 'part' ? 'part paid back' : 'not paid back') + '</span>' : '') + '</span><span class="num">' + acMoney(l.bal) + '</span></div></div></div>';
+        '<div class="prow-2"><span>' + esc([l.day.slice(5), l.cat === 'Card charge' ? '' : l.cat].filter(Boolean).join(' · ')) + (l.charge ? ' <span class="st" style="--c:' + (l.paid === 'capital' ? 'var(--brand)' : l.paid === 'yes' ? 'var(--green)' : 'var(--amber)') + '">' + (l.paid === 'capital' ? (l.ask ? 'capital · to decide' : 'capital') : l.paid === 'yes' ? 'paid back' : l.paid === 'part' ? 'part paid back' : 'to pay back') + '</span>' : '') + '</span><span class="num">' + acMoney(l.bal) + '</span></div></div></div>';
     }).join('') : '<div class="empty">No entries yet</div>') + '</div>' +
     (AC.data.owner && AC.data.accounts.length > 1 ? '<small class="mnote" style="display:block;margin:8px 2px">Paid from another account? Tap the entry to move it</small>' : '');
   openPanel(true);
   el('lgBack').onclick = renderAccounts;
+  el('panel').querySelectorAll('[data-ck]').forEach(function (r) {
+    r.onclick = function () { var l = a.lines.filter(function (x) { return x.id === r.getAttribute('data-ck'); })[0]; if (l) openCardCharge(l, function () { openLedger(name); }); };
+  });
   el('panel').querySelectorAll('[data-mv]').forEach(function (r) {
     r.onclick = function () {
       var id = r.getAttribute('data-mv'), l = a.lines.filter(function (x) { return x.id === id; })[0];
       el('panel').innerHTML = '<button class="btn mini" id="mvBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>' + esc(name) + '</button><h3>Move entry</h3>' +
         '<p>' + esc(l.text) + ' · ' + esc(fnDay(l.day)) + ' · ' + rs(Math.abs(l.amt)) + '</p><div class="fld"><label>It was really paid from / into</label>' +
-        AC.data.accounts.filter(function (x) { return x.name !== name; }).map(function (x) { return '<button class="btn" type="button" data-to="' + esc(x.name) + '" style="width:100%;margin:0 0 8px;justify-content:flex-start"><i class="ti ti-arrow-right"></i>' + esc(x.name) + '</button>'; }).join('') + '</div><div class="err" id="mvErr"></div>';
+        AC.data.accounts.filter(function (x) { return x.name !== name; }).map(function (x) { return '<button class="btn" type="button" data-to="' + esc(x.name) + '" style="width:100%;margin:0 0 8px;justify-content:flex-start"><i class="ti ti-arrow-right"></i>' + esc(x.name) + '</button>'; }).join('') + '</div>' +
+        // void, never delete (user 2026-11-03): an entry that should not count, e.g. the same money entered twice
+        '<div class="fld" style="margin-top:14px"><label>Should not count at all? (e.g. entered twice)</label><input id="mvWhy" placeholder="Why · e.g. same payment entered twice"></div>' +
+        '<button class="btn" type="button" id="mvVoid" style="width:100%;color:var(--red)"><i class="ti ti-ban"></i>Void this entry</button><div class="err" id="mvErr"></div>';
       openPanel(true);
       el('mvBack').onclick = function () { openLedger(name); };
+      el('mvVoid').onclick = function () {
+        var why = el('mvWhy').value.trim(); if (!why) { el('mvErr').textContent = 'Write why it should not count'; return; }
+        api('appVoidFinance', [TOKEN, [id], why], function (res) { toast(res.n ? '✅ Voided · not counted' : 'Not voided'); api('getAppAccounts', [TOKEN], function (d2) { AC.data = d2; openLedger(name); }, function () { openAccounts(); }); },
+          function (e) { el('mvErr').textContent = (e && e.message) || 'Not voided'; });
+      };
       el('panel').querySelectorAll('[data-to]').forEach(function (bt) {
         bt.onclick = function () {
           var to = bt.getAttribute('data-to');
