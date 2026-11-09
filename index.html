@@ -1677,7 +1677,7 @@ function openParcel(key, given) {
     (ndr ? card('Delivery problem', row('NDR case', esc(ndr.type)) + (ndr.outcome && ndr.outcome !== 'Not called yet' ? row('Call result', esc(ndr.outcome)) : '') + (ndr.says ? row('Customer says', esc(String(ndr.says).replace(/\s*Please reattempt again\.?\s*$/i, ''))) : '') +
       (p.attempts ? row('Delivery attempts', p.attempts) : '')) : '') +
     card('Customer', row('Name', esc(p.name)) + row('Phone', esc(phoneText(p.phone))) + (p.phones || []).map(function (n) { return row('Other number', '<a style="color:var(--brand)" href="' + telHref(n) + '">' + esc(phoneText(n)) + '</a> · <a style="color:var(--brand)" target="_blank" href="' + waLink(phoneDigits(n), '') + '">WhatsApp</a>'); }).join('') + row('City', esc(p.city)) + row('Address', esc(p.address)) + addrIssues(p.address, p.city).map(function (t) { return row('Check', '<span style="color:var(--amber)">' + esc(t) + '</span>'); }).join('')) +
-    card('Order', row('Order from', p.src ? esc(p.src) : '') + row('Order date', esc(p.ordered || p.date)) + (p.dispatched ? row('Shipped', esc(p.dispatched)) : '') + row('Items', esc(p.items)) +
+    card('Order', row('Order from', p.src ? esc(srcName(p.src)) : '') + row('Order date', esc(p.ordered || p.date)) + (p.dispatched ? row('Shipped', esc(p.dispatched)) : '') + row('Items', esc(p.items)) +
       (!ndr && p.attempts ? row('Delivery attempts', p.attempts) : '') + (p.reason || p.lastRaw ? row('Last update', esc(p.reason || p.lastRaw)) : '')) +
     card('Money', (p.adv ? row('Order total', rs(p.total)) + row('Paid in advance', rs(p.adv) + (p.advMethod ? ' · ' + esc(p.advMethod) : '')) + row('COD to collect', p.due > 0 ? rs(p.due) : 'None (prepaid)') : row('COD', rs(p.total))) + (p.charge ? row('Courier fees', rs(p.charge) + chargeParts(p.cb)) : '') + (p.cb && (p.cb[5] + p.cb[6]) ? row('Taxes (WHT + SST)', rs(p.cb[5] + p.cb[6])) : '') +
       (cash ? row('Settlement', esc(cash.note || cash.cat)) + row(cash.returned ? 'Courier fees' : 'Net payout', rs(cash.returned ? cash.charges : cash.net)) + (cash.over ? row('Above rate card', rs(cash.over)) : '') : ''),
@@ -3094,7 +3094,7 @@ function parcelRow(p) {
   if ((p.stage === 'pending' || p.stage === 'confirmed') && can('orders.tag') && p.ref) call = '<span class="prow-acts"><button class="prow-call" type="button" data-tagref="' + esc(p.ref) + '" aria-label="Change tags"><i class="ti ti-tag"></i></button>' + call + '</span>';
   return '<div class="prow" data-p="' + esc(p.cn || p.ref) + '" style="--c:' + s[1] + '"><span class="prow-d"></span><div class="prow-m">' +
     '<div class="prow-1"><b>' + esc(p.name || p.ref) + '</b><span class="num">' + rs(p.total) + '</span></div>' +
-    '<div class="prow-2"><span>' + [esc(p.ref) + (/^Draft/.test(p.src || '') ? ' · Draft' : '') + (p.cn ? '<i class="pcn"> · ' + esc(p.cn) + '</i>' : ''), esc(p.city), esc(p.courier)].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + s[1] + '">' + (STAGE_SHORT[p.stage] || s[0]) + '</span></div>' +
+    '<div class="prow-2"><span>' + [esc(p.ref) + (/^Draft/.test(p.src || '') ? ' · WhatsApp' : '') + (p.cn ? '<i class="pcn"> · ' + esc(p.cn) + '</i>' : ''), esc(p.city), esc(p.courier)].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + s[1] + '">' + (STAGE_SHORT[p.stage] || s[0]) + '</span></div>' +
     (issue ? '<div class="prow-3"><i class="ti ti-alert-circle"></i>' + esc(issue) + '</div>' : '') +
     // customer record while the parcel is still open (before it is delivered / returned / cancelled)
     (['delivered', 'returned', 'cancelled'].indexOf(p.stage) === -1 ? riskLine(p) : '') + '</div>' + call + '</div>';
@@ -3323,6 +3323,8 @@ var NDR_TAG = {
 };
 // inGroup: shown under its group heading — then the tag appears only when it says more than the heading
 // (Failed again, Call back now); in search results every card keeps its tag
+// where the order came from, in the store's words (user 2026-11-09): online store = Shopify, a draft we made = WhatsApp; nobody picks it
+function srcName(s) { s = String(s || ''); return /^Online/.test(s) ? 'Shopify' : /^Draft/.test(s) ? 'WhatsApp' : s; }
 function ndrCard(c, seen, inGroup) {
   var slot = ndrSlot(c)[1], t = ticketOf(c), left = triesLeft(c), k = caseType(c);
   var tag = NDR_TAG[slot] || ['', 'grey'];
@@ -3374,7 +3376,7 @@ function ndrCard(c, seen, inGroup) {
   return '<div class="nc" data-p="' + esc(c.cn) + '">' +
     '<div class="nc-h"><b>' + (isNewCase(c) ? '<span class="new-pill">NEW</span>' : '') + esc(c.ref) + ' · ' + esc(c.name) + '</b>' + (tagT ? '<span class="nc-tag t-' + ((slot === 'again' && tagT !== tag[0]) || retK ? 'red' : tag[1]) + '">' + esc(tagT) + '</span>' : '') + '</div>' +
     '<div class="nc-cn"><span class="num">' + esc(c.cn) + '</span><button type="button" class="cn-copy" data-copy="' + esc(c.cn) + '" aria-label="Copy tracking ID"><i class="ti ti-copy"></i></button></div>' +
-    '<div class="nc-m">' + [esc(c.city), esc(c.courier), rs(c.cod), p && /^Draft/.test(p.src || '') ? 'Draft order' : '', c.hours ? (c.hours < 48 ? c.hours + ' h' : Math.floor(c.hours / 24) + ' d') + ' in NDR' : 'new'].filter(Boolean).join(' · ') + '</div>' +
+    '<div class="nc-m">' + [esc(c.city), esc(c.courier), rs(c.cod), p && /^Draft/.test(p.src || '') ? 'WhatsApp order' : '', c.hours ? (c.hours < 48 ? c.hours + ' h' : Math.floor(c.hours / 24) + ' d') + ' in NDR' : 'new'].filter(Boolean).join(' · ') + '</div>' +
     (items ? '<div class="nc-it">' + esc(items) + '</div>' : '') +
     // one panel, a small label over each statement (user 2026-11-09: premium; the colour is only on the label)
     '<div class="nc-talk"><div class="nc-row"><small>' + (c.watch ? esc(c.courier) : says[0]) + '</small><div>' + esc(c.watch ? lateText(c.type) : says[1]) + '</div></div>' +
