@@ -995,7 +995,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 (function () {
   if (window.google && google.script) return;
   window.EH_PWA = true; // installed app: notifications are possible
-  window.EH_BUILD = '2026-11-03'; // shown at the bottom of the menu
+  window.EH_BUILD = '2026-11-09'; // shown at the bottom of the menu
   var API = "https://script.google.com/macros/s/AKfycbyqtyrClenCG1_iqTSDK5KhtFItfX6rUsYdIexwQ3qPFbSv9d1n8jy06ItjvWXXtB-I/exec", RELAY = "", relayOff = 0;
   // through the relay when there is one; if it fails, straight to Google and skip the relay for 10 min. A save goes
   // straight only when the relay could not be reached at all (never sent twice).
@@ -1300,6 +1300,8 @@ function openConnections() {
         '<div class="inrow" style="margin-top:6px"><input type="text" readonly value="' + esc(h.url) + '" style="font-size:12px"><button class="btn" type="button" data-copy="' + esc(h.url) + '">Copy</button></div></div>';
     }).join('') + '</div>' : '') +
     
+    // app background refresh steps Google stopped at 6 min (owners; user 2026-11-04 failure mails)
+    (SYNCD && SYNCD.warm && SYNCD.warm.cut.length ? '<div class="card" style="padding:12px 14px"><div class="h"><b>App background refresh</b><span>stopped steps</span></div>' + SYNCD.warm.cut.map(function (x) { return '<small style="display:block;color:var(--muted)">' + esc(x.step) + ' · stopped ' + x.n + '× · last ' + esc(x.last) + (x.resting ? ' · resting 1 hour' : '') + '</small>'; }).join('') + '<small style="display:block;color:var(--muted);margin-top:4px">Usual time · ' + Object.keys(SYNCD.warm.dur || {}).sort(function (a, b) { return SYNCD.warm.dur[b] - SYNCD.warm.dur[a]; }).slice(0, 5).map(function (k) { return esc(k) + ' ' + Math.round(SYNCD.warm.dur[k] / 1000) + 's'; }).join(' · ') + '</small></div>' : '') +
     (SYNCD && SYNCD.shopBills ? '<div class="card" style="padding:12px 14px"><div class="h"><b>Shopify bills from Gmail</b><span>' + esc(SYNCD.shopBills.at) + '</span></div><small style="display:block;color:' + (SYNCD.shopBills.error ? 'var(--red)' : 'var(--muted)') + '">' +
       (SYNCD.shopBills.error ? esc(/has not been used|is disabled|SERVICE_DISABLED/i.test(SYNCD.shopBills.error) ? 'Gmail API is being switched on · try again in a few minutes (' + SYNCD.shopBills.error.slice(0, 60) + ')' : /401|insufficient|scope|PERMISSION/i.test(SYNCD.shopBills.error) ? 'Gmail not allowed yet · run authorizeShopifyBills once in the App Server script' : SYNCD.shopBills.error) : SYNCD.shopBills.added + ' new bill' + (SYNCD.shopBills.added === 1 ? '' : 's') + ' added this check · they are in Finance → Expenses (Shopify & apps)') + '</small>' +
       ((SYNCD.shopBills.unread || []).length ? '<small style="display:block;color:var(--amber);margin-top:4px">Could not read the amount: ' + esc(SYNCD.shopBills.unread.join(' · ')) + '</small>' : '') + '</div>' : '') || '<div class="empty">Nothing to set up</div>';
@@ -3215,7 +3217,7 @@ var NDR_GH = {
     ['ready', 'send', 'In the courier list', 'called · request made · only the send is left']],
   courier: [['replied', 'message-2', 'Courier replied', 'read it · keep with courier or call the customer'], ['reattempt', 'repeat', 'Reattempt requested', ''],
     ['return', 'arrow-back-up', 'Return requested', ''], ['late', 'clock-exclamation', 'Late · asked to trace', ''], ['check', 'search', 'Status check', '']],
-  special: [['premature', 'alert-octagon', 'Premature return', 'started before the last try · stop it'], ['rtostop', 'arrow-back-up', 'Return started · can stop', 'within 72 h'],
+  special: [['premature', 'alert-octagon', 'Premature return', 'started before the last try · stop it'], ['rtostop', 'arrow-back-up', 'Return started · can stop', 'within 24 h'],
     ['stalled', 'clock-pause', 'Stuck · no courier update', 'ask the courier to trace it']],
   closed: [['saved', 'circle-check', 'Saved', 'delivered after NDR'], ['returned', 'arrow-back-up', 'Returned / returning', ''], ['other', 'archive', 'Other', '']]
 };
@@ -3613,7 +3615,7 @@ function openOutbox(name) {
       // the store turned the sheet off (W1 Store Settings "Courier Requests Via"): say where, for owners
       (courierChannels().indexOf('Sheet') === -1 && can('users.manage') ? '<small class="mnote" style="display:block;margin-top:6px">Send by Sheet is off · W1 Store Settings → "Courier Requests Via": WhatsApp, Sheet</small>' : '') + '</div>';
   }).join('');
-  var os = onSheetOf(name), wa = courierChannels().indexOf('WhatsApp') !== -1;
+  var os = onSheetOf(name), wa = courierChannels().indexOf('WhatsApp') !== -1, shLink = courierSheetLink(name, 'deliver');
   var sec2 = !wa ? '' : OB_KINDS.map(function (k) {
     var items = os[k[0]];
     if (!items.length) return '';
@@ -3625,6 +3627,9 @@ function openOutbox(name) {
   }).join('');
   el('panel').innerHTML = '<h3>' + esc(name) + ' · courier list</h3><p>Send each kind on its own · batch ' + esc(batch) + '</p>' +
     (sec || '<div class="card empty"><i class="ti ti-circle-check"></i>Nothing new to send</div>') + sec2 +
+    // queries already on the sheet (user 2026-11-09): share its link in the courier's group at any time, not only right after sending
+    (wa && shLink && sheetPending(name).n ? '<a class="btn wa" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(sheetMessage(name, false)) + '" style="width:100%;margin:0 0 8px"><i class="ti ti-share"></i>Share sheet link in ' + esc(name) + ' group</a>' +
+      '<a class="btn" target="_blank" href="' + esc(shLink) + '" style="width:100%;margin:0 0 8px"><i class="ti ti-table"></i>Open ' + esc(name) + ' sheet</a>' : '') +
     '<div class="btns" style="margin-top:10px"><button class="btn" id="obClose">Close</button></div>';
   openPanel(true);
   el('obClose').onclick = closePanel;
@@ -4430,12 +4435,13 @@ function chargeParts(b) {
 }
 // Receipt: COD → each charge → taxes → what reaches us (lines add up to the net)
 var PCT = function (x) { return Math.round((x || 0) * 1000) / 10 + '%'; };
-function receiptLines(cod, b, net, est) {
+function receiptLines(cod, b, net, est, ahead) {
   var tp = (C.data && C.data.taxPct) || [0.02, 0.02, 0.16];
   var L = [['COD collected', cod, 'plus']];
   [['Weight charges', b[0]], ['Fuel surcharge', b[1]], ['FAF (extra fuel)', b[2]], ['Cash handling', b[3]], ['GST ' + PCT(tp[2]) + ' on charges', b[4]],
     ['WHT ' + PCT(tp[0]) + ' (income tax)', b[5]], ['SST ' + PCT(tp[1]) + ' (sales tax)', b[6]]].forEach(function (x) { if (x[1]) L.push([x[0], x[1], 'minus']); });
   var sum = cod - b.reduce(function (a, x) { return a + (x || 0); }, 0);
+  if (ahead) { L.push(['Charges already taken in a cheque', ahead, 'plus']); sum += ahead; }
   if (Math.abs(sum - net) >= 1) L.push([sum > net ? 'Other deductions' : 'Other additions', Math.abs(sum - net), sum > net ? 'minus' : 'plus']);
   return '<div class="rcpt">' + L.map(function (x) {
     return '<div class="rc-l' + (x[2] === 'plus' && x[0] === 'COD collected' ? ' rc-cod' : '') + '"><span>' + (x[2] === 'minus' ? '− ' : '') + esc(x[0]) + '</span><b class="num">' + rs(x[1]) + '</b></div>';
@@ -4445,12 +4451,62 @@ function receiptLines(cod, b, net, est) {
 function openCashReceipt(cn) {
   var p = (C.data.parcels || []).filter(function (x) { return x.cn === cn; })[0]; if (!p) return;
   el('panel').innerHTML = '<h3>' + esc(p.order) + (p.returned ? ' · returned' : '') + '</h3><p>' + esc(p.courier) + ' · ' + esc(p.cn) + ' · ' + esc(p.note || '') + '</p>' +
-    receiptLines(p.returned ? 0 : (p.cod || 0), p.b || [0, 0, 0, 0, 0, 0, 0], p.net, p.est) +
+    receiptLines(p.returned ? 0 : (p.cod || 0), p.b || [0, 0, 0, 0, 0, 0, 0], p.net, p.est, p.ahead) +
     (p.exp ? '<div class="rc-card">Rate card charges ' + rs(p.exp) + (p.over ? ' · <b class="down">' + rs(p.over) + ' extra</b>' : ' · matches') + '</div>' : '') +
     '<div class="btns" style="margin-top:12px"><button class="btn" id="rcClose">Close</button>' + (can('parcels.view') ? '<button class="btn" id="rcOpen"><i class="ti ti-package"></i>Parcel</button>' : '') + '</div>';
   openPanel();
   el('rcClose').onclick = closePanel;
   if (el('rcOpen')) el('rcOpen').onclick = function () { openParcel(p.cn); };
+}
+// The courier's cheque detail file (the portal's "Excel" is an HTML page): the phone reads it, the server checks it
+function chequeNum(s) { var n = Number(String(s == null ? '' : s).replace(/[^0-9.\-]/g, '')); return isNaN(n) ? 0 : n; }
+function chequeTable(doc, test) {
+  var out = null;
+  Array.prototype.some.call(doc.querySelectorAll('table'), function (t) {
+    if (t.querySelector('table')) return false;
+    var rows = Array.prototype.map.call(t.rows, function (r) { return Array.prototype.map.call(r.cells, function (c) { return c.textContent.replace(/\s+/g, ' ').trim(); }); });
+    var h = -1;
+    rows.some(function (r, k) { if (test(r.join('|'))) { h = k; return true; } return false; });
+    if (h < 0) return false;
+    out = { head: rows[h], body: rows.slice(h + 1) };
+    return true;
+  });
+  return out;
+}
+function chequeRows(t, map) {
+  if (!t) return [];
+  var col = {}, cn = -1;
+  t.head.forEach(function (h, k) { if (/^CN/i.test(h)) cn = k; Object.keys(map).forEach(function (m) { if (col[m] == null && map[m].test(h)) col[m] = k; }); });
+  return t.body.filter(function (r) { return r.length >= t.head.length - 1 && !/grand total/i.test(r[0]) && r[cn]; }).map(function (r) {
+    var o = { cn: r[cn], order: r[1] || '' };
+    Object.keys(map).forEach(function (m) { o[m] = m === 'reason' ? (r[col[m]] || '') : chequeNum(r[col[m]]); });
+    return o;
+  });
+}
+function chequeParse(html) {
+  var doc = new DOMParser().parseFromString(html, 'text/html');
+  var text = doc.body ? doc.body.textContent.replace(/\s+/g, ' ') : '';
+  var no = (text.match(/CHEQUE NO\.?\s*:\s*(\S+)/i) || [])[1];
+  var sum = chequeTable(doc, function (s) { return /^SUMMARY/i.test(s); });
+  if (!no || !sum) throw new Error('This is not the cheque detail file. Use Detail → Excel in the portal');
+  var val = function (re) { var r = sum.body.filter(function (x) { return re.test(x[0]); })[0]; return r ? chequeNum(r[1]) : 0; };
+  return {
+    fileRef: no, amount: chequeNum((text.match(/AMOUNT\s*:\s*PKR\s*([\d,.]+)/i) || [])[1]),
+    gross: val(/gross payable/i), billed: Math.abs(val(/total billed/i)), adj: -val(/adjustments/i), net: val(/net payable/i), // the file shows deductions as minus
+    cod: chequeRows(chequeTable(doc, function (s) { return /COD Amount/i.test(s) && /WHT/i.test(s); }), { cod: /COD Amount/i, wht: /WHT\.?\s*IT/i, sst: /WHT\.?\s*ST/i }),
+    charges: chequeRows(chequeTable(doc, function (s) { return /Net Charges/i.test(s) && /Fuel/i.test(s); }), { net: /Net Charges/i, fuel: /^Fuel/i, gst: /^Gst/i, total: /^Total/i }),
+    adjust: chequeRows(chequeTable(doc, function (s) { return /Reason/i.test(s) && /Ref No/i.test(s); }), { total: /^Total/i, reason: /^Reason/i })
+  };
+}
+// The cheque's own statement
+function chequeLines(m) {
+  var L = [['COD collected', m.cod], ['− WHT (income tax)', m.wht], ['− SST (sales tax)', m.sst], ['− Charges · parcels in this cheque', m.billed - m.ahead],
+    ['− Charges billed ahead · ' + m.aheadN + ' other parcels', m.ahead], ['− Adjustments', m.adj], [m.other < 0 ? 'Other additions' : '− Other deductions', Math.abs(m.other)]];
+  return '<div class="rcpt">' + L.filter(function (x, k) { return k === 0 || Math.abs(x[1]) >= 1; }).map(function (x, k) {
+    return '<div class="rc-l' + (k === 0 ? ' rc-cod' : '') + '"><span>' + esc(x[0]) + '</span><b class="num">' + rs(x[1]) + '</b></div>';
+  }).join('') + '<div class="rc-l rc-net"><span>Cheque amount</span><b class="num">' + rs(m.net) + '</b></div></div>' +
+    (m.ahead ? '<small class="mnote">Leopards bills every booked parcel at once and pays its COD after delivery, so ' + rs(m.ahead) + ' of charges are already taken for parcels paid in a later cheque.</small>' : '') +
+    (m.unknown.length ? '<small class="mnote">Not in ORDI (booked straight in the portal): ' + m.unknown.map(esc).join(', ') + '</small>' : '');
 }
 // A courier payment: its parcels added up, what the courier sent, what reached the bank
 function openBatchReceipt(i) {
@@ -4458,10 +4514,15 @@ function openBatchReceipt(i) {
   var ps = (C.data.parcels || []).filter(function (p) { return (p.refs || []).indexOf(x.ref) !== -1; });
   var b = [0, 0, 0, 0, 0, 0, 0], cod = 0, net = 0;
   ps.forEach(function (p) { (p.b || []).forEach(function (v, k) { b[k] += v || 0; }); cod += p.returned ? 0 : (p.cod || 0); net += p.net || 0; });
-  var gap = x.bank != null ? x.bank - x.net : null;
+  var gap = x.bank != null ? x.bank - x.net + (x.fee || 0) : null;
+  var canUp = x.courier === 'Leopards' && can('cash.edit');
   el('panel').innerHTML = '<h3>' + esc(x.courier) + ' payment · ' + esc(x.ref) + '</h3><p>' + esc(x.date) + ' · ' + x.parcels + ' parcels</p>' +
-    (ps.length ? receiptLines(cod, b, net, ps.some(function (p) { return p.est; })) : '<div class="card empty">Parcel details are in the selected period only</div>') +
+    (x.imp ? chequeLines(x.imp) : ps.length ? receiptLines(cod, b, net, ps.some(function (p) { return p.est; })) : '<div class="card empty">Parcel details are in the selected period only</div>') +
+    (canUp ? '<div class="rc-card" id="brChq">' + (x.imp ? 'Exact figures from the cheque detail · uploaded ' + esc(x.imp.at) + ' by ' + esc(x.imp.by) : 'These figures are an estimate. For the exact ones: Leopards portal → Manage Cheque → Modified Invoice → Detail → Excel') +
+      '<button class="btn" id="brUp" style="margin-top:8px;width:100%"><i class="ti ti-file-upload"></i>' + (x.imp ? 'Replace cheque detail' : 'Upload cheque detail') + '</button>' +
+      '<input id="brFile" type="file" accept=".xls,.html,.htm,text/html,application/vnd.ms-excel" hidden><div class="err" id="brErr"></div></div>' : '') +
     '<div class="rcpt" style="margin-top:10px"><div class="rc-l"><span>Courier transfer</span><b class="num">' + rs(x.net) + '</b></div>' +
+    (x.fee ? '<div class="rc-l"><span>− Bank transfer fee</span><b class="num">' + rs(x.fee) + '</b></div>' : '') +
     '<div class="rc-l"><span>Received in bank</span><b class="num">' + (x.bank == null ? 'not recorded' : rs(x.bank)) + '</b></div>' +
     (gap != null && Math.abs(gap) >= 1 ? '<div class="rc-l rc-net"><span>' + (gap < 0 ? 'Short' : 'Extra') + '</span><b class="num ' + (gap < 0 ? 'down' : 'up') + '">' + rs(Math.abs(gap)) + '</b></div>' : '') + '</div>' +
     (ps.length ? '<div class="pday"><span>PARCELS</span><span class="num">' + ps.length + '</span></div><div class="plist-box">' + ps.map(function (p) {
@@ -4470,6 +4531,22 @@ function openBatchReceipt(i) {
     '<div class="btns" style="margin-top:12px"><button class="btn" id="brClose">Close</button>' + (x.transferred && can('cash.edit') ? '<button class="btn pri" id="brRec"><i class="ti ti-building-bank"></i>' + (x.bank == null ? 'Record' : 'Edit') + '</button>' : '') + '</div>';
   openPanel();
   el('brClose').onclick = closePanel;
+  if (el('brUp')) {
+    el('brUp').onclick = function () { el('brFile').click(); };
+    el('brFile').onchange = function () {
+      var file = el('brFile').files[0]; if (!file) return;
+      var up = el('brUp'), fail = function (m) { up.disabled = false; up.classList.remove('wait'); el('brErr').textContent = m; el('brFile').value = ''; };
+      up.disabled = true; up.classList.add('wait'); el('brErr').textContent = '';
+      file.text().then(function (html) {
+        var d = chequeParse(html); d.token = TOKEN; d.courier = x.courier; d.ref = x.ref;
+        api('appImportCheque', [d], function (r) {
+          C.mem = {}; closePanel();
+          toast('Cheque detail saved · ' + rs(r.imp.net) + (r.imp.unknown.length ? ' · ' + r.imp.unknown.length + ' parcel not in ORDI' : ''));
+          loadCash(true);
+        }, function (er) { fail((er && er.message) || 'Not saved'); });
+      }).catch(function (e) { fail(e.message || 'Could not read this file'); });
+    };
+  }
   if (el('brRec')) el('brRec').onclick = function () { openRecord(i, function () { openBatchReceipt(i); }); };
   el('panel').querySelectorAll('[data-brc]').forEach(function (r) {
     r.onclick = function () { openCashReceipt(r.getAttribute('data-brc')); SHEET_BACK = function () { openBatchReceipt(i); }; };
