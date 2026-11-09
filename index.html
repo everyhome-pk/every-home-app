@@ -482,7 +482,7 @@ body.nb-on #nlist{padding-bottom:84px}
 .ob-top{margin:0 0 8px}.ob-top .obar{margin-bottom:8px}
 .nsub{display:flex;gap:6px;margin:4px 0 12px}.nsub button{flex:1 1 auto;height:36px;border-radius:99px;border:1px solid var(--line);background:var(--card);font:500 13px Inter,sans-serif;color:var(--muted);cursor:pointer;white-space:nowrap}
 .nsub button b{font-weight:600;color:var(--text);margin-left:2px}.nsub button.on{background:var(--brand);border-color:var(--brand);color:#fff}.nsub button.on b{color:#fff}
-.ntabs button b{display:block;font-size:15px;font-weight:600}.ntabs button.on{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(15,23,42,.12)}
+.ntabs button b{display:block;font-size:15px;font-weight:600}.ntabs button.hot b{color:var(--red)}.ntabs button.calm b{font-weight:500;opacity:.55}.ntabs button.on.calm b{opacity:1}.ntabs button.on{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(15,23,42,.12)}
 .nscore{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0 0 10px}
 .nscore>div{cursor:pointer}.nscore>div.on{box-shadow:inset 0 0 0 2px var(--red)}
 .nscore>div{background:var(--card);border-radius:12px;padding:8px 10px;box-shadow:var(--shadow);min-width:0}.nscore b{display:block;font-size:16px;font-weight:600}
@@ -507,7 +507,7 @@ body.nb-on #nlist{padding-bottom:84px}
 .nc-st small{display:block;font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .nc-st .ok i{background:var(--green)}.nc-st .ok b{color:var(--green)}.nc-st .wt i{background:#F59E0B}.nc-st .wt b{color:var(--amber)}.nc-st .bd i{background:var(--red)}.nc-st .bd b{color:var(--red)}
 .nc-hint{font-size:12.5px;font-weight:500;margin-top:10px}
-.nc-act{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}.nc-act .btn{height:40px;padding:0 10px}.nc-act .grow{flex:1}.nc-act .sq{width:44px;flex:none}
+.nc-act{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}.nc-act .btn{height:40px;padding:0 10px;white-space:nowrap}.nc-act .grow{flex:1}.nc-act .sq{width:44px;flex:none}
 .btn.ton{background:#E7F5F2;border-color:transparent;color:var(--brand)}[data-mode="dark"] .btn.ton{background:#12302d;color:var(--accent)}
 .obar{display:flex;align-items:center;gap:10px;width:100%;background:var(--amber-bg);border:1px solid #FDE68A;border-radius:14px;padding:10px 10px 10px 12px;margin-bottom:8px;text-align:left;font-family:inherit;cursor:pointer;color:var(--text)}
 .obar .av{width:32px;height:32px;border-radius:50%;background:#FEF3C7;color:#92400E;display:flex;align-items:center;justify-content:center;font-weight:600;flex:none}
@@ -3150,7 +3150,14 @@ function isTodo(c) {
 }
 // the NDR badge / app icon number (2026-11-01): the To do tab's calls (new, call again) + returns that can still be stopped;
 // stuck parcels (Special · no courier update) are the courier's to trace, not counted
-function ndrCounts(c) { var s = ndrSlot(c)[1]; return s === 'new' || s === 'again' || s === 'premature' || s === 'rtostop'; }
+function ndrCounts(c) { var s = ndrSlot(c)[1]; return s === 'new' || s === 'noact' || s === 'again' || ((s === 'premature' || s === 'rtostop') && !calledWaiting(c)); }
+// called and waiting for the next try: no answer in the last 3 h, or the customer gave a later time
+function calledWaiting(c) {
+  if (c.callBack) return c.callBack > Date.now();
+  return /no answer|phone off/i.test(c.outcome || '') && c.lastCallMs > 0 && Date.now() - c.lastCallMs <= CALL_AGAIN_HOURS * 3600000;
+}
+// the courier answered, then 24 h with no tracking update (W1 CT.NO_ACTION): the line left their sheet, the agent decides
+function noActTicket(t) { return !!t && /^🔁/.test(String(t.result || '')); }
 var badgeSeenNew = 0;
 function updateBadge() {
   var b = el('badge'); if (!N.data || !N.data.cases) return;
@@ -3209,16 +3216,17 @@ function caseType(c) {
 // NDR part 2 (2026-11-01, user mockup "NDR card (new)"): 4 tabs by whose turn it is, groups inside each tab, one card per
 // case (courier says / customer says / tries left / calls / 4 steps with times / one main button), call back at the
 // customer's time, the courier list with its cut-off, a score strip and the cases closed today.
+// every tab with pills works alike (user 2026-11-09): the tab's number = work to do now, what waits is on its own pill
+var SUB_KEY = { todo: 'sub', courier: 'csub', special: 'ssub' };
 var NDR_TABS = [['todo', 'To do'], ['courier', 'With courier'], ['special', 'Urgent'], ['closed', 'Closed today']];
 var NDR_GH = {
-  todo: [['new', 'circle-plus', 'New cases', 'not called yet · fewest tries left first'], ['again', 'phone-call', 'Call again', 'failed again · no answer 3 h+ · their time came'],
+  todo: [['new', 'circle-plus', 'New cases', 'fewest tries left first'], ['noact', 'message-exclamation', 'Courier replied · no action', 'no tracking update for 24 h after the reply'], ['again', 'phone-call', 'Call again', 'failed again · no answer 3 h+ · their time came'],
     ['later', 'clock', 'Call back at their time', 'comes back by itself with a reminder'],
     ['wait', 'hourglass', 'Called · next try later', 'no answer · call again after 3 h'],
     ['ready', 'send', 'In the courier list', 'called · request made · only the send is left']],
-  courier: [['replied', 'message-2', 'Courier replied', 'read it · keep with courier or call the customer'], ['reattempt', 'repeat', 'Reattempt requested', ''],
+  courier: [['replied', 'message-2', 'Courier replied', 'read it · keep with courier or call the customer'], ['stalled', 'clock-pause', 'No update · ask to trace', 'no courier scan for too long'], ['reattempt', 'repeat', 'Reattempt requested', ''],
     ['return', 'arrow-back-up', 'Return requested', ''], ['late', 'clock-exclamation', 'Late · asked to trace', ''], ['check', 'search', 'Status check', '']],
-  special: [['premature', 'alert-octagon', 'Premature return', 'started before the last try · stop it'], ['rtostop', 'arrow-back-up', 'Return started · can stop', 'within 24 h'],
-    ['stalled', 'clock-pause', 'Stuck · no courier update', 'ask the courier to trace it']],
+  special: [['premature', 'alert-octagon', 'Premature return', 'started before the last try · stop it'], ['rtostop', 'arrow-back-up', 'Return started · can stop', 'within 24 h']],
   closed: [['saved', 'circle-check', 'Saved', 'delivered after NDR'], ['returned', 'arrow-back-up', 'Returned / returning', ''], ['other', 'archive', 'Other', '']]
 };
 function ndrMax() { return (N.data && N.data.options && N.data.options.maxAttempts) || 3; }
@@ -3228,23 +3236,24 @@ function triesLeft(c) { return c.attempts ? ndrMax() - c.attempts : 9; }
 // NDR order everywhere (user 2026-11-02, like Shiprocket / ClickPost "Action required" before "Action requested" and a
 // call-centre queue): people still to contact on top, then what waits for a time, then requests in the courier list,
 // then what is already with the courier
-var NDR_RANK = { new: 0, again: 0, premature: 0, rtostop: 0, stalled: 1, later: 2, wait: 3, ready: 4 };
+var NDR_RANK = { new: 0, noact: 0, again: 0, premature: 0, rtostop: 0, stalled: 1, later: 2, wait: 3, ready: 4 };
 function ndrRank(c) {
   var sl = ndrSlot(c), r = NDR_RANK[sl[1]];
   if (r == null) r = 5; // with the courier
-  if (r <= 1 && (inOutbox(c) || c.sent === 'Queued')) r = 4; // a special case whose request is already made goes down too
-  else if (r <= 1 && /^(Sent|Courier confirmed)$/.test(c.sent || '')) r = 5;
   return r;
 }
 // where a case sits: [tab, group]
 function ndrSlot(c) {
-  var k = caseType(c), t = ticketOf(c), ob = inOutbox(c);
-  if (k === 'premature') return ['special', 'premature'];
-  if (k === 'rto') return ['special', 'rtostop'];
-  if (c.watch && c.next !== 'Chase courier (late)') return ['special', 'stalled'];
+  var k = caseType(c), t = ticketOf(c), ob = inOutbox(c), sentNow = t && SENT_NOW[t.type + '|' + c.cn];
+  // one rule for the tabs (user 2026-11-09): Urgent = a return to stop with nothing asked yet; once asked it is in the list
+  // or with the courier. "Asked" = an open request, not the desk word: a desk "Sent" stays behind after its request closed.
+  var asked = !!ob || c.sent === 'Queued' || !!(t && (t.channel || sentNow));
+  if (!asked && k === 'premature') return ['special', 'premature'];
+  if (!asked && k === 'rto') return ['special', 'rtostop'];
+  if (!asked && c.watch && c.next !== 'Chase courier (late)') return ['courier', 'stalled'];
+  if (noActTicket(t) && c.sent !== 'Queued') return ['todo', 'noact'];
   if (isTodo(c)) return ['todo', !c.outcome || c.outcome === 'Not called yet' ? 'new' : 'again'];
   if (c.callBack && c.callBack > Date.now()) return ['todo', 'later'];
-  var sentNow = t && SENT_NOW[t.type + '|' + c.cn];
   if (ob || (c.sent === 'Queued' && !(t && (t.channel || sentNow)))) return ['todo', 'ready'];
   if ((t && (t.channel || sentNow)) || /^(Sent|Courier confirmed)$/.test(c.sent || '')) {
     if (t && (t.status || t.reply) && !replyHandled(t)) return ['courier', 'replied'];
@@ -3283,11 +3292,13 @@ function ndrSteps(c, slot) {
   var S = function (l, at, k) { var a = stepAt(at); return { l: l, d1: a[0], d2: a[1], k: k }; };
   var sentNow = t ? SENT_NOW[t.type + '|' + c.cn] : null, sent = !!(t && (t.channel || sentNow)) || /^(Sent|Courier confirmed)$/.test(c.sent || '');
   var listed = sent || !!ob || c.sent === 'Queued' || !!t;
+  if (!called && !listed && c.sent !== 'Attempt failed') return ''; // nothing happened yet: the button says what is next
   var s1 = c.watch ? S(c.next === 'Chase courier (late)' ? 'Asked' : 'Ask', '', c.next === 'Chase courier (late)' ? 'ok' : '')
     : called ? S(noAns ? 'No answer' : 'Called', c.lastCall, noAns ? 'wt' : 'ok') : S('Call', 'not yet', '');
   var s2 = slot === 'later' ? S('Call back', 'waiting', 'wt') : listed ? S('In list', (t && t.created) || c.queuedAt || '', sent ? 'ok' : 'wt') : S('In list', '', '');
   var s3 = sent ? S('Sent', (t && t.sentAt) || (sentNow ? 'just now' : ''), 'ok') : S('Sent', listed ? 'not yet' : '', '');
   var s4 = c.sent === 'Attempt failed' ? S('Failed again', '', 'bd')
+    : noActTicket(t) ? S('No action', '', 'bd')
     : t && (t.status || t.reply) ? S('Replied', t.replyAt || '', 'ok')
     : c.sent === 'Courier confirmed' || /Amal hua/.test((t && t.result) || '') ? S('Acted', '', 'ok')
     : sent ? S('Courier', t && t.sentMs ? 'waiting · ' + hrsText(Date.now() - t.sentMs) : 'waiting', 'wt') : S('Courier', '', '');
@@ -3296,7 +3307,7 @@ function ndrSteps(c, slot) {
   }).join('') + '</div>';
 }
 var NDR_TAG = {
-  new: ['New', 'red'], again: ['Call again', 'red'], later: ['', 'blue'], ready: ['In list', 'amber'], wait: ['Called', 'grey'],
+  new: ['New', 'red'], noact: ['No action', 'red'], again: ['Call again', 'red'], later: ['', 'blue'], ready: ['In list', 'amber'], wait: ['Called', 'grey'],
   replied: ['New reply', 'green'], reattempt: ['With courier', 'blue'], return: ['Return asked', 'blue'], late: ['Trace asked', 'blue'], check: ['Status check', 'blue'],
   premature: ['Premature return', 'red'], rtostop: ['Return started', 'red'], stalled: ['No update', 'amber']
 };
@@ -3308,6 +3319,8 @@ function ndrCard(c, seen, inGroup) {
   var tagT = slot === 'later' ? 'Call back' : slot === 'again' && c.callBack && c.callBack <= Date.now() ? 'Call back now'
     : slot === 'again' && c.sent === 'Attempt failed' ? 'Failed again' : slot === 'ready' ? 'In ' + c.courier + ' list' : tag[0];
   if (inGroup && (tagT === tag[0] || slot === 'later' || slot === 'ready')) tagT = '';
+  var retK = (k === 'premature' || k === 'rto') && slot !== 'premature' && slot !== 'rtostop';
+  if (retK) tagT = k === 'premature' ? 'Premature return' : 'Return started';
   var p = findParcel(c.cn), items = String(c.items || (p && p.items) || '').split(/\n|;/)[0];
   var says = t && (t.status || t.reply) ? ['<b>' + esc(c.courier) + ' replied' + (t.replyAt ? ' (' + esc(t.replyAt) + ')' : '') + ':</b> ', [t.status, t.reply].filter(Boolean).join(' – ')]
     : ['<b>' + esc(c.courier) + ':</b> ', (niceReason(c.reason || c.courierStatus) || 'Delivery failed') + (c.attempts ? ' · attempt ' + c.attempts : '')];
@@ -3318,7 +3331,9 @@ function ndrCard(c, seen, inGroup) {
   var calls = c.calls > 1 ? c.calls + ' calls' + (/no answer|phone off/i.test(c.outcome) ? ' · no answer' : '') : '';
   // a line only when it adds something (never the same words as the button)
   var sentMs = t && t.sentMs, hint = '';
-  if (slot === 'wait' && c.lastCallMs) hint = ['Call again after ' + pkTime(c.lastCallMs + CALL_AGAIN_HOURS * 3600000), 'var(--muted)'];
+  if (slot === 'noact' && (t.round || 1) >= 3) hint = ['Sent ' + t.round + ' times, still no action · return it or escalate', 'var(--red)'];
+  else if ((slot === 'premature' || slot === 'rtostop') && calledWaiting(c)) hint = [c.callBack ? 'Call back at ' + pkTime(c.callBack) : 'Call again after ' + pkTime(c.lastCallMs + CALL_AGAIN_HOURS * 3600000), 'var(--muted)'];
+  else if (slot === 'wait' && c.lastCallMs) hint = ['Call again after ' + pkTime(c.lastCallMs + CALL_AGAIN_HOURS * 3600000), 'var(--muted)'];
   else if (/^(reattempt|late|check)$/.test(slot) && sentMs) hint = Date.now() - sentMs < 86400000 ? ['Follow-up in ' + hrsText(sentMs + 86400000 - Date.now()) + ' if ' + c.courier + ' does nothing', 'var(--amber)'] : ['No action in 24 h · goes again as a follow-up', 'var(--red)'];
   // one main button for this moment; the small ones never repeat it
   var tel = c.phone ? telHref(c.phone) : '';
@@ -3334,13 +3349,19 @@ function ndrCard(c, seen, inGroup) {
     main = B.call(slot === 'new' ? 'Call customer' : slot === 'again' ? (c.callBack ? 'Call back now' : 'Call again') : 'Call customer', 'pri') || '<button class="btn pri grow" data-rec="' + esc(c.cn) + '"><i class="ti ti-pencil"></i>Update case</button>';
     side = [B.wa, tel ? B.upd : ''];
   }
+  else if (slot === 'noact') {
+    // the three ways forward; after two follow-ups Return becomes the main one
+    var canRet = t.type !== 'return', tired = (t.round || 1) >= 3 && canRet, work = can('ndr.work');
+    main = work ? '<button class="btn ' + (tired ? 'ton' : 'pri') + ' grow" data-again="' + esc(t.id) + '" data-cn="' + esc(c.cn) + '"><i class="ti ti-repeat"></i>Send again</button>' : '';
+    side = [B.call('Call', ''), work && canRet ? '<button class="btn ' + (tired ? 'danger' : '') + ' grow" data-ret="' + esc(c.cn) + '"><i class="ti ti-arrow-back-up"></i>Return</button>' : ''];
+  }
   else if (slot === 'later') { main = B.call('Call at ' + pkTime(c.callBack), 'ton'); side = [B.wa, B.upd]; }
   else if (slot === 'ready') { main = '<button class="btn grow" data-rec="' + esc(c.cn) + '"><i class="ti ti-pencil"></i>Change request</button>'; side = [B.callSq, B.wa]; }
   else if (slot === 'replied') { main = '<button class="btn pri grow" data-wr="' + esc(t.id) + '" data-wc="' + esc(c.courier) + '"><i class="ti ti-message-2"></i>Read reply · decide</button>'; side = [B.callSq, B.wa]; }
   else if (t && t.channel) { main = '<button class="btn ton grow" data-wr="' + esc(t.id) + '" data-wc="' + esc(c.courier) + '"><i class="ti ti-message-reply"></i>Note courier reply</button>'; side = [B.callSq, B.wa]; }
   else { main = '<button class="btn grow" data-rec="' + esc(c.cn) + '"><i class="ti ti-pencil"></i>Update case</button>'; side = [B.callSq, B.wa]; }
   return '<div class="nc" data-p="' + esc(c.cn) + '">' +
-    '<div class="nc-h"><b>' + (isNewCase(c) ? '<span class="new-pill">NEW</span>' : '') + esc(c.ref) + ' · ' + esc(c.name) + '</b>' + (tagT ? '<span class="nc-tag t-' + (slot === 'again' && tagT !== tag[0] ? 'red' : tag[1]) + '">' + esc(tagT) + '</span>' : '') + '</div>' +
+    '<div class="nc-h"><b>' + (isNewCase(c) ? '<span class="new-pill">NEW</span>' : '') + esc(c.ref) + ' · ' + esc(c.name) + '</b>' + (tagT ? '<span class="nc-tag t-' + ((slot === 'again' && tagT !== tag[0]) || retK ? 'red' : tag[1]) + '">' + esc(tagT) + '</span>' : '') + '</div>' +
     '<div class="nc-cn"><span class="num">' + esc(c.cn) + '</span><button type="button" class="cn-copy" data-copy="' + esc(c.cn) + '" aria-label="Copy tracking ID"><i class="ti ti-copy"></i></button></div>' +
     '<div class="nc-m">' + [esc(c.city), esc(c.courier), rs(c.cod), p && /^Draft/.test(p.src || '') ? 'Draft order' : '', c.hours ? (c.hours < 48 ? c.hours + ' h' : Math.floor(c.hours / 24) + ' d') + ' in NDR' : 'new'].filter(Boolean).join(' · ') + '</div>' +
     (items ? '<div class="nc-it">' + esc(items) + '</div>' : '') +
@@ -3381,30 +3402,38 @@ function renderNdr() {
   var typed = N.type ? cs.filter(function (c) { return caseType(c) === N.type; }) : cs;
   el('nchips').innerHTML = N.last ? '<div class="fbar"><button class="pbtn ctx" data-fx="n"><span>On their last try</span><i class="ti ti-x"></i></button></div>' : N.type ? '<div class="fbar"><button class="pbtn ctx" data-fx="n"><span>' + esc(NDR_TYPES[N.type] || N.type) + '</span><i class="ti ti-x"></i></button></div>' : '';
   // score: saved in the last 7 days, oldest case nobody called yet, parcels on their last try
-  var wk = N.data.week || { saved: 0, done: 0 }, fresh = typed.filter(function (c) { return ndrSlot(c)[1] === 'new'; });
-  var oldest = fresh.reduce(function (m, c) { return Math.max(m, c.hours || 0); }, 0);
+  var wk = N.data.week || { saved: 0, done: 0 };
   var last = typed.filter(function (c) { return c.attempts && triesLeft(c) <= 1 && caseType(c) !== 'premature' && caseType(c) !== 'rto' && !c.watch; }).length;
   // calls today: cases called since midnight (Pakistan) vs cases that still need a call now (New + Call again)
   var today0 = Date.parse(pkDay(new Date()) + 'T00:00:00+05:00');
   var doneToday = cs.filter(function (c) { return c.lastCallMs >= today0; }).length;
   // to call now: New + Call again, and the Special cases that need the customer (return can still be stopped,
   // premature return) while no request is made yet (user 2026-11-02: Special cases were missing from 'left')
-  var callNow = typed.filter(function (c) { var g = ndrSlot(c)[1]; return (g === 'new' || g === 'again' || g === 'premature' || g === 'rtostop') && ndrRank(c) === 0; });
-  var left = callNow.length, leftSp = callNow.filter(function (c) { return ndrSlot(c)[0] === 'special'; }).length;
+  var callNow = typed.filter(function (c) { var g = ndrSlot(c)[1]; return (g === 'new' || g === 'again' || g === 'premature' || g === 'rtostop') && ndrRank(c) === 0 && !calledWaiting(c); });
+  var left = callNow.length, oldest = callNow.reduce(function (m, c) { return Math.max(m, c.hours || 0); }, 0);
+  var oldestT = oldest < 1 ? 'under 1 h' : oldest < 48 ? oldest + ' h' : Math.floor(oldest / 24) + ' d';
   var score = '<div class="nscore"><div data-ns="saved" role="button"><b class="num" style="color:var(--green)">' + (wk.done ? Math.round(wk.saved / wk.done * 100) + '%' : '—') + '</b><span>Saved · ' + (wk.done ? wk.saved + ' of ' + wk.done : '7 days') + '</span></div>' +
     '<div class="ncalls" data-ns="call" role="button"><b class="num">' + doneToday + ' <small>called today</small></b>' +
       '<span class="nbar"><i style="width:' + (doneToday + left ? Math.round(doneToday / (doneToday + left) * 100) : 100) + '%"></i></span>' +
-      '<span' + (left ? ' style="color:var(--amber)"' : '') + '>' + (left ? left + ' still to call' + (leftSp ? ' · ' + leftSp + ' urgent' : '') : 'all called') + '</span></div>' +
+      '<span' + (oldest >= 24 ? ' style="color:var(--amber)"' : '') + '>' + (left ? 'oldest ' + oldestT : 'all called') + '</span></div>' +
     '<div data-ns="last" role="button"' + (N.last ? ' class="on"' : '') + '><b class="num" style="color:' + (last ? 'var(--red)' : 'var(--text)') + '">' + last + '</b><span>On their last try</span></div></div>';
   // cases per tab / group
   var by = {}; NDR_TABS.forEach(function (t) { by[t[0]] = {}; });
   typed.forEach(function (c) { var s = ndrSlot(c); (by[s[0]][s[1]] = by[s[0]][s[1]] || []).push(c); });
   (N.type ? [] : N.data.closed || []).forEach(function (x) { var g = x.final === 'DELIVERED' ? 'saved' : /^RTO/.test(x.final) ? 'returned' : 'other'; (by.closed[g] = by.closed[g] || []).push(x); });
   var cnt = function (t) { return Object.keys(by[t]).reduce(function (a, g) { return a + by[t][g].length; }, 0); };
+  // To do counts only what is to be done now; what waits (Called, In list) shows on its own pill. Badge = To do + Urgent
+  var tabN = function (t) {
+    var sum = function (gs) { return gs.reduce(function (a, g) { return a + (by[t][g] || []).length; }, 0); };
+    if (t === 'todo') return sum(['new', 'noact', 'again']);
+    if (t === 'courier') return sum(['replied', 'stalled']);
+    if (t === 'special') return ['premature', 'rtostop'].reduce(function (a, g) { return a + (by.special[g] || []).filter(function (c) { return !calledWaiting(c); }).length; }, 0);
+    return cnt(t);
+  };
   if (!N.tab || !by[N.tab]) N.tab = 'todo';
   if (N.type && !cnt(N.tab)) N.tab = (NDR_TABS.filter(function (t) { return cnt(t[0]); })[0] || ['todo'])[0];
   var obars = outboxBars();
-  var tabs = '<div class="ntabs">' + NDR_TABS.map(function (t) { var n = cnt(t[0]); return '<button data-nt="' + t[0] + '" class="' + (t[0] === N.tab ? 'on' : '') + '"><span class="nt-l">' + t[1] + '</span><b class="num">' + n + '</b></button>'; }).join('') + '</div>';
+  var tabs = '<div class="ntabs">' + NDR_TABS.map(function (t) { var n = tabN(t[0]); return '<button data-nt="' + t[0] + '" class="' + [t[0] === N.tab ? 'on' : '', t[0] === 'special' && n ? 'hot' : '', !n || t[0] === 'closed' ? 'calm' : ''].filter(Boolean).join(' ') + '"><span class="nt-l">' + t[1] + '</span><b class="num">' + n + '</b></button>'; }).join('') + '</div>';
   // the courier lists (what is ready to send, Send, the cut-off) stay on top of every NDR tab (user 2026-11-02); the
   // parcels in them stay under To do → In list
   el('ncour').innerHTML = score + (obars ? '<div class="ob-top">' + obars + '</div>' : '') + tabs;
@@ -3426,52 +3455,54 @@ function renderNdr() {
   // most urgent first: fewest tries left, then the oldest
   var order = function (a, b) { return ndrRank(a) - ndrRank(b) || triesLeft(a) - triesLeft(b) || (b.hours || 0) - (a.hours || 0); };
   var replyH = function () { var h = Object.keys(N.data.couriers || {}).map(function (n) { return N.data.couriers[n].replyHours ? n + ' ~' + N.data.couriers[n].replyHours + ' h' : ''; }).filter(Boolean); return h.length ? 'usual reply: ' + h.join(' · ') : ''; };
-  var html = N.tab === 'courier' ? '<div class="cstrip">' + Object.keys(N.data.couriers || {}).map(function (name) {
+  var strip = N.tab === 'courier' ? '<div class="cstrip">' + Object.keys(N.data.couriers || {}).map(function (name) {
     var s = N.data.couriers[name];
     var sp = sheetPending(name);
     return '<button class="cs-line" data-cour="' + esc(name) + '"><b>' + esc(name) + '</b><span>' + s.open + ' open' + (s.notActed ? ' · <i class="down">' + s.notActed + ' no action</i>' : '') + '</span><i class="ti ti-chevron-right"></i></button>' +
       (sp.n && s.link && can('ndr.work') ? '<div class="sh-rem' + (sp.untouched ? ' late' : '') + '"><span><i class="ti ti-table"></i>On the sheet: ' + sp.n + (sp.untouched ? ' · ' + sp.untouched + ' without update' : ' · all answered') + '</span>' +
         (sp.untouched ? '<a class="btn mini wa" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(sheetReminderText(name)) + '"><i class="ti ti-brand-whatsapp"></i>Remind</a>' : '') + '</div>' : '');
   }).join('') + '</div>' : '';
-  var NSUB = [['call', 'To call', ['new', 'again']], ['called', 'Called', ['later', 'wait']], ['list', 'In list', ['ready']]];
-  var subN = function (x) { return x[2].reduce(function (a, g) { return a + (by.todo[g] || []).length; }, 0); };
-  if (N.tab === 'todo') {
-    if (!N.sub || !NSUB.some(function (x) { return x[0] === N.sub; })) N.sub = 'call';
-    // nothing left to call: open the next category that has something (once, until the person picks one)
-    if (!N.subPicked && !subN(NSUB[0])) N.sub = (NSUB.filter(function (x) { return subN(x); })[0] || NSUB[0])[0];
-    html += '<div class="nsub">' + NSUB.map(function (x) { return '<button type="button" data-nsub="' + x[0] + '" class="' + (x[0] === N.sub ? 'on' : '') + '">' + x[1] + ' <b class="num">' + subN(x) + '</b></button>'; }).join('') + '</div>';
+  var html = '', PILLS = {
+    todo: [['call', 'To call', ['new', 'noact', 'again']], ['called', 'Called', ['later', 'wait']], ['list', 'In list', ['ready']]],
+    courier: [['act', 'To act', ['replied', 'stalled']], ['wait', 'Waiting', ['reattempt', 'return', 'late', 'check']]],
+    special: [['call', 'To call', ['premature', 'rtostop']], ['called', 'Called', ['premature', 'rtostop']]]
+  }, pills = PILLS[N.tab], subKey = SUB_KEY[N.tab], pill = null;
+  var pillHas = function (x, c) { return N.tab !== 'special' || (x[0] === 'called') === calledWaiting(c); };
+  var subN = function (x) { return x[2].reduce(function (a, g) { return a + (by[N.tab][g] || []).filter(function (c) { return pillHas(x, c); }).length; }, 0); };
+  if (pills) {
+    if (!pills.some(function (x) { return x[0] === N[subKey]; })) N[subKey] = pills[0][0];
+    // until the person picks a pill, the first one that has something is open
+    if (!N[subKey + 'Picked']) N[subKey] = (subN(pills[0]) ? pills[0] : pills.filter(subN)[0] || pills[0])[0];
+    pill = pills.filter(function (x) { return x[0] === N[subKey]; })[0];
+    // the first pill is the tab's number; the others show theirs only above 0
+    html += '<div class="nsub">' + pills.map(function (x, i) { var n = subN(x); return '<button type="button" data-nsub="' + x[0] + '" class="' + (x === pill ? 'on' : '') + '">' + x[1] + (i && n ? ' <b class="num">' + n + '</b>' : '') + '</button>'; }).join('') + '</div>';
+    if (N.tab === 'courier' && pill[0] === 'wait') html += strip;
   }
-  var subGroups = N.tab === 'todo' ? NSUB.filter(function (x) { return x[0] === N.sub; })[0][2] : null;
-  var USUB = [['act', 'To act'], ['list', 'In list'], ['sent', 'Sent']];
-  var ucat = function (c) { var r = ndrRank(c); return r <= 1 ? 'act' : r === 4 ? 'list' : 'sent'; };
-  var uN = function (k) { return Object.keys(by.special).reduce(function (a, g) { return a + by.special[g].filter(function (c) { return ucat(c) === k; }).length; }, 0); };
-  if (N.tab === 'special') {
-    if (!N.usub || !USUB.some(function (x) { return x[0] === N.usub; })) N.usub = 'act';
-    if (!N.usubPicked && !uN(N.usub)) N.usub = (USUB.filter(function (x) { return uN(x[0]); })[0] || USUB[0])[0];
-    html += '<div class="nsub">' + USUB.map(function (x) { return '<button type="button" data-usub="' + x[0] + '" class="' + (x[0] === N.usub ? 'on' : '') + '">' + x[1] + ' <b class="num">' + uN(x[0]) + '</b></button>'; }).join('') + '</div>';
-  }
+  var subGroups = pill ? pill[2] : null;
+  var arrOf = function (g) { return (by[N.tab][g] || []).filter(function (c) { return !pill || pillHas(pill, c); }); };
+  // a heading's number only when there are 2+ groups: with one, the tab already says it
+  var liveG = NDR_GH[N.tab].filter(function (g) { return (!subGroups || subGroups.indexOf(g[0]) !== -1) && arrOf(g[0]).length; }).length;
   NDR_GH[N.tab].forEach(function (g) {
     if (subGroups && subGroups.indexOf(g[0]) === -1) return;
-    var arr = (by[N.tab][g[0]] || []).slice();
-    if (N.tab === 'special') arr = arr.filter(function (c) { return ucat(c) === N.usub; });
+    var arr = arrOf(g[0]).slice();
     var bars = '';
     if (!arr.length && !bars) return;
     if (N.tab !== 'closed') arr.sort(order);
-    html += (subGroups && subGroups.length === 1 ? '' : '<div class="ngh"><i class="ti ti-' + g[1] + '"></i><div><div class="ngh-t"><span>' + g[2] + '</span><em class="num">' + arr.length + '</em></div>' +
+    html += (subGroups && subGroups.length === 1 ? '' : '<div class="ngh"><i class="ti ti-' + g[1] + '"></i><div><div class="ngh-t"><span>' + g[2] + '</span>' + (liveG > 1 ? '<em class="num">' + arr.length + '</em>' : '') + '</div>' +
       (N.tab === 'closed' && arr.some(function (c) { return c.cod; }) ? '<small>' + esc(g[3] ? g[3] + ' · ' : '') + rs(arr.reduce(function (a, c) { return a + (c.cod || 0); }, 0)) + '</small>'
         : (g[0] === 'reattempt' ? replyH() : g[3]) ? '<small>' + esc(g[0] === 'reattempt' ? replyH() : g[3]) + '</small>' : '') + '</div></div>') + bars +
       (g[0] === 'ready' && arr.length && !N.readyOpen && !subGroups ? '<button class="ngh-more" type="button" data-ready="1"><i class="ti ti-chevron-down"></i>Show ' + arr.length + (arr.length === 1 ? ' parcel' : ' parcels') + ' in the list</button>'
         : arr.map(function (c) { return N.tab === 'closed' ? ndrClosedCard(c) : ndrCard(c, seen, true); }).join('') +
           (g[0] === 'ready' && arr.length && !subGroups ? '<button class="ngh-more" type="button" data-ready="0"><i class="ti ti-chevron-up"></i>Hide the list</button>' : ''));
   });
-  if (N.tab === 'special' && !/class="nc/.test(html)) html += '<div class="card empty"><i class="ti ti-circle-check"></i>' + ({ act: 'Nothing urgent to act on now', list: 'No urgent request in the courier lists', sent: 'No urgent request with the courier' })[N.usub] + '</div>';
-  if (N.tab === 'todo' && !/class="nc/.test(html)) html += '<div class="card empty"><i class="ti ti-circle-check"></i>' + ({ call: 'Nobody to call right now', called: 'No called case is waiting', list: 'Nothing in the courier lists' })[N.sub] + '</div>';
+  if (N.tab === 'special' && !/class="nc/.test(html)) html += '<div class="card empty"><i class="ti ti-circle-check"></i>' + ({ call: 'Nothing urgent to call right now', called: 'No urgent case is waiting' })[pill[0]] + '</div>';
+  if (N.tab === 'courier' && !/class="nc/.test(html)) html += '<div class="card empty"><i class="ti ti-circle-check"></i>' + ({ act: 'Nothing to act on with the couriers', wait: 'No request is waiting with a courier' })[pill[0]] + '</div>';
+  if (N.tab === 'todo' && !/class="nc/.test(html)) html += '<div class="card empty"><i class="ti ti-circle-check"></i>' + ({ call: 'Nobody to call right now', called: 'No called case is waiting', list: 'Nothing in the courier lists' })[pill[0]] + '</div>';
   if (!html) html = '<div class="card empty"><i class="ti ti-circle-check"></i>' + (N.tab === 'todo' ? 'Nothing to do · every case is with the courier or waiting' : N.tab === 'closed' ? 'No case closed today yet' : 'No cases here') + '</div>';
   el('nlist').innerHTML = html;
   drawNextBar();
   ackInit(); renderNdrTabsDot();
-  el('nlist').querySelectorAll('[data-usub]').forEach(function (b) { b.onclick = function () { N.usub = b.getAttribute('data-usub'); N.usubPicked = true; renderNdr(); }; });
-  el('nlist').querySelectorAll('[data-nsub]').forEach(function (b) { b.onclick = function () { N.sub = b.getAttribute('data-nsub'); N.subPicked = true; renderNdr(); }; });
+  el('nlist').querySelectorAll('[data-nsub]').forEach(function (b) { b.onclick = function () { var k = SUB_KEY[N.tab]; N[k] = b.getAttribute('data-nsub'); N[k + 'Picked'] = true; renderNdr(); }; });
   el('nlist').querySelectorAll('[data-ready]').forEach(function (b) { b.onclick = function () { N.readyOpen = b.getAttribute('data-ready') === '1'; renderNdr(); }; });
   saveFilters();
 }
@@ -3494,7 +3525,7 @@ function lateText(t) {
   return w;
 }
 // W1 writes results in Roman Urdu for the courier's sheet; the app shows them in English
-var TICKET_WORDS = [[/Amal nahi hua/, 'No action'], [/Amal hua/, 'Acted'], [/Intezar/, 'Waiting'], [/Deliver ho gaya/, 'Delivered'],
+var TICKET_WORDS = [[/🔁 Jawab mila, Amal nahi \(24h\)/, 'Replied · no action in 24 h'], [/Amal nahi hua/, 'No action'], [/Amal hua/, 'Acted'], [/Intezar/, 'Waiting'], [/Deliver ho gaya/, 'Delivered'],
   [/Return shuru – reattempt nahi hua/, 'Return started · not reattempted'], [/Return shuru ho gaya/, 'Return started'], [/Return ho gaya/, 'Returned'],
   [/Attempt hua – phir fail/, 'Attempted · failed again'], [/Claim – courier ne jawab diya/, 'Claim · courier replied'], [/Courier ne jawab diya/, 'Courier replied'],
   [/DOBARA – (\d+h), amal nahi/, 'Follow-up · no action in $1'], [/Case band/, 'Case closed'], [/Outbox/, 'Not sent yet'],
@@ -3703,7 +3734,7 @@ function sheetCounts(name, reminder, extra) {
   var tk = ((N.data.couriers || {})[name] || {}).tickets || {}, c = { deliver: [], return: [], claim: [] };
   Object.keys(tk).forEach(function (cn) {
     var t = tk[cn];
-    if (!/Sheet/.test(t.channel || '') || /Done/.test(t.result || '')) return;
+    if (!/Sheet/.test(t.channel || '') || /Done/.test(t.result || '') || noActTicket(t)) return; // a no-action line has left the sheet
     if (reminder && (t.status || t.reply || t.cBy)) return;
     c[sheetTabOf(t.type)].push(t.sentMs || Date.now());
   });
@@ -3807,7 +3838,7 @@ document.addEventListener('click', function (e) {
     api('appCourierReply', [TOKEN, id, pick || (had && !txt ? (t.status || '') : ''), txt || (had && !pick ? (t.reply || '') : ''), next === 'done', next, cn, photo], function () {
       // the card moves at once (the server view and W1 follow)
       if (t) {
-        if (next === 'again') { t.channel = ''; t.round = (t.round || 1) + 1; t.result = '🔴 DOBARA – amal nahi (app)'; }
+        if (next === 'again') { t.channel = ''; t.round = (t.round || 1) + 1; t.result = '🔴 DOBARA – amal nahi (app)'; t.status = ''; t.reply = ''; t.replyAt = ''; t.replyBy = ''; if (c) c.sent = 'Queued'; }
         else { if (pick) t.status = pick; if (txt) t.reply = txt; t.replyBy = 'You (WhatsApp)'; t.replyAt = 'just now'; if (next === 'done') t.result = '☑️ Done (WhatsApp)'; }
       }
       if (c && next === 'call') c.callBack = Date.now() - 1000;
@@ -3904,8 +3935,21 @@ el('nlist').onclick = function (e) {
   var o = e.target.closest('[data-ob]'); if (o) return openOutbox(o.getAttribute('data-ob'));
   var cb = e.target.closest('[data-cour]'); if (cb) return openEscalations(cb.getAttribute('data-cour'));
   var l = e.target.closest('[data-late]'); if (l) return askLate(l.getAttribute('data-late'));
+  var ag = e.target.closest('[data-again]'); if (ag) return ndrSendAgain(ag.getAttribute('data-again'), ag.getAttribute('data-cn'));
+  var rt = e.target.closest('[data-ret]'); if (rt) { openNdrForm(rt.getAttribute('data-ret')); var rb = el('fAns').querySelector('[data-a="refuse"]'); if (rb) rb.click(); return; }
   var b = e.target.closest('[data-rec]'); if (b) openNdrForm(b.getAttribute('data-rec'));
 };
+// the courier replied and did nothing: back in the courier list as a follow-up (from there it goes to the sheet or WhatsApp)
+function ndrSendAgain(id, cn) {
+  var c = N.data.cases.filter(function (x) { return x.cn === cn; })[0], t = c && ticketOf(c);
+  api('appCourierReply', [TOKEN, id, '', '', false, 'again', cn, ''], function () {
+    if (t) { t.channel = ''; t.round = (t.round || 1) + 1; t.result = '🔴 DOBARA – amal nahi (app)'; t.status = ''; t.reply = ''; t.replyAt = ''; t.replyBy = ''; }
+    if (c) c.sent = 'Queued';
+    snap('ndr', N.data); renderNdr(); updateBadge();
+    toast('Back in the ' + (c ? c.courier : 'courier') + ' list as a follow-up');
+    loadNdr(true);
+  }, function (e) { toast('Not saved: ' + ((e && e.message) || 'try again')); });
+}
 // a stalled / late parcel: straight into the courier list as a Late request (no customer call)
 function askLate(cn) {
   var c = N.data.cases.filter(function (x) { return x.cn === cn; })[0]; if (!c) return;
@@ -3941,6 +3985,7 @@ function ndrReqBanner(c) {
   var sentNow = t && SENT_NOW[t.type + '|' + c.cn];
   if (c.shipStatus === 'RTO_INITIATED') return '<div class="tk ok" ' + w + '><i class="ti ti-arrow-back-up"></i> ' + esc(c.courier) + ' has already started the return of this parcel · a return request is not needed.</div>';
   if (ob) return '<div class="tk" ' + w + '><i class="ti ti-inbox"></i> <b>' + REQ_KIND[ob] + ' request already made</b> · in the ' + esc(c.courier) + ' list, not sent yet. Send it from the top of NDR.</div>';
+  if (noActTicket(t)) return '<div class="tk" ' + w + '><i class="ti ti-message-exclamation"></i> <b>' + esc(c.courier) + ' replied but did nothing</b> · no tracking update for 24 h. Saving a delivery answer sends it again as a follow-up.</div>';
   if (t && (t.channel || sentNow)) return '<div class="tk ok" ' + w + '><i class="ti ti-send"></i> <b>' + (REQ_KIND[t.type] || 'Request') + ' request sent</b> · ' + (t.channel || sentNow.channel) + (t.sentAt ? ' · ' + esc(t.sentAt) : '') +
     (t.status || t.reply ? ' · ' + esc(c.courier) + ': ' + esc([t.status, t.reply].filter(Boolean).join(' – ')) : ' · waiting for ' + esc(c.courier)) + '. Saving the same answer again does not send it twice.</div>';
   if (c.sent === 'Queued') return '<div class="tk" ' + w + '><i class="ti ti-inbox"></i> <b>Request already made</b> · in the ' + esc(c.courier) + ' list, not sent yet.</div>';
