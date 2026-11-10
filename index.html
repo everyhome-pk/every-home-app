@@ -1004,7 +1004,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 (function () {
   if (window.google && google.script) return;
   window.EH_PWA = true; // installed app: notifications are possible
-  window.EH_BUILD = '2026-11-09'; // shown at the bottom of the menu
+  window.EH_BUILD = '2026-11-10'; // shown at the bottom of the menu
   var API = "https://script.google.com/macros/s/AKfycbyqtyrClenCG1_iqTSDK5KhtFItfX6rUsYdIexwQ3qPFbSv9d1n8jy06ItjvWXXtB-I/exec", RELAY = "", relayOff = 0;
   // through the relay when there is one; if it fails, straight to Google and skip the relay for 10 min. A save goes
   // straight only when the relay could not be reached at all (never sent twice).
@@ -3551,7 +3551,7 @@ var TICKET_WORDS = [[/🔁 Jawab mila, Amal nahi \(24h\)/, 'Replied · no action
   [/DOBARA – (\d+h), amal nahi/, 'Follow-up · no action in $1'], [/Case band/, 'Case closed'], [/Outbox/, 'Not sent yet'],
   [/Done \(marked in sheet\)/, 'Done (marked in sheet)'], [/Done \(WhatsApp\)/, 'Done (WhatsApp)'], [/↪️ Nayi request: (\w+)/, 'Replaced by a new $1 request']];
 function ticketResult(s) { s = String(s || ''); TICKET_WORDS.forEach(function (w) { s = s.replace(w[0], w[1]); }); return s; }
-var REQ_KIND = { reattempt: 'Reattempt', return: 'Return', claim: 'Claim', check: 'Status check', late: 'Late delivery' };
+var REQ_KIND = { reattempt: 'Reattempt', return: 'Return', claim: 'Claim', check: 'Status check', late: 'Late delivery', retlate: 'Late return' };
 var SENT_NOW = {}; // type|cn → { channel, at } sent from this phone, until W1 records it
 function inOutbox(c) {
   var b = (N.data.outbox || {})[c.courier] || {}, k = Object.keys(b).filter(function (x) { return (b[x] || []).some(function (it) { return it.cn === c.cn; }); })[0];
@@ -3771,7 +3771,7 @@ function courierSheetLink(name, kind) {
 // list by date (today, the day before, "<date> ya pehle"), the sheet link and one line of what to do; no icons, no times.
 // reminder = only the queries the courier has not touched yet ("Update nahi aaya"). extra = {kind, n} just sent (today).
 var SHEET_TABS = [['deliver', 'Reattempt'], ['return', 'Mark for Return'], ['claim', 'Return Claim']];
-function sheetTabOf(type) { return type === 'return' ? 'return' : type === 'claim' ? 'claim' : 'deliver'; }
+function sheetTabOf(type) { return type === 'return' ? 'return' : type === 'claim' || type === 'retlate' ? 'claim' : 'deliver'; }
 function sheetCounts(name, reminder, extra) {
   var tk = ((N.data.couriers || {})[name] || {}).tickets || {}, c = { deliver: [], return: [], claim: [] };
   Object.keys(tk).forEach(function (cn) {
@@ -4763,9 +4763,9 @@ function renderReturns() {
     var st = w.back ? ['Returned by courier', 'var(--red)'] : w.atOrigin ? ['At local office', 'var(--amber)'] : w.late ? ['No update ' + w.days + 'd', 'var(--red)'] : ['On the way back', 'var(--blue)'];
     return '<div class="prow' + (act ? '' : ' dim') + '" data-p="' + esc(w.cn || w.order) + '" style="--c:' + st[1] + '"><span class="prow-d"></span><div class="prow-m">' +
       '<div class="prow-1"><b>' + esc(w.name || w.order) + '</b>' + (w.days != null ? '<span class="num" style="color:var(--muted);font-weight:500">' + w.days + 'd</span>' : '') + '</div>' +
-      '<div class="prow-2"><span>' + [esc(w.order), esc(w.courier), esc(w.items)].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + st[1] + '">' + st[0] + '</span></div></div>' +
+      '<div class="prow-2"><span>' + [esc(w.order), esc(w.courier), esc(w.items)].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + st[1] + '">' + st[0] + '</span></div>' + (w.late && w.ask ? '<div class="prow-3" style="color:var(--muted)">' + esc(rAskLine(w)) + '</div>' : '') + '</div>' +
       (act ? '<button class="btn prow-btn" data-pick="' + esc(w.cn) + '"><i class="ti ti-scan"></i>Receive</button>' : '') +
-      (w.late ? '<button class="btn prow-btn" data-rask="' + esc(w.cn) + '"><i class="ti ti-brand-whatsapp"></i>Ask courier</button>' : '') + '</div>';
+      (w.late && rAskWays(w, R.data).length ? '<button class="btn prow-btn" data-rask="' + esc(w.cn) + '"><i class="ti ti-send"></i>Ask courier</button>' : '') + '</div>';
   };
   var lim = rq ? 100000 : R.wlim || PAGE, olim = rq ? 100000 : R.olim || 10, rlim = rq ? 100000 : R.rlim || 10;
   var h = '<div class="psum"><span>Scanned today <b class="num">' + d.today.total + '</b>' + (d.today.total ? ' (' + d.today.good + ' good)' : '') + '</span><span><b class="num">' + rs(value) + '</b> goods coming back</span></div>' +
@@ -4788,6 +4788,31 @@ function renderReturns() {
   if (el('omore')) el('omore').onclick = function () { R.olim = 1000; renderReturns(); };
   if (el('rmore')) el('rmore').onclick = function () { R.rlim = (R.rlim || 10) + PAGE; renderReturns(); };
   if (R.scrollTo) { R.scrollTo = false; scrollToCard('rwait'); }
+}
+// Late return, "Ask courier": which ways are left (the store's channels; the sheet only once and only for couriers that have one; WhatsApp can always remind)
+function rAskWays(w, d) {
+  var on = w.ask && w.ask.open && /Sheet/.test(w.ask.channel);
+  var have = d.channels || ['WhatsApp', 'Sheet'];
+  return ['Sheet', 'WhatsApp'].filter(function (c) { return have.indexOf(c) !== -1 && (c === 'WhatsApp' || (w.sheet && !on)); });
+}
+function rAskLine(w) {
+  var a = w.ask;
+  if (a.reply) return w.courier + ' replied: ' + a.reply;
+  return (a.open ? 'Asked' : 'Asked earlier') + ' · ' + (a.channel === 'Sheet' ? 'on the sheet' : a.channel === 'WhatsApp' ? 'on WhatsApp' : 'on the sheet + WhatsApp') + ' · ' + a.at;
+}
+function rAskSave(w, channel) {
+  api('appReturnAsk', [TOKEN, w.cn, channel], function (r) {
+    w.ask = r.ask; snap('returns', R.data); if (curTab === 'returns') renderReturns();
+    toast(r.again ? 'Already asked · not sent twice' : channel === 'Sheet' ? 'Added to the ' + w.courier + ' sheet · shows there within minutes' : 'Noted · sent on WhatsApp');
+  }, function (e) { toast((e && e.message) || 'Could not save'); });
+}
+function rAskSend(w, channel) {
+  if (channel === 'Sheet') return rAskSave(w, 'Sheet');
+  // WhatsApp status check for the courier's group (Roman Urdu, like all courier messages)
+  var msg = '*' + STORE + ' · Return Status Check*\n\n*CN ' + w.cn + '*\n' + [w.city, w.order].filter(Boolean).join(' · ') +
+    '\n\nYe return ' + w.days + ' din se aage nahi barha. Parcel ki current location batayen aur kab tak wapas pohnchega.\n\nShukriya\n' + STORE + ' · Operations';
+  if (navigator.share) navigator.share({ text: msg }).then(function () { rAskSave(w, 'WhatsApp'); }).catch(function () {});
+  else { window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank'); rAskSave(w, 'WhatsApp'); }
 }
 function findReturn(code) {
   code = String(code || '').trim(); if (!code) return;
@@ -4829,10 +4854,11 @@ el('rview').onclick = function (e) {
   var a = e.target.closest('[data-rask]');
   if (a) {
     var w = R.data.waiting.filter(function (x) { return x.cn === a.getAttribute('data-rask'); })[0]; if (!w) return;
-    // WhatsApp status check for the courier's group (Roman Urdu, like all courier messages)
-    var msg = '*' + STORE + ' · Return Status Check*\n\n*CN ' + w.cn + '*\n' + [w.city, w.order].filter(Boolean).join(' · ') +
-      '\n\nYe return ' + w.days + ' din se aage nahi barha. Parcel ki current location batayen aur kab tak wapas pohnchega.\n\nShukriya\n' + STORE + ' · Operations';
-    if (navigator.share) navigator.share({ text: msg }).catch(function () {}); else window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+    var ways = rAskWays(w, R.data);
+    if (ways.length === 1) return rAskSend(w, ways[0]);
+    showPick('Ask ' + w.courier, 'No update for ' + w.days + ' days', '<div class="sheet-list">' + ways.map(function (c) {
+      return '<div class="sl" data-k="' + c + '"><span><i class="ti ti-' + (c === 'Sheet' ? 'table' : 'brand-whatsapp') + '" style="margin-right:8px"></i>' + (c === 'Sheet' ? 'Courier sheet' : 'WhatsApp') + '</span></div>';
+    }).join('') + '</div>', function (ev) { var b = ev.target.closest('.sl'); if (!b) return; closePick(); rAskSend(w, b.getAttribute('data-k')); });
     return;
   }
   var t = e.target.closest('[data-pick]'); if (t) { el('rcode').value = t.getAttribute('data-pick'); findReturn(t.getAttribute('data-pick')); window.scrollTo(0, 0); } };
