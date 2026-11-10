@@ -4338,7 +4338,7 @@ var CASH_F = [
 ];
 var BATCH_F = [
   ['all', 'All', function () { return true; }],
-  ['check', 'To verify', function (b) { return b.transferred && b.bank == null; }],
+  ['check', 'To verify', function (b) { return b.transferred && b.bank == null && b.net > 0; }],
   ['nott', 'Not transferred', function (b) { return !b.transferred; }],
   ['gap', 'Mismatch', function (b) { return b.bank != null && !/✅/.test(b.matched); }],
   ['ok', 'Matched', function (b) { return /✅/.test(b.matched); }]
@@ -4354,18 +4354,19 @@ function renderCash() {
   var h = cashFlow(s, bankOk, periodLabel(C, months, 'all')) + advCard(d) + owesCard(d);
   var bfc = BATCH_F.filter(function (x) { return x[0] === C.bf; })[0] || BATCH_F[0];
   // Payments that need someone first: not transferred, then not checked in the bank, then a gap, then matched
-  var rank = function (b) { return !b.transferred ? 0 : b.bank == null ? 1 : /✅/.test(b.matched) ? 3 : 2; };
+  // charges only (net ≤ 0, user 2026-11-10: Leopards IBLE3463631 −306 was recorded as 306 received): nothing to receive, nothing to record
+  var rank = function (b) { return !b.transferred ? 0 : b.bank == null && b.net <= 0 ? 4 : b.bank == null ? 1 : /✅/.test(b.matched) ? 3 : 2; };
   var shown = d.batches.map(function (b, i) { return { b: b, i: i }; }).filter(function (x) { return bfc[2](x.b); })
     .sort(function (a, b) { return rank(a.b) - rank(b.b) || a.i - b.i; });
   h += '<div class="card" id="cpay"><div class="h"><b>Courier payments</b><span>' + shown.length + '</span></div>' +
     fbar('bf', bfc[0] === 'all' ? 'All payments' : bfc[1], shown.length) +
     (shown.length ? shown.slice(0, C.blim || 5).map(function (x) {
       var b = x.b, k = rank(b);
-      var st = k === 0 ? ['Not transferred', 'var(--red)'] : k === 1 ? ['Verify in bank', 'var(--amber)'] : k === 3 ? ['Matched', 'var(--green)'] : [matchText(b.matched), 'var(--red)'];
+      var st = k === 0 ? ['Not transferred', 'var(--red)'] : k === 1 ? ['Verify in bank', 'var(--amber)'] : k === 3 ? ['Matched', 'var(--green)'] : k === 4 ? ['Charges only · nothing to receive', 'var(--muted)'] : [matchText(b.matched), 'var(--red)'];
       return '<div class="prow in" data-bt="' + x.i + '" style="--c:' + st[1] + '"><span class="prow-d"></span><div class="prow-m">' +
         '<div class="prow-1"><b>' + esc(b.courier) + ' · ' + esc(b.ref) + '</b><span class="num">' + rs(b.net) + '</span></div>' +
         '<div class="prow-2"><span>' + [esc(b.date), b.parcels + ' parcels', b.bank != null ? 'bank ' + rs(b.bank) : ''].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + st[1] + '">' + esc(st[0]) + '</span></div></div>' +
-        (b.transferred ? '<button class="btn prow-btn" data-bank="' + x.i + '">' + (b.bank == null ? '<i class="ti ti-building-bank"></i>Record' : 'Edit') + '</button>' : '') + '</div>';
+        (b.transferred && k !== 4 ? '<button class="btn prow-btn" data-bank="' + x.i + '">' + (b.bank == null ? '<i class="ti ti-building-bank"></i>Record' : 'Edit') + '</button>' : '') + '</div>';
     }).join('') + (shown.length > (C.blim || 5) ? '<button class="btn more" id="bmore">See all ' + shown.length + ' payments</button>' : '') : '<div class="empty">No payments here</div>') + '</div>';
   h += '<div class="card" id="cparcels"></div>';
   el('cview').innerHTML = h;
@@ -4625,7 +4626,7 @@ function openBatchReceipt(i) {
     (ps.length ? '<div class="pday"><span>PARCELS</span><span class="num">' + ps.length + '</span></div><div class="plist-box">' + ps.map(function (p) {
       return '<div class="prow" data-brc="' + esc(p.cn) + '" style="--c:' + (p.returned ? 'var(--red)' : 'var(--green)') + '"><span class="prow-d"></span><div class="prow-m"><div class="prow-1"><b>' + esc(p.order) + (p.returned ? ' · returned' : '') + '</b><span class="num">' + rs(p.net) + '</span></div>' + chargeLine(p) + '</div></div>';
     }).join('') + '</div>' : '') +
-    '<div class="btns" style="margin-top:12px"><button class="btn" id="brClose">Close</button>' + (x.transferred && can('cash.edit') ? '<button class="btn pri" id="brRec"><i class="ti ti-building-bank"></i>' + (x.bank == null ? 'Record' : 'Edit') + '</button>' : '') + '</div>';
+    '<div class="btns" style="margin-top:12px"><button class="btn" id="brClose">Close</button>' + (x.transferred && (x.net > 0 || x.bank != null) && can('cash.edit') ? '<button class="btn pri" id="brRec"><i class="ti ti-building-bank"></i>' + (x.bank == null ? 'Record' : 'Edit') + '</button>' : '') + '</div>';
   openPanel();
   el('brClose').onclick = closePanel;
   if (el('brUp')) {
