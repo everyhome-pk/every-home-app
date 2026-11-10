@@ -4771,7 +4771,8 @@ function renderReturns() {
   var recent = d.recent.filter(rHit);
   var value = d.waiting.reduce(function (s, w) { return s + (Number(w.cod) || 0); }, 0);
   var row = function (w, act) {
-    var st = w.back ? ['Returned by courier', 'var(--red)'] : w.atOrigin ? ['At local office', 'var(--amber)'] : w.late ? ['No update ' + w.days + 'd', 'var(--red)'] : ['On the way back', 'var(--blue)'];
+    var st = w.swap ? (w.back ? ['Replacement · old item back', 'var(--red)'] : w.atOrigin ? ['Replacement · old item at local office', 'var(--amber)'] : w.late ? ['Replacement · no update ' + w.days + 'd', 'var(--red)'] : ['Replacement · old item coming', 'var(--blue)'])
+      : w.back ? ['Returned by courier', 'var(--red)'] : w.atOrigin ? ['At local office', 'var(--amber)'] : w.late ? ['No update ' + w.days + 'd', 'var(--red)'] : ['On the way back', 'var(--blue)'];
     return '<div class="prow' + (act ? '' : ' dim') + '" data-p="' + esc(w.cn || w.order) + '" style="--c:' + st[1] + '"><span class="prow-d"></span><div class="prow-m">' +
       '<div class="prow-1"><b>' + esc(w.name || w.order) + '</b>' + (w.days != null ? '<span class="num" style="color:var(--muted);font-weight:500">' + w.days + 'd</span>' : '') + '</div>' +
       '<div class="prow-2"><span>' + [esc(w.order), esc(w.courier), esc(w.items)].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + st[1] + '">' + st[0] + '</span></div>' + (w.late && w.ask ? '<div class="prow-3" style="color:var(--muted)">' + esc(rAskLine(w)) + '</div>' : '') + '</div>' +
@@ -4838,7 +4839,10 @@ function renderFound() {
     '<div class="found-items"><i class="ti ti-package"></i><span>' + esc(p.items) + '</span><b class="num">' + rs(p.cod) + '</b></div>';
   if (p.already) h += '<div class="tk ok">Already scanned: ' + esc(p.already.when) + ' · ' + esc(p.already.by) + ' · ' + esc(p.already.condition) + '</div>';
   else {
-    if (!p.isReturn) h += '<div class="tk">Note: courier status does not indicate a return (' + esc(p.status) + ')</div>';
+    if (p.swap) h += '<div class="tk">Trax replacement · the new parcel was delivered; this is the OLD item coming back. It goes back to stock as the goods of the order it came from.</div>' +
+      '<div class="fld" style="margin-top:10px"><label for="rswap">Old item from order</label><input id="rswap" placeholder="#EH…" autocomplete="off">' +
+      ((p.prev || []).length ? '<div class="chips wrapc" id="rswapc" style="margin-top:6px">' + p.prev.map(function (o) { return '<button class="chip" type="button" data-o="' + esc(o.ref) + '" title="' + esc(o.items) + '">' + esc(o.ref) + '</button>'; }).join('') + '</div><small class="mnote">This customer\'s earlier delivered orders</small>' : '') + '</div>';
+    else if (!p.isReturn) h += '<div class="tk">Note: courier status does not indicate a return (' + esc(p.status) + ')</div>';
     h += '<div class="fld" style="margin-top:10px"><label>Condition</label><div class="opts" id="rcond">' +
       conds.map(function (c, i) { return '<div class="opt' + (i === 0 ? ' on' : '') + '" data-v="' + esc(c) + '">' + esc(c) + '</div>'; }).join('') + '</div></div>' +
       '<div class="fld"><input id="rnotes" placeholder="Note (anything missing or damaged)"></div><div class="err" id="rErr"></div>' +
@@ -4849,9 +4853,11 @@ function renderFound() {
   var cond = conds[0];
   el('rcond').onclick = function (e) { var t = e.target.closest('.opt'); if (!t) return; cond = t.getAttribute('data-v'); el('rcond').querySelectorAll('.opt').forEach(function (x) { x.classList.toggle('on', x === t); }); };
   el('rclear').onclick = function () { el('rfound').innerHTML = ''; el('rcode').value = ''; scanFocus(); };
+  if (el('rswapc')) el('rswapc').onclick = function (e) { var c = e.target.closest('[data-o]'); if (!c) return; el('rswap').value = c.getAttribute('data-o'); el('rswapc').querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x === c); }); };
   el('rsave').onclick = function () {
     el('rsave').disabled = true;
-    api('saveAppReturnScan', [{ token: TOKEN, cn: p.cn, condition: cond, notes: el('rnotes').value }], function () {
+    if (p.swap && !el('rswap').value.trim()) { el('rsave').disabled = false; el('rErr').textContent = 'Which order did this old item come from?'; return; }
+    api('saveAppReturnScan', [{ token: TOKEN, cn: p.cn, condition: cond, notes: el('rnotes').value, swapOf: p.swap ? el('rswap').value.trim() : '' }], function () {
       toast('✅ Return received'); try { navigator.vibrate && navigator.vibrate(80); } catch (x) {}
       el('rfound').innerHTML = ''; el('rcode').value = ''; scanFocus(); loadReturns(true);
     }, function (e) { el('rsave').disabled = false; el('rErr').textContent = (e && e.message) || 'Not saved'; });
