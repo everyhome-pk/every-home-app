@@ -4659,7 +4659,7 @@ function openRecord(i, back) {
     '<button class="btn pri" id="bSave">Save</button></div><div class="err" id="bErr"></div>' +
     // a bank amount recorded by mistake (user 2026-11-10): empty it again
     (x.bank != null ? '<button class="btn" type="button" id="bClear" style="width:100%;margin-top:10px;color:var(--red)"><i class="ti ti-eraser"></i>Recorded by mistake · clear it</button>' +
-      '<small class="mnote" style="display:block;margin-top:6px">' + (x.net <= 0 ? 'Charges only: nothing came in. Clearing also removes it from Finance.' : 'Finance goes back to the amount ' + esc(x.courier) + ' gives (' + rs(x.net) + ') until the bank amount is recorded.') + '</small>' : '');
+      '<small class="mnote" style="display:block;margin-top:6px">' + (x.net <= 0 ? 'Charges only: nothing came in. Clearing also removes it from Finance.' : 'It leaves Finance until the bank amount is recorded again.') + '</small>' : '');
   openPanel();
   if (back) SHEET_BACK = back;
   if (el('bClear')) el('bClear').onclick = function () {
@@ -6310,7 +6310,7 @@ function renderAccounts() {
       : '<div class="empty">No distributions yet</div>') + '</div>' +
     // capital given back to a partner: not profit (user 2026-11-10)
     (Object.keys(d.capBack || {}).length ? '<div class="bk-sec">Capital withdrawals<span>' + esc(fnMonthName(d.month).slice(0, 3)) + ' · this year</span></div><div class="bk-list">' +
-      Object.keys(d.capBack).map(function (k) { var p = d.capBack[k]; return row({ icon: initials(k), tone: 'av', t: esc(k), s: rs(p.all) + ' in all', v: rs(p.month), v2: rs(p.year) + ' this year' }); }).join('') + '</div>' : '') +
+      Object.keys(d.capBack).map(function (k) { var p = d.capBack[k]; return row({ attr: 'data-capw="' + esc(k) + '"', icon: initials(k), tone: 'av', t: esc(k), s: rs(p.all) + ' in all · ' + (p.list || []).length + ' withdrawal' + ((p.list || []).length === 1 ? '' : 's'), v: rs(p.month), v2: rs(p.year) + ' this year' }); }).join('') + '</div>' : '') +
     (dl || tops.length ? '<details class="bk-fold"><summary>Meta ad dollars<span class="num">' + (left != null ? '$' + left.toLocaleString('en-US') + ' left' : '') + '</span></summary>' +
       (tops.length ? '<div class="acx-row"><span>Funded this month<small>' + esc(tops.join(', ')) + '</small></span><b class="num">' + rs(tops.reduce(function (p, k) { return p + d.topups[k]; }, 0)) + '</b></div>' : '') +
       acDollars(dl) + '</details>' : '') +
@@ -6328,6 +6328,7 @@ function renderAccounts() {
   if (el('acDecide')) el('acDecide').onclick = openCardDecide;
   verifyWire(openAccounts, renderAccounts);
   el('panel').querySelectorAll('[data-eqh]').forEach(function (b) { b.onclick = function () { openEquityHistory(b.getAttribute('data-eqh')); }; });
+  el('panel').querySelectorAll('[data-capw]').forEach(function (b) { b.onclick = function () { openCapWithdrawals(b.getAttribute('data-capw')); }; });
 }
 // switch: card charges = the owner's capital, or bills the business pays back from now on
 function openCardMode() {
@@ -6442,6 +6443,20 @@ function acStage(m) {
     : m.open ? m.open + ' parcels in transit' : 'in progress';
 }
 // a partner's capital account line by line (statement of partners' capital): date, what, capital or profit, balance after
+// one partner's capital withdrawals, date by date (user 2026-11-10)
+function openCapWithdrawals(name) {
+  var p = (AC.data.capBack || {})[name]; if (!p) return renderAccounts();
+  var list = p.list || [];
+  el('panel').innerHTML = '<button class="btn mini" id="cwBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Accounts</button><h3>' + esc(name) + ' · capital withdrawals</h3>' +
+    '<p>' + rs(p.all) + ' in all · ' + rs(p.year) + ' this year · ' + list.length + ' withdrawal' + (list.length === 1 ? '' : 's') + '</p>' +
+    '<div class="card" style="padding:0">' + (list.length ? list.map(function (l) {
+      return '<div class="prow" style="cursor:default;--c:var(--red)"><span class="prow-d"></span><div class="prow-m"><div class="prow-1"><span>' + esc(fnDay(l.day)) + (l.rc ? ' <button class="rc-a" type="button" data-rcl="' + esc(l.id) + '" aria-label="Payment screenshot"><i class="ti ti-paperclip"></i></button>' : '') + '</span><b class="num">' + rs(l.amt) + '</b></div>' +
+        '<div class="prow-2"><span>' + esc(['from ' + l.from, l.note || '', l.by ? 'by ' + l.by : ''].filter(Boolean).join(' · ')) + '</span></div></div></div>';
+    }).join('') : '<div class="empty">No capital withdrawals</div>') + '</div>';
+  openPanel(true);
+  el('cwBack').onclick = function () { renderAccounts(); };
+  acClipWire(function () { openCapWithdrawals(name); });
+}
 function openEquityHistory(name) {
   var q = AC.data.equity, p = q && q.partners.filter(function (x) { return x.name === name; })[0]; if (!p) return renderAccounts();
   el('panel').innerHTML = '<button class="btn mini" id="ehBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Accounts</button><h3>' + esc(name) + ' · ' + Math.round(p.pct) + '%</h3>' +
