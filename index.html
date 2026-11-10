@@ -8018,7 +8018,7 @@ function whDraw() {
   }
   if (can('inventory.count')) {
     h += '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>Goods to receive</b><span>' + d.goods.length + '</span></div>' + (d.goods.length ? d.goods.map(function (g, i) {
-      return whRow(esc(g.supplier), esc([g.expected ? 'expected ' + g.expected : '', g.lines.length + ' product' + (g.lines.length === 1 ? '' : 's')].filter(Boolean).join(' · ')), 'data-wg="' + i + '"', g.waiting ? '<span class="st" style="--c:var(--amber)">Waiting</span>' : '');
+      return whRow(esc(g.supplier), esc([g.expected ? 'expected ' + g.expected : '', g.lines.length + ' product' + (g.lines.length === 1 ? '' : 's')].filter(Boolean).join(' · ')), 'data-wg="' + i + '"', g.waiting ? '<span class="st" style="--c:var(--amber)">Sent · waiting for owner</span>' : '');
     }).join('') : '<div class="empty">No bilti expected</div>') + '</div>';
     if (d.mine.length) h += '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>My reports</b><span>' + d.mine.length + '</span></div>' + d.mine.map(function (x) {
       var c = ST[x.status.split(' ')[0]] || 'var(--line)';
@@ -8031,12 +8031,23 @@ function whDraw() {
   var at = function (a) { return el('panel').querySelectorAll('[' + a + ']'); };
   at('data-wa').forEach(function (r) { r.onclick = function () { whDecide(d.waiting.filter(function (x) { return x.id === r.getAttribute('data-wa'); })[0]); }; });
   at('data-wc').forEach(function (r) { r.onclick = function () { whLateCargo(d.cargoLater.filter(function (x) { return x.id === r.getAttribute('data-wc'); })[0]); }; });
-  at('data-wg').forEach(function (r) { r.onclick = function () { whArrived(d.goods[+r.getAttribute('data-wg')]); }; });
+  at('data-wg').forEach(function (r) { r.onclick = function () { var g = d.goods[+r.getAttribute('data-wg')]; return g.waiting ? whAlready(g) : whArrived(g); }; });
 }
 function whAfter(msg) { toast(msg); STK.at = 0; whLoad(whDraw); }
 // counted blind: what the order says is not shown
-function whArrived(g) {
-  el('panel').innerHTML = '<button class="btn mini" id="wgBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Warehouse</button><h3>Goods arrived</h3><p>' + esc(g.supplier) + ' · count what came</p>' +
+// this order's bilti is already with the owner (user 2026-11-10: entered twice by two people): say so; a second one only for a real second delivery
+function whAlready(g) {
+  var w = (g.waitingBy || [])[0] || {};
+  el('panel').innerHTML = '<button class="btn mini" id="waBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Warehouse</button><h3>Bilti already entered</h3><p>' + esc(g.supplier) + '</p>' +
+    '<div class="tk ok">' + esc((w.by || 'Someone') + (w.at ? ' entered it on ' + w.at : ' entered it')) + ' · it is with the owner to approve. Nothing more to do.</div>' +
+    '<small class="mnote" style="display:block;margin:10px 0">Only if more goods of this order came separately (a second delivery):</small>' +
+    '<button class="btn" id="waSecond" style="width:100%"><i class="ti ti-truck-delivery"></i>Second delivery · rest of the goods</button>';
+  openPanel(true);
+  el('waBack').onclick = whDraw;
+  el('waSecond').onclick = function () { whArrived(g, true); };
+}
+function whArrived(g, second) {
+  el('panel').innerHTML = '<button class="btn mini" id="wgBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Warehouse</button><h3>' + (second ? 'Second delivery' : 'Goods arrived') + '</h3><p>' + esc(g.supplier) + ' · count what came' + (second ? ' now (not the first bilti again)' : '') + '</p>' +
     '<div class="card">' + g.lines.map(function (l, k) { return '<div class="stk-in"><div><b style="font-size:13.5px">' + esc(l.name) + '</b><small>how many came</small></div><input type="text" inputmode="decimal" data-gq="' + k + '" placeholder="0"></div><div class="stk-in"><div><small>damaged</small></div><input type="text" inputmode="decimal" data-gr="' + k + '" placeholder="0"></div>'; }).join('') + '</div>' +
     photoField('wgPh', 'Add bilti photo') + '<div class="fld" style="margin-top:8px"><label>Note (optional)</label><input id="wgNote" autocomplete="off"></div><div class="err" id="wgErr"></div>' +
     '<button class="btn pri" id="wgGo" style="width:100%;padding:12px;margin-top:6px">Save · send to owner</button>';
@@ -8047,7 +8058,10 @@ function whArrived(g) {
     var v = function (a, k) { return Number(el('panel').querySelector('[' + a + '="' + k + '"]').value) || 0; };
     var lines = g.lines.map(function (l, k) { return { sku: l.sku, received: v('data-gq', k), rejected: v('data-gr', k) }; }).filter(function (x) { return x.received > 0; });
     if (!lines.length) { el('wgErr').textContent = 'Write how many arrived'; return; }
-    api('appGoodsArrived', [TOKEN, { po: g.po, lines: lines, photo: photo, note: el('wgNote').value }], function () { whAfter('Sent to the owner'); }, function (e) { el('wgErr').textContent = (e && e.message) || 'Not saved'; });
+    api('appGoodsArrived', [TOKEN, { po: g.po, lines: lines, photo: photo, note: el('wgNote').value, second: !!second }], function () { whAfter('Sent to the owner'); }, function (e) {
+      var m = String((e && e.message) || 'Not saved').split('|');
+      el('wgErr').textContent = m[0] === 'BILTI_WAITING' ? 'Already entered by ' + m[1] + (m[2] ? ' on ' + m[2] : '') + ' · it is with the owner. Nothing more to do.' : m[0];
+    });
   };
 }
 function whPhotoBtn(x) { return x.photo ? '<button class="btn" id="wdPh" type="button" style="width:100%;margin:0 0 10px"><i class="ti ti-photo"></i>View photo</button>' : ''; }
@@ -8071,6 +8085,7 @@ function whDecide(x) {
     return;
   }
   el('panel').innerHTML = '<button class="btn mini" id="wdBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Warehouse</button><h3>Bilti · ' + esc(x.supplier) + '</h3><p>' + esc([x.po, x.by, x.at].join(' · ')) + '</p>' +
+    ((x.same || []).length ? '<div class="tk" style="margin-bottom:10px"><b>Another bilti of this order is also waiting</b> · ' + x.same.map(function (s) { return esc(s.by + ' · ' + s.at + ' · ' + s.lines.map(function (l) { return l.received + ' ' + l.name; }).join(', ')); }).join('<br>') + '<br>Same goods entered twice? Approve one and reject the other.</div>' : '') +
     '<div class="card">' + x.lines.map(function (l, k) {
       var off = l.received !== l.left;
       return '<div class="stk-in"><div><b style="font-size:13.5px">' + esc(l.name) + '</b><small' + (off ? ' style="color:var(--red)"' : '') + '>to come ' + l.left + ' · arrived ' + l.received + (l.rejected ? ' · damaged ' + l.rejected : '') + '</small></div><input type="text" inputmode="decimal" data-dq="' + k + '" value="' + Math.min(l.received, l.left) + '"></div>';
