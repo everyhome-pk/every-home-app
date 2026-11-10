@@ -4366,7 +4366,7 @@ function renderCash() {
       return '<div class="prow in" data-bt="' + x.i + '" style="--c:' + st[1] + '"><span class="prow-d"></span><div class="prow-m">' +
         '<div class="prow-1"><b>' + esc(b.courier) + ' · ' + esc(b.ref) + '</b><span class="num">' + rs(b.net) + '</span></div>' +
         '<div class="prow-2"><span>' + [esc(b.date), b.parcels + ' parcels', b.bank != null ? 'bank ' + rs(b.bank) : ''].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + st[1] + '">' + esc(st[0]) + '</span></div></div>' +
-        (b.transferred && k !== 4 ? '<button class="btn prow-btn" data-bank="' + x.i + '">' + (b.bank == null ? '<i class="ti ti-building-bank"></i>Record' : 'Edit') + '</button>' : '') + '</div>';
+        (k !== 4 ? '<button class="btn prow-btn" data-bank="' + x.i + '">' + (b.bank == null ? '<i class="ti ti-building-bank"></i>Record' : 'Edit') + '</button>' : '') + '</div>';
     }).join('') + (shown.length > (C.blim || 5) ? '<button class="btn more" id="bmore">See all ' + shown.length + ' payments</button>' : '') : '<div class="empty">No payments here</div>') + '</div>';
   h += '<div class="card" id="cparcels"></div>';
   el('cview').innerHTML = h;
@@ -4626,7 +4626,8 @@ function openBatchReceipt(i) {
     (ps.length ? '<div class="pday"><span>PARCELS</span><span class="num">' + ps.length + '</span></div><div class="plist-box">' + ps.map(function (p) {
       return '<div class="prow" data-brc="' + esc(p.cn) + '" style="--c:' + (p.returned ? 'var(--red)' : 'var(--green)') + '"><span class="prow-d"></span><div class="prow-m"><div class="prow-1"><b>' + esc(p.order) + (p.returned ? ' · returned' : '') + '</b><span class="num">' + rs(p.net) + '</span></div>' + chargeLine(p) + '</div></div>';
     }).join('') + '</div>' : '') +
-    '<div class="btns" style="margin-top:12px"><button class="btn" id="brClose">Close</button>' + (x.transferred && (x.net > 0 || x.bank != null) && can('cash.edit') ? '<button class="btn pri" id="brRec"><i class="ti ti-building-bank"></i>' + (x.bank == null ? 'Record' : 'Edit') + '</button>' : '') + '</div>';
+    '<div class="btns" style="margin-top:12px"><button class="btn" id="brClose">Close</button>' + ((x.net > 0 || x.bank != null) && can('cash.edit') ? // also an invoice the courier never sent: its money may have come another way (user 2026-11-10: paid to Kashif in cash)
+       '<button class="btn pri" id="brRec"><i class="ti ti-building-bank"></i>' + (x.bank == null ? 'Record' : 'Edit') + '</button>' : '') + '</div>';
   openPanel();
   el('brClose').onclick = closePanel;
   if (el('brUp')) {
@@ -7173,6 +7174,12 @@ function drawAlerts() {
       if (q('pur')) { purReload(function () { openPurchase(q('pur')); }); return; }
       if (q('ads')) { openAds(3); return; }
       if (q('team')) { openTeam(); return; }
+      // the same screens a push opens at start (user 2026-11-10: a bilti notification did nothing from the 🔔 list)
+      if (q('wh')) { openWarehouse(); return; }
+      if (q('pack')) { openPacking(); return; }
+      if (q('remind')) { closePanel(); showTab('ndr'); openSheetRemind(q('remind')); return; }
+      if (q('stock') === 'count') { openStock(''); setTimeout(function () { if (STK.data) openStockCount(true); }, 1200); return; }
+      if (q('stock') === 'link') { openStockLink(); return; }
       if (q('stock')) { openStock(q('stock')); return; }
       var tab = (String(a.url).match(/tab=(\w+)/) || [])[1];
       closePanel(); if (tab && TABS[tab]) showTab(tab);
