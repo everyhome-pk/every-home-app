@@ -4655,9 +4655,18 @@ function openRecord(i, back) {
   var x = C.data.batches[i];
   el('panel').innerHTML = '<h3>' + esc(x.courier) + ' · ' + esc(x.ref) + '</h3><p>' + esc(x.date) + ' · expected ' + rs(x.net) + '</p>' +
     '<label class="mini-l" for="bAmt">Received in bank</label><div class="inrow"><span class="pre">Rs</span><input id="bAmt" name="bank-amount" type="text" inputmode="decimal" enterkeyhint="done" autocomplete="off" data-lpignore="true" data-1p-ignore value="' + (x.bank == null ? '' : x.bank) + '" placeholder="' + Math.round(x.net) + '">' +
-    '<button class="btn pri" id="bSave">Save</button></div><div class="err" id="bErr"></div>';
+    '<button class="btn pri" id="bSave">Save</button></div><div class="err" id="bErr"></div>' +
+    // a bank amount recorded by mistake (user 2026-11-10): empty it again
+    (x.bank != null ? '<button class="btn" type="button" id="bClear" style="width:100%;margin-top:10px;color:var(--red)"><i class="ti ti-eraser"></i>Recorded by mistake · clear it</button>' +
+      '<small class="mnote" style="display:block;margin-top:6px">' + (x.net <= 0 ? 'Charges only: nothing came in. Clearing also removes it from Finance.' : 'Finance goes back to the amount ' + esc(x.courier) + ' gives (' + rs(x.net) + ') until the bank amount is recorded.') + '</small>' : '');
   openPanel();
   if (back) SHEET_BACK = back;
+  if (el('bClear')) el('bClear').onclick = function () {
+    var b = el('bClear'); if (!b.dataset.sure) { b.dataset.sure = '1'; b.innerHTML = '<i class="ti ti-alert-triangle"></i>Tap again to clear ' + rs(x.bank); return; }
+    api('saveAppBankReceived', [{ token: TOKEN, courier: x.courier, ref: x.ref, clear: true }], function () {
+      x.bank = null; x.matched = ''; C.mem = {}; closePanel(); toast('Cleared · ' + x.courier + ' ' + x.ref); renderCash();
+    }, function (er) { el('bErr').textContent = (er && er.message) || 'Not cleared'; });
+  };
   var save = function () {
     var v = el('bAmt').value.replace(/[^0-9.]/g, '');
     if (v === '') { el('bErr').textContent = 'Enter the amount'; return; }
@@ -6298,6 +6307,9 @@ function renderAccounts() {
     '<div class="bk-sec">Profit distributions<span>' + esc(fnMonthName(d.month).slice(0, 3)) + ' · this year</span></div><div class="bk-list">' +
     (pk.length ? pk.map(function (k) { var p = d.drawn[k]; return row({ icon: initials(k), tone: 'av', t: esc(k), v: rs(p.month), v2: rs(p.year) + ' this year' }); }).join('')
       : '<div class="empty">No distributions yet</div>') + '</div>' +
+    // capital given back to a partner: not profit (user 2026-11-10)
+    (Object.keys(d.capBack || {}).length ? '<div class="bk-sec">Capital withdrawals<span>' + esc(fnMonthName(d.month).slice(0, 3)) + ' · this year</span></div><div class="bk-list">' +
+      Object.keys(d.capBack).map(function (k) { var p = d.capBack[k]; return row({ icon: initials(k), tone: 'av', t: esc(k), s: rs(p.all) + ' in all', v: rs(p.month), v2: rs(p.year) + ' this year' }); }).join('') + '</div>' : '') +
     (dl || tops.length ? '<details class="bk-fold"><summary>Meta ad dollars<span class="num">' + (left != null ? '$' + left.toLocaleString('en-US') + ' left' : '') + '</span></summary>' +
       (tops.length ? '<div class="acx-row"><span>Funded this month<small>' + esc(tops.join(', ')) + '</small></span><b class="num">' + rs(tops.reduce(function (p, k) { return p + d.topups[k]; }, 0)) + '</b></div>' : '') +
       acDollars(dl) + '</details>' : '') +
