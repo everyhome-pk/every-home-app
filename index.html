@@ -3891,7 +3891,7 @@ var SHEET_TABS = [['deliver', 'Reattempt'], ['return', 'Mark for Return'], ['cla
 function sheetTabOf(type) { return type === 'return' ? 'return' : type === 'claim' || type === 'retlate' ? 'claim' : 'deliver'; }
 // the courier page counts each kind on its own (user 2026-11-14: the Trax message said 9 reattempts for 4: late and status
 // checks were counted with them, as on the old sheet's Reattempt tab)
-var PAGE_KINDS = [['reattempt', 'Reattempt'], ['late', 'Late Delivery'], ['check', 'Status Check'], ['return', 'Mark for Return'], ['claim', 'Return Claim'], ['retlate', 'Late Return']];
+var PAGE_KINDS = [['reattempt', 'Reattempt Delivery'], ['late', 'Delayed Delivery'], ['check', 'Status Inquiry'], ['return', 'Return to Origin'], ['claim', 'Return Claim'], ['retlate', 'Delayed Return']];
 function msgTabs(name) { return shW(name) === 'page' ? PAGE_KINDS : SHEET_TABS; }
 function msgKey(name, type) { return shW(name) !== 'page' ? sheetTabOf(type) : PAGE_KINDS.some(function (k) { return k[0] === type; }) ? type : 'reattempt'; }
 function sheetCounts(name, reminder, extra) {

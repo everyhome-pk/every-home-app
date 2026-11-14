@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#00857A">
-<title>Courier queries</title>
+<title>Shipment Queries</title>
 <link rel="icon" href="ordi-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
@@ -26,7 +26,9 @@ button{cursor:pointer}[hidden]{display:none!important}svg{flex:none}
 .wrap{padding:12px 20px 20px;max-width:1500px;margin:0 auto}
 .cards{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-bottom:10px}
 .kc{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px;text-align:left;display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:8px}
-.kc.on{border-color:var(--brand);box-shadow:0 0 0 2px var(--soft)}.kc.none{opacity:.55}
+.kc.on{border-color:var(--ka,var(--brand));box-shadow:0 0 0 2px var(--kb,var(--soft));background:var(--kb,var(--soft))}
+.kchip{margin-left:auto;height:28px;padding:0 10px;border:1px solid var(--brand);border-radius:99px;background:var(--soft);color:var(--brand-d);font:600 12px Inter,sans-serif;cursor:pointer}
+@keyframes fl{0%{background:#FEF3C7}100%{background:transparent}}.tr.flash{animation:fl 1.4s ease-out}.kc.none{opacity:.55}
 .kc .l{font-size:13px;font-weight:600;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kc .n{grid-row:1/3;grid-column:2;display:flex;align-items:baseline;gap:4px}
 .kc .n b{font-size:20px;font-weight:600;line-height:1.1}.kc .n span{font-size:12px;color:var(--muted)}.kc .s{font-size:11.5px;color:var(--muted)}
 .c-bad b,.c-warn b{color:var(--ink)}.c-ok b{color:var(--ink2)}.c-none b{color:var(--faint)}
@@ -37,12 +39,11 @@ button{cursor:pointer}[hidden]{display:none!important}svg{flex:none}
 .tools input{width:220px;max-width:100%}.tools select{width:170px;max-width:45%}.tools #sort{width:130px}.tools .hint{font-size:12.5px;color:var(--muted);margin-left:auto}
 .fl{display:flex;gap:6px;flex-wrap:wrap}.fl button{height:30px;padding:0 12px;border-radius:99px;border:1px solid var(--line);background:var(--card);font-size:12.5px;font-weight:500;color:var(--muted)}
 .fl button.on{border-color:var(--ink);color:var(--ink)}
-.th,.tr{display:grid;grid-template-columns:140px 130px 130px minmax(0,1.3fr) minmax(0,1fr) 84px 72px 110px;align-items:center}
+.th,.tr{display:grid;grid-template-columns:190px 140px minmax(0,1.6fr) minmax(0,1fr) 80px 110px;align-items:center}.cn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .c-rem,.c-now{font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.c-now small{color:var(--muted)}.nsr{display:block;font-size:11px;font-weight:500;font-style:italic;color:var(--muted);line-height:1.2}.c-sent{font-size:12.5px;color:var(--muted)}
-.ulta{margin:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);box-shadow:inset 3px 0 0 #DC2626;background:var(--head)}
-.ulta-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding:8px 14px}.ulta-h b{font-size:13px}.ulta-h small{font-size:12px;color:var(--muted)}
-.ulta-th,.ulta-r{display:grid;grid-template-columns:140px 120px 150px minmax(0,1fr) minmax(0,1fr);align-items:center;padding:0 14px}
-.ulta-th{font-size:11px;font-weight:600;color:var(--muted);padding-bottom:4px}.ulta-r{min-height:32px;border-top:1px solid var(--line2);font-size:12.5px;cursor:pointer;background:var(--card)}
+.ulta-more{margin-left:auto;border:0;background:none;font:600 12.5px Inter,sans-serif;color:var(--brand-d);cursor:pointer;padding:0}
+.ulta-th,.ulta-r{display:grid;grid-template-columns:190px 140px minmax(0,1.6fr) minmax(0,1fr);align-items:center;padding:0 14px}
+.ulta-th{font-size:11.5px;font-weight:600;color:var(--ink2);min-height:28px;background:var(--kh);border-bottom:1px solid var(--line)}.ulta-r{min-height:32px;border-top:1px solid var(--line2);font-size:12.5px;cursor:pointer;background:var(--card)}
 .ulta-r>div{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:8px}.ulta-r small{color:var(--muted)}.ulta-r:hover{background:var(--head)}
 @media (max-width:900px){.ulta-th{display:none}.ulta-r{grid-template-columns:1fr;padding:6px 12px;row-gap:1px}.ulta-r>div{white-space:normal}}
 .bk{margin:0 6px 0 0;vertical-align:-2px;cursor:pointer}.bulk{margin-left:auto;display:flex;align-items:center;gap:6px}.btn.sm{height:28px;font-size:12px;padding:0 10px;flex:none}
@@ -67,8 +68,19 @@ body.mdl-on{overflow:hidden}.mdl-bg{position:fixed;inset:0;background:rgba(15,23
 .pend.a{color:var(--ink);font-weight:600}.pend.r{color:var(--ink);font-weight:700}
 .rp{display:inline-block;min-width:84px;text-align:center;font-size:12.5px;font-weight:600;border-radius:6px;padding:4px 0;border:1px solid #99D5CC;background:var(--card);color:var(--brand-d)}
 .tr.sel .rp{background:var(--brand);border-color:var(--brand);color:#fff}.done-a{font-size:12.5px;color:var(--ok);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
-.sh{display:flex;align-items:center;gap:8px;padding:7px 14px;background:var(--head);border-bottom:1px solid var(--line);border-top:1px solid var(--line);font-size:13px}
-.sh:first-of-type{border-top:0}.sh b{font-weight:600}.sh small{font-size:12.5px;color:var(--muted)}.dot{width:8px;height:8px;border-radius:99px;flex:none}
+.sh{display:flex;align-items:baseline;gap:10px;padding:8px 14px 8px 16px;background:var(--kb,var(--head));font-size:13px}
+.sh b{font-weight:600;color:var(--ka,var(--ink))}
+/* each kind its own table (user 2026-11-14, board 5B): coloured band, its own column row, a 4 px strip on the left, 16 px between tables */
+.qtools{margin-bottom:16px}.qtools .tools{border-bottom:0}
+.qs{position:relative;background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:16px}
+.qs::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--ka,var(--line));z-index:1}
+.qs .th{background:var(--kh,var(--head));color:var(--ink2);border-top:1px solid var(--line)}.qs .tr:last-child{border-bottom:0}
+.kc .n{flex-direction:column;align-items:flex-end;gap:0!important;line-height:1.1}.kc .n span{font-size:10.5px!important}
+.kc .l::before{content:'';display:inline-block;width:8px;height:8px;border-radius:99px;background:var(--ka,var(--faint));margin-right:7px;vertical-align:1px}
+.k-reattempt{--kb:#E3F2EF;--kh:#F1F8F6;--ka:#0F766E}.k-ulta{--kb:#FCE8E8;--kh:#FDF3F3;--ka:#B91C1C}.k-late{--kb:#FBF0D9;--kh:#FDF7EB;--ka:#A1520A}
+.k-check{--kb:#E5EEFA;--kh:#F2F6FC;--ka:#1D4ED8}.k-return{--kb:#EEE8F8;--kh:#F6F3FB;--ka:#6D28D9}.k-claim{--kb:#F8E6EE;--kh:#FCF2F6;--ka:#BE185D}.k-retlate{--kb:#E8ECF1;--kh:#F3F5F8;--ka:#475569}
+@media (prefers-color-scheme:dark){.k-reattempt{--kb:#10302C;--kh:#0F1F22;--ka:#3FD0B4}.k-ulta{--kb:#3A1818;--kh:#24141A;--ka:#F87171}.k-late{--kb:#33270F;--kh:#211C14;--ka:#FBBF24}
+.k-check{--kb:#14264A;--kh:#111B30;--ka:#60A5FA}.k-return{--kb:#2A1E48;--kh:#1A1630;--ka:#A78BFA}.k-claim{--kb:#3A1528;--kh:#24131D;--ka:#F472B6}.k-retlate{--kb:#1E2633;--kh:#151C28;--ka:#94A3B8}}.sh small{font-size:12.5px;color:var(--muted)}.dot{width:8px;height:8px;border-radius:99px;flex:none}
 .more{width:100%;height:38px;display:flex;align-items:center;gap:8px;padding:0 14px;border:0;border-bottom:1px solid var(--line2);background:var(--head);font-size:13px;font-weight:500;color:var(--muted);text-align:left}
 .more .ck{width:20px;height:20px;border-radius:99px;background:var(--okbg);color:var(--ok);display:flex;align-items:center;justify-content:center}.more em{font-style:normal;color:var(--brand-d);font-weight:600}
 .empty{padding:40px 16px;text-align:center;color:var(--muted)}
@@ -135,7 +147,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   .main{gap:10px}.box{border-radius:8px}
   .tools{padding:6px 10px;gap:6px}.tools input,.tools select{height:28px;font-size:12.5px;padding:0 8px;border-radius:6px}.tools input{width:200px}.tools select{width:150px}
   .fl button{height:24px;padding:0 9px;font-size:11.5px}
-  .th,.tr{grid-template-columns:124px 116px 120px minmax(0,1.3fr) minmax(0,1fr) 74px 62px 96px}.c-rem,.c-now,.c-sent{font-size:12px}
+  .th,.tr{grid-template-columns:176px 130px minmax(0,1.6fr) minmax(0,1fr) 70px 96px}.c-rem,.c-now{font-size:12.5px}.tr{min-height:34px}
   .th{font-size:11px}.th div{padding:5px 6px}.th div:first-child{padding-left:10px}
   .tr{min-height:30px}.tr>div{padding:0 6px}.tr>div:first-child{padding-left:10px}
   .cn{font-size:12px}.city,.note{font-size:12.5px}.again,.upd-t{font-size:10px;padding:0 5px}
@@ -162,9 +174,9 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
 <body>
 <header class="top">
   <div class="logo" id="logo">··</div>
-  <div class="ttl"><b id="ttl">Courier queries</b><small id="sub"></small></div>
+  <div class="ttl"><b id="ttl">Shipment Queries</b><small id="sub"></small></div>
   <div class="sp"></div>
-  <div class="seg" id="seg" hidden><button data-view="q" class="on">Queries</button><button data-view="f">Finished</button><button data-view="p">Performance</button></div>
+  <div class="seg" id="seg" hidden><button data-view="q" class="on">Open</button><button data-view="f">Resolved</button><button data-view="p">Performance</button></div>
   <div class="vr"></div>
   <div class="upd" id="upd"></div>
   <button class="rf" id="rf" aria-label="Refresh"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 5v6h-6"/></svg></button>
@@ -215,8 +227,8 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   function find(id) { return D.open.filter(function (x) { return x.id === id; })[0] || D.done.filter(function (x) { return x.id === id; })[0]; }
   function head() {
     $('logo').textContent = D.store.split(/\s+/).map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
-    $('ttl').textContent = D.courier + ' queries'; $('sub').textContent = 'from ' + D.store; $('upd').textContent = 'Updated ' + D.at;
-    document.title = D.courier + ' queries · ' + D.store; $('seg').hidden = false;
+    $('ttl').textContent = D.courier + ' · Shipment Queries'; $('sub').textContent = 'Requests from ' + D.store; $('upd').textContent = 'Updated ' + D.at;
+    document.title = D.courier + ' · Shipment Queries · ' + D.store; $('seg').hidden = false;
     Array.prototype.forEach.call($('seg').children, function (b) { b.classList.toggle('on', b.dataset.view === VIEW); });
   }
   function render() { if (!D) return; head(); if (VIEW === 'q') renderQ(); else if (VIEW === 'f') renderF(); else renderP(); }
@@ -225,7 +237,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   // Main list full width (user 2026-11-14): the reply opens in a wide pop-up; the list shows what helps decide without
   // opening: customer remarks, where the parcel is now, when it was sent. "Needs answer" hides answered lines; Mark for
   // Return lines can be ticked and answered together.
-  var ALL = ls('cp_all') === '1', BULK = {}, ORDER = [];
+  var ALL = ls('cp_all') === '1', BULK = {}, ORDER = [], KIND = '', FLASH = false;
   // the courier's last scan (user 2026-11-14: every line said "Attempt failed · date"): with its reason, how long ago, and
   // a red "no scan since our request" when nothing moved after we sent it
   function ago(ms) { var h = Math.floor((Date.now() - ms) / 3600000); return h < 1 ? 'just now' : h < 48 ? h + ' h ago' : Math.floor(h / 24) + ' days ago'; }
@@ -235,14 +247,15 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     var p = t.what.split(' · '), what = p[0] + (p[1] ? ' · ' + p[1].replace(/^delivery\s+/i, '').slice(0, 26) : '');
     return [what, t.ms ? ago(t.ms) : t.when.replace(/,.*$/, ''), !!(t.ms && x.sentMs && t.ms < x.sentMs)];
   }
+  var TH = '<div class="th"><div>Tracking ID</div><div>City</div><div class="c-rem">Customer Remarks</div><div class="c-now">Current Status</div><div>Ageing</div><div></div></div>';
   function shortDay(s) { return String(s || '').replace(/,.*$/, ''); }
   function renderQ() {
     var cards = D.kinds.map(function (k) {
       var all = D.open.filter(function (x) { return x.kind === k.key; }), left = all.filter(function (x) { return !answered(x); }).length, tot = all.length;
       var st = !tot ? 'none' : !left ? 'ok' : left >= 3 ? 'bad' : 'warn';
-      return '<button class="kc' + (st === 'none' ? ' none' : '') + '" data-jump="' + k.key + '"><div class="l">' + esc(k.label) + '</div>' +
-        '<div class="n c-' + st + '"><b>' + (st === 'ok' ? '✓' : left) + '</b><span>' + (st === 'ok' ? 'all done' : st === 'none' ? '' : 'left') + '</span></div>' +
-        '<div class="s">' + (tot ? (tot - left) + ' of ' + tot + ' done' : 'nothing today') + '</div></button>';
+      return '<button class="kc k-' + k.key + (st === 'none' ? ' none' : '') + (KIND === k.key ? ' on' : '') + '" data-jump="' + k.key + '" aria-pressed="' + (KIND === k.key) + '"><div class="l">' + esc(k.label) + '</div>' +
+        '<div class="n c-' + st + '"><b>' + (st === 'ok' ? '✓' : left) + '</b><span>' + (st === 'ok' ? 'completed' : st === 'none' ? '' : 'pending') + '</span></div>' +
+        '<div class="s">' + (tot ? (tot - left) + ' of ' + tot + ' completed' : 'none open') + '</div></button>';
     }).join('');
     // sort (user 2026-11-14): oldest first (2nd time first, then the longest waiting) or by city
     var list = D.open.filter(function (x) { return match(x, Q, CITY); }).slice().sort(SORT === 'city'
@@ -251,58 +264,67 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     ORDER = [];
     var nSel = Object.keys(BULK).filter(function (id) { var x = find(id); return x && !answered(x); }).length;
     // reattempts the office returned anyway (user 2026-11-14), right under the Reattempt section, before the other kinds
-    var ulta = ultaBlock(), placed = false;
+    var ulta = !KIND || KIND === 'reattempt' ? ultaBlock() : '', placed = false;
     D.kinds.forEach(function (k) {
+      if (KIND && k.key !== KIND) return;
       if (k.key !== 'reattempt' && !placed) { body += ulta; placed = true; }
-      var all = list.filter(function (x) { return x.kind === k.key; }); if (!all.length) return;
+      var all = list.filter(function (x) { return x.kind === k.key; });
+      if (!all.length) { if (KIND) body += '<section class="qs k-' + k.key + '"><div class="empty">No open ' + esc(k.label) + ' requests.</div></section>'; return; }
       var todo = all.filter(function (x) { return !answered(x); }), did = all.filter(answered), shown = ALL ? todo.concat(did) : todo;
-      if (!shown.length && !ALL) { body += '<div class="sh" id="sec_' + k.key + '"><span class="dot" style="background:#16A34A"></span><b>' + esc(k.label) + '</b><small>all ' + did.length + ' answered ✓</small></div>'; return; }
+      if (!shown.length && !ALL) { body += '<section class="qs k-' + k.key + '" id="sec_' + k.key + '"><div class="sh"><b>' + esc(k.label) + '</b><small>All ' + did.length + ' responded ✓</small></div></section>'; return; }
       var bulk = k.key === 'return' && todo.length > 1;
-      body += '<div class="sh" id="sec_' + k.key + '"><span class="dot" style="background:' + (todo.length ? 'var(--ink2)' : 'var(--faint)') + '"></span><b>' + esc(k.label) + '</b><small>' +
-        (todo.length ? todo.length + ' left' + (did.length ? ' · ' + did.length + ' answered' : '') : 'all answered ✓') + '</small>' +
-        (bulk ? '<span class="bulk">' + (nSel ? '<button class="btn pri sm" data-bulkgo="1">Selected ' + nSel + ' · ' + esc(kindOf('return').answers[0]) + '</button>' : '<small>Tick lines to answer them together</small>') + '</span>' : '') + '</div>';
+      body += '<section class="qs k-' + k.key + '" id="sec_' + k.key + '"><div class="sh"><b>' + esc(k.label) + '</b><small>' +
+        (todo.length ? todo.length + ' pending' + (did.length ? ' · ' + did.length + ' responded' : '') : 'All responded ✓') + '</small>' +
+        (bulk ? '<span class="bulk">' + (nSel ? '<button class="btn pri sm" data-bulkgo="1">Selected ' + nSel + ' · ' + esc(kindOf('return').answers[0]) + '</button>' : '<small>Select shipments to update in bulk</small>') + '</span>' : '') + '</div>';
       shown.forEach(function (x) { ORDER.push(x.id); });
-      body += shown.map(function (x) { return row(x, bulk && !answered(x)); }).join('');
+      body += (k.key === 'claim' ? TH.replace('Customer Remarks', 'Claim') : TH) + shown.map(function (x) { return row(x, bulk && !answered(x)); }).join('') + '</section>';
     });
     if (!placed) body += ulta;
-    var html = '<div class="cards">' + cards + '</div><div class="box"><div class="tools"><input id="q" type="search" placeholder="Search tracking ID" value="' + esc(Q) + '"><select id="city">' + cityOpts(D.open, CITY) + '</select>' +
+    var html = '<div class="cards">' + cards + '</div><div class="box qtools"><div class="tools"><input id="q" type="search" placeholder="Search tracking ID" value="' + esc(Q) + '"><select id="city">' + cityOpts(D.open, CITY) + '</select>' +
       '<select id="sort" aria-label="Sort"><option value="old"' + (SORT === 'old' ? ' selected' : '') + '>Oldest first</option><option value="city"' + (SORT === 'city' ? ' selected' : '') + '>City A–Z</option></select>' +
-      '<div class="fl"><button class="' + (ALL ? '' : 'on') + '" data-all="0">Needs answer</button><button class="' + (ALL ? 'on' : '') + '" data-all="1">All</button></div></div>' +
-      '<div class="th"><div>Tracking ID</div><div>City</div><div>Note</div><div class="c-rem">Customer remarks</div><div class="c-now">Latest status</div><div class="c-sent">Sent</div><div>Pending</div><div>Your answer</div></div>' +
-      (body || '<div class="empty">' + (D.open.length ? 'Nothing matches the search.' : 'No open queries. Shukriya!') + '</div>') + '</div>' + popup(true);
+      '<div class="fl"><button class="' + (ALL ? '' : 'on') + '" data-all="0">Awaiting Response</button><button class="' + (ALL ? 'on' : '') + '" data-all="1">All</button></div>' +
+      (KIND ? '<button class="kchip" data-jump="' + KIND + '">Filter: ' + esc(kindOf(KIND).label) + ' <span aria-hidden="true">✕</span></button>' : '') + '</div></div>' +
+      (body || '<section class="qs"><div class="empty">' + (D.open.length ? 'Nothing matches the search.' : 'All queries resolved. Thank you!') + '</div></section>') + popup(true);
     $('wrap').innerHTML = html; wireQ();
+    if (FLASH) { FLASH = false; var box = document.querySelector('.qs'); if (box) { box.scrollIntoView({ behavior: 'smooth', block: 'start' }); var first = box.querySelector('.tr'); if (first) { first.classList.add('flash'); setTimeout(function () { first.classList.remove('flash'); }, 1400); } } }
   }
   // "Returned instead of delivering": the last 7 days' reattempts the office returned, with what we asked, what their team
   // said and what the office did — so the courier's seniors see it at once (read only; tap = the parcel's whole story)
   function ultaBlock() {
     var from = (function () { var t = new Date(D.today + 'T00:00:00'); t.setDate(t.getDate() - 7); return t.toISOString().slice(0, 10); })();
-    var xs = D.done.filter(function (x) { return x.cat === 'ulta' && x.day >= from && match(x, Q, CITY); });
+    var ev = function (x) { return (x.history || []).filter(function (h) { return /^Tracking/.test(h.who || '') && /return/i.test(h.what); }).slice(-1)[0]; };
+    var xs = D.done.filter(function (x) { return x.cat === 'ulta' && x.day >= from && match(x, Q, CITY); })
+      .sort(function (a, b) { return ((ev(b) || {}).ms || 0) - ((ev(a) || {}).ms || 0); });
     if (!xs.length) return '';
-    var did = function (x) { var e = (x.history || []).filter(function (h) { return /^Tracking/.test(h.who || '') && /return/i.test(h.what); }).slice(-1)[0]; return e ? e.what.replace(/s·s.*$/, '') + ' · ' + e.when.replace(/,.*$/, '') : 'Return started' + (x.closedAt ? ' · ' + x.closedAt : ''); };
-    return '<div class="ulta"><div class="ulta-h"><b>Returned instead of delivering · ' + xs.length + '</b><small>We asked for a reattempt' + (xs.some(function (x) { return x.status || x.reply; }) ? ', your team updated it,' : '') + ' but the office returned the parcel.</small></div>' +
-      '<div class="ulta-th"><div>Tracking ID</div><div>City</div><div>We asked</div><div>Your team said</div><div>Office did</div></div>' +
-      xs.map(function (x) {
-        return '<div class="ulta-r" data-open="' + esc(x.id) + '"><div class="cn">' + esc(x.cn) + '</div><div class="city" title="' + esc(x.city) + '">' + esc(x.city) + '</div>' +
-          '<div>' + esc(kindOf(x.kind).label) + ' · ' + esc(shortDay(x.sentAt)) + '</div>' +
-          '<div>' + (x.status || x.reply ? esc([x.status, x.reply].filter(Boolean).join(' · ')) + ' <small>' + esc([x.by, shortDay(x.at)].filter(Boolean).join(' · ')) + '</small>' : '<small>no answer</small>') + '</div>' +
-          '<div><b>' + esc(did(x)) + '</b></div></div>';
-      }).join('') + '</div>';
+    var did = function (x) { var e = ev(x); return e ? e.what.replace(/\s·\s.*$/, '') + ' · ' + e.when.replace(/,.*$/, '') : 'Return started' + (x.closedAt ? ' · ' + x.closedAt : ''); };
+    // yesterday's and today's returns stay open (user 2026-11-14); the older ones (up to 7 days) behind Show
+    var y = new Date(D.today + 'T00:00:00'); y.setDate(y.getDate() - 1);
+    var recent = xs.filter(function (x) { var e = ev(x); return e && e.ms && e.ms >= y.getTime(); }), older = xs.filter(function (x) { return recent.indexOf(x) === -1; });
+    var open = ls('cp_ulta') === '1';
+    var line = function (x) {
+      return '<div class="ulta-r" data-open="' + esc(x.id) + '"><div class="cn">' + esc(x.cn) + '</div><div class="city" title="' + esc(x.city) + '">' + esc(x.city) + '</div>' +
+        '<div>' + (x.status || x.reply ? esc(x.status || x.reply) + ' <small>· ' + esc(shortDay(x.at)) + '</small>' : '<small>No response</small>') + '</div>' +
+        '<div>' + esc(did(x)) + '</div></div>';
+    };
+    var shown = recent.concat(open ? older : []);
+    return '<section class="qs k-ulta"><div class="sh"><b>Returned Despite Reattempt Request · ' + (recent.length ? recent.length + ' since yesterday' : xs.length) + '</b><small>Reattempt was requested; the branch returned the shipment</small>' +
+      (older.length ? '<button class="ulta-more" data-ulta="1">' + (open ? 'Hide earlier' : 'Show ' + older.length + ' earlier') + '</button>' : '') + '</div>' +
+      (shown.length ? '<div class="ulta-th"><div>Tracking ID</div><div>City</div><div>Your Team&rsquo;s Response</div><div>Branch Action</div></div>' + shown.map(line).join('') : '') + '</section>';
   }
   function row(x, tick) {
     var nw = nowOf(x);
     return '<div class="tr' + (x.id === SEL ? ' sel' : '') + (answered(x) ? ' ans' : '') + '" data-open="' + esc(x.id) + '">' +
-      '<div class="cn">' + (tick ? '<input type="checkbox" class="bk" data-bk="' + esc(x.id) + '"' + (BULK[x.id] ? ' checked' : '') + ' aria-label="Select ' + esc(x.cn) + '">' : '') + esc(x.cn) + '<span class="mcity">' + esc(x.city) + '</span></div>' +
+      '<div class="cn">' + (tick ? '<input type="checkbox" class="bk" data-bk="' + esc(x.id) + '"' + (BULK[x.id] ? ' checked' : '') + ' aria-label="Select ' + esc(x.cn) + '">' : '') + esc(x.cn) +
+        (x.again ? ' <i class="again">' + esc(x.again.replace(' request', '')) + '</i>' : '') + (x.updated && !answered(x) ? ' <i class="upd-t">Revised</i>' : '') + '<span class="mcity">' + esc(x.city) + '</span></div>' +
       '<div class="city c-city" title="' + esc(x.city) + '">' + esc(x.city) + '</div>' +
-      '<div class="note c-note">' + (x.again ? '<i class="again">' + esc(x.again) + '</i>' : '') + (x.updated && !answered(x) ? '<i class="upd-t">Updated</i>' : '') + '<span>' + esc(x.note) + '</span></div>' +
-      '<div class="c-rem" title="' + esc(x.says) + '">' + esc(x.says) + '</div>' +
-      '<div class="c-now" title="' + (nw ? esc(nw[0] + ' · ' + nw[1]) : '') + '">' + (nw ? esc(nw[0]) + ' <small>· ' + esc(nw[1]) + '</small>' + (nw[2] && !answered(x) ? '<b class="nsr">no update since our request</b>' : '') : '') + '</div>' +
-      '<div class="c-sent">' + esc(shortDay(x.sentAt)) + '</div>' +
+      '<div class="c-rem" title="' + esc([x.note, x.says].filter(Boolean).join(' · ')) + '">' + (x.note ? '<b>' + esc(x.note) + '</b>' + (x.says ? ' · ' : '') : '') + esc(x.says) + '</div>' +
+      '<div class="c-now" title="' + (nw ? esc(nw[0] + ' · ' + nw[1]) + (nw[2] ? ' · no update since our request' : '') : '') + '">' + (nw ? esc(nw[0].replace(/\s·\s.*$/, '')) + ' <small>· ' + esc(nw[1]) + '</small>' : '') + '</div>' +
       '<div class="c-pend"><span class="pend' + (answered(x) ? '' : pendCls(x.hours)) + '">' + pendTxt(x.hours) + '</span></div>' +
-      '<div class="c-ans">' + (answered(x) ? '<span class="done-a">✓ ' + esc(x.status || 'Answered') + '</span>' : '<span class="rp" data-reply="' + esc(x.id) + '">Reply ›</span>') + '</div></div>';
+      '<div class="c-ans">' + (answered(x) ? '<span class="done-a">✓ ' + esc(x.status || 'Responded') + '</span>' : '<span class="rp" data-reply="' + esc(x.id) + '">Respond ›</span>') + '</div></div>';
   }
   function timeline(h) {
     if (!h || !h.length) return '';
-    return '<div><div class="lb" style="margin-bottom:6px">Parcel history</div>' + h.map(function (e, i) {
+    return '<div><div class="lb" style="margin-bottom:6px">Shipment Timeline</div>' + h.map(function (e, i) {
       return '<div class="tl"><div class="rail"><div class="d k-' + e.k + '"></div>' + (i < h.length - 1 ? '<div class="ln"></div>' : '') + '</div><div class="c">' +
         (e.who ? '<span class="w-' + e.k + '">' + esc(e.who) + '</span> ' : '') + esc(e.what) + ' <small>' + esc(e.when) + '</small></div></div>';
     }).join('') + '</div>';
@@ -319,19 +341,19 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       '<div class="sp"></div>' + (i >= 0 ? '<span class="mpos">' + (i + 1) + ' of ' + ORDER.length + ' · <button data-step="-1" aria-label="Previous">↑</button><button data-step="1" aria-label="Next">↓</button></span>' : '') +
       '<button class="mx" data-close aria-label="Close">✕</button></div><div class="mb' + (isOpen ? '' : ' one') + '"><div class="ml">';
     if (x.says || x.ask) h += '<div class="two">' + (x.says ? '<div><div class="lb">' + (x.kind === 'claim' ? 'Claim' : 'Customer remarks') + '</div><div class="tx">' + esc(x.says) + '</div></div>' : '') +
-      (x.ask ? '<div><div class="lb">Our request</div><div class="tx">' + esc(x.ask) + '</div></div>' : '') + '</div>';
+      (x.ask ? '<div><div class="lb">Store Request</div><div class="tx">' + esc(x.ask) + '</div></div>' : '') + '</div>';
     h += timeline(x.history) + '</div>';
     if (isOpen) {
       h += '<div class="mr">';
-      if (x.reopen) h += '<div class="ro" style="color:var(--ink2)"><b>Updated ' + esc(x.updated) + '</b> · the customer told ' + esc(D.store) + ' something new after your last answer (' + esc([x.status, x.reply].filter(Boolean).join(' · ')) + '). Please answer again.</div>';
-      if (answered(x)) h += '<div class="now"><b>' + esc(x.status || 'Your answer') + '</b>' + (x.reply ? ' · ' + esc(x.reply) : '') + '<small>' + esc([x.by, x.at].filter(Boolean).join(' · ')) + (x.photos ? ' · ' + x.photos + ' photo' + (x.photos > 1 ? 's' : '') : '') + '</small></div>';
-      h += '<div id="ansBox"><div class="lb">' + (answered(x) ? 'Change your answer' : 'Your answer · one tap') + '</div><div class="ag">' + k.answers.map(function (a) {
+      if (x.reopen) h += '<div class="ro" style="color:var(--ink2)"><b>Revised ' + esc(x.updated) + '</b> · the customer told ' + esc(D.store) + ' something new after your last answer (' + esc([x.status, x.reply].filter(Boolean).join(' · ')) + '). Please answer again.</div>';
+      if (answered(x)) h += '<div class="now"><b>' + esc(x.status || 'Response') + '</b>' + (x.reply ? ' · ' + esc(x.reply) : '') + '<small>' + esc([x.by, x.at].filter(Boolean).join(' · ')) + (x.photos ? ' · ' + x.photos + ' photo' + (x.photos > 1 ? 's' : '') : '') + '</small></div>';
+      h += '<div id="ansBox"><div class="lb">' + (answered(x) ? 'Update Response' : 'Select a Response') + '</div><div class="ag">' + k.answers.map(function (a) {
         return '<button class="' + (a === pick ? 'on' : '') + '" data-ans="' + esc(a) + '">' + esc(a) + '</button>'; }).join('') + '</div>' +
-        '<textarea id="words" maxlength="500" placeholder="Or write your answer (Roman Urdu theek hai)">' + esc(PICK['w' + x.id] != null ? PICK['w' + x.id] : x.reply) + '</textarea></div>' +
-        '<div class="sp"></div><div class="pn"><label for="who">Your name</label><input id="who" maxlength="40" placeholder="optional" value="' + esc(ls(NK)) + '"></div>' +
-        '<div class="pf"><button class="btn" id="photo">Add photo</button><button class="btn pri" id="save">Save &amp; next</button></div></div>';
+        '<textarea id="words" maxlength="500" placeholder="Or type a response (Roman Urdu is fine)">' + esc(PICK['w' + x.id] != null ? PICK['w' + x.id] : x.reply) + '</textarea></div>' +
+        '<div class="sp"></div><div class="pn"><label for="who">Agent Name</label><input id="who" maxlength="40" placeholder="optional" value="' + esc(ls(NK)) + '"></div>' +
+        '<div class="pf"><button class="btn" id="photo">Attach Proof</button><button class="btn pri" id="save">Save &amp; Next</button></div></div>';
     } else h += '';
-    h += '</div>' + (isOpen ? '' : '<div class="ro mro">Finished queries are read only. If ' + esc(D.store) + ' sends it again, it comes back to Queries with this history.</div>') + '</div>';
+    h += '</div>' + (isOpen ? '' : '<div class="ro mro">Resolved queries are read-only. If ' + esc(D.store) + ' sends one again, it returns to Open with this history.</div>') + '</div>';
     return h;
   }
   function wireQ() {
@@ -388,7 +410,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     var body = Object.keys(byDay).sort().reverse().map(function (d) {
       var xs = byDay[d]; xs.forEach(function (x) { ORDER.push(x.id); }); var n = function (c) { return xs.filter(function (x) { return x.cat === c; }).length; }, parts = [];
       if (n('delivered')) parts.push(n('delivered') + ' delivered'); if (n('ulta')) parts.push('<i>' + n('ulta') + ' returned instead</i>');
-      if (n('failed')) parts.push(n('failed') + ' failed again'); if (n('noaction')) parts.push(n('noaction') + ' no action');
+      if (n('failed')) parts.push(n('failed') + ' reattempt failed'); if (n('noaction')) parts.push(n('noaction') + ' no action');
       return '<div class="dh"><b>' + esc(dayName(d)) + '</b><small>' + xs.length + ' quer' + (xs.length > 1 ? 'ies' : 'y') + '</small><span class="sum">' + parts.join(' · ') + '</span></div>' + xs.map(function (x) {
         return '<div class="tr ftr' + (x.id === SEL ? ' sel' : '') + '" data-open="' + esc(x.id) + '"><div class="cn">' + esc(x.cn) + '<span class="mcity">' + esc(x.city) + '</span></div><div class="city f-city" title="' + esc(x.city) + '">' + esc(x.city) + '</div>' +
           '<div style="font-size:13px;color:var(--muted)">' + esc(kindOf(x.kind).label) + '</div><div style="font-size:13px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc([x.status, x.reply].filter(Boolean).join(' · ') || '— no answer') + '</div>' +
@@ -398,8 +420,8 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     $('wrap').innerHTML = '<div class="box"><div class="tools"><input id="fq" type="search" placeholder="Search tracking ID" value="' + esc(FQ) + '"><select id="fcity">' + cityOpts(D.done, FCITY) + '</select>' +
       '<div class="fl">' + cats.map(function (c) { return '<button class="' + (FCAT === c[0] ? 'on' : '') + '" data-fcat="' + c[0] + '">' + c[1] + '</button>'; }).join('') + '</div>' +
       (FDAY ? '<div class="fl"><button class="on" data-fday="">' + esc(dayName(FDAY)) + ' ✕</button></div>' : '') + '<span class="hint">Last 14 days</span></div>' +
-      '<div class="th fth"><div>Tracking ID</div><div>City</div><div>Query</div><div>Your answer</div><div>Result</div><div>Closed</div></div>' +
-      (body || '<div class="empty">Nothing finished here yet.</div>') + '</div>' + popup(false);
+      '<div class="th fth"><div>Tracking ID</div><div>City</div><div>Request Type</div><div>Response</div><div>Outcome</div><div>Closed On</div></div>' +
+      (body || '<div class="empty">No resolved queries yet.</div>') + '</div>' + popup(false);
     document.body.classList.toggle('mdl-on', !!(SEL && find(SEL)));
     var fq = $('fq'); fq.oninput = function () { FQ = fq.value; renderF(); var n = $('fq'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); };
     $('fcity').onchange = function () { FCITY = this.value; renderF(); };
@@ -413,23 +435,23 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     var hrs = [].concat.apply([], days.map(function (d) { return d.replyH; })).sort(function (a, b) { return a - b; });
     var med = hrs.length ? hrs[Math.floor(hrs.length / 2)] : null;
     var card = function (l, v, s, bad) { return '<div class="pc"><div class="l">' + l + '</div><b' + (bad ? ' class="bad"' : '') + '>' + v + '</b><small>' + s + '</small></div>'; };
-    var cards = card('Delivered after reattempt', reFin ? Math.round(reDel / reFin * 100) + '%' : '—', reFin ? reDel + ' of ' + reFin + ' reattempts' : 'no finished reattempts yet') +
-      card('Returned instead', sum('ulta'), 'asked to deliver, it went back', sum('ulta') > 0) +
-      card('Acted within 24 hours', actBase ? Math.round(acted / actBase * 100) + '%' : '—', 'a scan or an answer after the query') +
-      card('Usual reply time', med == null ? '—' : (med < 1 ? '<1' : Math.round(med)) + ' h', 'half the answers come within this');
+    var cards = card('Reattempt Success Rate', reFin ? Math.round(reDel / reFin * 100) + '%' : '—', reFin ? reDel + ' of ' + reFin + ' reattempts' : 'no finished reattempts yet') +
+      card('Returned (RTO)', sum('ulta'), 'reattempt requested, shipment returned', sum('ulta') > 0) +
+      card('24-Hour Action Rate', actBase ? Math.round(acted / actBase * 100) + '%' : '—', 'a scan or a response after the request') +
+      card('Median Response Time', med == null ? '—' : (med < 1 ? '<1' : Math.round(med)) + ' h', 'half of all responses arrive within this');
     var z = function (n, cls) { return '<div class="dx ' + (n ? cls : 'z') + '">' + n + '</div>'; };
     var rows = days.map(function (d) {
       var fin = d.delivered + d.ulta + d.failed, p = fin ? Math.round(d.delivered / fin * 100) : null;
       return '<div class="dtr" data-pday="' + d.day + '"><div>' + esc(dayName(d.day)) + '</div><div class="dx">' + d.sent + '</div><div class="dx">' + d.delivered + '</div>' +
         z(d.ulta, 'bad') + z(d.failed, '') + z(d.noaction, 'warn') + '<div class="dx mute">' + d.open + '</div>' +
         '<div class="dx"' + (p != null && p < 50 ? ' style="font-weight:700"' : ' style="font-weight:500"') + '>' + (p == null ? '—' : p + '%') + '</div><div class="dx" style="color:var(--faint)">›</div>' +
-        '<div class="dm">' + d.sent + ' queries · ' + d.delivered + ' delivered' + (d.ulta ? ' · <b>' + d.ulta + ' returned instead</b>' : '') + (d.noaction ? ' · ' + d.noaction + ' no action' : '') + '</div></div>';
+        '<div class="dm">' + d.sent + ' queries · ' + d.delivered + ' delivered' + (d.ulta ? ' · <b>' + d.ulta + ' returned (RTO)</b>' : '') + (d.noaction ? ' · ' + d.noaction + ' no action' : '') + '</div></div>';
     }).join('');
     var per = [[7, 'Last 7 days'], [30, 'Last 30 days'], ['m', 'This month']];
     $('wrap').innerHTML = '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><div class="seg">' + per.map(function (p) { return '<button data-per="' + p[0] + '" class="' + (String(PER) === String(p[0]) ? 'on' : '') + '">' + p[1] + '</button>'; }).join('') + '</div>' +
-      '<span style="font-size:13px;color:var(--muted)">by the day ' + esc(D.store) + ' sent the query</span></div><div class="pcards">' + cards + '</div>' +
-      '<div class="box"><div class="dth"><div>Day</div><div>Queries</div><div>Delivered</div><div>Returned instead</div><div>Failed again</div><div>No action 24 h</div><div>Still open</div><div>Delivered %</div><div></div></div>' +
-      (rows || '<div class="empty">No queries in these days.</div>') + '<div class="foot">Click a day to see its parcels in Finished.</div></div>';
+      '<span style="font-size:13px;color:var(--muted)">by request date</span></div><div class="pcards">' + cards + '</div>' +
+      '<div class="box"><div class="dth"><div>Date</div><div>Requests</div><div>Delivered</div><div>Returned (RTO)</div><div>Reattempt Failed</div><div>No Action (24 h)</div><div>Open</div><div>Delivery Rate</div><div></div></div>' +
+      (rows || '<div class="empty">No requests in this period.</div>') + '<div class="foot">Select a date to view its shipments under Resolved.</div></div>';
   }
 
   // ---------- clicks ----------
@@ -437,7 +459,8 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     if (e.target.closest('[data-bk]')) { var bk = e.target.closest('[data-bk]').getAttribute('data-bk'); if (e.target.checked) BULK[bk] = 1; else delete BULK[bk]; renderQ(); return; }
     var t = e.target.closest('button,[data-open],[data-pday]'); if (!t || !D) return;
     if (t.dataset.view) { VIEW = t.dataset.view; SEL = ''; render(); window.scrollTo(0, 0); }
-    else if (t.dataset.jump) { var el = $('sec_' + t.dataset.jump); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    else if (t.dataset.jump) { KIND = KIND === t.dataset.jump ? '' : t.dataset.jump; FLASH = !!KIND; SEL = ''; renderQ(); }
+    else if (t.dataset.ulta) { ls('cp_ulta', ls('cp_ulta') === '1' ? '0' : '1'); renderQ(); }
     else if (t.dataset.all) { ALL = t.dataset.all === '1'; ls('cp_all', ALL ? '1' : '0'); renderQ(); }
     else if (t.dataset.bulkgo) bulkGo(t);
     else if (t.dataset.step) step(Number(t.dataset.step));
