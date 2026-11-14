@@ -491,7 +491,7 @@ body.nb-on #nlist{padding-bottom:84px}
 .cpu-n{border:0;background:none;padding:0;font:600 13.5px Inter,sans-serif;color:var(--text);flex:none;min-width:64px;text-align:left}
 .cpu-s{flex:1;min-width:0;font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cpu-s b{font-weight:600;color:var(--text)}
 .cpu-s b.amb{color:var(--amber)}.cpu-s b.red{color:var(--red)}
-.cpu-b{flex:none;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--brand);font-size:17px}
+.cpu-wa{color:#16A34A}.cpu-b{flex:none;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--brand);font-size:17px}
 @media (min-width:1024px){.cpu{max-width:640px}}
 .ob-top{margin:0 0 8px}.ob-top .obar{margin-bottom:8px}
 .nsub{display:flex;gap:6px;margin:4px 0 12px}.nsub button{flex:1 1 auto;height:36px;border-radius:99px;border:1px solid var(--line);background:var(--card);font:500 13px Inter,sans-serif;color:var(--muted);cursor:pointer;white-space:nowrap}
@@ -3475,7 +3475,8 @@ function courierPulse() {
     parts.push(on && !wait ? 'all ' + on + ' answered ✓' : ans + '/' + on + ' answered');
     return '<div class="cpu-r"><button class="cpu-n" data-cour="' + esc(name) + '">' + esc(name) + '</button><div class="cpu-s">' + parts.join(' · ') + '</div>' +
       (s.link ? '<a class="cpu-b" target="_blank" aria-label="Open ' + esc(name) + ' ' + shW(name) + '" href="' + esc(courierSheetLink(name, 'reattempt')) + '"><i class="ti ti-external-link"></i></a>' : '') +
-      (wait && s.link && can('ndr.work') ? '<a class="cpu-b" aria-label="Remind ' + esc(name) + '" data-shsh="' + esc(name) + '" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(sheetReminderText(name)) + '"><i class="ti ti-bell"></i></a>' : '') + '</div>';
+      // the page link to the courier's WhatsApp group, always (user 2026-11-14): a reminder while some wait, else the plain message
+      (s.link && can('ndr.work') ? '<a class="cpu-b cpu-wa" aria-label="Send ' + esc(name) + ' page link on WhatsApp" title="Send page link to the ' + esc(name) + ' group" data-shsh="' + esc(name) + '" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(wait ? sheetReminderText(name) : sheetMessage(name, false)) + '"><i class="ti ti-brand-whatsapp"></i></a>' : '') + '</div>';
   }).join('');
   return rows ? '<div class="cpu">' + rows + '</div>' : '';
 }
@@ -3879,7 +3880,7 @@ function sheetMessage(name, reminder, extra) {
   var c = sheetCounts(name, reminder, extra), today = pkDay(new Date());
   var head = '*' + STORE + ' → ' + name + (reminder ? ' · Reminder' : '') + ' · ' + niceDay(today) + '*';
   var total = Object.keys(c).reduce(function (a, k) { return a + c[k].length; }, 0);
-  if (!total) return head + '\n' + (reminder ? 'Sab queries par update aa gaya.' : 'Koi open query nahi.') + '\nShukriya · ' + STORE;
+  if (!total) return head + '\n' + (reminder ? 'Sab queries par update aa gaya.' : 'Koi open query nahi.') + '\n\n' + courierSheetLink(name, 'deliver') + '\nShukriya · ' + STORE; // the link always goes with it
   // one line per tab with its total, no date lines (user 2026-11-10)
   var blocks = msgTabs(name).filter(function (t) { return c[t[0]].length; }).map(function (t) { return '*' + t[1] + ' · ' + c[t[0]].length + '*'; });
   return head + '\n' + (reminder ? 'Update nahi aaya: ' : 'Open queries: ') + total + '\n\n' + blocks.join('\n') + '\n\n' + courierSheetLink(name, 'deliver') + '\n' +
