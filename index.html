@@ -3497,7 +3497,7 @@ function courierPulse() {
     if (old) parts.push('<b class="red">' + old + '</b> late');
     if (noact) parts.push('<b class="red">' + noact + '</b> no action');
     var info = '<span class="cpu-n">' + esc(name) + '</span><span class="cpu-s">' + (parts.length ? parts.join(' · ') : 'All answered ✓') + '</span>';
-    var line = s.link ? '<a class="cpu-l" target="_blank" title="Open the ' + esc(name) + ' ' + shW(name) + '" href="' + esc(courierSheetLink(name, 'reattempt')) + '">' + info + '</a>'
+    var line = s.link ? '<a class="cpu-l" target="_blank" title="Open the ' + esc(name) + ' ' + shW(name) + '" href="' + esc(ownLink(courierSheetLink(name, 'reattempt'))) + '">' + info + '</a>'
       : '<button class="cpu-l" data-cour="' + esc(name) + '">' + info + '</button>';
     return '<div class="cpu-r">' + line +
       ((wait || noact) && s.link && can('ndr.work') ? '<a class="cpu-b cpu-wa" aria-label="Remind ' + esc(name) + ' on WhatsApp" title="Remind the ' + esc(name) + ' group" data-shsh="' + esc(name) + '" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(sheetReminderText(name)) + '"><i class="ti ti-brand-whatsapp"></i></a>' : '') + '</div>';
@@ -3816,7 +3816,7 @@ function openOutbox(name) {
     (sec || '<div class="card empty"><i class="ti ti-circle-check"></i>Nothing new to send</div>') + sec2 +
     // queries already on the sheet (user 2026-11-09): share its link in the courier's group at any time, not only right after sending
     (shLink && sheetPending(name).n ? '<a class="btn wa" data-shsh="' + esc(name) + '" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(sheetMessage(name, false)) + '" style="width:100%;margin:0 0 8px"><i class="ti ti-share"></i>Share ' + shW(name) + ' link in ' + esc(name) + ' group</a>' +
-      '<a class="btn" target="_blank" href="' + esc(shLink) + '" style="width:100%;margin:0 0 8px"><i class="ti ti-table"></i>Open ' + esc(name) + ' ' + shW(name) + '</a>' : '') +
+      '<a class="btn" target="_blank" href="' + esc(ownLink(shLink)) + '" style="width:100%;margin:0 0 8px"><i class="ti ti-table"></i>Open ' + esc(name) + ' ' + shW(name) + '</a>' : '') +
     '<div class="btns" style="margin-top:10px"><button class="btn" id="obClose">Close</button></div>';
   openPanel(true);
   el('obClose').onclick = closePanel;
@@ -3883,6 +3883,9 @@ function courierSheetLink(name, kind) {
   if (s.page) return s.link ? s.link + '#' + sheetTabOf(kind || 'reattempt') : ''; // the courier's own page (opens on that tab)
   return s.link ? s.link + (g != null ? '#gid=' + g : '') : '';
 }
+// a courier page opened from the app looks like the app (user 2026-11-14: the app was light, the page opened dark); links in
+// WhatsApp messages stay plain, the courier's phone decides there
+function ownLink(u) { u = String(u || ''); if (!/courier.html?/.test(u)) return u; var i = u.indexOf('#'), t = '&t=' + (document.documentElement.getAttribute('data-mode') === 'dark' ? 'dark' : 'light'); return i < 0 ? u + t : u.slice(0, i) + t + u.slice(i); }
 // the courier works on their own page (Store Setting "Courier page") or on the old Google sheet: the word on screen
 function shW(name) { var s = ((N.data && N.data.couriers) || {})[name] || {}; return s.page ? 'page' : 'sheet'; }
 // The courier group's message about their sheet (user 2026-11-02): title, "Open queries: n", one bold block per tab with a
@@ -3945,7 +3948,7 @@ function openSheetRemind(name) {
   el('panel').innerHTML = '<h3>' + esc(name) + ' ' + shW(name) + '</h3><p>' + sp.untouched + ' of ' + sp.n + ' queries without an update</p>' +
     '<div class="msgprev"><small>Reminder for the ' + esc(name) + ' group</small><div style="white-space:pre-line">' + esc(txt.replace(/\*/g, '')) + '</div></div>' +
     (sp.untouched ? '<a class="btn wa" data-shsh="' + esc(name) + '" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(txt) + '" style="width:100%;margin:10px 0 8px"><i class="ti ti-brand-whatsapp"></i>Send in ' + esc(name) + ' group</a>' : '') +
-    '<a class="btn" target="_blank" href="' + esc(courierSheetLink(name, 'deliver')) + '" style="width:100%"><i class="ti ti-table"></i>Open ' + esc(name) + ' ' + shW(name) + '</a>';
+    '<a class="btn" target="_blank" href="' + esc(ownLink(courierSheetLink(name, 'deliver'))) + '" style="width:100%"><i class="ti ti-table"></i>Open ' + esc(name) + ' ' + shW(name) + '</a>';
   openPanel();
 }
 // After "Send by Sheet": optional — share the link in the courier's WhatsApp group, or open the sheet
@@ -3958,7 +3961,7 @@ function sheetSent(name, kind, n) {
   var link = courierSheetLink(name, kind);
   el('panel').innerHTML = '<h3>Sent to the ' + esc(name) + ' ' + shW(name) + '</h3><p>' + n + ' parcel' + (n > 1 ? 's' : '') + ' · on the ' + shW(name) + ' within 5 minutes</p>' +
     (link ? '<a class="btn wa" data-shsh="' + esc(name) + '" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(sheetShareText(name, kind, n)) + '" style="width:100%;margin-bottom:8px"><i class="ti ti-brand-whatsapp"></i>Share ' + shW(name) + ' link in ' + esc(name) + ' group</a>' +
-      '<a class="btn" target="_blank" href="' + esc(link) + '" style="width:100%;margin-bottom:8px"><i class="ti ti-table"></i>Open ' + esc(name) + ' ' + shW(name) + '</a>' : '') +
+      '<a class="btn" target="_blank" href="' + esc(ownLink(link)) + '" style="width:100%;margin-bottom:8px"><i class="ti ti-table"></i>Open ' + esc(name) + ' ' + shW(name) + '</a>' : '') +
     '<button class="btn pri" id="ssDone" style="width:100%">Done</button><button id="ssBack" data-back hidden></button>';
   openPanel(true);
   el('ssDone').onclick = el('ssBack').onclick = function () { openOutbox(name); };

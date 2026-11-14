@@ -10,7 +10,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#F5F6F8;--card:#FFFFFF;--ink:#0F172A;--ink2:#334155;--muted:#64748B;--faint:#94A3B8;--line:#E2E8F0;--line2:#F1F5F9;--head:#F8FAFC;--brand:#00857A;--brand-d:#00665D;--soft:#E7F5F2;--chip:#F1F5F9;--red:#B91C1C;--amber:#B45309;--amberbg:#FEF3C7;--redbg:#FEE2E2;--ok:#166534;--okbg:#DCFCE7;--blue:#2563EB}
-@media (prefers-color-scheme:dark){:root{--bg:#0A0F1A;--card:#121A2A;--ink:#E6EAF0;--ink2:#CBD5E1;--muted:#94A3B8;--faint:#64748B;--line:#1F2A3C;--line2:#182234;--head:#0F1726;--soft:#12302D;--brand-d:#3FE0A8;--chip:#1A2436;--red:#F87171;--amber:#FBBF24;--amberbg:#2A220F;--redbg:#2A1313;--ok:#4ADE80;--okbg:#0F2A1C;--blue:#60A5FA}}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0A0F1A;--card:#121A2A;--ink:#E6EAF0;--ink2:#CBD5E1;--muted:#94A3B8;--faint:#64748B;--line:#1F2A3C;--line2:#182234;--head:#0F1726;--soft:#12302D;--brand-d:#3FE0A8;--chip:#1A2436;--red:#F87171;--amber:#FBBF24;--amberbg:#2A220F;--redbg:#2A1313;--ok:#4ADE80;--okbg:#0F2A1C;--blue:#60A5FA}}
+:root[data-theme=dark]{--bg:#0A0F1A;--card:#121A2A;--ink:#E6EAF0;--ink2:#CBD5E1;--muted:#94A3B8;--faint:#64748B;--line:#1F2A3C;--line2:#182234;--head:#0F1726;--soft:#12302D;--brand-d:#3FE0A8;--chip:#1A2436;--red:#F87171;--amber:#FBBF24;--amberbg:#2A220F;--redbg:#2A1313;--ok:#4ADE80;--okbg:#0F2A1C;--blue:#60A5FA}
 *{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font:400 14px/1.45 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}input,select,textarea{font-size:16px}@media (min-width:900px){input,select,textarea{font-size:14px}}
 button{cursor:pointer}[hidden]{display:none!important}svg{flex:none}
@@ -79,8 +80,10 @@ body.mdl-on{overflow:hidden}.mdl-bg{position:fixed;inset:0;background:rgba(15,23
 .kc .l::before{content:'';display:inline-block;width:8px;height:8px;border-radius:99px;background:var(--ka,var(--faint));margin-right:7px;vertical-align:1px}
 .k-reattempt{--kb:#E3F2EF;--kh:#F1F8F6;--ka:#0F766E}.k-ulta{--kb:#FCE8E8;--kh:#FDF3F3;--ka:#B91C1C}.k-late{--kb:#FBF0D9;--kh:#FDF7EB;--ka:#A1520A}
 .k-check{--kb:#E5EEFA;--kh:#F2F6FC;--ka:#1D4ED8}.k-return{--kb:#EEE8F8;--kh:#F6F3FB;--ka:#6D28D9}.k-claim{--kb:#F8E6EE;--kh:#FCF2F6;--ka:#BE185D}.k-retlate{--kb:#E8ECF1;--kh:#F3F5F8;--ka:#475569}
-@media (prefers-color-scheme:dark){.k-reattempt{--kb:#10302C;--kh:#0F1F22;--ka:#3FD0B4}.k-ulta{--kb:#3A1818;--kh:#24141A;--ka:#F87171}.k-late{--kb:#33270F;--kh:#211C14;--ka:#FBBF24}
-.k-check{--kb:#14264A;--kh:#111B30;--ka:#60A5FA}.k-return{--kb:#2A1E48;--kh:#1A1630;--ka:#A78BFA}.k-claim{--kb:#3A1528;--kh:#24131D;--ka:#F472B6}.k-retlate{--kb:#1E2633;--kh:#151C28;--ka:#94A3B8}}.sh small{font-size:12.5px;color:var(--muted)}.dot{width:8px;height:8px;border-radius:99px;flex:none}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .k-reattempt{--kb:#10302C;--kh:#0F1F22;--ka:#3FD0B4}:root:not([data-theme=light]) .k-ulta{--kb:#3A1818;--kh:#24141A;--ka:#F87171}:root:not([data-theme=light]) .k-late{--kb:#33270F;--kh:#211C14;--ka:#FBBF24}
+:root:not([data-theme=light]) .k-check{--kb:#14264A;--kh:#111B30;--ka:#60A5FA}:root:not([data-theme=light]) .k-return{--kb:#2A1E48;--kh:#1A1630;--ka:#A78BFA}:root:not([data-theme=light]) .k-claim{--kb:#3A1528;--kh:#24131D;--ka:#F472B6}:root:not([data-theme=light]) .k-retlate{--kb:#1E2633;--kh:#151C28;--ka:#94A3B8}}
+:root[data-theme=dark] .k-reattempt{--kb:#10302C;--kh:#0F1F22;--ka:#3FD0B4}:root[data-theme=dark] .k-ulta{--kb:#3A1818;--kh:#24141A;--ka:#F87171}:root[data-theme=dark] .k-late{--kb:#33270F;--kh:#211C14;--ka:#FBBF24}
+:root[data-theme=dark] .k-check{--kb:#14264A;--kh:#111B30;--ka:#60A5FA}:root[data-theme=dark] .k-return{--kb:#2A1E48;--kh:#1A1630;--ka:#A78BFA}:root[data-theme=dark] .k-claim{--kb:#3A1528;--kh:#24131D;--ka:#F472B6}:root[data-theme=dark] .k-retlate{--kb:#1E2633;--kh:#151C28;--ka:#94A3B8}.sh small{font-size:12.5px;color:var(--muted)}.dot{width:8px;height:8px;border-radius:99px;flex:none}
 .more{width:100%;height:38px;display:flex;align-items:center;gap:8px;padding:0 14px;border:0;border-bottom:1px solid var(--line2);background:var(--head);font-size:13px;font-weight:500;color:var(--muted);text-align:left}
 .more .ck{width:20px;height:20px;border-radius:99px;background:var(--okbg);color:var(--ok);display:flex;align-items:center;justify-content:center}.more em{font-style:normal;color:var(--brand-d);font-weight:600}
 .empty{padding:40px 16px;text-align:center;color:var(--muted)}
@@ -185,6 +188,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
 <input id="cam" type="file" accept="image/*" hidden>
 <script>
 (function () {
+  (function () { var t = new URLSearchParams(location.search).get('t'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); })(); // the app's look when opened from the app
   var API = 'https://script.google.com/macros/s/AKfycbyqtyrClenCG1_iqTSDK5KhtFItfX6rUsYdIexwQ3qPFbSv9d1n8jy06ItjvWXXtB-I/exec', P = new URLSearchParams(location.search), C = P.get('c') || '', V = P.get('v') || '', S = P.get('s') || '';
   var SORT = ls('cp_sort') || 'old', D = null, VIEW = 'q', SEL = '', FOCUS = false, PICK = {}, SHOWN = {}, Q = '', CITY = '', FQ = '', FCITY = '', FCAT = 'all', FDAY = '', PER = 7, busy = false;
   var NK = 'cp_name_' + C, $ = function (id) { return document.getElementById(id); };
@@ -456,7 +460,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     var cards = card('Reattempt Success Rate', reFin ? Math.round(reDel / reFin * 100) + '%' : '—', reFin ? reDel + ' of ' + reFin + ' reattempts' : 'no finished reattempts yet') +
       card('Returned (RTO)', sum('ulta'), 'reattempt requested, shipment returned', sum('ulta') > 0) +
       card('24-Hour Action Rate', actBase ? Math.round(acted / actBase * 100) + '%' : '—', 'a scan or a response after the request') +
-      card('Median Response Time', med == null ? '—' : (med < 1 ? '<1' : Math.round(med)) + ' h', 'half of all responses arrive within this');
+      card('Median Response Time', med == null ? '—' : (med < 1 ? Math.max(1, Math.round(med * 60)) + ' min' : Math.round(med) + ' h'), 'half of all responses arrive within this');
     var z = function (n, cls) { return '<div class="dx ' + (n ? cls : 'z') + '">' + n + '</div>'; };
     var rows = days.map(function (d) {
       var fin = d.delivered + d.ulta + d.failed, p = fin ? Math.round(d.delivered / fin * 100) : null;
