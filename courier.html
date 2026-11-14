@@ -38,7 +38,7 @@ button{cursor:pointer}[hidden]{display:none!important}svg{flex:none}
 .fl{display:flex;gap:6px;flex-wrap:wrap}.fl button{height:30px;padding:0 12px;border-radius:99px;border:1px solid var(--line);background:var(--card);font-size:12.5px;font-weight:500;color:var(--muted)}
 .fl button.on{border-color:var(--ink);color:var(--ink)}
 .th,.tr{display:grid;grid-template-columns:140px 130px 130px minmax(0,1.3fr) minmax(0,1fr) 84px 72px 110px;align-items:center}
-.c-rem,.c-now{font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.c-now small{color:var(--muted)}.c-sent{font-size:12.5px;color:var(--muted)}
+.c-rem,.c-now{font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.c-now small{color:var(--muted)}.nsr{display:block;font-size:11px;font-weight:600;color:var(--red);line-height:1.2}.c-sent{font-size:12.5px;color:var(--muted)}
 .bk{margin:0 6px 0 0;vertical-align:-2px;cursor:pointer}.bulk{margin-left:auto;display:flex;align-items:center;gap:6px}.btn.sm{height:28px;font-size:12px;padding:0 10px;flex:none}
 body.mdl-on{overflow:hidden}.mdl-bg{position:fixed;inset:0;background:rgba(15,23,42,.35);z-index:50}
 .mdl{position:fixed;z-index:51;left:50%;top:50%;transform:translate(-50%,-50%);width:min(980px,94vw);max-height:84vh;background:var(--card);border-radius:12px;box-shadow:0 20px 50px rgba(15,23,42,.25);display:flex;flex-direction:column;overflow:hidden}
@@ -220,9 +220,14 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   // opening: customer remarks, where the parcel is now, when it was sent. "Needs answer" hides answered lines; Mark for
   // Return lines can be ticked and answered together.
   var ALL = ls('cp_all') === '1', BULK = {}, ORDER = [];
+  // the courier's last scan (user 2026-11-14: every line said "Attempt failed · date"): with its reason, how long ago, and
+  // a red "no scan since our request" when nothing moved after we sent it
+  function ago(ms) { var h = Math.floor((Date.now() - ms) / 3600000); return h < 1 ? 'just now' : h < 48 ? h + ' h ago' : Math.floor(h / 24) + ' days ago'; }
   function nowOf(x) {
     var t = (x.history || []).filter(function (e) { return /^Tracking/.test(e.who || ''); }).slice(-1)[0];
-    return t ? [t.what.replace(/\s·\s.*$/, ''), t.when.replace(/,.*$/, '')] : null;
+    if (!t) return null;
+    var p = t.what.split(' · '), what = p[0] + (p[1] ? ' · ' + p[1].replace(/^delivery\s+/i, '').slice(0, 26) : '');
+    return [what, t.ms ? ago(t.ms) : t.when.replace(/,.*$/, ''), !!(t.ms && x.sentMs && t.ms < x.sentMs)];
   }
   function shortDay(s) { return String(s || '').replace(/,.*$/, ''); }
   function renderQ() {
@@ -253,7 +258,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     var html = '<div class="cards">' + cards + '</div><div class="box"><div class="tools"><input id="q" type="search" placeholder="Search tracking ID" value="' + esc(Q) + '"><select id="city">' + cityOpts(D.open, CITY) + '</select>' +
       '<select id="sort" aria-label="Sort"><option value="old"' + (SORT === 'old' ? ' selected' : '') + '>Oldest first</option><option value="city"' + (SORT === 'city' ? ' selected' : '') + '>City A–Z</option></select>' +
       '<div class="fl"><button class="' + (ALL ? '' : 'on') + '" data-all="0">Needs answer</button><button class="' + (ALL ? 'on' : '') + '" data-all="1">All</button></div></div>' +
-      '<div class="th"><div>Tracking ID</div><div>City</div><div>Note</div><div class="c-rem">Customer remarks</div><div class="c-now">Tracking now</div><div class="c-sent">Sent</div><div>Pending</div><div>Your answer</div></div>' +
+      '<div class="th"><div>Tracking ID</div><div>City</div><div>Note</div><div class="c-rem">Customer remarks</div><div class="c-now">Last scan</div><div class="c-sent">Sent</div><div>Pending</div><div>Your answer</div></div>' +
       (body || '<div class="empty">' + (D.open.length ? 'Nothing matches the search.' : 'No open queries. Shukriya!') + '</div>') + '</div>' + popup(true);
     $('wrap').innerHTML = html; wireQ();
   }
@@ -264,7 +269,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       '<div class="city c-city" title="' + esc(x.city) + '">' + esc(x.city) + '</div>' +
       '<div class="note c-note">' + (x.again ? '<i class="again">' + esc(x.again) + '</i>' : '') + (x.updated && !answered(x) ? '<i class="upd-t">Updated</i>' : '') + '<span>' + esc(x.note) + '</span></div>' +
       '<div class="c-rem" title="' + esc(x.says) + '">' + esc(x.says) + '</div>' +
-      '<div class="c-now">' + (nw ? esc(nw[0]) + ' <small>· ' + esc(nw[1]) + '</small>' : '') + '</div>' +
+      '<div class="c-now" title="' + (nw ? esc(nw[0] + ' · ' + nw[1]) : '') + '">' + (nw ? esc(nw[0]) + ' <small>· ' + esc(nw[1]) + '</small>' + (nw[2] && !answered(x) ? '<b class="nsr">no scan since our request</b>' : '') : '') + '</div>' +
       '<div class="c-sent">' + esc(shortDay(x.sentAt)) + '</div>' +
       '<div class="c-pend"><span class="pend' + (answered(x) ? '' : pendCls(x.hours)) + '">' + pendTxt(x.hours) + '</span></div>' +
       '<div class="c-ans">' + (answered(x) ? '<span class="done-a">✓ ' + esc(x.status || 'Answered') + '</span>' : '<span class="rp" data-reply="' + esc(x.id) + '">Reply ›</span>') + '</div></div>';
