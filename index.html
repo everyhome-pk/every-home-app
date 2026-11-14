@@ -483,6 +483,16 @@ body.nb-on #nlist{padding-bottom:84px}
 .ntabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;background:var(--line);border-radius:12px;padding:4px;margin:0 0 6px}
 .ntabs button{border:0;border-radius:9px;padding:6px 2px;font:500 12px Inter,sans-serif;background:transparent;color:var(--muted);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (min-width:1024px){.ntabs,.nsub,.nscore,.ob-top{max-width:640px}}
+.ag2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}.ag2 button{text-align:left;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 12px;font:inherit;color:var(--text)}
+.ag2 button b{display:block;font-size:14px;font-weight:600}.ag2 button small{font-size:12px;color:var(--muted)}.ag2 button.on{border-color:var(--brand);box-shadow:0 0 0 2px var(--soft, #E7F5F2)}
+.ngr{margin:10px 2px 6px;font-size:12.5px;font-weight:600;color:var(--muted)}.ngr em{font-style:normal;font-weight:500;margin-left:4px}
+.cpu{margin:0 0 10px;background:var(--card);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
+.cpu-r{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 12px;min-height:40px}.cpu-r+.cpu-r{border-top:1px solid var(--line)}
+.cpu-n{border:0;background:none;padding:0;font:600 13.5px Inter,sans-serif;color:var(--text);flex:none;min-width:64px;text-align:left}
+.cpu-s{flex:1;min-width:0;font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cpu-s b{font-weight:600;color:var(--text)}
+.cpu-s b.amb{color:var(--amber)}.cpu-s b.red{color:var(--red)}
+.cpu-b{flex:none;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--brand);font-size:17px}
+@media (min-width:1024px){.cpu{max-width:640px}}
 .ob-top{margin:0 0 8px}.ob-top .obar{margin-bottom:8px}
 .nsub{display:flex;gap:6px;margin:4px 0 12px}.nsub button{flex:1 1 auto;height:36px;border-radius:99px;border:1px solid var(--line);background:var(--card);font:500 13px Inter,sans-serif;color:var(--muted);cursor:pointer;white-space:nowrap}
 .nsub button b{font-weight:600;color:var(--text);margin-left:2px}.nsub button.on{background:var(--brand);border-color:var(--brand);color:#fff}.nsub button.on b{color:#fff}
@@ -1004,7 +1014,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 (function () {
   if (window.google && google.script) return;
   window.EH_PWA = true; // installed app: notifications are possible
-  window.EH_BUILD = '2026-11-11'; // shown at the bottom of the menu
+  window.EH_BUILD = '2026-11-14'; // shown at the bottom of the menu
   var API = "https://script.google.com/macros/s/AKfycbyqtyrClenCG1_iqTSDK5KhtFItfX6rUsYdIexwQ3qPFbSv9d1n8jy06ItjvWXXtB-I/exec", RELAY = "", relayOff = 0;
   // through the relay when there is one; if it fails, straight to Google and skip the relay for 10 min. A save goes
   // straight only when the relay could not be reached at all (never sent twice).
@@ -1683,6 +1693,8 @@ function openParcel(key, given) {
       (cash ? row('Settlement', esc(cash.note || cash.cat)) + row(cash.returned ? 'Courier fees' : 'Net payout', rs(cash.returned ? cash.charges : cash.net)) + (cash.over ? row('Above rate card', rs(cash.over)) : '') : ''),
       cash ? '<button class="pp-more" style="width:auto;padding:0" data-ppr="' + esc(p.cn) + '">Receipt ›</button>' : '') +
     (!p.done && can('cash.edit') && (p.due == null || p.due > 0) ? '<button class="btn" id="pdAdv" style="width:100%;padding:12px;margin-bottom:12px"><i class="ti ti-cash"></i>Record advance payment</button>' : '') +
+    // any parcel to the courier's page (user 2026-11-14), also when it is not an NDR case
+    (p.cn && !p.done && p.stage !== 'cancelled' && can('ndr.work') ? '<button class="btn" id="pdAsk" style="width:100%;padding:12px;margin-bottom:12px"><i class="ti ti-send"></i>Ask ' + esc(p.courier || 'courier') + ' on their page</button>' : '') +
     (p.rcv ? '<button class="btn" data-rh="' + esc(p.cn) + '" style="width:100%;padding:12px;margin-bottom:12px"><i class="ti ti-history"></i>Return history</button>' : '') +
     (p.cn && (ndr || p.attempts) ? '<div class="pp-card"><div class="pp-h"><span>Case history</span></div><div id="pdch"><div class="sk" style="height:80px"></div></div></div>' : '') +
     (p.cn ? '<div class="pp-card"><div class="pp-h"><span>Tracking</span>' +
@@ -1698,6 +1710,7 @@ function openParcel(key, given) {
   if (el('pdNdr')) el('pdNdr').onclick = function () { openNdrForm(ndr.cn); };
   if (el('pdch')) caseHistory(p.cn);
   if (el('pdAdv')) el('pdAdv').onclick = function () { openAdvance(p); };
+  if (el('pdAsk')) el('pdAsk').onclick = function () { openPageAsk(p); };
   el('pgBody').querySelectorAll('[data-ppr]').forEach(function (b) { b.onclick = function () { openCashReceipt(b.getAttribute('data-ppr')); }; });
   // Tracking: the saved events first (instant), then the courier's own live list replaces them; long lists start short.
   var live = false;
@@ -1721,6 +1734,24 @@ function openParcel(key, given) {
       else if (el('pdtl')) { var s = el('pdtl').querySelector('.tl-src'); if (s) s.innerHTML = '<i class="ti ti-clock"></i>Saved tracking (updates every 15 min)'; }
     }, function () { if (el('pdtl')) { var s = el('pdtl').querySelector('.tl-src'); if (s) s.innerHTML = '<i class="ti ti-clock"></i>Saved tracking (updates every 15 min)'; } });
   }
+}
+// Ask the courier about any parcel on their page: what to ask + our words (the courier reads Roman Urdu)
+function openPageAsk(p) {
+  var kinds = [['reattempt', 'Reattempt', 'Customer wants it · deliver again'], ['late', 'Late delivery', 'Trace it and deliver'], ['check', 'Status check', 'Where is it / POD'], ['return', 'Mark for return', 'Send it back to us']], pick = 'check';
+  var draw = function () {
+    el('panel').innerHTML = '<h3>Ask ' + esc(p.courier || 'courier') + '</h3><p>' + esc(p.cn) + ' · ' + esc(p.city || '') + ' · goes on the ' + esc(p.courier || '') + ' page within 5 minutes</p>' +
+      '<div class="ag2">' + kinds.map(function (k) { return '<button class="' + (k[0] === pick ? 'on' : '') + '" data-pk="' + k[0] + '"><b>' + k[1] + '</b><small>' + k[2] + '</small></button>'; }).join('') + '</div>' +
+      '<div class="fld" style="margin-top:12px"><label>What should ' + esc(p.courier || 'the courier') + ' know?' + (pick === 'return' ? ' (optional)' : '') + '</label><textarea id="paW" rows="3" placeholder="e.g. Customer ghar par hai, kal 2 baje ke baad deliver karein">' + esc(el('paW') ? el('paW').value : '') + '</textarea></div>' +
+      '<div class="btns" style="margin-top:12px"><button class="btn" id="paX">Cancel</button><button class="btn pri" id="paGo"><i class="ti ti-send"></i>Send to page</button></div>';
+    el('panel').querySelectorAll('[data-pk]').forEach(function (b) { b.onclick = function () { pick = b.getAttribute('data-pk'); var w = el('paW').value; draw(); el('paW').value = w; }; });
+    el('paX').onclick = closePanel;
+    el('paGo').onclick = function () {
+      var w = el('paW').value.trim();
+      if (pick !== 'return' && !w) { toast('Write what the courier should know'); return; }
+      api('appCpAsk', [TOKEN, p.cn, pick, w], function () { closePanel(); toast('Sent · on the ' + (p.courier || 'courier') + ' page within 5 minutes'); }, function (e) { toast('❌ ' + ((e && e.message) || 'Not sent')); });
+    };
+  };
+  draw(); openPanel();
 }
 // ---------- a received return's history (saved once in W1; the parcel is not tracked any more) ----------
 document.addEventListener('click', function (e) {
@@ -3086,7 +3117,7 @@ function openOrderTags(ref) {
 }
 function parcelRow(p) {
   var s = STAGE[p.stage] || ['', 'var(--line)'];
-  var issue = p.stage === 'ndr' ? niceReason(p.reason || p.lastRaw) + (p.attempts ? ' · ' + p.attempts + (p.attempts > 1 ? ' attempts' : ' attempt') : '')
+  var issue = p.stage === 'ndr' ? niceReason(p.reason || p.lastRaw) + (p.attempts ? ' · ' + p.attempts + (p.attempts > 1 ? ' attempts' : ' attempt') : '') + (p.failedAt ? ' · failed ' + p.failedAt : '')
     : p.stage === 'booked' && !p.cn ? 'Missing tracking number'
     : p.stage === 'rtoback' ? 'Handed back by courier · scan it in Returns'
     : (p.flags || []).join(' · ');
@@ -3230,11 +3261,12 @@ function caseType(c) {
 var SUB_KEY = { todo: 'sub', courier: 'csub', special: 'ssub' };
 var NDR_TABS = [['todo', 'To do'], ['courier', 'With courier'], ['special', 'Urgent'], ['closed', 'Closed today']];
 var NDR_GH = {
-  todo: [['new', 'circle-plus', 'New cases', 'fewest tries left first'], ['noact', 'message-exclamation', 'Courier replied · no action', 'no tracking update for 24 h after the reply'], ['again', 'phone-call', 'Call again', 'failed again · no answer 3 h+ · their time came'],
+  todo: [['new', 'circle-plus', 'New cases', 'by the courier reason · fewest tries left first'], ['stalled', 'clock-pause', 'Late delivery · ask courier', 'no courier scan for longer than usual for that city'],
+    ['noreply', 'bell-exclamation', 'Courier did not answer', '24 h on their page, no answer · remind them'], ['noact', 'message-exclamation', 'Courier replied · no action', 'no tracking update for 24 h after the reply'], ['again', 'phone-call', 'Call again', 'failed again · no answer 3 h+ · their time came'],
     ['later', 'clock', 'Call back at their time', 'comes back by itself with a reminder'],
     ['wait', 'hourglass', 'Called · next try later', ''],
     ['ready', 'send', 'In the courier list', 'called · request made · only the send is left']],
-  courier: [['replied', 'message-2', 'Courier replied', 'read it · keep with courier or call the customer'], ['stalled', 'clock-pause', 'No update · ask to trace', 'no courier scan for too long'], ['reattempt', 'repeat', 'Reattempt requested', ''],
+  courier: [['replied', 'message-2', 'Courier replied', 'read it · keep with courier or call the customer'], ['reattempt', 'repeat', 'Reattempt requested', ''],
     ['return', 'arrow-back-up', 'Return requested', ''], ['late', 'clock-exclamation', 'Late · asked to trace', ''], ['check', 'search', 'Status check', '']],
   special: [['premature', 'alert-octagon', 'Premature return', 'started before the last try · stop it'], ['rtostop', 'arrow-back-up', 'Return started · can stop', 'within 24 h']],
   closed: [['saved', 'circle-check', 'Saved', 'delivered after NDR'], ['returned', 'arrow-back-up', 'Returned / returning', ''], ['other', 'archive', 'Other', '']]
@@ -3260,13 +3292,15 @@ function ndrSlot(c) {
   var asked = !!ob || c.sent === 'Queued' || !!(t && (t.channel || sentNow));
   if (!asked && k === 'premature') return ['special', 'premature'];
   if (!asked && k === 'rto') return ['special', 'rtostop'];
-  if (!asked && c.watch && c.next !== 'Chase courier (late)') return ['courier', 'stalled'];
+  if (!asked && c.watch && c.next !== 'Chase courier (late)') return ['todo', 'stalled']; // ours to do: ask the courier (user 2026-11-14: To do by category)
   if (noActTicket(t) && c.sent !== 'Queued') return ['todo', 'noact'];
   if (isTodo(c)) return ['todo', !c.outcome || c.outcome === 'Not called yet' ? 'new' : 'again'];
   if (c.callBack && c.callBack > Date.now()) return ['todo', 'later'];
   if (ob || (c.sent === 'Queued' && !(t && (t.channel || sentNow)))) return ['todo', 'ready'];
   if ((t && (t.channel || sentNow)) || /^(Sent|Courier confirmed)$/.test(c.sent || '')) {
     if (t && (t.status || t.reply) && !replyHandled(t)) return ['courier', 'replied'];
+    // on the courier's page / sent 24 h ago and no answer at all: ours again (remind them)
+    if (t && t.channel && !t.status && !t.reply && t.sentMs && Date.now() - t.sentMs > 86400000) return ['todo', 'noreply'];
     var ty = (t && t.type) || (c.next === 'Chase courier (late)' ? 'late' : c.next === 'Verify with courier' ? 'check' : /return/i.test(c.next) ? 'return' : 'reattempt');
     return ['courier', { reattempt: 'reattempt', return: 'return', late: 'late', check: 'check' }[ty] || 'reattempt'];
   }
@@ -3317,7 +3351,7 @@ function ndrSteps(c, slot) {
   }).join('') + '</div>';
 }
 var NDR_TAG = {
-  new: ['New', 'red'], noact: ['No action', 'red'], again: ['Call again', 'red'], later: ['', 'blue'], ready: ['In list', 'amber'], wait: ['Called', 'grey'],
+  new: ['New', 'red'], noact: ['No action', 'red'], noreply: ['No answer', 'amber'], again: ['Call again', 'red'], later: ['', 'blue'], ready: ['In list', 'amber'], wait: ['Called', 'grey'],
   replied: ['New reply', 'green'], reattempt: ['With courier', 'blue'], return: ['Return asked', 'blue'], late: ['Trace asked', 'blue'], check: ['Status check', 'blue'],
   premature: ['Premature return', 'red'], rtostop: ['Return started', 'red'], stalled: ['No update', 'amber']
 };
@@ -3335,7 +3369,7 @@ function ndrCard(c, seen, inGroup) {
   if (retK) tagT = k === 'premature' ? 'Premature return' : 'Return started';
   var p = findParcel(c.cn), items = String(c.items || (p && p.items) || '').split(/\n|;/)[0];
   var says = t && (t.status || t.reply) ? [esc(c.courier) + ' replied' + (t.replyAt ? ' · ' + esc(t.replyAt) : ''), [t.status, t.reply].filter(Boolean).join(' – ')]
-    : [esc(c.courier), (niceReason(c.reason || c.courierStatus) || 'Delivery failed') + (c.attempts && (k === 'premature' || k === 'rto') ? ' · attempt ' + c.attempts : '')];
+    : [esc(c.courier) + (c.failedAt && !c.watch ? ' · failed ' + esc(c.failedAt) : ''), (niceReason(c.reason || c.courierStatus) || 'Delivery failed') + (c.attempts && (k === 'premature' || k === 'rto') ? ' · attempt ' + c.attempts : '')];
   var cust = c.says && c.outcome && !/^Not called/.test(c.outcome) ? String(c.says).replace(/\s*Please reattempt again\.?\s*$/i, '') : '';
   cust = cust.replace(/^(No answer|Phone off|Wrong number|Customer busy(, call back at [^.]*)?)\.?\s*/i, '').trim(); // only the customer's own words
   // tries left before the courier sends it back
@@ -3369,6 +3403,10 @@ function ndrCard(c, seen, inGroup) {
     side = [B.callSq, work ? B.upd : '', work && canRet ? '<button class="btn ' + (tired ? 'danger' : '') + ' grow" data-ret="' + esc(c.cn) + '"><i class="ti ti-arrow-back-up"></i>Return</button>' : ''];
   }
   else if (slot === 'later') { main = B.call('Call at ' + pkTime(c.callBack), 'ton'); side = [B.wa, B.upd]; }
+  else if (slot === 'noreply') {
+    main = can('ndr.work') ? '<a class="btn pri grow" data-shsh="' + esc(c.courier) + '" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(sheetReminderText(c.courier)) + '"><i class="ti ti-bell"></i>Remind ' + esc(c.courier) + '</a>' : '';
+    side = [B.callSq, t ? '<button class="btn sq" data-wr="' + esc(t.id) + '" data-wc="' + esc(c.courier) + '" aria-label="Note courier reply" title="Note courier reply"><i class="ti ti-message-reply"></i></button>' : ''];
+  }
   else if (slot === 'ready') { main = '<button class="btn grow" data-rec="' + esc(c.cn) + '"><i class="ti ti-pencil"></i>Change request</button>'; side = [B.callSq, B.wa]; }
   else if (slot === 'replied') { main = '<button class="btn pri grow" data-wr="' + esc(t.id) + '" data-wc="' + esc(c.courier) + '"><i class="ti ti-message-2"></i>Read reply · decide</button>'; side = [B.callSq, B.wa]; }
   else if (t && t.channel) { main = '<button class="btn ton grow" data-wr="' + esc(t.id) + '" data-wc="' + esc(c.courier) + '"><i class="ti ti-message-reply"></i>Note courier reply</button>'; side = [B.callSq, B.wa]; }
@@ -3409,6 +3447,33 @@ function outboxBars() {
       '<small>' + esc(cnt ? cutoffText() : kinds) + '</small></span><span class="go"><i class="ti ti-send"></i>Send</span></button>';
   }).join('');
 }
+// What each courier is doing with our queries, always open on top of NDR (user 2026-11-14: no hidden parts; Trax and
+// Leopards at a glance): on their page now, answered, waiting for an answer, waiting over 24 h, answered and then nothing
+// for 24 h (back with us), usual reply time. Name → escalations; Open page; Remind (their group) when some wait.
+function courierPulse() {
+  var cs = (N.data && N.data.couriers) || {}, now = Date.now();
+  var rows = Object.keys(cs).map(function (name) {
+    var s = cs[name], tk = s.tickets || {}, on = 0, ans = 0, wait = 0, old = 0, noact = 0;
+    Object.keys(tk).forEach(function (cn) {
+      var t = tk[cn];
+      if (noActTicket(t)) { noact++; return; }
+      if (!/Sheet/.test(t.channel || '') || /Done/.test(t.result || '')) return;
+      on++;
+      if (t.status || t.reply) ans++; else { wait++; if (t.sentMs && now - t.sentMs >= 24 * 3600000) old++; }
+    });
+    if (!on && !noact && !s.open) return '';
+    // one short line (user 2026-11-14: the first strip took too much room): only what is not zero
+    var parts = [];
+    if (wait) parts.push('<b class="amb">' + wait + '</b> waiting');
+    if (old) parts.push('<b class="red">' + old + '</b> over 24 h');
+    if (noact) parts.push('<b class="red">' + noact + '</b> no action');
+    parts.push(on && !wait ? 'all ' + on + ' answered ✓' : ans + '/' + on + ' answered');
+    return '<div class="cpu-r"><button class="cpu-n" data-cour="' + esc(name) + '">' + esc(name) + '</button><div class="cpu-s">' + parts.join(' · ') + '</div>' +
+      (s.link ? '<a class="cpu-b" target="_blank" aria-label="Open ' + esc(name) + ' ' + shW(name) + '" href="' + esc(courierSheetLink(name, 'reattempt')) + '"><i class="ti ti-external-link"></i></a>' : '') +
+      (wait && s.link && can('ndr.work') ? '<a class="cpu-b" aria-label="Remind ' + esc(name) + '" data-shsh="' + esc(name) + '" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(sheetReminderText(name)) + '"><i class="ti ti-bell"></i></a>' : '') + '</div>';
+  }).join('');
+  return rows ? '<div class="cpu">' + rows + '</div>' : '';
+}
 function renderNdr() {
   if (!N.data) return;
   var cs = N.data.cases || [], seen = seenSet(), now = Date.now();
@@ -3439,8 +3504,8 @@ function renderNdr() {
   // To do counts only what is to be done now; what waits (Called, In list) shows on its own pill. Badge = To do + Urgent
   var tabN = function (t) {
     var sum = function (gs) { return gs.reduce(function (a, g) { return a + (by[t][g] || []).length; }, 0); };
-    if (t === 'todo') return sum(['new', 'noact', 'again']);
-    if (t === 'courier') return sum(['replied', 'stalled']);
+    if (t === 'todo') return sum(['new', 'noact', 'again', 'stalled', 'noreply']);
+    if (t === 'courier') return sum(['replied']);
     if (t === 'special') return ['premature', 'rtostop'].reduce(function (a, g) { return a + (by.special[g] || []).filter(function (c) { return !calledWaiting(c); }).length; }, 0);
     return cnt(t);
   };
@@ -3450,7 +3515,7 @@ function renderNdr() {
   var tabs = '<div class="ntabs">' + NDR_TABS.map(function (t) { var n = tabN(t[0]); return '<button data-nt="' + t[0] + '" class="' + [t[0] === N.tab ? 'on' : '', t[0] === 'special' && n ? 'hot' : '', !n || t[0] === 'closed' ? 'calm' : ''].filter(Boolean).join(' ') + '"><span class="nt-l">' + t[1] + '</span><b class="num">' + n + '</b></button>'; }).join('') + '</div>';
   // the courier lists (what is ready to send, Send, the cut-off) stay on top of every NDR tab (user 2026-11-02); the
   // parcels in them stay under To do → In list
-  el('ncour').innerHTML = score + (obars ? '<div class="ob-top">' + obars + '</div>' : '') + tabs;
+  el('ncour').innerHTML = score + courierPulse() + (obars ? '<div class="ob-top">' + obars + '</div>' : '') + tabs;
   // search: tracking ID, order #, phone (any way it is written) or name — across all tabs
   if (N.last) {
     var lt = typed.filter(function (c) { return c.attempts && triesLeft(c) <= 1 && caseType(c) !== 'premature' && caseType(c) !== 'rto' && !c.watch; })
@@ -3469,16 +3534,16 @@ function renderNdr() {
   // most urgent first: fewest tries left, then the oldest
   var order = function (a, b) { return ndrRank(a) - ndrRank(b) || triesLeft(a) - triesLeft(b) || (b.hours || 0) - (a.hours || 0); };
   var replyH = function () { var h = Object.keys(N.data.couriers || {}).map(function (n) { return N.data.couriers[n].replyHours ? n + ' ~' + N.data.couriers[n].replyHours + ' h' : ''; }).filter(Boolean); return h.length ? 'usual reply: ' + h.join(' · ') : ''; };
-  var strip = N.tab === 'courier' ? '<div class="cstrip">' + Object.keys(N.data.couriers || {}).map(function (name) {
+  var strip = false ? '<div class="cstrip">' + Object.keys(N.data.couriers || {}).map(function (name) {
     var s = N.data.couriers[name];
     var sp = sheetPending(name);
     return '<button class="cs-line" data-cour="' + esc(name) + '"><b>' + esc(name) + '</b><span>' + s.open + ' open' + (s.notActed ? ' · <i class="down">' + s.notActed + ' no action</i>' : '') + '</span><i class="ti ti-chevron-right"></i></button>' +
-      (sp.n && s.link && can('ndr.work') ? '<div class="sh-rem' + (sp.untouched ? ' late' : '') + '"><span><i class="ti ti-table"></i>On the sheet: ' + sp.n + (sp.untouched ? ' · ' + sp.untouched + ' without update' : ' · all answered') + '</span>' +
+      (sp.n && s.link && can('ndr.work') ? '<div class="sh-rem' + (sp.untouched ? ' late' : '') + '"><span><i class="ti ti-table"></i>On the ' + shW(name) + ': ' + sp.n + (sp.untouched ? ' · ' + sp.untouched + ' without update' : ' · all answered') + '</span>' +
         (sp.untouched ? '<a class="btn mini wa" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(sheetReminderText(name)) + '"><i class="ti ti-brand-whatsapp"></i>Remind</a>' : '') + '</div>' : '');
   }).join('') + '</div>' : '';
   var html = '', PILLS = {
-    todo: [['call', 'To call', ['new', 'noact', 'again']], ['called', 'Called', ['later', 'wait']], ['list', 'In list', ['ready']]],
-    courier: [['act', 'To act', ['replied', 'stalled']], ['wait', 'Waiting', ['reattempt', 'return', 'late', 'check']]],
+    todo: [['call', 'To call', ['new', 'noact', 'again']], ['chase', 'Courier', ['stalled', 'noreply']], ['called', 'Called', ['later', 'wait']], ['list', 'In list', ['ready']]],
+    courier: [['act', 'To act', ['replied']], ['wait', 'Waiting', ['reattempt', 'return', 'late', 'check']]],
     special: [['call', 'To call', ['premature', 'rtostop']], ['called', 'Called', ['premature', 'rtostop']]]
   }, pills = PILLS[N.tab], subKey = SUB_KEY[N.tab], pill = null;
   var pillHas = function (x, c) { return N.tab !== 'special' || (x[0] === 'called') === calledWaiting(c); };
@@ -3496,8 +3561,8 @@ function renderNdr() {
   var arrOf = function (g) { return (by[N.tab][g] || []).filter(function (c) { return !pill || pillHas(pill, c); }); };
   // a heading's number only when there are 2+ groups: with one, the tab already says it
   var liveG = NDR_GH[N.tab].filter(function (g) { return (!subGroups || subGroups.indexOf(g[0]) !== -1) && arrOf(g[0]).length; }).length;
-  // Categories fold (user 2026-11-09): all closed at the start, each person's choice kept on the phone. A closed one still shows
-  // its count and how many are new.
+  // Categories fold (user 2026-11-09, again 2026-11-14: headings always shown, closed at the start so the list is not a
+  // crowd), each person's choice kept on the phone. A closed one still shows its count and how many are new.
   var ngo = {}; try { ngo = JSON.parse(store('eh_ngo') || '{}'); } catch (e) {}
   NDR_GH[N.tab].forEach(function (g) {
     if (subGroups && subGroups.indexOf(g[0]) === -1) return;
@@ -3512,12 +3577,12 @@ function renderNdr() {
       (N.tab === 'closed' && arr.some(function (c) { return c.cod; }) ? '<small>' + esc(g[3] ? g[3] + ' · ' : '') + rs(arr.reduce(function (a, c) { return a + (c.cod || 0); }, 0)) + '</small>'
         : (g[0] === 'reattempt' ? replyH() : g[3]) ? '<small>' + esc(g[0] === 'reattempt' ? replyH() : g[3]) + '</small>' : '') + '</div>' + (foldNew ? '<span class="ngh-new">' + foldNew + ' new</span>' : '') + (canFold ? '<i class="ti ti-chevron-down ngh-c"></i></button>' : '</div>')) + bars +
       (!isOpen ? '' : g[0] === 'ready' && arr.length && !N.readyOpen && !subGroups ? '<button class="ngh-more" type="button" data-ready="1"><i class="ti ti-chevron-down"></i>Show ' + arr.length + (arr.length === 1 ? ' parcel' : ' parcels') + ' in the list</button>'
-        : arr.map(function (c) { return N.tab === 'closed' ? ndrClosedCard(c) : ndrCard(c, seen, true); }).join('') +
+        : (g[0] === 'new' && arr.length > 2 ? byReason(arr, seen) : arr.map(function (c) { return N.tab === 'closed' ? ndrClosedCard(c) : ndrCard(c, seen, true); }).join('')) +
           (g[0] === 'ready' && arr.length && !subGroups ? '<button class="ngh-more" type="button" data-ready="0"><i class="ti ti-chevron-up"></i>Hide the list</button>' : ''));
   });
   if (N.tab === 'special' && !liveG) html += '<div class="card empty"><i class="ti ti-circle-check"></i>' + ({ call: 'Nothing urgent to call right now', called: 'No urgent case is waiting' })[pill[0]] + '</div>';
   if (N.tab === 'courier' && !liveG) html += '<div class="card empty"><i class="ti ti-circle-check"></i>' + ({ act: 'Nothing to act on with the couriers', wait: 'No request is waiting with a courier' })[pill[0]] + '</div>';
-  if (N.tab === 'todo' && !liveG) html += '<div class="card empty"><i class="ti ti-circle-check"></i>' + ({ call: 'Nobody to call right now', called: 'No called case is waiting', list: 'Nothing in the courier lists' })[pill[0]] + '</div>';
+  if (N.tab === 'todo' && !liveG) html += '<div class="card empty"><i class="ti ti-circle-check"></i>' + ({ call: 'Nobody to call right now', chase: 'No late parcel and no silent courier', called: 'No called case is waiting', list: 'Nothing in the courier lists' })[pill[0]] + '</div>';
   if (!html) html = '<div class="card empty"><i class="ti ti-circle-check"></i>' + (N.tab === 'todo' ? 'Nothing to do · every case is with the courier or waiting' : N.tab === 'closed' ? 'No case closed today yet' : 'No cases here') + '</div>';
   el('nlist').innerHTML = html;
   drawNextBar();
@@ -3525,6 +3590,15 @@ function renderNdr() {
   el('nlist').querySelectorAll('[data-nsub]').forEach(function (b) { b.onclick = function () { var k = SUB_KEY[N.tab]; N[k] = b.getAttribute('data-nsub'); N[k + 'Picked'] = true; renderNdr(); }; });
   el('nlist').querySelectorAll('[data-ready]').forEach(function (b) { b.onclick = function () { N.readyOpen = b.getAttribute('data-ready') === '1'; renderNdr(); }; });
   saveFilters();
+}
+// New cases under small headings by what the courier said (user 2026-11-14: the most common courier statuses apart),
+// the biggest group first; inside each the usual order
+function byReason(arr, seen) {
+  var g = {}, keys = [];
+  arr.forEach(function (c) { var k = niceReason(c.reason || c.courierStatus) || 'Delivery failed'; if (!g[k]) { g[k] = []; keys.push(k); } g[k].push(c); });
+  if (keys.length < 2) return arr.map(function (c) { return ndrCard(c, seen, true); }).join('');
+  keys.sort(function (a, b) { return g[b].length - g[a].length; });
+  return keys.map(function (k) { return '<div class="ngr">' + esc(k) + ' <em class="num">' + g[k].length + '</em></div>' + g[k].map(function (c) { return ndrCard(c, seen, true); }).join(''); }).join('');
 }
 // What the team has to do, in plain words (the W1 case type stays in the parcel sheet)
 function taskTitle(c) {
@@ -3541,7 +3615,7 @@ function taskTitle(c) {
 function lateText(t) {
   t = String(t || '');
   var w = /with rider/i.test(t) ? 'with rider, no result' : /no rider/i.test(t) ? 'at destination, no rider' : /not picked/i.test(t) ? 'not picked up yet'
-    : /origin/i.test(t) ? 'stuck at origin office' : /no courier update/i.test(t) ? 'no courier update' : t.replace(/\s*[–-]\s*/g, ' · ').toLowerCase();
+    : /origin/i.test(t) ? 'stuck at origin office' : /no courier update/i.test(t) ? 'no courier update' : /late on the way/i.test(t) ? t.replace(/^late on the ways*/i, 'running late · ').toLowerCase() : t.replace(/\s*[–-]\s*/g, ' · ').toLowerCase();
   return w;
 }
 // W1 writes results in Roman Urdu for the courier's sheet; the app shows them in English
@@ -3683,16 +3757,16 @@ function openOutbox(name) {
           [esc(it.city || ''), it.newInfo ? '🆕 new address / phone' : '', it.dobara || it.round > 1 ? '🔴 Follow-up' : '', k[0] === 'claim' ? esc(it.claimText || '') : ''].filter(Boolean).join(' · ') + '</small>' + reqLine(k[0], i, it, 'b') + '</div></label>';
       }).join('') +
       '<div class="btns" style="margin-top:8px">' + (courierChannels().indexOf('WhatsApp') !== -1 ? '<button class="btn wa" data-send="WhatsApp"><i class="ti ti-brand-whatsapp"></i>Send on WhatsApp</button>' : '') +
-      (courierChannels().indexOf('Sheet') !== -1 ? '<button class="btn pri" data-send="Sheet"><i class="ti ti-table"></i>Send by Sheet</button>' : '') + '</div>' +
+      (courierChannels().indexOf('Sheet') !== -1 ? '<button class="btn pri" data-send="Sheet"><i class="ti ti-table"></i>' + (shW(name) === 'page' ? 'Send to ' + esc(name) + ' page' : 'Send by Sheet') + '</button>' : '') + '</div>' +
       // the store turned the sheet off (W1 Store Settings "Courier Requests Via"): say where, for owners
-      (courierChannels().indexOf('Sheet') === -1 && can('users.manage') ? '<small class="mnote" style="display:block;margin-top:6px">Send by Sheet is off · W1 Store Settings → "Courier Requests Via": WhatsApp, Sheet</small>' : '') + '</div>';
+      (courierChannels().indexOf('Sheet') === -1 && can('users.manage') ? '<small class="mnote" style="display:block;margin-top:6px">Sending to the courier is off · W1 Store Settings → "Courier Requests Via": Sheet</small>' : '') + '</div>';
   }).join('');
   var os = onSheetOf(name), wa = courierChannels().indexOf('WhatsApp') !== -1, shLink = courierSheetLink(name, 'deliver');
   var sec2 = !wa ? '' : OB_KINDS.map(function (k) {
     var items = os[k[0]];
     if (!items.length) return '';
-    return '<div class="card obs" data-k="' + k[0] + '"><div class="h"><b>📄 On the sheet · ' + k[2] + '</b><span>' + items.length + '</span></div>' +
-      '<small class="mnote" style="display:block;margin:-4px 0 6px">Already in the ' + esc(name) + ' sheet, no action yet. Send on WhatsApp too; it leaves the sheet for Done once ' + esc(name) + ' acts.</small>' +
+    return '<div class="card obs" data-k="' + k[0] + '"><div class="h"><b>📄 On the ' + shW(name) + ' · ' + k[2] + '</b><span>' + items.length + '</span></div>' +
+      '<small class="mnote" style="display:block;margin:-4px 0 6px">Already on the ' + esc(name) + ' ' + shW(name) + ', no action yet. Send on WhatsApp too; it leaves the ' + shW(name) + ' once ' + esc(name) + ' acts.</small>' +
       items.map(function (it, i) {
         return '<label class="ob-it"><input type="checkbox" data-i="' + i + '"><div><b>' + esc(it.order || it.cn) + ' · ' + esc(it.name || '') + '</b><small>' + [esc(it.city || ''), it.ticket ? esc(it.ticket) : ''].filter(Boolean).join(' · ') + '</small>' + reqLine(k[0], i, it, 'o') + '</div></label>';
       }).join('') + '<div class="btns" style="margin-top:8px"><button class="btn wa" data-sendwa><i class="ti ti-brand-whatsapp"></i>Send on WhatsApp too</button></div></div>';
@@ -3700,8 +3774,8 @@ function openOutbox(name) {
   el('panel').innerHTML = '<h3>' + esc(name) + ' · courier list</h3><p>Send each kind on its own · batch ' + esc(batch) + '</p>' +
     (sec || '<div class="card empty"><i class="ti ti-circle-check"></i>Nothing new to send</div>') + sec2 +
     // queries already on the sheet (user 2026-11-09): share its link in the courier's group at any time, not only right after sending
-    (wa && shLink && sheetPending(name).n ? '<a class="btn wa" data-shsh="' + esc(name) + '" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(sheetMessage(name, false)) + '" style="width:100%;margin:0 0 8px"><i class="ti ti-share"></i>Share sheet link in ' + esc(name) + ' group</a>' +
-      '<a class="btn" target="_blank" href="' + esc(shLink) + '" style="width:100%;margin:0 0 8px"><i class="ti ti-table"></i>Open ' + esc(name) + ' sheet</a>' : '') +
+    (shLink && sheetPending(name).n ? '<a class="btn wa" data-shsh="' + esc(name) + '" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(sheetMessage(name, false)) + '" style="width:100%;margin:0 0 8px"><i class="ti ti-share"></i>Share ' + shW(name) + ' link in ' + esc(name) + ' group</a>' +
+      '<a class="btn" target="_blank" href="' + esc(shLink) + '" style="width:100%;margin:0 0 8px"><i class="ti ti-table"></i>Open ' + esc(name) + ' ' + shW(name) + '</a>' : '') +
     '<div class="btns" style="margin-top:10px"><button class="btn" id="obClose">Close</button></div>';
   openPanel(true);
   el('obClose').onclick = closePanel;
@@ -3758,38 +3832,47 @@ function obSend(name, kind, items, channel, batch, then) {
   if (N.data.outbox) N.data.outbox[name] = box;
   var sb = onSheetOf(name); sb[kind] = sb[kind].filter(function (it) { return items.indexOf(it) === -1; }); if (N.data.onSheet) N.data.onSheet[name] = sb;
   snap('ndr', N.data); renderNdr();
-  toast(channel === 'WhatsApp' ? '✅ Sent to ' + name + ' · WhatsApp · ' + items.length + ' parcel' + (items.length > 1 ? 's' : '') : '✅ Sent to ' + name + ' · Sheet · ' + items.length + ' parcel' + (items.length > 1 ? 's' : '') + ' (on the sheet within 5 min)');
+  toast(channel === 'WhatsApp' ? '✅ Sent to ' + name + ' · WhatsApp · ' + items.length + ' parcel' + (items.length > 1 ? 's' : '') : '✅ Sent to ' + name + ' · ' + (shW(name) === 'page' ? 'Page' : 'Sheet') + ' · ' + items.length + ' parcel' + (items.length > 1 ? 's' : '') + ' (on the ' + shW(name) + ' within 5 min)');
   api('appCourierSend', [TOKEN, list, channel, batch], function () { if (then) then(); else if (channel === 'Sheet') sheetSent(name, kind, items.length); else openOutbox(name); loadNdr(true); },
     function (e) { toast('❌ Not recorded: ' + ((e && e.message) || 'try again')); loadNdr(true); });
 }
 // The courier's sheet, opened on the tab of that request type (on a phone it opens in the Google Sheets app)
 function courierSheetLink(name, kind) {
   var s = (N.data.couriers || {})[name] || {}, g = s.tabs && s.tabs[kind || 'reattempt'];
+  if (s.page) return s.link ? s.link + '#' + sheetTabOf(kind || 'reattempt') : ''; // the courier's own page (opens on that tab)
   return s.link ? s.link + (g != null ? '#gid=' + g : '') : '';
 }
+// the courier works on their own page (Store Setting "Courier page") or on the old Google sheet: the word on screen
+function shW(name) { var s = ((N.data && N.data.couriers) || {})[name] || {}; return s.page ? 'page' : 'sheet'; }
 // The courier group's message about their sheet (user 2026-11-02): title, "Open queries: n", one bold block per tab with a
 // list by date (today, the day before, "<date> ya pehle"), the sheet link and one line of what to do; no icons, no times.
 // reminder = only the queries the courier has not touched yet ("Update nahi aaya"). extra = {kind, n} just sent (today).
 var SHEET_TABS = [['deliver', 'Reattempt'], ['return', 'Mark for Return'], ['claim', 'Return Claim']];
 function sheetTabOf(type) { return type === 'return' ? 'return' : type === 'claim' || type === 'retlate' ? 'claim' : 'deliver'; }
+// the courier page counts each kind on its own (user 2026-11-14: the Trax message said 9 reattempts for 4: late and status
+// checks were counted with them, as on the old sheet's Reattempt tab)
+var PAGE_KINDS = [['reattempt', 'Reattempt'], ['late', 'Late Delivery'], ['check', 'Status Check'], ['return', 'Mark for Return'], ['claim', 'Return Claim'], ['retlate', 'Late Return']];
+function msgTabs(name) { return shW(name) === 'page' ? PAGE_KINDS : SHEET_TABS; }
+function msgKey(name, type) { return shW(name) !== 'page' ? sheetTabOf(type) : PAGE_KINDS.some(function (k) { return k[0] === type; }) ? type : 'reattempt'; }
 function sheetCounts(name, reminder, extra) {
-  var tk = ((N.data.couriers || {})[name] || {}).tickets || {}, c = { deliver: [], return: [], claim: [] };
+  var tk = ((N.data.couriers || {})[name] || {}).tickets || {}, c = {};
+  msgTabs(name).forEach(function (t) { c[t[0]] = []; });
   Object.keys(tk).forEach(function (cn) {
     var t = tk[cn];
     if (!/Sheet/.test(t.channel || '') || /Done/.test(t.result || '') || noActTicket(t)) return; // a no-action line has left the sheet
     if (reminder && (t.status || t.reply || t.cBy)) return;
-    c[sheetTabOf(t.type)].push(t.sentMs || Date.now());
+    c[msgKey(name, t.type)].push(t.sentMs || Date.now());
   });
-  if (extra && extra.n) for (var i = 0; i < extra.n; i++) c[sheetTabOf(extra.kind)].push(Date.now());
+  if (extra && extra.n) for (var i = 0; i < extra.n; i++) c[msgKey(name, extra.kind)].push(Date.now());
   return c;
 }
 function sheetMessage(name, reminder, extra) {
   var c = sheetCounts(name, reminder, extra), today = pkDay(new Date());
   var head = '*' + STORE + ' → ' + name + (reminder ? ' · Reminder' : '') + ' · ' + niceDay(today) + '*';
-  var total = c.deliver.length + c.return.length + c.claim.length;
+  var total = Object.keys(c).reduce(function (a, k) { return a + c[k].length; }, 0);
   if (!total) return head + '\n' + (reminder ? 'Sab queries par update aa gaya.' : 'Koi open query nahi.') + '\nShukriya · ' + STORE;
   // one line per tab with its total, no date lines (user 2026-11-10)
-  var blocks = SHEET_TABS.filter(function (t) { return c[t[0]].length; }).map(function (t) { return '*' + t[1] + ' · ' + c[t[0]].length + '*'; });
+  var blocks = msgTabs(name).filter(function (t) { return c[t[0]].length; }).map(function (t) { return '*' + t[1] + ' · ' + c[t[0]].length + '*'; });
   return head + '\n' + (reminder ? 'Update nahi aaya: ' : 'Open queries: ') + total + '\n\n' + blocks.join('\n') + '\n\n' + courierSheetLink(name, 'deliver') + '\n' +
     (reminder ? 'In queries ko jaldi solve kar ke status update karein' : 'Har query solve kar ke status update karein') + '.\nShukriya · ' + STORE;
 }
@@ -3797,17 +3880,18 @@ function sheetShareText(name, kind, n) { return sheetMessage(name, false, { kind
 // requests waiting on a courier's sheet: all, and the ones the courier has not touched yet (for Remind)
 function sheetPending(name) {
   var c = sheetCounts(name, false), r = sheetCounts(name, true);
-  return { n: c.deliver.length + c.return.length + c.claim.length, untouched: r.deliver.length + r.return.length + r.claim.length };
+  var sum = function (o) { return Object.keys(o).reduce(function (a, k) { return a + o[k].length; }, 0); };
+  return { n: sum(c), untouched: sum(r) };
 }
 function sheetReminderText(name) { return sheetMessage(name, true); }
 // from the 11 AM / 4 PM notification (./?remind=<courier>): the reminder ready, one tap to WhatsApp
 function openSheetRemind(name) {
   if (!N.data) { loadNdr(); return setTimeout(function () { if (N.data) openSheetRemind(name); }, 4000); }
   var txt = sheetReminderText(name), sp = sheetPending(name);
-  el('panel').innerHTML = '<h3>' + esc(name) + ' sheet</h3><p>' + sp.untouched + ' of ' + sp.n + ' queries without an update</p>' +
+  el('panel').innerHTML = '<h3>' + esc(name) + ' ' + shW(name) + '</h3><p>' + sp.untouched + ' of ' + sp.n + ' queries without an update</p>' +
     '<div class="msgprev"><small>Reminder for the ' + esc(name) + ' group</small><div style="white-space:pre-line">' + esc(txt.replace(/\*/g, '')) + '</div></div>' +
     (sp.untouched ? '<a class="btn wa" data-shsh="' + esc(name) + '" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(txt) + '" style="width:100%;margin:10px 0 8px"><i class="ti ti-brand-whatsapp"></i>Send in ' + esc(name) + ' group</a>' : '') +
-    '<a class="btn" target="_blank" href="' + esc(courierSheetLink(name, 'deliver')) + '" style="width:100%"><i class="ti ti-table"></i>Open ' + esc(name) + ' sheet</a>';
+    '<a class="btn" target="_blank" href="' + esc(courierSheetLink(name, 'deliver')) + '" style="width:100%"><i class="ti ti-table"></i>Open ' + esc(name) + ' ' + shW(name) + '</a>';
   openPanel();
 }
 // After "Send by Sheet": optional — share the link in the courier's WhatsApp group, or open the sheet
@@ -3818,9 +3902,9 @@ document.addEventListener('click', function (e) {
 });
 function sheetSent(name, kind, n) {
   var link = courierSheetLink(name, kind);
-  el('panel').innerHTML = '<h3>Sent to the ' + esc(name) + ' sheet</h3><p>' + n + ' parcel' + (n > 1 ? 's' : '') + ' · on the sheet within 5 minutes</p>' +
-    (link ? '<a class="btn wa" data-shsh="' + esc(name) + '" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(sheetShareText(name, kind, n)) + '" style="width:100%;margin-bottom:8px"><i class="ti ti-brand-whatsapp"></i>Share sheet link in ' + esc(name) + ' group</a>' +
-      '<a class="btn" target="_blank" href="' + esc(link) + '" style="width:100%;margin-bottom:8px"><i class="ti ti-table"></i>Open ' + esc(name) + ' sheet</a>' : '') +
+  el('panel').innerHTML = '<h3>Sent to the ' + esc(name) + ' ' + shW(name) + '</h3><p>' + n + ' parcel' + (n > 1 ? 's' : '') + ' · on the ' + shW(name) + ' within 5 minutes</p>' +
+    (link ? '<a class="btn wa" data-shsh="' + esc(name) + '" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(sheetShareText(name, kind, n)) + '" style="width:100%;margin-bottom:8px"><i class="ti ti-brand-whatsapp"></i>Share ' + shW(name) + ' link in ' + esc(name) + ' group</a>' +
+      '<a class="btn" target="_blank" href="' + esc(link) + '" style="width:100%;margin-bottom:8px"><i class="ti ti-table"></i>Open ' + esc(name) + ' ' + shW(name) + '</a>' : '') +
     '<button class="btn pri" id="ssDone" style="width:100%">Done</button><button id="ssBack" data-back hidden></button>';
   openPanel(true);
   el('ssDone').onclick = el('ssBack').onclick = function () { openOutbox(name); };
@@ -3963,19 +4047,31 @@ function courierCardsHtml(only) {
     var s = cs[name];
     var msg = '*Every Home – ' + name + ' Issues*\n\nAssalam-o-Alaikum,\n*' + s.open + ' parcels* par aap ka action chahiye.' +
       (s.notActed ? '\n*' + s.notActed + '* purane cases par ab tak action nahi hua.' : '') +
-      '\n\nSheet mein status aur jawab likh dein, kaam ho jaye to ☑️ Done tick karein:\n' + s.link + '\n\nShukriya 🙏';
+      (s.page ? '\n\nApne page par har parcel ka status aur jawab likh dein:\n' : '\n\nSheet mein status aur jawab likh dein, kaam ho jaye to ☑️ Done tick karein:\n') + s.link + '\n\nShukriya 🙏';
     return '<div class="card"><div class="h"><b>' + name + ' escalations</b><span>' + (s.replyHours != null ? 'avg. reply ~' + s.replyHours + 'h' : '') + '</span></div>' +
       // Open = still on the courier's sheet; closed tickets leave it and are counted by outcome.
-      '<div class="cs-h">Open in sheet</div>' +
+      '<div class="cs-h">Open on the ' + (s.page ? 'page' : 'sheet') + '</div>' +
       '<div class="cs"><div data-esc="' + esc(name) + '|open"><b>' + s.open + '</b><small>Open</small></div><div data-esc="' + esc(name) + '|replied"><b>' + s.replied + '</b><small>Replied</small></div><div data-esc="' + esc(name) + '|acted"><b class="up">' + s.acted + '</b><small>Actioned</small></div><div data-esc="' + esc(name) + '|none"><b class="down">' + s.notActed + '</b><small>No action</small></div></div>' +
       '<div class="cs-done"><div class="cs-h" style="margin:0"><i class="ti ti-archive"></i>Closed · last ' + (s.closedDays || 30) + ' days<small>' + (s.total || 0) + ' sent in total</small></div>' +
         '<div class="cs-res">' + (s.delivered + s.returned + (s.closedOther || 0) ?
           '<b class="up">' + s.delivered + ' delivered</b> · <b class="down">' + s.returned + ' returned</b>' + (s.closedOther ? ' · ' + s.closedOther + ' other' : '') : 'None yet') + '</div></div>' +
       (s.disputed ? '<div class="tk" style="margin:8px 0 0"><i class="ti ti-alert-octagon"></i> ' + s.disputed + ' disputed attempt' + (s.disputed > 1 ? 's' : '') + ' (proof asked) · last ' + (s.closedDays || 30) + ' days</div>' : '') +
-      (s.link && courierChannels().indexOf('Sheet') !== -1 ? '<div class="btns"><a class="btn" target="_blank" href="' + esc(s.link) + '"><i class="ti ti-table"></i>Open sheet</a>' +
-        (s.open ? '<a class="btn wa" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(msg) + '"><i class="ti ti-brand-whatsapp"></i>Send to group</a>' : '') + '</div>' : '') + '</div>';
+      (s.link && courierChannels().indexOf('Sheet') !== -1 ? '<div class="btns"><a class="btn" target="_blank" href="' + esc(s.link) + '"><i class="ti ti-table"></i>Open ' + (s.page ? 'page' : 'sheet') + '</a>' +
+        (s.open ? '<a class="btn wa" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(msg) + '"><i class="ti ti-brand-whatsapp"></i>Send to group</a>' : '') + '</div>' : '') +
+      // owners: a new page link (the old one stops working at once, e.g. after staff changes)
+      (s.page && can('users.manage') ? '<button class="btn" data-cpnew="' + esc(name) + '" style="width:100%;margin-top:8px"><i class="ti ti-refresh"></i>New ' + esc(name) + ' page link</button>' : '') + '</div>';
   }).join('');
 }
+// owners: make a new courier page link (tap twice; the old link stops working)
+document.addEventListener('click', function (e) {
+  var b = e.target.closest && e.target.closest('[data-cpnew]'); if (!b) return;
+  if (!b.dataset.sure) { b.dataset.sure = '1'; b.innerHTML = '<i class="ti ti-alert-triangle"></i>Tap again · the old link stops working'; return; }
+  var name = b.getAttribute('data-cpnew');
+  api('appCpNewLink', [TOKEN, name], function (r) {
+    var s = (N.data.couriers || {})[name]; if (s) s.link = r.link;
+    toast('New ' + name + ' page link ready · share it in their group'); loadNdr(true); closePanel();
+  }, function (er) { toast('❌ ' + ((er && er.message) || 'Could not make a new link')); });
+});
 el('nq').oninput = function () { N.q = this.value; N.limit = PAGE; renderNdr(); };
 el('nchips').onclick = function (e) {
   if (e.target.closest('[data-fx]')) { N.type = ''; N.last = false; return renderNdr(); }
@@ -4038,7 +4134,7 @@ function ndrReqBanner(c) {
   if (ob) return '<div class="tk" ' + w + '><i class="ti ti-inbox"></i> <b>' + REQ_KIND[ob] + ' request already made</b> · in the ' + esc(c.courier) + ' list, not sent yet. Send it from the top of NDR.</div>';
   if (noActTicket(t)) return '<div class="tk" ' + w + '><i class="ti ti-message-exclamation"></i> <b>' + esc(c.courier) + ' replied but did nothing</b> · no tracking update for 24 h. Saving a delivery answer sends it again as a follow-up.</div>';
   if (t && (t.channel || sentNow)) return '<div class="tk ok" ' + w + '><i class="ti ti-send"></i> <b>' + (REQ_KIND[t.type] || 'Request') + ' request sent</b> · ' + (t.channel || sentNow.channel) + (t.sentAt ? ' · ' + esc(t.sentAt) : '') +
-    (t.status || t.reply ? ' · ' + esc(c.courier) + ': ' + esc([t.status, t.reply].filter(Boolean).join(' – ')) : ' · waiting for ' + esc(c.courier)) + '. Saving the same answer again does not send it twice.</div>';
+    (t.status || t.reply ? ' · ' + esc(c.courier) + ': ' + esc([t.status, t.reply].filter(Boolean).join(' – ')) : ' · waiting for ' + esc(c.courier)) + '. Saving a new answer updates this request (' + esc(c.courier) + ' sees it as Updated).</div>';
   if (c.sent === 'Queued') return '<div class="tk" ' + w + '><i class="ti ti-inbox"></i> <b>Request already made</b> · in the ' + esc(c.courier) + ' list, not sent yet.</div>';
   return '';
 }
@@ -4261,7 +4357,7 @@ function openNdrForm(cn) {
       sent: c.sent || 'Not sent', notes: el('fNotes').value, says: msg, send: send, ret: !!ret, check: false, ask: '', call: !editing, callBack: cb }], function (r) {
       c.next = r.next; if (r.sent) c.sent = r.sent; snap('ndr', N.data);
       toast(r.returning ? cour + ' is already returning it · no request needed' :
-        r.already ? 'Saved · ' + (REQ_KIND[r.already.type] || '') + ' request already ' + (r.already.channel ? 'sent on ' + r.already.channel + (r.already.sentAt ? ' ' + r.already.sentAt : '') : 'in the ' + cour + ' list') + ' · not made twice' :
+        r.already ? 'Updated · the ' + (REQ_KIND[r.already.type] || '').toLowerCase() + ' request ' + (r.already.channel ? 'on the ' + cour + ' ' + shW(cour) + ' now says the new answer (marked Updated)' : 'in the ' + cour + ' list has the new answer') :
         send || ret ? 'Request created · in the ' + cour + ' list (not sent yet)' : cb ? 'Saved · call back at ' + pkTime(cb) + ' (reminder on the phone)' : 'Saved');
       loadNdr(true);
     }, function (e) {
