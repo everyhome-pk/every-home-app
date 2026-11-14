@@ -485,6 +485,7 @@ body.nb-on #nlist{padding-bottom:84px}
 @media (min-width:1024px){.ntabs,.nsub,.nscore,.ob-top{max-width:640px}}
 .ag2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}.ag2 button{text-align:left;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 12px;font:inherit;color:var(--text)}
 .ag2 button b{display:block;font-size:14px;font-weight:600}.ag2 button small{font-size:12px;color:var(--muted)}.ag2 button.on{border-color:var(--brand);box-shadow:0 0 0 2px var(--soft, #E7F5F2)}
+.sl-h{padding:10px 14px 4px;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}
 .ngr{display:flex;align-items:center;gap:6px;width:100%;margin:6px 0;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);font:600 13px Inter,sans-serif;color:var(--text);text-align:left;cursor:pointer}
 .ngr em{font-style:normal;font-weight:600;color:var(--muted);margin-left:2px}.ngr .ngh-new{margin-left:6px}.ngr i{margin-left:auto;color:var(--muted)}
 .cpu{margin:0 0 10px;background:var(--card);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
@@ -2109,6 +2110,7 @@ function fbar(kind, label, count, ctxLabel) {
 // opts: [[key, label, count]]; options with 0 are dimmed but still shown (except hidden ones the caller leaves out).
 function openFilterSheet(title, opts, cur, pick) {
   showPick(title, '', '<div class="sheet-list" id="fsheet">' + opts.map(function (o) {
+    if (o[3] === 'h') return '<div class="sl-h">' + esc(o[1]) + '</div>';
     var on = o[0] === cur;
     return '<div class="sl' + (on ? ' on' : '') + '" data-k="' + esc(o[0]) + '"' + (o[2] ? '' : ' style="opacity:.45"') + '><span>' + esc(o[1]) + '</span><b class="num">' + o[2] + '</b>' + (on ? '<i class="ti ti-check" style="margin-left:8px"></i>' : '') + '</div>';
   }).join('') + '</div>', function (e) { var b = e.target.closest('.sl'); if (!b) return; closePick(); pick(b.getAttribute('data-k')); });
@@ -2952,6 +2954,21 @@ STAGE.cancelled = ['Cancelled', 'var(--faint)'];
 STAGE.moving = ['Shipped', 'var(--blue)']; // filter only: all stages still with the courier
 STAGE.nocn = ['Missing tracking', 'var(--amber)'];
 STAGE.comingback = ['Returning', 'var(--amber)']; // filter only: return in transit + returned by courier, not scanned
+STAGE.late = ['Late delivery', 'var(--amber)']; // filter only: longer than the courier's usual time to that city (+1 day), not out yet
+STAGE.multi = ['Failed 2+ times', 'var(--red)']; // filter only: two or more failed attempts, still with the courier
+// The Parcels dropdown in three parts (user 2026-11-14: categories like late delivery were missing; the filter-only groups only
+// showed once already chosen): needs attention, groups, then the journey stages. key → [test]
+var PFILTER = {
+  late: function (p) { return isLate(p); }, multi: function (p) { return (p.attempts || 0) >= 2 && MOVING.indexOf(p.stage) !== -1; },
+  nocn: function (p) { return p.stage === 'booked' && !p.cn; }, moving: function (p) { return MOVING.indexOf(p.stage) !== -1; },
+  comingback: function (p) { return BACK.indexOf(p.stage) !== -1; }
+};
+var PF_NEED = ['late', 'ndr', 'multi', 'nocn', 'rtoback'], PF_GROUP = ['moving', 'comingback'];
+// late: still on the way (not out for delivery, no attempt) and booked longer ago than that courier's usual time to the city + 1 day
+function isLate(p) {
+  if (['booked', 'picked', 'transit', 'atdest'].indexOf(p.stage) === -1 || p.attempts || !p.eta || !p.eta.transit || !p.ms) return false;
+  return (Date.now() - p.ms) / 3600000 > Math.max(48, p.eta.transit + 24);
+}
 var pAt = 0;
 function loadParcels(fresh) {
   if (!fresh && Date.now() - pAt < 60000) return;
@@ -2978,16 +2995,18 @@ function renderParcels() {
       (qd.length >= 4 && String(p.phone).replace(/[^0-9]/g, '').indexOf(qd.replace(/^92/, '0')) !== -1);
   });
   var counts = { all: found.filter(function (p) { return p.stage !== 'cancelled'; }).length }; // like Home: cancelled orders only under their own chip
-  found.forEach(function (p) { counts[p.stage] = (counts[p.stage] || 0) + 1; if (MOVING.indexOf(p.stage) !== -1) counts.moving = (counts.moving || 0) + 1; if (p.stage === 'booked' && !p.cn) counts.nocn = (counts.nocn || 0) + 1; if (BACK.indexOf(p.stage) !== -1) counts.comingback = (counts.comingback || 0) + 1; });
-  // Chips: [month/courier from Home ✕] All, then every journey stage that has parcels (the chosen one always).
-  var keys = ['all'].concat(['moving', 'nocn', 'comingback'].indexOf(P.filter) !== -1 ? [P.filter] : [], JOURNEY.map(function (s) { return s[0]; }), ['cancelled'])
-    .filter(function (k) { return k === 'all' || counts[k] || k === P.filter; });
-  P.opts = keys.map(function (k) { return [k, k === 'all' ? 'All stages' : STAGE[k][0], counts[k] || 0]; });
+  found.forEach(function (p) { counts[p.stage] = (counts[p.stage] || 0) + 1; Object.keys(PFILTER).forEach(function (k) { if (PFILTER[k](p)) counts[k] = (counts[k] || 0) + 1; }); });
+  // the dropdown: All, Needs attention (only those with parcels), Groups, Stages (every stage that has parcels; the chosen one always)
+  var has = function (k) { return counts[k] || k === P.filter; };
+  var head = function (t) { return ['__h', t, 0, 'h']; }, opt = function (k) { return [k, STAGE[k][0], counts[k] || 0]; };
+  var need = PF_NEED.filter(has), grp = PF_GROUP.filter(has), stg = JOURNEY.map(function (s) { return s[0]; }).concat(['cancelled']).filter(function (k) { return has(k) && need.indexOf(k) === -1; }); // never twice
+  P.opts = [['all', 'All stages', counts.all || 0]].concat(need.length ? [head('Needs attention')].concat(need.map(opt)) : [], grp.length ? [head('Groups')].concat(grp.map(opt)) : [],
+    stg.length ? [head('Stages')].concat(stg.map(opt)) : []);
   var cLabel = (COURIERS.filter(function (c) { return c[0] === P.courier; })[0] || COURIERS[0])[1];
   el('pchips').innerHTML = '<div class="fbar">' + (ctx && ctx.label ? '<button class="pbtn ctx" data-fx="p"><span>' + esc(ctx.label) + '</span><i class="ti ti-x"></i></button>' : '') +
     '<button class="pbtn" data-fs="p"><i class="ti ti-filter"></i><span>' + esc(P.filter === 'all' ? 'All stages' : (STAGE[P.filter] || [P.filter])[0]) + '</span><i class="ti ti-chevron-down"></i></button>' +
     '<button class="pbtn" data-fc="p"><i class="ti ti-truck"></i><span>' + esc(cLabel) + '</span><i class="ti ti-chevron-down"></i></button></div>';
-  var list = found.filter(function (p) { return P.filter === 'all' ? p.stage !== 'cancelled' : P.filter === 'moving' ? MOVING.indexOf(p.stage) !== -1 : P.filter === 'nocn' ? p.stage === 'booked' && !p.cn : P.filter === 'comingback' ? BACK.indexOf(p.stage) !== -1 : p.stage === P.filter; })
+  var list = found.filter(function (p) { return P.filter === 'all' ? p.stage !== 'cancelled' : PFILTER[P.filter] ? PFILTER[P.filter](p) : p.stage === P.filter; })
     .sort(function (a, b) { return (b.ms || 0) - (a.ms || 0); });
   if (!list.length) { el('plist').innerHTML = '<div class="card empty"><i class="ti ti-package-off" style="color:var(--faint)"></i>No parcels found</div>'; return; }
   var cod = list.reduce(function (s, p) { return s + (Number(p.total) || 0); }, 0);
@@ -3120,6 +3139,7 @@ function parcelRow(p) {
   var s = STAGE[p.stage] || ['', 'var(--line)'];
   var issue = p.stage === 'ndr' ? niceReason(p.reason || p.lastRaw) + (p.attempts ? ' · ' + p.attempts + (p.attempts > 1 ? ' attempts' : ' attempt') : '') + (p.failedAt ? ' · failed ' + p.failedAt : '')
     : p.stage === 'booked' && !p.cn ? 'Missing tracking number'
+    : isLate(p) ? 'Late · usually ' + (p.eta.transit < 36 ? p.eta.transit + ' h' : Math.round(p.eta.transit / 2.4) / 10 + ' days') + ' to ' + (p.city || 'this city') + ', now ' + Math.round((Date.now() - p.ms) / 8640000) / 10 + ' days'
     : p.stage === 'rtoback' ? 'Handed back by courier · scan it in Returns'
     : (p.flags || []).join(' · ');
   var call = (p.stage === 'ndr' || p.stage === 'pending') && p.phone ? '<a class="prow-call" href="' + telHref(p.phone) + '" aria-label="Call"><i class="ti ti-phone"></i></a>' : '';
@@ -3632,7 +3652,7 @@ function taskTitle(c) {
 function lateText(t) {
   t = String(t || '');
   var w = /with rider/i.test(t) ? 'with rider, no result' : /no rider/i.test(t) ? 'at destination, no rider' : /not picked/i.test(t) ? 'not picked up yet'
-    : /origin/i.test(t) ? 'stuck at origin office' : /no courier update/i.test(t) ? 'no courier update' : /^late · usually/i.test(t) ? t.replace(/^late · /i, 'running late · ') : /late on the way/i.test(t) ? t.replace(/^late on the ways*/i, 'running late · ').toLowerCase() : t.replace(/\s*[–-]\s*/g, ' · ').toLowerCase();
+    : /origin/i.test(t) ? 'stuck at origin office' : /no courier update/i.test(t) ? 'no courier update' : /^late · usually/i.test(t) ? t.replace(/^late · /i, 'running late · ') : /late on the way/i.test(t) ? t.replace(/^late on the way\s*/i, 'running late · ').toLowerCase() : t.replace(/\s*[–-]\s*/g, ' · ').toLowerCase();
   return w;
 }
 // W1 writes results in Roman Urdu for the courier's sheet; the app shows them in English
