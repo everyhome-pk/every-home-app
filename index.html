@@ -3876,7 +3876,20 @@ function sheetCounts(name, reminder, extra) {
   if (extra && extra.n) for (var i = 0; i < extra.n; i++) c[msgKey(name, extra.kind)].push(Date.now());
   return c;
 }
+// The courier page message: 3 short lines (user 2026-11-14: short and simple): who, how many and what kinds, the link.
+// Reminder = only queries without an answer, with how many wait over 24 h.
+var PAGE_SHORT = { reattempt: 'Reattempt', late: 'Late', check: 'Status check', return: 'Return', claim: 'Claim', retlate: 'Late return' };
+function pageMessage(name, reminder, extra) {
+  var c = sheetCounts(name, reminder, extra), link = courierSheetLink(name, 'reattempt');
+  var total = Object.keys(c).reduce(function (a, k) { return a + c[k].length; }, 0);
+  var old = Object.keys(c).reduce(function (a, k) { return a + c[k].filter(function (ms) { return Date.now() - ms >= 86400000; }).length; }, 0);
+  var parts = PAGE_KINDS.filter(function (t) { return c[t[0]].length; }).map(function (t) { return PAGE_SHORT[t[0]] + ' ' + c[t[0]].length; }).join(' · ');
+  var head = '*' + STORE + ' · ' + name + (reminder ? ' · Reminder*' : ' queries*');
+  if (!total) return head + '\n' + (reminder ? 'Sab queries ka jawab aa gaya. Shukriya!' : 'Abhi koi query baqi nahi.') + '\n' + link;
+  return head + '\n' + (reminder ? total + ' queries ka jawab baqi hai' + (old ? ' (' + old + ' · 24 ghante se zyada)' : '') : total + ' queries · ' + parts) + '\nJawab yahan dein: ' + link;
+}
 function sheetMessage(name, reminder, extra) {
+  if (shW(name) === 'page') return pageMessage(name, reminder, extra);
   var c = sheetCounts(name, reminder, extra), today = pkDay(new Date());
   var head = '*' + STORE + ' → ' + name + (reminder ? ' · Reminder' : '') + ' · ' + niceDay(today) + '*';
   var total = Object.keys(c).reduce(function (a, k) { return a + c[k].length; }, 0);
