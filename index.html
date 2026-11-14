@@ -489,9 +489,9 @@ body.nb-on #nlist{padding-bottom:84px}
 .ngr{display:flex;align-items:center;gap:6px;width:100%;margin:6px 0;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);font:600 13px Inter,sans-serif;color:var(--text);text-align:left;cursor:pointer}
 .ngr em{font-style:normal;font-weight:600;color:var(--muted);margin-left:2px}.ngr .ngh-new{margin-left:6px}.ngr i{margin-left:auto;color:var(--muted)}
 .cpu{margin:0 0 10px;background:var(--card);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
-.cpu-r{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 12px;min-height:40px}.cpu-r+.cpu-r{border-top:1px solid var(--line)}
-.cpu-n{border:0;background:none;padding:0;font:600 13.5px Inter,sans-serif;color:var(--text);flex:none;min-width:64px;text-align:left;text-decoration:none;display:flex;align-items:center;gap:3px}.cpu-n i{font-size:13px;color:var(--brand)}
-.cpu-s{flex:1;min-width:0;font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cpu-s b{font-weight:600;color:var(--text)}
+.cpu-r{display:flex;align-items:center;gap:6px;padding:4px 6px 4px 0;min-height:44px}.cpu-l{flex:1;min-width:0;display:flex;align-items:center;gap:10px;padding:8px 0 8px 14px;border:0;background:none;font:inherit;color:inherit;text-align:left;text-decoration:none;cursor:pointer}.cpu-r+.cpu-r{border-top:1px solid var(--line)}
+.cpu-n{font:600 14px Inter,sans-serif;color:var(--text);flex:none;min-width:76px}
+.cpu-s{flex:1;min-width:0;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cpu-s b{font-weight:600;color:var(--text)}
 .cpu-s b.amb{color:var(--amber)}.cpu-s b.red{color:var(--red)}
 .cpu-wa{color:#16A34A}button.cpu-b{border:0;background:none;cursor:pointer}.cpu-b{flex:none;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--brand);font-size:17px}
 @media (min-width:1024px){.cpu{max-width:640px}}
@@ -3489,18 +3489,18 @@ function courierPulse() {
       if (t.status || t.reply) ans++; else { wait++; if (t.sentMs && now - t.sentMs >= 24 * 3600000) old++; }
     });
     if (!on && !noact && !s.open) return '';
-    // one short line (user 2026-11-14: the first strip took too much room): only what is not zero
+    // one clean line per courier (user 2026-11-14): the whole line opens their page, two numbers (waiting, late = over 24 h)
+    // and one WhatsApp button while something waits; "answered" left out (it was waiting said again), escalations live in
+    // ☰ Reports → Courier escalations
     var parts = [];
-    if (wait) parts.push('<b class="amb">' + wait + '</b> waiting');
-    if (old) parts.push('<b class="red">' + old + '</b> over 24 h');
+    if (wait) parts.push('<b>' + wait + '</b> waiting');
+    if (old) parts.push('<b class="red">' + old + '</b> late');
     if (noact) parts.push('<b class="red">' + noact + '</b> no action');
-    parts.push(on && !wait ? 'all ' + on + ' answered ✓' : ans + '/' + on + ' answered');
-    // the courier's name opens their page (user 2026-11-14); the small list icon opens the escalations
-    return '<div class="cpu-r">' + (s.link ? '<a class="cpu-n" target="_blank" title="Open the ' + esc(name) + ' ' + shW(name) + '" href="' + esc(courierSheetLink(name, 'reattempt')) + '">' + esc(name) + ' <i class="ti ti-external-link"></i></a>'
-      : '<button class="cpu-n" data-cour="' + esc(name) + '">' + esc(name) + '</button>') + '<div class="cpu-s">' + parts.join(' · ') + '</div>' +
-      '<button class="cpu-b" data-cour="' + esc(name) + '" aria-label="' + esc(name) + ' escalations" title="Escalations"><i class="ti ti-list-details"></i></button>' +
-      // the page link to the courier's WhatsApp group, always (user 2026-11-14): a reminder while some wait, else the plain message
-      (s.link && can('ndr.work') ? '<a class="cpu-b cpu-wa" aria-label="Send ' + esc(name) + ' page link on WhatsApp" title="Send page link to the ' + esc(name) + ' group" data-shsh="' + esc(name) + '" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(wait ? sheetReminderText(name) : sheetMessage(name, false)) + '"><i class="ti ti-brand-whatsapp"></i></a>' : '') + '</div>';
+    var info = '<span class="cpu-n">' + esc(name) + '</span><span class="cpu-s">' + (parts.length ? parts.join(' · ') : 'All answered ✓') + '</span>';
+    var line = s.link ? '<a class="cpu-l" target="_blank" title="Open the ' + esc(name) + ' ' + shW(name) + '" href="' + esc(courierSheetLink(name, 'reattempt')) + '">' + info + '</a>'
+      : '<button class="cpu-l" data-cour="' + esc(name) + '">' + info + '</button>';
+    return '<div class="cpu-r">' + line +
+      ((wait || noact) && s.link && can('ndr.work') ? '<a class="cpu-b cpu-wa" aria-label="Remind ' + esc(name) + ' on WhatsApp" title="Remind the ' + esc(name) + ' group" data-shsh="' + esc(name) + '" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(sheetReminderText(name)) + '"><i class="ti ti-brand-whatsapp"></i></a>' : '') + '</div>';
   }).join('');
   return rows ? '<div class="cpu">' + rows + '</div>' : '';
 }
