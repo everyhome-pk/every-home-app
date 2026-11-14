@@ -3390,6 +3390,7 @@ function ndrCard(c, seen, inGroup) {
   var tagT = slot === 'later' ? 'Call back' : slot === 'again' && c.callBack && c.callBack <= Date.now() ? 'Call back now'
     : slot === 'again' && c.sent === 'Attempt failed' ? 'Failed again' : slot === 'ready' ? 'In ' + c.courier + ' list' : tag[0];
   if (inGroup && (tagT === tag[0] || slot === 'later' || slot === 'ready')) tagT = '';
+  if (slot === 'noreply' && t && /Escalated/.test(t.result || '')) { tag = ['No answer 48 h', 'red']; tagT = tag[0]; } // raised again on their page (W1, 48 h)
   var retK = (k === 'premature' || k === 'rto') && slot !== 'premature' && slot !== 'rtostop';
   if (retK) tagT = k === 'premature' ? 'Premature return' : 'Return started';
   var p = findParcel(c.cn), items = String(c.items || (p && p.items) || '').split(/\n|;/)[0];
@@ -3656,7 +3657,7 @@ function lateText(t) {
   return w;
 }
 // W1 writes results in Roman Urdu for the courier's sheet; the app shows them in English
-var TICKET_WORDS = [[/🔁 Jawab mila, Amal nahi \(24h\)/, 'Replied · no action in 24 h'], [/Amal nahi hua/, 'No action'], [/Amal hua/, 'Acted'], [/Intezar/, 'Waiting'], [/Deliver ho gaya/, 'Delivered'],
+var TICKET_WORDS = [[/Escalated – Amal nahi 48h/, 'No answer in 48 h · raised again'], [/🔁 Jawab mila, Amal nahi \(24h\)/, 'Replied · no action in 24 h'], [/Amal nahi hua/, 'No action'], [/Amal hua/, 'Acted'], [/Intezar/, 'Waiting'], [/Deliver ho gaya/, 'Delivered'],
   [/Return shuru – reattempt nahi hua/, 'Return started · not reattempted'], [/Return shuru ho gaya/, 'Return started'], [/Return ho gaya/, 'Returned'],
   [/Attempt hua – phir fail/, 'Attempted · failed again'], [/Claim – courier ne jawab diya/, 'Claim · courier replied'], [/Courier ne jawab diya/, 'Courier replied'],
   [/DOBARA – (\d+h), amal nahi/, 'Follow-up · no action in $1'], [/Case band/, 'Case closed'], [/Outbox/, 'Not sent yet'],
