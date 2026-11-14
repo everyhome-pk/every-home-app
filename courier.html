@@ -104,6 +104,39 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   .side{position:fixed;inset:0;width:auto;max-height:none;border-radius:0;border:0;z-index:40;display:none}.side.open{display:flex}.back{display:inline}
 }
 .dm{display:none;font-size:12.5px;color:var(--muted);grid-column:1/-1}
+
+/* Desktop: dense like a spreadsheet (user 2026-11-14: courier staff are used to Excel size); phones keep the larger touch sizes */
+@media (min-width:901px){
+  html,body{font-size:13px}
+  .top{height:46px;padding:0 16px;gap:10px}.logo{width:26px;height:26px;border-radius:7px;font-size:11px}.ttl b{font-size:13.5px}.ttl small{font-size:11px}
+  .seg{padding:2px}.seg button{height:26px;padding:0 11px;font-size:12px}.upd{font-size:11.5px}.rf{width:28px;height:28px}
+  .wrap{padding:10px 16px 16px}
+  .cards{gap:6px;margin-bottom:8px}.kc{padding:5px 10px;border-radius:8px}.kc .l{font-size:12px}.kc .n b{font-size:16px}.kc .n span{font-size:11px}.kc .s{font-size:10.5px}
+  .main{gap:10px}.box{border-radius:8px}
+  .tools{padding:6px 10px;gap:6px}.tools input,.tools select{height:28px;font-size:12.5px;padding:0 8px;border-radius:6px}.tools input{width:200px}.tools select{width:150px}
+  .fl button{height:24px;padding:0 9px;font-size:11.5px}
+  .th,.tr{grid-template-columns:128px 110px minmax(0,1fr) 62px 96px}
+  .th{font-size:11px}.th div{padding:5px 6px}.th div:first-child{padding-left:10px}
+  .tr{min-height:30px}.tr>div{padding:0 6px}.tr>div:first-child{padding-left:10px}
+  .cn{font-size:12px}.city,.note{font-size:12.5px}.again,.upd-t{font-size:10px;padding:0 5px}
+  .pend{min-width:48px;font-size:11px;padding:1px 6px}.rp{min-width:64px;font-size:11.5px;padding:2px 0;border-radius:5px}.done-a{font-size:12px}
+  .sh{padding:4px 10px;font-size:12px}.sh small{font-size:11.5px}.dot{width:7px;height:7px}
+  .more{height:28px;padding:0 10px;font-size:12px}.more .ck{width:16px;height:16px}
+  .side{width:340px;top:56px;max-height:calc(100vh - 68px);border-radius:8px}
+  .ph{padding:8px 12px}.ph .big{font-size:14px}.cp{height:22px;font-size:11px;padding:0 6px}.ph .r2{font-size:12px;margin-top:2px}
+  .pb{padding:8px 12px;gap:9px}.lb{font-size:10px}.tx{font-size:12.5px;margin-top:1px}
+  .tl .c{font-size:12px;padding-bottom:5px}.tl .c small{font-size:10.5px}.tl .d{width:7px;height:7px}
+  .ag{gap:5px;margin-top:5px}.ag button{min-height:30px;font-size:12px;border-radius:7px;padding:2px 6px}
+  textarea{min-height:40px;font-size:12.5px;padding:5px 8px;margin-top:5px}
+  .now,.ro{font-size:12px;padding:6px 9px}
+  .pn{padding:6px 12px 0}.pn label{font-size:11.5px}.pn input{height:26px;font-size:12px}
+  .pf{padding:6px 12px 10px;gap:6px}.btn{height:30px;font-size:12.5px;padding:0 10px;border-radius:6px}
+  .dh{padding:4px 10px}.dh b,.dh small,.dh .sum{font-size:12px}
+  .fth,.ftr{grid-template-columns:128px 100px 110px minmax(0,1fr) 170px 70px}.res{font-size:12px}
+  .pcards{gap:8px;margin:10px 0}.pc{padding:8px 12px}.pc .l{font-size:12px}.pc b{font-size:20px}.pc small{font-size:11px}
+  .dth,.dtr{grid-template-columns:150px repeat(6,minmax(0,1fr)) 90px 30px}.dth{font-size:11px}.dth div{padding:6px}.dtr{height:32px;font-size:12.5px}
+  .foot{padding:6px 12px;font-size:11.5px}
+}
 </style>
 </head>
 <body>
