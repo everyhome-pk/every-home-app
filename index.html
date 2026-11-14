@@ -3296,7 +3296,11 @@ function ndrSlot(c) {
   if (noActTicket(t) && c.sent !== 'Queued') return ['todo', 'noact'];
   if (isTodo(c)) return ['todo', !c.outcome || c.outcome === 'Not called yet' ? 'new' : 'again'];
   if (c.callBack && c.callBack > Date.now()) return ['todo', 'later'];
-  if (ob || (c.sent === 'Queued' && !(t && (t.channel || sentNow)))) return ['todo', 'ready'];
+  if (ob || (c.sent === 'Queued' && !(t && (t.channel || sentNow)))) {
+    // page only: no list, the request goes on the courier's page within minutes → with the courier
+    if (pageOnly()) { var qt = (t && t.type) || (c.next === 'Chase courier (late)' ? 'late' : c.next === 'Verify with courier' ? 'check' : /return/i.test(c.next) ? 'return' : 'reattempt'); return ['courier', { reattempt: 'reattempt', return: 'return', late: 'late', check: 'check' }[qt] || 'reattempt']; }
+    return ['todo', 'ready'];
+  }
   if ((t && (t.channel || sentNow)) || /^(Sent|Courier confirmed)$/.test(c.sent || '')) {
     if (t && (t.status || t.reply) && !replyHandled(t)) return ['courier', 'replied'];
     // on the courier's page / sent 24 h ago and no answer at all: ours again (remind them)
@@ -3437,6 +3441,7 @@ function ndrClosedCard(x) {
 }
 // the courier lists, one bar per courier: how many, the cut-off, Send
 function outboxBars() {
+  if (pageOnly()) return '';
   var wa = courierChannels().indexOf('WhatsApp') !== -1;
   var names = Object.keys(N.data.outbox || {}).concat(Object.keys(N.data.onSheet || {})).filter(function (n, i, a) { return a.indexOf(n) === i && (outboxCount(n) || (wa && onSheetCount(n))); });
   if (!names.length || !can('ndr.work')) return '';
@@ -3546,6 +3551,7 @@ function renderNdr() {
     courier: [['act', 'To act', ['replied']], ['wait', 'Waiting', ['reattempt', 'return', 'late', 'check']]],
     special: [['call', 'To call', ['premature', 'rtostop']], ['called', 'Called', ['premature', 'rtostop']]]
   }, pills = PILLS[N.tab], subKey = SUB_KEY[N.tab], pill = null;
+  if (N.tab === 'todo' && pageOnly()) pills = pills.filter(function (p) { return p[0] !== 'list'; }); // no courier list on page-only stores
   var pillHas = function (x, c) { return N.tab !== 'special' || (x[0] === 'called') === calledWaiting(c); };
   var subN = function (x) { return x[2].reduce(function (a, g) { return a + (by[N.tab][g] || []).filter(function (c) { return pillHas(x, c); }).length; }, 0); };
   if (pills) {
@@ -3650,8 +3656,11 @@ function onSheetOf(name) { var b = (N.data.onSheet || {})[name] || {}; OB_KINDS.
 function onSheetCount(name) { var b = onSheetOf(name); return OB_KINDS.reduce(function (a, k) { return a + b[k[0]].length; }, 0); }
 function outboxCount(name) { var b = outboxOf(name); return OB_KINDS.reduce(function (a, k) { return a + b[k[0]].length; }, 0); }
 // how this store sends courier requests (W1 Store Settings "Courier Requests Via"): WhatsApp, Sheet or both
+// the courier page is the only way (no WhatsApp sending, user 2026-11-14): no courier list; a request goes on the page by itself
+function pageOnly() { return courierChannels().indexOf('WhatsApp') === -1 && Object.keys((N.data && N.data.couriers) || {}).some(function (n) { return N.data.couriers[n].page; }); }
 function courierChannels() { var c = N.data && N.data.options && N.data.options.channels; return c && c.length ? c : ['WhatsApp', 'Sheet']; }
 function outboxHtml() {
+  if (pageOnly()) return '';
   var wa = courierChannels().indexOf('WhatsApp') !== -1;
   var names = Object.keys(N.data.outbox || {}).concat(Object.keys(N.data.onSheet || {})).filter(function (n, i, a) { return a.indexOf(n) === i && (outboxCount(n) || (wa && onSheetCount(n))); });
   if (!names.length || !can('ndr.work')) return '';
@@ -4358,7 +4367,7 @@ function openNdrForm(cn) {
       c.next = r.next; if (r.sent) c.sent = r.sent; snap('ndr', N.data);
       toast(r.returning ? cour + ' is already returning it · no request needed' :
         r.already ? 'Updated · the ' + (REQ_KIND[r.already.type] || '').toLowerCase() + ' request ' + (r.already.channel ? 'on the ' + cour + ' ' + shW(cour) + ' now says the new answer (marked Updated)' : 'in the ' + cour + ' list has the new answer') :
-        send || ret ? 'Request created · in the ' + cour + ' list (not sent yet)' : cb ? 'Saved · call back at ' + pkTime(cb) + ' (reminder on the phone)' : 'Saved');
+        send || ret ? (pageOnly() ? 'Sent · on the ' + cour + ' page within 5 minutes' : 'Request created · in the ' + cour + ' list (not sent yet)') : cb ? 'Saved · call back at ' + pkTime(cb) + ' (reminder on the phone)' : 'Saved');
       loadNdr(true);
     }, function (e) {
       Object.assign(c, JSON.parse(keep)); renderNdr(); updateBadge();
