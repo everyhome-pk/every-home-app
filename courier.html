@@ -63,6 +63,8 @@ body.mdl-on{overflow:hidden}.mdl-bg{position:fixed;inset:0;background:rgba(15,23
 .tr>div{padding:0 8px;min-width:0}.tr>div:first-child{padding-left:14px}
 .cn{font:500 12.5px 'Roboto Mono',ui-monospace,monospace}.city{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .note{font-size:13px;color:var(--ink2);display:flex;align-items:center;gap:6px;min-width:0}.note span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mk{min-width:72px;height:28px;padding:0 12px;border:1px solid var(--ka,var(--brand));border-radius:6px;background:var(--card);color:var(--ka,var(--brand-d));font:600 12.5px Inter,sans-serif;cursor:pointer}.mk:hover{background:var(--kb,var(--soft))}
+.undo{border:0;background:none;padding:0 2px;font:600 12px Inter,sans-serif;color:var(--brand-d);cursor:pointer;text-decoration:underline}.tr.nomodal{cursor:default}.done-a small{font-weight:400;color:var(--muted)}
 .upd-t{flex:none;font-style:normal;font-size:11px;font-weight:600;background:var(--chip);color:var(--ink2);border-radius:4px;padding:1px 6px}
 .again{flex:none;font-style:normal;font-size:11px;font-weight:600;background:none;color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:0 5px}
 .pend{display:inline-block;min-width:58px;text-align:left;font-size:12px;font-weight:400;padding:2px 0;color:var(--muted)}
@@ -241,7 +243,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   // Main list full width (user 2026-11-14): the reply opens in a wide pop-up; the list shows what helps decide without
   // opening: customer remarks, where the parcel is now, when it was sent. "Needs answer" hides answered lines; Mark for
   // Return lines can be ticked and answered together.
-  var ALL = ls('cp_all') === '1', BULK = {}, ORDER = [], KIND = '', FLASH = false;
+  var ALL = ls('cp_all') === '1', BULK = {}, PEND = {}, SURE = false, SURE_T = 0, ORDER = [], KIND = '', FLASH = false;
   // the courier's last scan (user 2026-11-14: every line said "Attempt failed · date"): with its reason, how long ago, and
   // a red "no scan since our request" when nothing moved after we sent it
   function ago(ms) { var h = Math.floor((Date.now() - ms) / 3600000); return h < 1 ? 'just now' : h < 48 ? h + ' h ago' : Math.floor(h / 24) + ' days ago'; }
@@ -293,13 +295,13 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       var all = list.filter(function (x) { return x.kind === k.key; });
       if (!all.length) { if (KIND) body += '<section class="qs k-' + k.key + '"><div class="empty">No open ' + esc(k.label) + ' requests.</div></section>'; return; }
       var todo = all.filter(function (x) { return !answered(x); }), did = all.filter(answered), shown = ALL ? todo.concat(did) : todo;
-      if (!shown.length && !ALL) { body += '<section class="qs k-' + k.key + '" id="sec_' + k.key + '"><div class="sh"><b>' + esc(k.label) + '</b><small>All ' + did.length + ' responded ✓</small></div></section>'; return; }
-      var bulk = k.key === 'return' && todo.length > 1;
+      if (!shown.length && !ALL) { body += '<section class="qs k-' + k.key + '" id="sec_' + k.key + '"><div class="sh"><b>' + esc(k.label) + '</b><small>All ' + did.length + (k.key === 'return' ? ' marked' : ' responded') + ' ✓</small></div></section>'; return; }
+      var bulk = k.key === 'return' && todo.filter(function (x) { return !PEND[x.id]; }).length > 1;
       body += '<section class="qs k-' + k.key + '" id="sec_' + k.key + '"><div class="sh"><b>' + esc(k.label) + '</b><small>' +
-        (todo.length ? todo.length + ' pending' + (did.length ? ' · ' + did.length + ' responded' : '') : 'All responded ✓') + '</small>' +
-        (bulk ? '<span class="bulk">' + (nSel ? '<button class="btn pri sm" data-bulkgo="1">Selected ' + nSel + ' · ' + esc(kindOf('return').answers[0]) + '</button>' : '<small>Select shipments to update in bulk</small>') + '</span>' : '') + '</div>';
-      shown.forEach(function (x) { ORDER.push(x.id); });
-      body += (k.key === 'claim' ? TH.replace('Customer Remarks', 'Claim') : k.key === 'return' ? TH.replace('Customer Remarks', 'Return Reason') : TH) + shown.map(function (x) { return row(x, bulk && !answered(x)); }).join('') + '</section>';
+        (todo.length ? todo.length + ' pending' + (did.length ? ' · ' + did.length + (k.key === 'return' ? ' marked' : ' responded') : '') : 'All ' + (k.key === 'return' ? 'marked' : 'responded') + ' ✓') + '</small>' +
+        (bulk ? '<span class="bulk"><button class="btn pri sm" data-markall="1">' + (SURE ? 'Sure? Mark ' + todo.filter(function (x) { return !PEND[x.id]; }).length : 'Mark all (' + todo.filter(function (x) { return !PEND[x.id]; }).length + ')') + '</button></span>' : '') + '</div>';
+      shown.forEach(function (x) { if (x.kind !== 'return') ORDER.push(x.id); });
+      body += (k.key === 'claim' ? TH.replace('Customer Remarks', 'Claim') : k.key === 'return' ? TH.replace('Customer Remarks', 'Return Reason') : TH) + shown.map(function (x) { return row(x); }).join('') + '</section>';
     });
     if (!placed) body += ulta;
     var html = '<div class="cards">' + cards + '</div><div class="box qtools"><div class="tools"><input id="q" type="search" placeholder="Search tracking ID" value="' + esc(Q) + '"><select id="city">' + cityOpts(D.open, CITY) + '</select>' +
@@ -333,16 +335,22 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       (older.length ? '<button class="ulta-more" data-ulta="1">' + (open ? 'Hide earlier' : 'Show ' + older.length + ' earlier') + '</button>' : '') + '</div>' +
       (shown.length ? '<div class="ulta-th"><div>Tracking ID</div><div>City</div><div>Your Team&rsquo;s Response</div><div>Branch Action</div></div>' + shown.map(line).join('') : '') + '</section>';
   }
-  function row(x, tick) {
-    var nw = nowOf(x);
-    return '<div class="tr' + (x.id === SEL ? ' sel' : '') + (answered(x) ? ' ans' : '') + '" data-open="' + esc(x.id) + '">' +
-      '<div class="cn">' + (tick ? '<input type="checkbox" class="bk" data-bk="' + esc(x.id) + '"' + (BULK[x.id] ? ' checked' : '') + ' aria-label="Select ' + esc(x.cn) + '">' : '') + esc(x.cn) +
+  // Mark for Return (user 2026-11-14): one tap "Mark" (no answer window), Undo for 10 s before it is sent
+  function markCell(x) {
+    if (PEND[x.id]) return '<span class="done-a">✓ Marked</span> <button class="undo" data-undo="' + esc(x.id) + '">Undo</button>';
+    if (answered(x)) return '<span class="done-a">✓ Marked' + (x.at ? ' <small>· ' + esc(String(x.at).replace(/^.*,\s*/, '')) + '</small>' : '') + '</span>';
+    return '<button class="mk" data-mark="' + esc(x.id) + '">Mark</button>';
+  }
+  function row(x) {
+    var nw = nowOf(x), ret = x.kind === 'return';
+    return '<div class="tr' + (x.id === SEL ? ' sel' : '') + (answered(x) || PEND[x.id] ? ' ans' : '') + (ret ? ' nomodal' : '') + '"' + (ret ? '' : ' data-open="' + esc(x.id) + '"') + '>' +
+      '<div class="cn">' + esc(x.cn) +
         (x.again ? ' <i class="again">' + esc(x.again.replace(' request', '')) + '</i>' : '') + (x.updated && !answered(x) ? ' <i class="upd-t">Revised</i>' : '') + '<span class="mcity">' + esc(x.city) + '</span></div>' +
       '<div class="city c-city" title="' + esc(x.city) + '">' + esc(x.city) + '</div>' +
       '<div class="c-rem" title="' + esc([x.note, x.says].filter(Boolean).join(' · ')) + '">' + (x.note ? '<b>' + esc(x.note) + '</b>' + (x.says ? ' · ' : '') : '') + esc(x.says) + '</div>' +
       '<div class="c-now" title="' + (nw ? esc(nw[0] + ' · ' + nw[1]) + (nw[2] ? ' · no update since our request' : '') : '') + '">' + (nw ? esc(nw[3]) + ' <small>· ' + esc(nw[1]) + '</small>' : '') + '</div>' +
       '<div class="c-pend"><span class="pend' + (answered(x) ? '' : pendCls(x.hours)) + '">' + pendTxt(x.hours) + '</span></div>' +
-      '<div class="c-ans">' + (answered(x) ? '<span class="done-a">✓ ' + esc(x.status || 'Responded') + '</span>' : '<span class="rp" data-reply="' + esc(x.id) + '">Respond ›</span>') + '</div></div>';
+      '<div class="c-ans">' + (ret ? markCell(x) : answered(x) ? '<span class="done-a">✓ ' + esc(x.status || 'Responded') + '</span>' : '<span class="rp" data-reply="' + esc(x.id) + '">Respond ›</span>') + '</div></div>';
   }
   function timeline(h) {
     if (!h || !h.length) return '';
@@ -404,7 +412,18 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       toast('Saved · ' + D.store + ' can see it now'); SEL = nextOpen(x.id); render();
     }, function (m) { b.disabled = false; b.textContent = 'Save & next'; toast(m); });
   }
-  // Mark for Return: the ticked lines get the first return answer together (one save each, one after another)
+  function sendMark(id) {
+    var ans = kindOf('return').answers[0], who = ls(NK);
+    clearTimeout(PEND[id]);
+    post('appCpReply', [C, V, S, id, ans, '', who], function (r) { delete PEND[id]; var x = find(id); if (x) { x.status = ans; x.by = who || D.courier; x.at = r.at; } renderQ(); },
+      function (m) { delete PEND[id]; renderQ(); toast('Not saved: ' + m); });
+  }
+  function mark(ids) {
+    ids.forEach(function (id) { if (!PEND[id]) PEND[id] = setTimeout(function () { sendMark(id); }, 10000); });
+    renderQ(); toast(ids.length > 1 ? ids.length + ' marked · Undo on each line for 10 s' : 'Marked · Undo for 10 s');
+  }
+  // closing or leaving the page sends what waits for its 10 s at once
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') Object.keys(PEND).forEach(sendMark); });
   function bulkGo(btn) {
     var ids = Object.keys(BULK).filter(function (id) { var x = find(id); return x && !answered(x); }), ans = kindOf('return').answers[0], who = ls(NK), done = 0, fail = 0;
     if (!ids.length) return;
@@ -485,6 +504,13 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     else if (t.dataset.ulta) { ls('cp_ulta', ls('cp_ulta') === '1' ? '0' : '1'); renderQ(); }
     else if (t.dataset.all) { ALL = t.dataset.all === '1'; ls('cp_all', ALL ? '1' : '0'); renderQ(); }
     else if (t.dataset.bulkgo) bulkGo(t);
+    else if (t.dataset.mark) mark([t.dataset.mark]);
+    else if (t.dataset.undo) { clearTimeout(PEND[t.dataset.undo]); delete PEND[t.dataset.undo]; renderQ(); toast('Undone'); }
+    else if (t.dataset.markall) {
+      var ids = D.open.filter(function (x) { return x.kind === 'return' && !answered(x) && !PEND[x.id] && match(x, Q, CITY); }).map(function (x) { return x.id; });
+      if (!SURE) { SURE = true; clearTimeout(SURE_T); SURE_T = setTimeout(function () { SURE = false; renderQ(); }, 4000); renderQ(); }
+      else { SURE = false; clearTimeout(SURE_T); mark(ids); }
+    }
     else if (t.dataset.step) step(Number(t.dataset.step));
     else if (t.dataset.ans) { var a = t.dataset.ans, x = find(SEL), cur = PICK[SEL] != null ? PICK[SEL] : x.status; PICK[SEL] = cur === a ? '' : a; renderQ(); }
     else if (t.dataset.copy) { try { navigator.clipboard.writeText(t.dataset.copy); toast('Tracking ID copied'); } catch (er) {} }
