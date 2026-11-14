@@ -241,11 +241,29 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   // the courier's last scan (user 2026-11-14: every line said "Attempt failed · date"): with its reason, how long ago, and
   // a red "no scan since our request" when nothing moved after we sent it
   function ago(ms) { var h = Math.floor((Date.now() - ms) / 3600000); return h < 1 ? 'just now' : h < 48 ? h + ' h ago' : Math.floor(h / 24) + ' days ago'; }
+  // the courier's reason for a failed attempt in a few plain words (user 2026-11-14: every line said "Attempt failed")
+  var WHY = [[/REFUS/, 'Refused'], [/CASH|AMOUNT|MONEY/, 'Cash not ready'], [/ADDRESS CLOSED|AREA CLOSED|CLOSED AREA|RESTRICTED|BLOCK/, 'Area closed'],
+    [/NOT AVAILABLE|UNAVAILABLE|NOT AT HOME|\bCNA\b/, 'Customer not available'], [/UNTRACEABLE|NOT FOUND|WRONG ADDRESS|NO SUCH/, 'Address not found'],
+    [/HOUSE|FLAT|INCOMPLETE/, 'Address incomplete'], [/PHONE|RESPOND|RESPONSE|ANSWER|POWERED OFF|SWITCH|REACHABLE|CONTACT/, 'Phone not answered'],
+    [/CONSIGNEE'?S REQUEST|FUTURE|RESCHEDUL/, 'Customer asked for later'], [/SELF COLLECTION/, 'Self collection'], [/NON.?SERVICE|OUT OF (AREA|ZONE)/, 'Out of delivery area'],
+    [/WEATHER|STRIKE|RAIN|HOLIDAY/, 'Weather / holiday'], [/SHIPPER ADVI/, 'Awaiting shipper advice'], [/NOT ATTEMPTED/, 'Not attempted'], [/ON HOLD/, 'On hold'], [/CLOSED/, 'Place closed'], [/UNSUCCESSFUL/, 'No reason given']];
+  function why(t) {
+    t = String(t || '').replace(/^(delivery|shipment)\s*-?\s*/i, '').trim(); if (!t) return '';
+    var u = t.toUpperCase(), m = WHY.filter(function (w) { return w[0].test(u); })[0];
+    if (m) return m[1];
+    t = t.toLowerCase(); return (t.charAt(0).toUpperCase() + t.slice(1)).slice(0, 30);
+  }
+  // "Failed · Area closed" for a failed attempt, the plain status for anything else
+  function statusShort(full) {
+    var p = String(full || '').split(' · ');
+    if (/attempt failed/i.test(p[0])) { var w = why(p.slice(1).join(' · ')); return 'Failed' + (w ? ' · ' + w : ''); }
+    return p[0];
+  }
   function nowOf(x) {
     var t = (x.history || []).filter(function (e) { return /^Tracking/.test(e.who || ''); }).slice(-1)[0];
     if (!t) return null;
     var p = t.what.split(' · '), what = p[0] + (p[1] ? ' · ' + p[1].replace(/^delivery\s+/i, '').slice(0, 26) : '');
-    return [what, t.ms ? ago(t.ms) : t.when.replace(/,.*$/, ''), !!(t.ms && x.sentMs && t.ms < x.sentMs)];
+    return [what, t.ms ? ago(t.ms) : t.when.replace(/,.*$/, ''), !!(t.ms && x.sentMs && t.ms < x.sentMs), statusShort(t.what)];
   }
   var TH = '<div class="th"><div>Tracking ID</div><div>City</div><div class="c-rem">Customer Remarks</div><div class="c-now">Current Status</div><div>Ageing</div><div></div></div>';
   function shortDay(s) { return String(s || '').replace(/,.*$/, ''); }
@@ -277,7 +295,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
         (todo.length ? todo.length + ' pending' + (did.length ? ' · ' + did.length + ' responded' : '') : 'All responded ✓') + '</small>' +
         (bulk ? '<span class="bulk">' + (nSel ? '<button class="btn pri sm" data-bulkgo="1">Selected ' + nSel + ' · ' + esc(kindOf('return').answers[0]) + '</button>' : '<small>Select shipments to update in bulk</small>') + '</span>' : '') + '</div>';
       shown.forEach(function (x) { ORDER.push(x.id); });
-      body += (k.key === 'claim' ? TH.replace('Customer Remarks', 'Claim') : TH) + shown.map(function (x) { return row(x, bulk && !answered(x)); }).join('') + '</section>';
+      body += (k.key === 'claim' ? TH.replace('Customer Remarks', 'Claim') : k.key === 'return' ? TH.replace('Customer Remarks', 'Return Reason') : TH) + shown.map(function (x) { return row(x, bulk && !answered(x)); }).join('') + '</section>';
     });
     if (!placed) body += ulta;
     var html = '<div class="cards">' + cards + '</div><div class="box qtools"><div class="tools"><input id="q" type="search" placeholder="Search tracking ID" value="' + esc(Q) + '"><select id="city">' + cityOpts(D.open, CITY) + '</select>' +
@@ -318,7 +336,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
         (x.again ? ' <i class="again">' + esc(x.again.replace(' request', '')) + '</i>' : '') + (x.updated && !answered(x) ? ' <i class="upd-t">Revised</i>' : '') + '<span class="mcity">' + esc(x.city) + '</span></div>' +
       '<div class="city c-city" title="' + esc(x.city) + '">' + esc(x.city) + '</div>' +
       '<div class="c-rem" title="' + esc([x.note, x.says].filter(Boolean).join(' · ')) + '">' + (x.note ? '<b>' + esc(x.note) + '</b>' + (x.says ? ' · ' : '') : '') + esc(x.says) + '</div>' +
-      '<div class="c-now" title="' + (nw ? esc(nw[0] + ' · ' + nw[1]) + (nw[2] ? ' · no update since our request' : '') : '') + '">' + (nw ? esc(nw[0].replace(/\s·\s.*$/, '')) + ' <small>· ' + esc(nw[1]) + '</small>' : '') + '</div>' +
+      '<div class="c-now" title="' + (nw ? esc(nw[0] + ' · ' + nw[1]) + (nw[2] ? ' · no update since our request' : '') : '') + '">' + (nw ? esc(nw[3]) + ' <small>· ' + esc(nw[1]) + '</small>' : '') + '</div>' +
       '<div class="c-pend"><span class="pend' + (answered(x) ? '' : pendCls(x.hours)) + '">' + pendTxt(x.hours) + '</span></div>' +
       '<div class="c-ans">' + (answered(x) ? '<span class="done-a">✓ ' + esc(x.status || 'Responded') + '</span>' : '<span class="rp" data-reply="' + esc(x.id) + '">Respond ›</span>') + '</div></div>';
   }
