@@ -485,13 +485,14 @@ body.nb-on #nlist{padding-bottom:84px}
 @media (min-width:1024px){.ntabs,.nsub,.nscore,.ob-top{max-width:640px}}
 .ag2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}.ag2 button{text-align:left;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 12px;font:inherit;color:var(--text)}
 .ag2 button b{display:block;font-size:14px;font-weight:600}.ag2 button small{font-size:12px;color:var(--muted)}.ag2 button.on{border-color:var(--brand);box-shadow:0 0 0 2px var(--soft, #E7F5F2)}
-.ngr{margin:10px 2px 6px;font-size:12.5px;font-weight:600;color:var(--muted)}.ngr em{font-style:normal;font-weight:500;margin-left:4px}
+.ngr{display:flex;align-items:center;gap:6px;width:100%;margin:6px 0;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);font:600 13px Inter,sans-serif;color:var(--text);text-align:left;cursor:pointer}
+.ngr em{font-style:normal;font-weight:600;color:var(--muted);margin-left:2px}.ngr .ngh-new{margin-left:6px}.ngr i{margin-left:auto;color:var(--muted)}
 .cpu{margin:0 0 10px;background:var(--card);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
 .cpu-r{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 12px;min-height:40px}.cpu-r+.cpu-r{border-top:1px solid var(--line)}
-.cpu-n{border:0;background:none;padding:0;font:600 13.5px Inter,sans-serif;color:var(--text);flex:none;min-width:64px;text-align:left}
+.cpu-n{border:0;background:none;padding:0;font:600 13.5px Inter,sans-serif;color:var(--text);flex:none;min-width:64px;text-align:left;text-decoration:none;display:flex;align-items:center;gap:3px}.cpu-n i{font-size:13px;color:var(--brand)}
 .cpu-s{flex:1;min-width:0;font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cpu-s b{font-weight:600;color:var(--text)}
 .cpu-s b.amb{color:var(--amber)}.cpu-s b.red{color:var(--red)}
-.cpu-wa{color:#16A34A}.cpu-b{flex:none;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--brand);font-size:17px}
+.cpu-wa{color:#16A34A}button.cpu-b{border:0;background:none;cursor:pointer}.cpu-b{flex:none;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--brand);font-size:17px}
 @media (min-width:1024px){.cpu{max-width:640px}}
 .ob-top{margin:0 0 8px}.ob-top .obar{margin-bottom:8px}
 .nsub{display:flex;gap:6px;margin:4px 0 12px}.nsub button{flex:1 1 auto;height:36px;border-radius:99px;border:1px solid var(--line);background:var(--card);font:500 13px Inter,sans-serif;color:var(--muted);cursor:pointer;white-space:nowrap}
@@ -3473,8 +3474,10 @@ function courierPulse() {
     if (old) parts.push('<b class="red">' + old + '</b> over 24 h');
     if (noact) parts.push('<b class="red">' + noact + '</b> no action');
     parts.push(on && !wait ? 'all ' + on + ' answered ✓' : ans + '/' + on + ' answered');
-    return '<div class="cpu-r"><button class="cpu-n" data-cour="' + esc(name) + '">' + esc(name) + '</button><div class="cpu-s">' + parts.join(' · ') + '</div>' +
-      (s.link ? '<a class="cpu-b" target="_blank" aria-label="Open ' + esc(name) + ' ' + shW(name) + '" href="' + esc(courierSheetLink(name, 'reattempt')) + '"><i class="ti ti-external-link"></i></a>' : '') +
+    // the courier's name opens their page (user 2026-11-14); the small list icon opens the escalations
+    return '<div class="cpu-r">' + (s.link ? '<a class="cpu-n" target="_blank" title="Open the ' + esc(name) + ' ' + shW(name) + '" href="' + esc(courierSheetLink(name, 'reattempt')) + '">' + esc(name) + ' <i class="ti ti-external-link"></i></a>'
+      : '<button class="cpu-n" data-cour="' + esc(name) + '">' + esc(name) + '</button>') + '<div class="cpu-s">' + parts.join(' · ') + '</div>' +
+      '<button class="cpu-b" data-cour="' + esc(name) + '" aria-label="' + esc(name) + ' escalations" title="Escalations"><i class="ti ti-list-details"></i></button>' +
       // the page link to the courier's WhatsApp group, always (user 2026-11-14): a reminder while some wait, else the plain message
       (s.link && can('ndr.work') ? '<a class="cpu-b cpu-wa" aria-label="Send ' + esc(name) + ' page link on WhatsApp" title="Send page link to the ' + esc(name) + ' group" data-shsh="' + esc(name) + '" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(wait ? sheetReminderText(name) : sheetMessage(name, false)) + '"><i class="ti ti-brand-whatsapp"></i></a>' : '') + '</div>';
   }).join('');
@@ -3605,7 +3608,14 @@ function byReason(arr, seen) {
   arr.forEach(function (c) { var k = niceReason(c.reason || c.courierStatus) || 'Delivery failed'; if (!g[k]) { g[k] = []; keys.push(k); } g[k].push(c); });
   if (keys.length < 2) return arr.map(function (c) { return ndrCard(c, seen, true); }).join('');
   keys.sort(function (a, b) { return g[b].length - g[a].length; });
-  return keys.map(function (k) { return '<div class="ngr">' + esc(k) + ' <em class="num">' + g[k].length + '</em></div>' + g[k].map(function (c) { return ndrCard(c, seen, true); }).join(''); }).join('');
+  // each reason folds (user 2026-11-14): closed at the start, tap to open, kept on this phone (eh_ngr); a search or "last try" shows all
+  var open = {}; try { open = JSON.parse(store('eh_ngr') || '{}'); } catch (e) {}
+  return keys.map(function (k) {
+    var on = !!open[k], nw = g[k].filter(isNewCase).length;
+    return '<button type="button" class="ngr" data-ngr="' + esc(k) + '" aria-expanded="' + on + '"><span>' + esc(k) + '</span><em class="num">' + g[k].length + '</em>' +
+      (nw && !on ? '<span class="ngh-new">' + nw + ' new</span>' : '') + '<i class="ti ti-chevron-' + (on ? 'up' : 'down') + '"></i></button>' +
+      (on ? g[k].map(function (c) { return ndrCard(c, seen, true); }).join('') : '');
+  }).join('');
 }
 // What the team has to do, in plain words (the W1 case type stays in the parcel sheet)
 function taskTitle(c) {
@@ -3622,7 +3632,7 @@ function taskTitle(c) {
 function lateText(t) {
   t = String(t || '');
   var w = /with rider/i.test(t) ? 'with rider, no result' : /no rider/i.test(t) ? 'at destination, no rider' : /not picked/i.test(t) ? 'not picked up yet'
-    : /origin/i.test(t) ? 'stuck at origin office' : /no courier update/i.test(t) ? 'no courier update' : /late on the way/i.test(t) ? t.replace(/^late on the ways*/i, 'running late · ').toLowerCase() : t.replace(/\s*[–-]\s*/g, ' · ').toLowerCase();
+    : /origin/i.test(t) ? 'stuck at origin office' : /no courier update/i.test(t) ? 'no courier update' : /^late · usually/i.test(t) ? t.replace(/^late · /i, 'running late · ') : /late on the way/i.test(t) ? t.replace(/^late on the ways*/i, 'running late · ').toLowerCase() : t.replace(/\s*[–-]\s*/g, ' · ').toLowerCase();
   return w;
 }
 // W1 writes results in Roman Urdu for the courier's sheet; the app shows them in English
@@ -4102,6 +4112,8 @@ el('nchips').onclick = function (e) {
 el('nlist').onclick = function (e) {
   var o = e.target.closest('[data-ob]'); if (o) return openOutbox(o.getAttribute('data-ob'));
   var cb = e.target.closest('[data-cour]'); if (cb) return openEscalations(cb.getAttribute('data-cour'));
+  var fr = e.target.closest('[data-ngr]');
+  if (fr) { var ro = {}; try { ro = JSON.parse(store('eh_ngr') || '{}'); } catch (x) {} var rk = fr.getAttribute('data-ngr'); if (ro[rk]) delete ro[rk]; else ro[rk] = 1; store('eh_ngr', JSON.stringify(ro)); return renderNdr(); }
   var fg = e.target.closest('[data-ngf]');
   if (fg) { var so = {}; try { so = JSON.parse(store('eh_ngo') || '{}'); } catch (x) {} so[fg.getAttribute('data-ngf')] = fg.getAttribute('data-ngo') === '1' ? 0 : 1; store('eh_ngo', JSON.stringify(so)); return renderNdr(); }
   var l = e.target.closest('[data-late]'); if (l) return askLate(l.getAttribute('data-late'));

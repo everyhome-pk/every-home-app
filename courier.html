@@ -34,10 +34,21 @@ button{cursor:pointer}[hidden]{display:none!important}svg{flex:none}
 .box{flex:1;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .tools{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
 .tools input,.tools select{height:34px;border:1px solid var(--line);border-radius:8px;padding:0 12px;background:var(--card)}
-.tools input{width:220px;max-width:100%}.tools select{width:170px;max-width:45%}.tools .hint{font-size:12.5px;color:var(--muted);margin-left:auto}
+.tools input{width:220px;max-width:100%}.tools select{width:170px;max-width:45%}.tools #sort{width:130px}.tools .hint{font-size:12.5px;color:var(--muted);margin-left:auto}
 .fl{display:flex;gap:6px;flex-wrap:wrap}.fl button{height:30px;padding:0 12px;border-radius:99px;border:1px solid var(--line);background:var(--card);font-size:12.5px;font-weight:500;color:var(--muted)}
 .fl button.on{border-color:var(--ink);color:var(--ink)}
-.th,.tr{display:grid;grid-template-columns:140px 120px minmax(0,1fr) 72px 120px;align-items:center}
+.th,.tr{display:grid;grid-template-columns:140px 130px 130px minmax(0,1.3fr) minmax(0,1fr) 84px 72px 110px;align-items:center}
+.c-rem,.c-now{font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.c-now small{color:var(--muted)}.c-sent{font-size:12.5px;color:var(--muted)}
+.bk{margin:0 6px 0 0;vertical-align:-2px;cursor:pointer}.bulk{margin-left:auto;display:flex;align-items:center;gap:6px}.btn.sm{height:28px;font-size:12px;padding:0 10px;flex:none}
+body.mdl-on{overflow:hidden}.mdl-bg{position:fixed;inset:0;background:rgba(15,23,42,.35);z-index:50}
+.mdl{position:fixed;z-index:51;left:50%;top:50%;transform:translate(-50%,-50%);width:min(980px,94vw);max-height:84vh;background:var(--card);border-radius:12px;box-shadow:0 20px 50px rgba(15,23,42,.25);display:flex;flex-direction:column;overflow:hidden}
+.mh{flex:none;display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}.mh .big{font:500 16px 'Roboto Mono',ui-monospace,monospace}
+.mcty{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:340px}.mpos{font-size:12px;color:var(--muted);white-space:nowrap}
+.mpos button,.mx{border:0;background:none;color:var(--muted);font-size:15px;padding:2px 6px;border-radius:6px}.mpos button:hover,.mx:hover{background:var(--chip)}
+.mb{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 380px}.mb.one{grid-template-columns:1fr}
+.ml{padding:12px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;border-right:1px solid var(--line)}.mb.one .ml{border-right:0}
+.ml .two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.ml .tl .c small{display:inline}
+.mr{padding:12px 14px;display:flex;flex-direction:column;gap:8px;background:var(--head);overflow-y:auto}.mr .pn,.mr .pf{padding:0;border:0}.mro{margin:0 14px 12px}
 .th{background:var(--head);border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--muted)}.th div{padding:8px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.th div:first-child{padding-left:14px}
 .tr{min-height:38px;border-bottom:1px solid var(--line2);cursor:pointer}.tr:hover{background:var(--head)}
 .tr.sel{background:var(--soft);box-shadow:inset 3px 0 0 var(--brand)}.tr.ans{opacity:.65}
@@ -102,6 +113,9 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   .fth{display:none}.ftr{grid-template-columns:minmax(0,1fr) auto;padding:8px 0;row-gap:2px}.ftr>div{padding:0 12px}.ftr .f-city,.ftr .f-closed{display:none}.ftr .f-res{grid-column:2;grid-row:1;text-align:right}
   .dth{display:none}.dtr{grid-template-columns:1fr auto;height:auto;padding:10px 0}.dtr .dx{display:none}.dtr .dm{display:block!important}
   .side{position:fixed;inset:0;width:auto;max-height:none;border-radius:0;border:0;z-index:40;display:none}.side.open{display:flex}.back{display:inline}
+  .tr .c-rem,.tr .c-now,.tr .c-sent,.th .c-rem{display:none}
+  .mdl{left:0;top:0;transform:none;width:100%;height:100%;max-height:none;border-radius:0}.mx,.mpos{display:none}.mcty{max-width:42vw}
+  .mb{grid-template-columns:1fr;overflow-y:auto}.ml{border-right:0;overflow:visible}.mr{overflow:visible}.ml .two{grid-template-columns:1fr}
 }
 .dm{display:none;font-size:12.5px;color:var(--muted);grid-column:1/-1}
 
@@ -115,7 +129,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   .main{gap:10px}.box{border-radius:8px}
   .tools{padding:6px 10px;gap:6px}.tools input,.tools select{height:28px;font-size:12.5px;padding:0 8px;border-radius:6px}.tools input{width:200px}.tools select{width:150px}
   .fl button{height:24px;padding:0 9px;font-size:11.5px}
-  .th,.tr{grid-template-columns:128px 110px minmax(0,1fr) 62px 96px}
+  .th,.tr{grid-template-columns:124px 116px 120px minmax(0,1.3fr) minmax(0,1fr) 74px 62px 96px}.c-rem,.c-now,.c-sent{font-size:12px}
   .th{font-size:11px}.th div{padding:5px 6px}.th div:first-child{padding-left:10px}
   .tr{min-height:30px}.tr>div{padding:0 6px}.tr>div:first-child{padding-left:10px}
   .cn{font-size:12px}.city,.note{font-size:12.5px}.again,.upd-t{font-size:10px;padding:0 5px}
@@ -154,7 +168,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
 <script>
 (function () {
   var API = 'https://script.google.com/macros/s/AKfycbyqtyrClenCG1_iqTSDK5KhtFItfX6rUsYdIexwQ3qPFbSv9d1n8jy06ItjvWXXtB-I/exec', P = new URLSearchParams(location.search), C = P.get('c') || '', V = P.get('v') || '', S = P.get('s') || '';
-  var D = null, VIEW = 'q', SEL = '', FOCUS = false, PICK = {}, SHOWN = {}, Q = '', CITY = '', FQ = '', FCITY = '', FCAT = 'all', FDAY = '', PER = 7, busy = false;
+  var SORT = ls('cp_sort') || 'old', D = null, VIEW = 'q', SEL = '', FOCUS = false, PICK = {}, SHOWN = {}, Q = '', CITY = '', FQ = '', FCITY = '', FCAT = 'all', FDAY = '', PER = 7, busy = false;
   var NK = 'cp_name_' + C, $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
   function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k) || ''; localStorage.setItem(k, v); } catch (e) { return ''; } }
@@ -202,35 +216,56 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   function render() { if (!D) return; head(); if (VIEW === 'q') renderQ(); else if (VIEW === 'f') renderF(); else renderP(); }
 
   // ---------- Queries ----------
+  // Main list full width (user 2026-11-14): the reply opens in a wide pop-up; the list shows what helps decide without
+  // opening: customer remarks, where the parcel is now, when it was sent. "Needs answer" hides answered lines; Mark for
+  // Return lines can be ticked and answered together.
+  var ALL = ls('cp_all') === '1', BULK = {}, ORDER = [];
+  function nowOf(x) {
+    var t = (x.history || []).filter(function (e) { return /^Tracking/.test(e.who || ''); }).slice(-1)[0];
+    return t ? [t.what.replace(/\s·\s.*$/, ''), t.when.replace(/,.*$/, '')] : null;
+  }
+  function shortDay(s) { return String(s || '').replace(/,.*$/, ''); }
   function renderQ() {
     var cards = D.kinds.map(function (k) {
       var all = D.open.filter(function (x) { return x.kind === k.key; }), left = all.filter(function (x) { return !answered(x); }).length, tot = all.length;
-      var st = !tot ? 'none' : !left ? 'ok' : left >= 3 ? 'bad' : 'warn', sel = SEL && (find(SEL) || {}).kind === k.key;
-      return '<button class="kc' + (st === 'none' ? ' none' : '') + (sel ? ' on' : '') + '" data-jump="' + k.key + '"><div class="l">' + esc(k.label) + '</div>' +
+      var st = !tot ? 'none' : !left ? 'ok' : left >= 3 ? 'bad' : 'warn';
+      return '<button class="kc' + (st === 'none' ? ' none' : '') + '" data-jump="' + k.key + '"><div class="l">' + esc(k.label) + '</div>' +
         '<div class="n c-' + st + '"><b>' + (st === 'ok' ? '✓' : left) + '</b><span>' + (st === 'ok' ? 'all done' : st === 'none' ? '' : 'left') + '</span></div>' +
         '<div class="s">' + (tot ? (tot - left) + ' of ' + tot + ' done' : 'nothing today') + '</div></button>';
     }).join('');
-    var list = D.open.filter(function (x) { return match(x, Q, CITY); }), body = '';
+    // sort (user 2026-11-14): oldest first (2nd time first, then the longest waiting) or by city
+    var list = D.open.filter(function (x) { return match(x, Q, CITY); }).slice().sort(SORT === 'city'
+      ? function (a, b) { return (a.city || 'zz').toLowerCase().localeCompare((b.city || 'zz').toLowerCase()) || b.hours - a.hours; }
+      : function (a, b) { return (b.again ? 1 : 0) - (a.again ? 1 : 0) || b.hours - a.hours; }), body = '';
+    ORDER = [];
+    var nSel = Object.keys(BULK).filter(function (id) { var x = find(id); return x && !answered(x); }).length;
     D.kinds.forEach(function (k) {
       var all = list.filter(function (x) { return x.kind === k.key; }); if (!all.length) return;
-      var todo = all.filter(function (x) { return !answered(x); }), did = all.filter(answered);
+      var todo = all.filter(function (x) { return !answered(x); }), did = all.filter(answered), shown = ALL ? todo.concat(did) : todo;
+      if (!shown.length && !ALL) { body += '<div class="sh" id="sec_' + k.key + '"><span class="dot" style="background:#16A34A"></span><b>' + esc(k.label) + '</b><small>all ' + did.length + ' answered ✓</small></div>'; return; }
+      var bulk = k.key === 'return' && todo.length > 1;
       body += '<div class="sh" id="sec_' + k.key + '"><span class="dot" style="background:' + (todo.length ? (todo.length >= 3 ? '#DC2626' : '#D97706') : '#16A34A') + '"></span><b>' + esc(k.label) + '</b><small>' +
-        (todo.length ? todo.length + ' left' + (did.length ? ' · ' + did.length + ' answered' : '') : 'all answered ✓') + '</small></div>';
-      body += todo.map(row).join('');
-      if (did.length) {
-        body += '<button class="more" data-more="' + k.key + '"><span class="ck">' + CHECK + '</span><span>' + did.length + ' answered</span><span style="color:var(--line)">·</span><em>' + (SHOWN[k.key] ? 'Hide' : 'Show') + '</em>' + CHEV + '</button>';
-        if (SHOWN[k.key]) body += did.map(row).join('');
-      }
+        (todo.length ? todo.length + ' left' + (did.length ? ' · ' + did.length + ' answered' : '') : 'all answered ✓') + '</small>' +
+        (bulk ? '<span class="bulk">' + (nSel ? '<button class="btn pri sm" data-bulkgo="1">Selected ' + nSel + ' · ' + esc(kindOf('return').answers[0]) + '</button>' : '<small>Tick lines to answer them together</small>') + '</span>' : '') + '</div>';
+      shown.forEach(function (x) { ORDER.push(x.id); });
+      body += shown.map(function (x) { return row(x, bulk && !answered(x)); }).join('');
     });
-    var html = '<div class="cards">' + cards + '</div><div class="main"><div class="box"><div class="tools"><input id="q" type="search" placeholder="Search tracking ID" value="' + esc(Q) + '"><select id="city">' + cityOpts(D.open, CITY) + '</select></div>' +
-      '<div class="th"><div>Tracking ID</div><div>City</div><div>Note</div><div>Pending</div><div>Your answer</div></div>' +
-      (body || '<div class="empty">' + (D.open.length ? 'Nothing matches the search.' : 'No open queries. Shukriya!') + '</div>') + '</div>' + side(true) + '</div>';
+    var html = '<div class="cards">' + cards + '</div><div class="box"><div class="tools"><input id="q" type="search" placeholder="Search tracking ID" value="' + esc(Q) + '"><select id="city">' + cityOpts(D.open, CITY) + '</select>' +
+      '<select id="sort" aria-label="Sort"><option value="old"' + (SORT === 'old' ? ' selected' : '') + '>Oldest first</option><option value="city"' + (SORT === 'city' ? ' selected' : '') + '>City A–Z</option></select>' +
+      '<div class="fl"><button class="' + (ALL ? '' : 'on') + '" data-all="0">Needs answer</button><button class="' + (ALL ? 'on' : '') + '" data-all="1">All</button></div></div>' +
+      '<div class="th"><div>Tracking ID</div><div>City</div><div>Note</div><div class="c-rem">Customer remarks</div><div class="c-now">Tracking now</div><div class="c-sent">Sent</div><div>Pending</div><div>Your answer</div></div>' +
+      (body || '<div class="empty">' + (D.open.length ? 'Nothing matches the search.' : 'No open queries. Shukriya!') + '</div>') + '</div>' + popup(true);
     $('wrap').innerHTML = html; wireQ();
   }
-  function row(x) {
+  function row(x, tick) {
+    var nw = nowOf(x);
     return '<div class="tr' + (x.id === SEL ? ' sel' : '') + (answered(x) ? ' ans' : '') + '" data-open="' + esc(x.id) + '">' +
-      '<div class="cn">' + esc(x.cn) + '<span class="mcity">' + esc(x.city) + '</span></div><div class="city c-city" title="' + esc(x.city) + '">' + esc(x.city) + '</div>' +
+      '<div class="cn">' + (tick ? '<input type="checkbox" class="bk" data-bk="' + esc(x.id) + '"' + (BULK[x.id] ? ' checked' : '') + ' aria-label="Select ' + esc(x.cn) + '">' : '') + esc(x.cn) + '<span class="mcity">' + esc(x.city) + '</span></div>' +
+      '<div class="city c-city" title="' + esc(x.city) + '">' + esc(x.city) + '</div>' +
       '<div class="note c-note">' + (x.again ? '<i class="again">' + esc(x.again) + '</i>' : '') + (x.updated && !answered(x) ? '<i class="upd-t">Updated</i>' : '') + '<span>' + esc(x.note) + '</span></div>' +
+      '<div class="c-rem" title="' + esc(x.says) + '">' + esc(x.says) + '</div>' +
+      '<div class="c-now">' + (nw ? esc(nw[0]) + ' <small>· ' + esc(nw[1]) + '</small>' : '') + '</div>' +
+      '<div class="c-sent">' + esc(shortDay(x.sentAt)) + '</div>' +
       '<div class="c-pend"><span class="pend' + (answered(x) ? '' : pendCls(x.hours)) + '">' + pendTxt(x.hours) + '</span></div>' +
       '<div class="c-ans">' + (answered(x) ? '<span class="done-a">✓ ' + esc(x.status || 'Answered') + '</span>' : '<span class="rp" data-reply="' + esc(x.id) + '">Reply ›</span>') + '</div></div>';
   }
@@ -238,42 +273,50 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     if (!h || !h.length) return '';
     return '<div><div class="lb" style="margin-bottom:6px">Parcel history</div>' + h.map(function (e, i) {
       return '<div class="tl"><div class="rail"><div class="d k-' + e.k + '"></div>' + (i < h.length - 1 ? '<div class="ln"></div>' : '') + '</div><div class="c">' +
-        (e.who ? '<span class="w-' + e.k + '">' + esc(e.who) + '</span> ' : '') + esc(e.what) + '<small>' + esc(e.when) + '</small></div></div>';
+        (e.who ? '<span class="w-' + e.k + '">' + esc(e.who) + '</span> ' : '') + esc(e.what) + ' <small>' + esc(e.when) + '</small></div></div>';
     }).join('') + '</div>';
   }
-  function side(editable) {
+  // the reply pop-up: wide, two sides (the parcel's story | the answer); ↑ ↓ move, Esc closes; on a phone it fills the screen
+  function popup(editable) {
     var x = SEL && find(SEL);
-    if (!x) return '<aside class="side" id="side"><div class="pick">Click a parcel to see its details and reply.</div></aside>';
-    var k = kindOf(x.kind), pick = PICK[x.id] != null ? PICK[x.id] : x.status, isOpen = editable && D.open.indexOf(x) !== -1;
-    var h = '<aside class="side open" id="side"><div class="ph"><div class="r1"><button class="back" data-close aria-label="Back">‹</button><div class="big">' + esc(x.cn) + '</div><button class="cp" data-copy="' + esc(x.cn) + '">Copy</button><div class="sp"></div>' +
-      (isOpen ? '<span class="pend' + (answered(x) ? '' : pendCls(x.hours)) + '">' + pendTxt(x.hours) + '</span>' : '<span class="res ' + resCls(x.cat) + '">' + esc(x.result) + '</span>') + '</div>' +
-      '<div class="r2">' + esc(x.city || 'City not given') + (isOpen ? '' : ' · ' + esc(k.label)) + (x.again ? ' <i class="again">' + esc(x.again) + '</i>' : '') + '</div></div><div class="pb">';
-    if (x.says) h += '<div><div class="lb">' + (x.kind === 'claim' ? 'Claim' : 'Customer remarks') + '</div><div class="tx">' + esc(x.says) + '</div></div>';
-    if (x.ask) h += '<div><div class="lb">Our request</div><div class="tx">' + esc(x.ask) + '</div></div>';
-    h += timeline(x.history);
+    if (!x) return '';
+    var k = kindOf(x.kind), pick = PICK[x.id] != null ? PICK[x.id] : x.status, isOpen = editable && D.open.indexOf(x) !== -1, i = ORDER.indexOf(x.id);
+    var h = '<div class="mdl-bg" data-close></div><div class="mdl" role="dialog" aria-label="' + esc(x.cn) + '"><div class="mh">' +
+      '<button class="back" data-close aria-label="Back">‹</button><div class="big">' + esc(x.cn) + '</div><button class="cp" data-copy="' + esc(x.cn) + '">Copy</button>' +
+      '<div class="mcty" title="' + esc(x.city) + '">' + esc(x.city || 'City not given') + (isOpen ? '' : ' · ' + esc(k.label)) + '</div>' + (x.again ? '<i class="again">' + esc(x.again) + '</i>' : '') +
+      (isOpen ? '<span class="pend' + (answered(x) ? '' : pendCls(x.hours)) + '">' + pendTxt(x.hours) + '</span>' : '<span class="res ' + resCls(x.cat) + '">' + esc(x.result) + '</span>') +
+      '<div class="sp"></div>' + (i >= 0 ? '<span class="mpos">' + (i + 1) + ' of ' + ORDER.length + ' · <button data-step="-1" aria-label="Previous">↑</button><button data-step="1" aria-label="Next">↓</button></span>' : '') +
+      '<button class="mx" data-close aria-label="Close">✕</button></div><div class="mb' + (isOpen ? '' : ' one') + '"><div class="ml">';
+    if (x.says || x.ask) h += '<div class="two">' + (x.says ? '<div><div class="lb">' + (x.kind === 'claim' ? 'Claim' : 'Customer remarks') + '</div><div class="tx">' + esc(x.says) + '</div></div>' : '') +
+      (x.ask ? '<div><div class="lb">Our request</div><div class="tx">' + esc(x.ask) + '</div></div>' : '') + '</div>';
+    h += timeline(x.history) + '</div>';
     if (isOpen) {
+      h += '<div class="mr">';
       if (x.reopen) h += '<div class="ro" style="color:var(--ink2)"><b>Updated ' + esc(x.updated) + '</b> · the customer told ' + esc(D.store) + ' something new after your last answer (' + esc([x.status, x.reply].filter(Boolean).join(' · ')) + '). Please answer again.</div>';
       if (answered(x)) h += '<div class="now"><b>' + esc(x.status || 'Your answer') + '</b>' + (x.reply ? ' · ' + esc(x.reply) : '') + '<small>' + esc([x.by, x.at].filter(Boolean).join(' · ')) + (x.photos ? ' · ' + x.photos + ' photo' + (x.photos > 1 ? 's' : '') : '') + '</small></div>';
       h += '<div id="ansBox"><div class="lb">' + (answered(x) ? 'Change your answer' : 'Your answer · one tap') + '</div><div class="ag">' + k.answers.map(function (a) {
         return '<button class="' + (a === pick ? 'on' : '') + '" data-ans="' + esc(a) + '">' + esc(a) + '</button>'; }).join('') + '</div>' +
-        '<textarea id="words" maxlength="500" placeholder="Or write your answer (Roman Urdu theek hai)">' + esc(PICK['w' + x.id] != null ? PICK['w' + x.id] : x.reply) + '</textarea></div>';
-      h += '</div><div class="pn"><label for="who">Your name</label><input id="who" maxlength="40" placeholder="optional" value="' + esc(ls(NK)) + '"></div>' +
-        '<div class="pf"><button class="btn" id="photo">Add photo</button><button class="btn pri" id="save">Save &amp; next</button></div></aside>';
-    } else h += '<div class="ro">Finished queries are read only. If ' + esc(D.store) + ' sends it again, it comes back to Queries with this history.</div></div></aside>';
+        '<textarea id="words" maxlength="500" placeholder="Or write your answer (Roman Urdu theek hai)">' + esc(PICK['w' + x.id] != null ? PICK['w' + x.id] : x.reply) + '</textarea></div>' +
+        '<div class="sp"></div><div class="pn"><label for="who">Your name</label><input id="who" maxlength="40" placeholder="optional" value="' + esc(ls(NK)) + '"></div>' +
+        '<div class="pf"><button class="btn" id="photo">Add photo</button><button class="btn pri" id="save">Save &amp; next</button></div></div>';
+    } else h += '';
+    h += '</div>' + (isOpen ? '' : '<div class="ro mro">Finished queries are read only. If ' + esc(D.store) + ' sends it again, it comes back to Queries with this history.</div>') + '</div>';
     return h;
   }
   function wireQ() {
     var q = $('q'); if (q) q.oninput = function () { Q = q.value; renderQ(); var n = $('q'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); };
     if ($('city')) $('city').onchange = function () { CITY = this.value; renderQ(); };
+    if ($('sort')) $('sort').onchange = function () { SORT = this.value; ls('cp_sort', SORT); renderQ(); };
     if ($('who')) $('who').onchange = function () { ls(NK, this.value.trim()); };
     if ($('words')) { $('words').oninput = function () { PICK['w' + SEL] = this.value; }; if (FOCUS) { $('words').focus(); FOCUS = false; } }
     if ($('save')) $('save').onclick = save;
     if ($('photo')) $('photo').onclick = function () { $('cam').value = ''; $('cam').click(); };
+    document.body.classList.toggle('mdl-on', !!(SEL && find(SEL)));
   }
   function nextOpen(after) {
-    var order = D.open.filter(function (x) { return !answered(x) && match(x, Q, CITY); });
-    var i = order.map(function (x) { return x.id; }).indexOf(after);
-    return (order[i + 1] || order.filter(function (x) { return x.id !== after; })[0] || {}).id || '';
+    var order = ORDER.filter(function (id) { var x = find(id); return x && !answered(x); });
+    var i = ORDER.indexOf(after), rest = ORDER.slice(i + 1).concat(ORDER.slice(0, Math.max(i, 0)));
+    return rest.filter(function (id) { return order.indexOf(id) !== -1 && id !== after; })[0] || '';
   }
   function save() {
     var x = find(SEL); if (!x) return;
@@ -282,12 +325,27 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     ls(NK, who);
     var b = $('save'); b.disabled = true; b.textContent = 'Saving…';
     post('appCpReply', [C, V, S, x.id, st || '', w, who], function (r) {
-      x.status = st || ''; x.reply = w; x.by = who || D.courier; x.at = r.at; delete PICK[x.id]; delete PICK['w' + x.id];
+      x.status = st || ''; x.reply = w; x.by = who || D.courier; x.at = r.at; x.reopen = false; delete PICK[x.id]; delete PICK['w' + x.id];
       toast('Saved · ' + D.store + ' can see it now'); SEL = nextOpen(x.id); render();
-      if (window.innerWidth <= 900 && !SEL) closeSide();
     }, function (m) { b.disabled = false; b.textContent = 'Save & next'; toast(m); });
   }
+  // Mark for Return: the ticked lines get the first return answer together (one save each, one after another)
+  function bulkGo(btn) {
+    var ids = Object.keys(BULK).filter(function (id) { var x = find(id); return x && !answered(x); }), ans = kindOf('return').answers[0], who = ls(NK), done = 0, fail = 0;
+    if (!ids.length) return;
+    btn.disabled = true; btn.textContent = 'Saving 0 of ' + ids.length + '…';
+    (function next() {
+      if (!ids.length) { BULK = {}; toast(done + ' saved' + (fail ? ' · ' + fail + ' not saved, try again' : '') + ' · ' + D.store + ' can see them now'); render(); return; }
+      var id = ids.shift();
+      post('appCpReply', [C, V, S, id, ans, '', who], function (r) { var x = find(id); if (x) { x.status = ans; x.by = who || D.courier; x.at = r.at; } done++; btn.textContent = 'Saving ' + done + '…'; next(); },
+        function () { fail++; next(); });
+    })();
+  }
   function closeSide() { SEL = ''; render(); }
+  function step(d) {
+    var i = ORDER.indexOf(SEL); if (i < 0 || !ORDER.length) return;
+    SEL = ORDER[(i + d + ORDER.length) % ORDER.length]; render();
+  }
 
   // ---------- Finished ----------
   function resCls(cat) { return cat === 'ulta' ? 'bad' : cat === 'failed' || cat === 'noaction' ? 'warn' : cat === 'done' ? 'mute' : ''; }
@@ -295,8 +353,9 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     var cats = [['all', 'All'], ['delivered', 'Delivered'], ['ulta', 'Returned instead'], ['noaction', 'No action']];
     var list = D.done.filter(function (x) { return match(x, FQ, FCITY) && (FCAT === 'all' || x.cat === FCAT) && (!FDAY || x.day === FDAY); });
     var byDay = {}; list.forEach(function (x) { (byDay[x.day] = byDay[x.day] || []).push(x); });
+    ORDER = [];
     var body = Object.keys(byDay).sort().reverse().map(function (d) {
-      var xs = byDay[d], n = function (c) { return xs.filter(function (x) { return x.cat === c; }).length; }, parts = [];
+      var xs = byDay[d]; xs.forEach(function (x) { ORDER.push(x.id); }); var n = function (c) { return xs.filter(function (x) { return x.cat === c; }).length; }, parts = [];
       if (n('delivered')) parts.push(n('delivered') + ' delivered'); if (n('ulta')) parts.push('<i>' + n('ulta') + ' returned instead</i>');
       if (n('failed')) parts.push(n('failed') + ' failed again'); if (n('noaction')) parts.push(n('noaction') + ' no action');
       return '<div class="dh"><b>' + esc(dayName(d)) + '</b><small>' + xs.length + ' quer' + (xs.length > 1 ? 'ies' : 'y') + '</small><span class="sum">' + parts.join(' · ') + '</span></div>' + xs.map(function (x) {
@@ -305,11 +364,12 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
           '<div class="f-res"><span class="res ' + resCls(x.cat) + '">' + esc(x.result) + '</span></div><div class="f-closed" style="font-size:12.5px;color:var(--muted)">' + esc(x.closedAt) + '</div></div>';
       }).join('');
     }).join('');
-    $('wrap').innerHTML = '<div class="main"><div class="box"><div class="tools"><input id="fq" type="search" placeholder="Search tracking ID" value="' + esc(FQ) + '"><select id="fcity">' + cityOpts(D.done, FCITY) + '</select>' +
+    $('wrap').innerHTML = '<div class="box"><div class="tools"><input id="fq" type="search" placeholder="Search tracking ID" value="' + esc(FQ) + '"><select id="fcity">' + cityOpts(D.done, FCITY) + '</select>' +
       '<div class="fl">' + cats.map(function (c) { return '<button class="' + (FCAT === c[0] ? 'on' : '') + '" data-fcat="' + c[0] + '">' + c[1] + '</button>'; }).join('') + '</div>' +
       (FDAY ? '<div class="fl"><button class="on" data-fday="">' + esc(dayName(FDAY)) + ' ✕</button></div>' : '') + '<span class="hint">Last 14 days</span></div>' +
       '<div class="th fth"><div>Tracking ID</div><div>City</div><div>Query</div><div>Your answer</div><div>Result</div><div>Closed</div></div>' +
-      (body || '<div class="empty">Nothing finished here yet.</div>') + '</div>' + side(false) + '</div>';
+      (body || '<div class="empty">Nothing finished here yet.</div>') + '</div>' + popup(false);
+    document.body.classList.toggle('mdl-on', !!(SEL && find(SEL)));
     var fq = $('fq'); fq.oninput = function () { FQ = fq.value; renderF(); var n = $('fq'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); };
     $('fcity').onchange = function () { FCITY = this.value; renderF(); };
   }
@@ -343,10 +403,13 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
 
   // ---------- clicks ----------
   document.addEventListener('click', function (e) {
+    if (e.target.closest('[data-bk]')) { var bk = e.target.closest('[data-bk]').getAttribute('data-bk'); if (e.target.checked) BULK[bk] = 1; else delete BULK[bk]; renderQ(); return; }
     var t = e.target.closest('button,[data-open],[data-pday]'); if (!t || !D) return;
     if (t.dataset.view) { VIEW = t.dataset.view; SEL = ''; render(); window.scrollTo(0, 0); }
     else if (t.dataset.jump) { var el = $('sec_' + t.dataset.jump); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-    else if (t.dataset.more) { SHOWN[t.dataset.more] = !SHOWN[t.dataset.more]; renderQ(); }
+    else if (t.dataset.all) { ALL = t.dataset.all === '1'; ls('cp_all', ALL ? '1' : '0'); renderQ(); }
+    else if (t.dataset.bulkgo) bulkGo(t);
+    else if (t.dataset.step) step(Number(t.dataset.step));
     else if (t.dataset.ans) { var a = t.dataset.ans, x = find(SEL), cur = PICK[SEL] != null ? PICK[SEL] : x.status; PICK[SEL] = cur === a ? '' : a; renderQ(); }
     else if (t.dataset.copy) { try { navigator.clipboard.writeText(t.dataset.copy); toast('Tracking ID copied'); } catch (er) {} }
     else if (t.hasAttribute('data-close')) closeSide();
@@ -354,7 +417,14 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     else if (t.dataset.fday !== undefined && t.tagName === 'BUTTON') { FDAY = ''; renderF(); }
     else if (t.dataset.per) { PER = t.dataset.per === 'm' ? 'm' : Number(t.dataset.per); renderP(); }
     else if (t.dataset.pday) { FDAY = t.dataset.pday; FCAT = 'all'; VIEW = 'f'; SEL = ''; render(); window.scrollTo(0, 0); }
-    else if (t.dataset.open) { SEL = t.dataset.open; FOCUS = !!e.target.closest('[data-reply]'); render(); if (FOCUS && $('ansBox')) $('ansBox').scrollIntoView({ block: 'nearest' }); }
+    else if (t.dataset.open) { SEL = t.dataset.open; FOCUS = !!e.target.closest('[data-reply]'); render(); }
+  });
+  // keyboard in the pop-up: Esc closes, ↑ ↓ previous / next (not while typing)
+  document.addEventListener('keydown', function (e) {
+    if (!SEL || !D) return;
+    if (e.key === 'Escape') { closeSide(); return; }
+    if (document.activeElement && /TEXTAREA|INPUT|SELECT/.test(document.activeElement.tagName)) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); step(e.key === 'ArrowDown' ? 1 : -1); }
   });
   $('rf').onclick = function () { load(false); };
   $('cam').onchange = function () {
