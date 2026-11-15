@@ -199,6 +199,15 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
 .mdl .mpos button{width:30px;height:28px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--ink);font-size:15px;font-weight:700;padding:0;cursor:pointer}
 .mdl .mpos button:hover{border-color:var(--ka,var(--brand));background:var(--kb,var(--soft));color:var(--ka,var(--brand-d))}
 .matt{font:600 11.5px Inter,sans-serif;color:var(--ink2);background:var(--card);border:1px solid var(--line);border-radius:99px;padding:1px 9px;white-space:nowrap}.matt.last{color:#B91C1C;border-color:#FCA5A5}
+/* pop-up header: two rows (user 2026-11-15) */
+.mdl .mh{flex-direction:column;align-items:stretch;gap:7px;padding:10px 14px 9px}
+.mh1,.mh2{display:flex;align-items:center;gap:10px;min-width:0}.mh2{gap:6px;flex-wrap:wrap}
+.mcity2{display:inline-flex;align-items:center;gap:4px;flex:0 1 auto;min-width:96px;max-width:340px;font:600 14px Inter,sans-serif;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mcity2 svg{flex:none;color:var(--ka,var(--brand))}
+.hc{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:99px;border:1px solid var(--line);background:var(--card);font:600 11.5px Inter,sans-serif;color:var(--ink2);white-space:nowrap}
+.hc.kind{color:var(--ka,var(--brand-d));border-color:var(--ka,var(--brand))}.hc.r{color:#B91C1C;border-color:#FCA5A5}.hc.a{color:#B45309;border-color:#FCD34D}.hc.ok{color:var(--ok);border-color:#86EFAC}
+.hc.bad{color:#B91C1C;border-color:#FCA5A5}.hc.warn{color:#B45309;border-color:#FCD34D}.hc.mute{color:var(--muted)}
+@media (max-width:900px){.mcity2{max-width:46vw;font-size:13px}}
 </style>
 </head>
 <body>
@@ -395,12 +404,20 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     var x = SEL && find(SEL);
     if (!x) return '';
     var k = kindOf(x.kind), pick = PICK[x.id] != null ? PICK[x.id] : x.status, isOpen = editable && D.open.indexOf(x) !== -1, i = ORDER.indexOf(x.id);
+    // header in two rows (user 2026-11-15: one row held ten things): 1) which parcel and where — tracking ID, copy, city in
+    // bold — with the position and close on the right; 2) its status as chips of one style: kind, attempts, request no., waiting
+    var maxA = D.maxAttempts || 3, wait = isOpen ? pendCls(x.hours, x.kind).trim() : '';
     var h = '<div class="mdl-bg" data-close></div><div class="mdl k-' + esc(x.kind) + '" role="dialog" aria-label="' + esc(x.cn) + '"><div class="mh">' +
-      '<button class="back" data-close aria-label="Back">‹</button><div class="big">' + esc(x.cn) + '</div><button class="cp" data-copy="' + esc(x.cn) + '">Copy</button><span class="mkind">' + esc(k.label) + '</span>' + (x.attempts ? '<span class="matt' + (x.attempts >= (D.maxAttempts || 3) ? ' last' : '') + '">Attempts ' + x.attempts + ' of ' + (D.maxAttempts || 3) + '</span>' : '') +
-      '<div class="mcty" title="' + esc(x.city) + '">' + esc(x.city || 'City not given') + (isOpen ? '' : ' · ' + esc(k.label)) + '</div>' + (x.again ? '<i class="again">' + esc(x.again) + '</i>' : '') +
-      (isOpen ? '<span class="pend' + (answered(x) ? '' : pendCls(x.hours, x.kind)) + '">' + pendTxt(x.hours) + '</span>' : '<span class="res ' + resCls(x.cat) + '">' + esc(x.result) + '</span>') +
+      '<div class="mh1"><button class="back" data-close aria-label="Back">‹</button><div class="big">' + esc(x.cn) + '</div><button class="cp" data-copy="' + esc(x.cn) + '">Copy</button>' +
+      '<span class="mcity2" dir="auto" title="' + esc(x.city) + '"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>' + esc(x.city || 'City not given') + '</span>' +
       '<div class="sp"></div>' + (i >= 0 ? '<span class="mpos"><b>' + (i + 1) + ' of ' + ORDER.length + '</b><button data-step="-1" aria-label="Previous" title="Previous (↑ key)">↑</button><button data-step="1" aria-label="Next" title="Next (↓ key)">↓</button></span>' : '') +
-      '<button class="mx" data-close aria-label="Close">✕</button></div><div class="mb' + (isOpen ? '' : ' one') + '"><div class="ml">';
+      '<button class="mx" data-close aria-label="Close">✕</button></div>' +
+      '<div class="mh2"><span class="hc kind">' + esc(k.label) + '</span>' +
+      (x.attempts ? '<span class="hc' + (x.attempts >= maxA ? ' r' : '') + '">Attempts ' + x.attempts + ' of ' + maxA + '</span>' : '') +
+      (x.again ? '<span class="hc r">' + esc(x.again) + '</span>' : '') +
+      (isOpen ? (answered(x) ? '<span class="hc ok">✓ Responded</span>' : '<span class="hc' + (wait ? ' ' + wait : '') + '">Waiting ' + esc(pendTxt(x.hours)) + '</span>')
+        : '<span class="hc ' + resCls(x.cat) + '">' + esc(x.result) + '</span>') +
+      '</div></div><div class="mb' + (isOpen ? '' : ' one') + '"><div class="ml">';
     if (x.says || x.ask) h += '<div class="two">' + (x.says ? '<div class="blk blk-rem"><div class="lb">' + (x.kind === 'claim' ? 'Claim' : x.kind === 'return' ? 'Return Reason' : 'Customer Remarks') + '</div><div class="tx">' + esc(x.says) + '</div></div>' : '') +
       (x.ask ? '<div class="blk blk-req"><div class="lb">Store Request</div><div class="tx">' + esc(x.ask) + '</div></div>' : '') + '</div>';
     h += timeline(x.history) + '</div>';
