@@ -98,8 +98,21 @@ body.mdl-on{overflow:hidden}.mdl-bg{position:fixed;inset:0;background:rgba(15,23
 .lb{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.4px;text-transform:uppercase}.tx{font-size:14px;color:var(--ink2);margin-top:2px;white-space:pre-line}
 .tl{display:flex;gap:10px}.tl .rail{display:flex;flex-direction:column;align-items:center;width:10px;flex:none}.tl .d{width:9px;height:9px;border-radius:99px;margin-top:4px}
 .tl .ln{width:2px;flex:1;background:var(--line);margin-top:2px}.tl .c{padding-bottom:8px;min-width:0;font-size:13px;line-height:1.35}.tl .c small{display:block;font-size:11.5px;color:var(--faint)}
-.k-track{background:var(--line)}.k-us,.k-you,.k-ok{background:var(--muted)}.k-bad{background:var(--ink)}
-.w-us,.w-you,.w-bad{color:var(--ink);font-weight:600}.w-track,.w-ok{color:var(--ink2);font-weight:600}
+.tk-track{background:#94A3B8}.tk-ok{background:#16A34A}.tk-bad{background:#F59E0B}.tk-ret{background:#DC2626}.tk-us{background:#00857A}.tk-you{background:#7C3AED}
+.w-track,.w-ok{color:var(--ink2);font-weight:600}.w-bad{color:#B45309;font-weight:600}.w-ret{color:#B91C1C;font-weight:600}.w-us{color:#00665D;font-weight:600}.w-you{color:#6D28D9;font-weight:600}
+.tkey{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:11px;color:var(--muted);margin:4px 0 8px}.tkey i{width:8px;height:8px;border-radius:99px;display:inline-block;margin-right:-6px}
+.blk{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--card)}.blk .lb{margin-bottom:2px}
+.blk-rem{background:#FFFBEB;border-color:#FDE68A}.blk-req{background:#F0FDFA;border-color:#99F6E4}
+.mdl .mh{background:var(--kb,var(--head));box-shadow:inset 0 3px 0 var(--ka,var(--brand))}
+.mkind{font:600 11.5px Inter,sans-serif;color:var(--ka,var(--brand-d));border:1px solid var(--ka,var(--brand));border-radius:99px;padding:1px 9px;background:var(--card);white-space:nowrap}
+.mdl .ml{background:var(--bg)}.mdl .mr{background:var(--kh,var(--head))}
+.drop{border:1.5px dashed var(--line);border-radius:10px;padding:9px 11px;font-size:12.5px;color:var(--ink2);background:var(--card)}.drop small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px}
+.drop.over{border-color:var(--ka,var(--brand));background:var(--kb,var(--soft))}.drop b{color:var(--ok)}
+.lnk{border:0;background:none;padding:0;font:600 12.5px Inter,sans-serif;color:var(--brand-d);text-decoration:underline;cursor:pointer}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .blk-rem{background:#2A220F;border-color:#4A3A12}:root:not([data-theme=light]) .blk-req{background:#0F2A27;border-color:#134E48}
+:root:not([data-theme=light]) .w-bad{color:#FBBF24}:root:not([data-theme=light]) .w-ret{color:#F87171}:root:not([data-theme=light]) .w-us{color:#3FE0A8}:root:not([data-theme=light]) .w-you{color:#C4B5FD}}
+:root[data-theme=dark] .blk-rem{background:#2A220F;border-color:#4A3A12}:root[data-theme=dark] .blk-req{background:#0F2A27;border-color:#134E48}
+:root[data-theme=dark] .w-bad{color:#FBBF24}:root[data-theme=dark] .w-ret{color:#F87171}:root[data-theme=dark] .w-us{color:#3FE0A8}:root[data-theme=dark] .w-you{color:#C4B5FD}
 .ag{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}
 .ag button{min-height:44px;border:1px solid var(--line);background:var(--card);border-radius:10px;font-size:13.5px;font-weight:500;padding:4px 8px;line-height:1.25}
 .ag button.on{background:var(--brand);border-color:var(--brand);color:#fff}
@@ -173,6 +186,13 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   .pcards{gap:8px;margin:10px 0}.pc{padding:8px 12px}.pc .l{font-size:12px}.pc b{font-size:20px}.pc small{font-size:11px}
   .dth,.dtr{grid-template-columns:150px repeat(6,minmax(0,1fr)) 90px 30px}.dth{font-size:11px}.dth div{padding:6px}.dtr{height:32px;font-size:12.5px}
   .foot{padding:6px 12px;font-size:11.5px}
+}
+/* tables as wide as their columns (user 2026-11-15): the short ones (Mark for Return, Returned Despite) do not stretch;
+   every table starts at the same left edge and Tracking ID / City keep one width, so columns line up down the page */
+@media (min-width:901px){
+  .qs.k-return,.qs.k-ulta{width:max-content;max-width:100%;min-width:440px}
+  .qs.k-return .th,.qs.k-return .tr{grid-template-columns:176px 160px 90px 130px}
+  .qs.k-ulta .ulta-th,.qs.k-ulta .ulta-r{grid-template-columns:176px 130px 300px 260px}
 }
 </style>
 </head>
@@ -301,7 +321,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
         (todo.length ? todo.length + ' pending' + (did.length ? ' · ' + did.length + (k.key === 'return' ? ' marked' : ' responded') : '') : 'All ' + (k.key === 'return' ? 'marked' : 'responded') + ' ✓') + '</small>' +
         (bulk ? '<span class="bulk"><button class="btn pri sm" data-markall="1">' + (SURE ? 'Sure? Mark ' + todo.filter(function (x) { return !PEND[x.id]; }).length : 'Mark all (' + todo.filter(function (x) { return !PEND[x.id]; }).length + ')') + '</button></span>' : '') + '</div>';
       shown.forEach(function (x) { if (x.kind !== 'return') ORDER.push(x.id); });
-      body += (k.key === 'claim' ? TH.replace('Customer Remarks', 'Claim') : k.key === 'return' ? TH.replace('Customer Remarks', 'Return Reason') : TH) + shown.map(function (x) { return row(x); }).join('') + '</section>';
+      body += (k.key === 'claim' ? TH.replace('Customer Remarks', 'Claim') : k.key === 'return' ? '<div class="th"><div>Tracking ID</div><div>City</div><div>Ageing</div><div></div></div>' : TH) + shown.map(function (x) { return row(x); }).join('') + '</section>';
     });
     if (!placed) body += ulta;
     var html = '<div class="cards">' + cards + '</div><div class="box qtools"><div class="tools"><input id="q" type="search" placeholder="Search tracking ID" value="' + esc(Q) + '"><select id="city">' + cityOpts(D.open, CITY) + '</select>' +
@@ -347,16 +367,19 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       '<div class="cn">' + esc(x.cn) +
         (x.again ? ' <i class="again">' + esc(x.again.replace(' request', '')) + '</i>' : '') + (x.updated && !answered(x) ? ' <i class="upd-t">Revised</i>' : '') + '<span class="mcity">' + esc(x.city) + '</span></div>' +
       '<div class="city c-city" title="' + esc(x.city) + '">' + esc(x.city) + '</div>' +
-      '<div class="c-rem" title="' + esc([x.note, x.says].filter(Boolean).join(' · ')) + '">' + (x.note ? '<b>' + esc(x.note) + '</b>' + (x.says ? ' · ' : '') : '') + esc(x.says) + '</div>' +
-      '<div class="c-now" title="' + (nw ? esc(nw[0] + ' · ' + nw[1]) + (nw[2] ? ' · no update since our request' : '') : '') + '">' + (nw ? esc(nw[3]) + ' <small>· ' + esc(nw[1]) + '</small>' : '') + '</div>' +
+      (ret ? '' : '<div class="c-rem" title="' + esc([x.note, x.says].filter(Boolean).join(' · ')) + '">' + (x.note ? '<b>' + esc(x.note) + '</b>' + (x.says ? ' · ' : '') : '') + esc(x.says) + '</div>' +
+      '<div class="c-now" title="' + (nw ? esc(nw[0] + ' · ' + nw[1]) + (nw[2] ? ' · no update since our request' : '') : '') + '">' + (nw ? esc(nw[3]) + ' <small>· ' + esc(nw[1]) + '</small>' : '') + '</div>') +
       '<div class="c-pend"><span class="pend' + (answered(x) ? '' : pendCls(x.hours)) + '">' + pendTxt(x.hours) + '</span></div>' +
       '<div class="c-ans">' + (ret ? markCell(x) : answered(x) ? '<span class="done-a">✓ ' + esc(x.status || 'Responded') + '</span>' : '<span class="rp" data-reply="' + esc(x.id) + '">Respond ›</span>') + '</div></div>';
   }
   function timeline(h) {
     if (!h || !h.length) return '';
-    return '<div><div class="lb" style="margin-bottom:6px">Shipment Timeline</div>' + h.map(function (e, i) {
-      return '<div class="tl"><div class="rail"><div class="d k-' + e.k + '"></div>' + (i < h.length - 1 ? '<div class="ln"></div>' : '') + '</div><div class="c">' +
-        (e.who ? '<span class="w-' + e.k + '">' + esc(e.who) + '</span> ' : '') + esc(e.what) + ' <small>' + esc(e.when) + '</small></div></div>';
+    // a colour per kind of step (user 2026-11-15: the pop-up was all black and white)
+    var kOf = function (e) { return e.k === 'bad' && /return/i.test(e.what) ? 'ret' : e.k; };
+    return '<div class="blk"><div class="lb">Shipment Timeline</div><div class="tkey"><i class="tk-track"></i>Scan<i class="tk-bad"></i>Failed<i class="tk-ret"></i>Return<i class="tk-us"></i>' + esc(D.store) + '<i class="tk-you"></i>Your team</div>' + h.map(function (e, i) {
+      var k = kOf(e);
+      return '<div class="tl"><div class="rail"><div class="d tk-' + k + '"></div>' + (i < h.length - 1 ? '<div class="ln"></div>' : '') + '</div><div class="c">' +
+        (e.who ? '<span class="w-' + k + '">' + esc(e.who) + '</span> ' : '') + esc(e.what) + ' <small>' + esc(e.when) + '</small></div></div>';
     }).join('') + '</div>';
   }
   // the reply pop-up: wide, two sides (the parcel's story | the answer); ↑ ↓ move, Esc closes; on a phone it fills the screen
@@ -364,14 +387,14 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     var x = SEL && find(SEL);
     if (!x) return '';
     var k = kindOf(x.kind), pick = PICK[x.id] != null ? PICK[x.id] : x.status, isOpen = editable && D.open.indexOf(x) !== -1, i = ORDER.indexOf(x.id);
-    var h = '<div class="mdl-bg" data-close></div><div class="mdl" role="dialog" aria-label="' + esc(x.cn) + '"><div class="mh">' +
-      '<button class="back" data-close aria-label="Back">‹</button><div class="big">' + esc(x.cn) + '</div><button class="cp" data-copy="' + esc(x.cn) + '">Copy</button>' +
+    var h = '<div class="mdl-bg" data-close></div><div class="mdl k-' + esc(x.kind) + '" role="dialog" aria-label="' + esc(x.cn) + '"><div class="mh">' +
+      '<button class="back" data-close aria-label="Back">‹</button><div class="big">' + esc(x.cn) + '</div><button class="cp" data-copy="' + esc(x.cn) + '">Copy</button><span class="mkind">' + esc(k.label) + '</span>' +
       '<div class="mcty" title="' + esc(x.city) + '">' + esc(x.city || 'City not given') + (isOpen ? '' : ' · ' + esc(k.label)) + '</div>' + (x.again ? '<i class="again">' + esc(x.again) + '</i>' : '') +
       (isOpen ? '<span class="pend' + (answered(x) ? '' : pendCls(x.hours)) + '">' + pendTxt(x.hours) + '</span>' : '<span class="res ' + resCls(x.cat) + '">' + esc(x.result) + '</span>') +
       '<div class="sp"></div>' + (i >= 0 ? '<span class="mpos">' + (i + 1) + ' of ' + ORDER.length + ' · <button data-step="-1" aria-label="Previous">↑</button><button data-step="1" aria-label="Next">↓</button></span>' : '') +
       '<button class="mx" data-close aria-label="Close">✕</button></div><div class="mb' + (isOpen ? '' : ' one') + '"><div class="ml">';
-    if (x.says || x.ask) h += '<div class="two">' + (x.says ? '<div><div class="lb">' + (x.kind === 'claim' ? 'Claim' : 'Customer remarks') + '</div><div class="tx">' + esc(x.says) + '</div></div>' : '') +
-      (x.ask ? '<div><div class="lb">Store Request</div><div class="tx">' + esc(x.ask) + '</div></div>' : '') + '</div>';
+    if (x.says || x.ask) h += '<div class="two">' + (x.says ? '<div class="blk blk-rem"><div class="lb">' + (x.kind === 'claim' ? 'Claim' : x.kind === 'return' ? 'Return Reason' : 'Customer Remarks') + '</div><div class="tx">' + esc(x.says) + '</div></div>' : '') +
+      (x.ask ? '<div class="blk blk-req"><div class="lb">Store Request</div><div class="tx">' + esc(x.ask) + '</div></div>' : '') + '</div>';
     h += timeline(x.history) + '</div>';
     if (isOpen) {
       h += '<div class="mr">';
@@ -381,7 +404,9 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
         return '<button class="' + (a === pick ? 'on' : '') + '" data-ans="' + esc(a) + '">' + esc(a) + '</button>'; }).join('') + '</div>' +
         '<textarea id="words" maxlength="500" placeholder="Or type a response (Roman Urdu is fine)">' + esc(PICK['w' + x.id] != null ? PICK['w' + x.id] : x.reply) + '</textarea></div>' +
         '<div class="sp"></div><div class="pn"><label for="who">Agent Name</label><input id="who" maxlength="40" placeholder="optional" value="' + esc(ls(NK)) + '"></div>' +
-        '<div class="pf"><button class="btn" id="photo">Attach Proof</button><button class="btn pri" id="save">Save &amp; Next</button></div></div>';
+        '<div class="drop" id="drop">' + (x.photos ? '<b>✓ ' + x.photos + ' proof photo' + (x.photos > 1 ? 's' : '') + '</b> · ' : '') + 'Proof: <button class="lnk" id="photo">choose a photo</button>' +
+          (navigator.clipboard && navigator.clipboard.read ? ' · <button class="lnk" id="pastePf">paste screenshot</button>' : '') + '<small>or press Ctrl+V · or drop the file here</small></div>' +
+        '<div class="pf"><button class="btn pri" id="save" style="flex:1">Save &amp; Next</button></div></div>';
     } else h += '';
     h += '</div>' + (isOpen ? '' : '<div class="ro mro">Resolved queries are read-only. If ' + esc(D.store) + ' sends one again, it returns to Open with this history.</div>') + '</div>';
     return h;
@@ -394,6 +419,15 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     if ($('words')) { $('words').oninput = function () { PICK['w' + SEL] = this.value; }; if (FOCUS) { $('words').focus(); FOCUS = false; } }
     if ($('save')) $('save').onclick = save;
     if ($('photo')) $('photo').onclick = function () { $('cam').value = ''; $('cam').click(); };
+    if ($('pastePf')) $('pastePf').onclick = function () {
+      navigator.clipboard.read().then(function (items) {
+        for (var i = 0; i < items.length; i++) { var t = items[i].types.filter(function (y) { return /^image\//.test(y); })[0]; if (t) return items[i].getType(t).then(function (b) { sendPhoto(b, SEL); }); }
+        toast('No screenshot copied. Take one, then tap paste again.');
+      }).catch(function () { toast('Paste is blocked here · press Ctrl+V instead'); });
+    };
+    var dz = $('drop');
+    if (dz) { dz.ondragover = function (e) { e.preventDefault(); dz.classList.add('over'); }; dz.ondragleave = function () { dz.classList.remove('over'); };
+      dz.ondrop = function (e) { e.preventDefault(); dz.classList.remove('over'); var f = e.dataTransfer.files && e.dataTransfer.files[0]; if (f) sendPhoto(f, SEL); }; }
     document.body.classList.toggle('mdl-on', !!(SEL && find(SEL)));
   }
   function nextOpen(after) {
@@ -529,8 +563,17 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); step(e.key === 'ArrowDown' ? 1 : -1); }
   });
   $('rf').onclick = function () { load(false); };
-  $('cam').onchange = function () {
-    var f = this.files && this.files[0], id = SEL; if (!f || !id) return;
+  $('cam').onchange = function () { var f = this.files && this.files[0]; if (f && SEL) sendPhoto(f, SEL); };
+  // Ctrl+V with a screenshot while an open query is shown (text still pastes into the box as usual)
+  document.addEventListener('paste', function (e) {
+    var x = SEL && find(SEL); if (!x || D.open.indexOf(x) === -1 || !$('drop')) return;
+    var it = [].slice.call((e.clipboardData && e.clipboardData.items) || []).filter(function (i) { return /^image\//.test(i.type); })[0];
+    if (!it) return;
+    e.preventDefault(); sendPhoto(it.getAsFile(), SEL);
+  });
+  function sendPhoto(f, id) {
+    if (!f || !id) return;
+    if (!/^image\//.test(f.type || '')) { toast('This file is not a photo'); return; }
     toast('Uploading photo…');
     var url = URL.createObjectURL(f), img = new Image();
     img.onload = function () {

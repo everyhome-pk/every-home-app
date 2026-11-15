@@ -1016,7 +1016,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 (function () {
   if (window.google && google.script) return;
   window.EH_PWA = true; // installed app: notifications are possible
-  window.EH_BUILD = '2026-11-14'; // shown at the bottom of the menu
+  window.EH_BUILD = '2026-11-15'; // shown at the bottom of the menu
   var API = "https://script.google.com/macros/s/AKfycbyqtyrClenCG1_iqTSDK5KhtFItfX6rUsYdIexwQ3qPFbSv9d1n8jy06ItjvWXXtB-I/exec", RELAY = "", relayOff = 0;
   // through the relay when there is one; if it fails, straight to Google and skip the relay for 10 min. A save goes
   // straight only when the relay could not be reached at all (never sent twice).
@@ -3287,7 +3287,7 @@ var NDR_GH = {
     ['later', 'clock', 'Call back at their time', 'comes back by itself with a reminder'],
     ['wait', 'hourglass', 'Called · next try later', ''],
     ['ready', 'send', 'In the courier list', 'called · request made · only the send is left']],
-  courier: [['replied', 'message-2', 'Courier replied', 'read it · keep with courier or call the customer'], ['reattempt', 'repeat', 'Reattempt requested', ''],
+  courier: [['transit', 'truck-delivery', 'On the way · running late', 'still travelling to the city · no call needed · ask the courier to trace'], ['replied', 'message-2', 'Courier replied', 'read it · keep with courier or call the customer'], ['reattempt', 'repeat', 'Reattempt requested', ''],
     ['return', 'arrow-back-up', 'Return requested', ''], ['late', 'clock-exclamation', 'Late · asked to trace', ''], ['check', 'search', 'Status check', '']],
   special: [['premature', 'alert-octagon', 'Premature return', 'started before the last try · stop it'], ['rtostop', 'arrow-back-up', 'Return started · can stop', 'within 24 h']],
   closed: [['saved', 'circle-check', 'Saved', 'delivered after NDR'], ['returned', 'arrow-back-up', 'Returned / returning', ''], ['other', 'archive', 'Other', '']]
@@ -3299,13 +3299,14 @@ function triesLeft(c) { return c.attempts ? ndrMax() - c.attempts : 9; }
 // NDR order everywhere (user 2026-11-02, like Shiprocket / ClickPost "Action required" before "Action requested" and a
 // call-centre queue): people still to contact on top, then what waits for a time, then requests in the courier list,
 // then what is already with the courier
-var NDR_RANK = { new: 0, noact: 0, again: 0, premature: 0, rtostop: 0, stalled: 1, later: 2, wait: 3, ready: 4 };
+var NDR_RANK = { new: 0, noact: 0, again: 0, premature: 0, rtostop: 0, stalled: 1, transit: 1, later: 2, wait: 3, ready: 4 };
 function ndrRank(c) {
   var sl = ndrSlot(c), r = NDR_RANK[sl[1]];
   if (r == null) r = 5; // with the courier
   return r;
 }
 // where a case sits: [tab, group]
+function onTheWay(c) { return /^late · usually|late on the way|no courier update|stuck at origin|not picked up/i.test(String(c.type || '')); }
 function ndrSlot(c) {
   var k = caseType(c), t = ticketOf(c), ob = inOutbox(c), sentNow = t && SENT_NOW[t.type + '|' + c.cn];
   // one rule for the tabs (user 2026-11-09): Urgent = a return to stop with nothing asked yet; once asked it is in the list
@@ -3313,7 +3314,9 @@ function ndrSlot(c) {
   var asked = !!ob || c.sent === 'Queued' || !!(t && (t.channel || sentNow));
   if (!asked && k === 'premature') return ['special', 'premature'];
   if (!asked && k === 'rto') return ['special', 'rtostop'];
-  if (!asked && c.watch && c.next !== 'Chase courier (late)') return ['todo', 'stalled']; // ours to do: ask the courier (user 2026-11-14: To do by category)
+  // a parcel still on its way (late, no scan for days, stuck at origin, not picked up): calling the customer does nothing,
+  // so it waits under With courier → To act for an Ask courier (user 2026-11-15), not in To do or the badge
+  if (!asked && c.watch && c.next !== 'Chase courier (late)') return [onTheWay(c) ? 'courier' : 'todo', onTheWay(c) ? 'transit' : 'stalled'];
   if (noActTicket(t) && c.sent !== 'Queued') return ['todo', 'noact'];
   if (isTodo(c)) return ['todo', !c.outcome || c.outcome === 'Not called yet' ? 'new' : 'again'];
   if (c.callBack && c.callBack > Date.now()) return ['todo', 'later'];
@@ -3378,7 +3381,7 @@ function ndrSteps(c, slot) {
 var NDR_TAG = {
   new: ['New', 'red'], noact: ['No action', 'red'], noreply: ['No answer', 'amber'], again: ['Call again', 'red'], later: ['', 'blue'], ready: ['In list', 'amber'], wait: ['Called', 'grey'],
   replied: ['New reply', 'green'], reattempt: ['With courier', 'blue'], return: ['Return asked', 'blue'], late: ['Trace asked', 'blue'], check: ['Status check', 'blue'],
-  premature: ['Premature return', 'red'], rtostop: ['Return started', 'red'], stalled: ['No update', 'amber']
+  premature: ['Premature return', 'red'], rtostop: ['Return started', 'red'], stalled: ['No update', 'amber'], transit: ['On the way', 'amber']
 };
 // inGroup: shown under its group heading — then the tag appears only when it says more than the heading
 // (Failed again, Call back now); in search results every card keeps its tag
@@ -3417,7 +3420,7 @@ function ndrCard(c, seen, inGroup) {
     upd: '<button class="btn sq" data-rec="' + esc(c.cn) + '" aria-label="Update" title="Update"><i class="ti ti-pencil"></i></button>'
   };
   var main = '', side = [];
-  if (slot === 'stalled') { main = can('ndr.work') ? '<button class="btn pri grow" data-late="' + esc(c.cn) + '"><i class="ti ti-clock-exclamation"></i>Ask ' + esc(c.courier) + '</button>' : ''; side = [B.callSq, B.wa]; }
+  if (slot === 'stalled' || slot === 'transit') { main = can('ndr.work') ? '<button class="btn pri grow" data-late="' + esc(c.cn) + '"><i class="ti ti-clock-exclamation"></i>Ask ' + esc(c.courier) + '</button>' : ''; side = [B.callSq, B.wa]; }
   else if (slot === 'new' || slot === 'again' || slot === 'premature' || slot === 'rtostop') {
     main = B.call(slot === 'new' ? 'Call customer' : slot === 'again' ? (c.callBack ? 'Call back now' : 'Call again') : 'Call customer', 'pri') || '<button class="btn pri grow" data-rec="' + esc(c.cn) + '"><i class="ti ti-pencil"></i>Update case</button>';
     side = [B.wa, tel ? B.upd : ''];
@@ -3573,7 +3576,7 @@ function renderNdr() {
   }).join('') + '</div>' : '';
   var html = '', PILLS = {
     todo: [['call', 'To call', ['new', 'noact', 'again']], ['chase', 'Courier', ['stalled', 'noreply']], ['called', 'Called', ['later', 'wait']], ['list', 'In list', ['ready']]],
-    courier: [['act', 'To act', ['replied']], ['wait', 'Waiting', ['reattempt', 'return', 'late', 'check']]],
+    courier: [['act', 'To act', ['transit', 'replied']], ['wait', 'Waiting', ['reattempt', 'return', 'late', 'check']]],
     special: [['call', 'To call', ['premature', 'rtostop']], ['called', 'Called', ['premature', 'rtostop']]]
   }, pills = PILLS[N.tab], subKey = SUB_KEY[N.tab], pill = null;
   if (N.tab === 'todo' && pageOnly()) pills = pills.filter(function (p) { return p[0] !== 'list'; }); // no courier list on page-only stores
@@ -3657,7 +3660,7 @@ function lateText(t) {
   return w;
 }
 // W1 writes results in Roman Urdu for the courier's sheet; the app shows them in English
-var TICKET_WORDS = [[/Escalated – Amal nahi 48h/, 'No answer in 48 h · raised again'], [/🔁 Jawab mila, Amal nahi \(24h\)/, 'Replied · no action in 24 h'], [/Amal nahi hua/, 'No action'], [/Amal hua/, 'Acted'], [/Intezar/, 'Waiting'], [/Deliver ho gaya/, 'Delivered'],
+var TICKET_WORDS = [[/Claim roka gaya/, 'Claim stopped · the owner decides'], [/Escalated – Amal nahi 48h/, 'No answer in 48 h · raised again'], [/🔁 Jawab mila, Amal nahi \(24h\)/, 'Replied · no action in 24 h'], [/Amal nahi hua/, 'No action'], [/Amal hua/, 'Acted'], [/Intezar/, 'Waiting'], [/Deliver ho gaya/, 'Delivered'],
   [/Return shuru – reattempt nahi hua/, 'Return started · not reattempted'], [/Return shuru ho gaya/, 'Return started'], [/Return ho gaya/, 'Returned'],
   [/Attempt hua – phir fail/, 'Attempted · failed again'], [/Claim – courier ne jawab diya/, 'Claim · courier replied'], [/Courier ne jawab diya/, 'Courier replied'],
   [/DOBARA – (\d+h), amal nahi/, 'Follow-up · no action in $1'], [/Case band/, 'Case closed'], [/Outbox/, 'Not sent yet'],
