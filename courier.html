@@ -208,6 +208,12 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
 .hc.kind{color:var(--ka,var(--brand-d));border-color:var(--ka,var(--brand))}.hc.r{color:#B91C1C;border-color:#FCA5A5}.hc.a{color:#B45309;border-color:#FCD34D}.hc.ok{color:var(--ok);border-color:#86EFAC}
 .hc.bad{color:#B91C1C;border-color:#FCA5A5}.hc.warn{color:#B45309;border-color:#FCD34D}.hc.mute{color:var(--muted)}
 @media (max-width:900px){.mcity2{max-width:46vw;font-size:13px}}
+/* kind cards in one row on a computer (user 2026-11-15: 7 kinds broke into two lines): a card with nothing open is
+   narrower, the ones with work keep the room; phones keep two per row */
+@media (min-width:901px){
+  .cards{display:flex;gap:6px}.kc{flex:1 1 0;min-width:0}.kc.none{flex:.8 1 0;grid-template-columns:1fr}.kc.none .n{display:none}
+  .kc .l{overflow:hidden;text-overflow:ellipsis}
+}
 </style>
 </head>
 <body>
@@ -313,7 +319,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     var cards = D.kinds.map(function (k) {
       var all = D.open.filter(function (x) { return x.kind === k.key; }), left = all.filter(function (x) { return !answered(x); }).length, tot = all.length;
       var st = !tot ? 'none' : !left ? 'ok' : left >= 3 ? 'bad' : 'warn';
-      return '<button class="kc k-' + k.key + (st === 'none' ? ' none' : '') + (KIND === k.key ? ' on' : '') + '" data-jump="' + k.key + '" aria-pressed="' + (KIND === k.key) + '"><div class="l">' + esc(k.label) + '</div>' +
+      return '<button class="kc k-' + k.key + (st === 'none' ? ' none' : '') + (KIND === k.key ? ' on' : '') + '" data-jump="' + k.key + '" aria-pressed="' + (KIND === k.key) + '"><div class="l" title="' + esc(k.label) + '">' + esc(k.label) + '</div>' +
         '<div class="n c-' + st + '"><b>' + (st === 'ok' ? '✓' : left) + '</b><span>' + (st === 'ok' ? 'completed' : st === 'none' ? '' : 'pending') + '</span></div>' +
         '<div class="s">' + (tot ? (tot - left) + ' of ' + tot + ' completed' : 'none open') + '</div></button>';
     }).join('');
