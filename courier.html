@@ -211,7 +211,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
 /* kind cards in one row on a computer (user 2026-11-15: 7 kinds broke into two lines): a card with nothing open is
    narrower, the ones with work keep the room; phones keep two per row */
 @media (min-width:901px){
-  .cards{display:flex;gap:6px}.kc{flex:1 1 0;min-width:0}.kc.none{flex:.8 1 0;grid-template-columns:1fr}.kc.none .n{display:none}
+  .cards{display:flex;gap:6px}.kc{flex:0 1 230px;min-width:0}.kc.none{flex:0 1 190px;grid-template-columns:1fr}.kc.none .n{display:none}
   .kc .l{overflow:hidden;text-overflow:ellipsis}
 }
 </style>
