@@ -3287,7 +3287,7 @@ var NDR_GH = {
     ['later', 'clock', 'Call back at their time', 'comes back by itself with a reminder'],
     ['wait', 'hourglass', 'Called · next try later', ''],
     ['ready', 'send', 'In the courier list', 'called · request made · only the send is left']],
-  courier: [['transit', 'truck-delivery', 'On the way · running late', 'still travelling to the city · no call needed · ask the courier to trace'], ['replied', 'message-2', 'Courier replied', 'read it · keep with courier or call the customer'], ['reattempt', 'repeat', 'Reattempt requested', ''],
+  courier: [['stop', 'hand-stop', 'Stop return asked', 'the courier must stop the return and deliver again · remind them in the group after 4 h'], ['transit', 'truck-delivery', 'On the way · running late', 'still travelling to the city · no call needed · ask the courier to trace'], ['replied', 'message-2', 'Courier replied', 'read it · keep with courier or call the customer'], ['reattempt', 'repeat', 'Reattempt requested', ''],
     ['return', 'arrow-back-up', 'Return requested', ''], ['late', 'clock-exclamation', 'Late · asked to trace', ''], ['check', 'search', 'Status check', '']],
   special: [['premature', 'alert-octagon', 'Premature return', 'started before the last try · stop it'], ['rtostop', 'arrow-back-up', 'Return started · can stop', 'within 24 h']],
   closed: [['saved', 'circle-check', 'Saved', 'delivered after NDR'], ['returned', 'arrow-back-up', 'Returned / returning', ''], ['other', 'archive', 'Other', '']]
@@ -3330,7 +3330,7 @@ function ndrSlot(c) {
     // on the courier's page / sent 24 h ago and no answer at all: ours again (remind them)
     if (t && t.channel && !t.status && !t.reply && t.sentMs && Date.now() - t.sentMs > 86400000) return ['todo', 'noreply'];
     var ty = (t && t.type) || (c.next === 'Chase courier (late)' ? 'late' : c.next === 'Verify with courier' ? 'check' : /return/i.test(c.next) ? 'return' : 'reattempt');
-    return ['courier', { reattempt: 'reattempt', return: 'return', late: 'late', check: 'check' }[ty] || 'reattempt'];
+    return ['courier', { reattempt: 'reattempt', return: 'return', late: 'late', check: 'check', stop: 'stop' }[ty] || 'reattempt'];
   }
   return ['todo', 'wait'];
 }
@@ -3421,6 +3421,16 @@ function ndrCard(c, seen, inGroup) {
   };
   var main = '', side = [];
   if (slot === 'stalled' || slot === 'transit') { main = can('ndr.work') ? '<button class="btn pri grow" data-late="' + esc(c.cn) + '"><i class="ti ti-clock-exclamation"></i>Ask ' + esc(c.courier) + '</button>' : ''; side = [B.callSq, B.wa]; }
+  else if ((slot === 'premature' || slot === 'rtostop') && can('ndr.work') && ((N.data.couriers || {})[c.courier] || {}).page) {
+    // user 2026-11-15: reattempt asked, their team said yes, the office returned it → ask them to stop it on their page
+    main = '<button class="btn danger grow" data-stopret="' + esc(c.cn) + '"><i class="ti ti-hand-stop"></i>Stop the return</button>';
+    side = [B.callSq, B.wa];
+  }
+  else if (slot === 'stop') {
+    var late4 = t && !t.status && !t.reply && t.sentMs && Date.now() - t.sentMs >= 4 * 3600000;
+    main = can('ndr.work') ? '<a class="btn ' + (late4 ? 'pri' : 'ton') + ' grow" data-shsh="' + esc(c.courier) + '" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(stopMessage(c.courier, late4)) + '"><i class="ti ti-brand-whatsapp"></i>' + (late4 ? 'Remind in the group' : 'Send in the group') + '</a>' : '';
+    side = [B.callSq, t ? '<button class="btn sq" data-wr="' + esc(t.id) + '" data-wc="' + esc(c.courier) + '" aria-label="Note courier reply" title="Note courier reply"><i class="ti ti-message-reply"></i></button>' : ''];
+  }
   else if (slot === 'new' || slot === 'again' || slot === 'premature' || slot === 'rtostop') {
     main = B.call(slot === 'new' ? 'Call customer' : slot === 'again' ? (c.callBack ? 'Call back now' : 'Call again') : 'Call customer', 'pri') || '<button class="btn pri grow" data-rec="' + esc(c.cn) + '"><i class="ti ti-pencil"></i>Update case</button>';
     side = [B.wa, tel ? B.upd : ''];
@@ -3576,7 +3586,7 @@ function renderNdr() {
   }).join('') + '</div>' : '';
   var html = '', PILLS = {
     todo: [['call', 'To call', ['new', 'noact', 'again']], ['chase', 'Courier', ['stalled', 'noreply']], ['called', 'Called', ['later', 'wait']], ['list', 'In list', ['ready']]],
-    courier: [['act', 'To act', ['transit', 'replied']], ['wait', 'Waiting', ['reattempt', 'return', 'late', 'check']]],
+    courier: [['act', 'To act', ['stop', 'transit', 'replied']], ['wait', 'Waiting', ['reattempt', 'return', 'late', 'check']]],
     special: [['call', 'To call', ['premature', 'rtostop']], ['called', 'Called', ['premature', 'rtostop']]]
   }, pills = PILLS[N.tab], subKey = SUB_KEY[N.tab], pill = null;
   if (N.tab === 'todo' && pageOnly()) pills = pills.filter(function (p) { return p[0] !== 'list'; }); // no courier list on page-only stores
@@ -3666,7 +3676,7 @@ var TICKET_WORDS = [[/Claim roka gaya/, 'Claim stopped · the owner decides'], [
   [/DOBARA – (\d+h), amal nahi/, 'Follow-up · no action in $1'], [/Case band/, 'Case closed'], [/Outbox/, 'Not sent yet'],
   [/Done \(marked in sheet\)/, 'Done (marked in sheet)'], [/Done \(WhatsApp\)/, 'Done (WhatsApp)'], [/↪️ Nayi request: (\w+)/, 'Replaced by a new $1 request']];
 function ticketResult(s) { s = String(s || ''); TICKET_WORDS.forEach(function (w) { s = s.replace(w[0], w[1]); }); return s; }
-var REQ_KIND = { reattempt: 'Reattempt', return: 'Return', claim: 'Claim', check: 'Status check', late: 'Late delivery', retlate: 'Late return' };
+var REQ_KIND = { stop: 'Stop return', reattempt: 'Reattempt', return: 'Return', claim: 'Claim', check: 'Status check', late: 'Late delivery', retlate: 'Late return' };
 var SENT_NOW = {}; // type|cn → { channel, at } sent from this phone, until W1 records it
 function inOutbox(c) {
   var b = (N.data.outbox || {})[c.courier] || {}, k = Object.keys(b).filter(function (x) { return (b[x] || []).some(function (it) { return it.cn === c.cn; }); })[0];
@@ -3898,7 +3908,7 @@ var SHEET_TABS = [['deliver', 'Reattempt'], ['return', 'Mark for Return'], ['cla
 function sheetTabOf(type) { return type === 'return' ? 'return' : type === 'claim' || type === 'retlate' ? 'claim' : 'deliver'; }
 // the courier page counts each kind on its own (user 2026-11-14: the Trax message said 9 reattempts for 4: late and status
 // checks were counted with them, as on the old sheet's Reattempt tab)
-var PAGE_KINDS = [['reattempt', 'Reattempt Delivery'], ['late', 'Delayed Delivery'], ['check', 'Status Inquiry'], ['return', 'Mark for Return'], ['claim', 'Return Claim'], ['retlate', 'Delayed Return']];
+var PAGE_KINDS = [['stop', 'Stop Return & Redeliver'], ['reattempt', 'Reattempt Delivery'], ['late', 'Delayed Delivery'], ['check', 'Status Inquiry'], ['return', 'Mark for Return'], ['claim', 'Return Claim'], ['retlate', 'Delayed Return']];
 function msgTabs(name) { return shW(name) === 'page' ? PAGE_KINDS : SHEET_TABS; }
 function msgKey(name, type) { return shW(name) !== 'page' ? sheetTabOf(type) : PAGE_KINDS.some(function (k) { return k[0] === type; }) ? type : 'reattempt'; }
 function sheetCounts(name, reminder, extra) {
@@ -3915,7 +3925,7 @@ function sheetCounts(name, reminder, extra) {
 }
 // The courier page message: 3 short lines (user 2026-11-14: short and simple): who, how many and what kinds, the link.
 // Reminder = only queries without an answer, with how many wait over 24 h.
-var PAGE_SHORT = { reattempt: 'Reattempt', late: 'Late', check: 'Status check', return: 'Return', claim: 'Claim', retlate: 'Late return' };
+var PAGE_SHORT = { stop: 'Stop return', reattempt: 'Reattempt', late: 'Late', check: 'Status check', return: 'Return', claim: 'Claim', retlate: 'Late return' };
 function pageMessage(name, reminder, extra) {
   var c = sheetCounts(name, reminder, extra), link = courierSheetLink(name, 'reattempt');
   var total = Object.keys(c).reduce(function (a, k) { return a + c[k].length; }, 0);
@@ -4144,6 +4154,7 @@ el('nlist').onclick = function (e) {
   var fg = e.target.closest('[data-ngf]');
   if (fg) { var so = {}; try { so = JSON.parse(store('eh_ngo') || '{}'); } catch (x) {} so[fg.getAttribute('data-ngf')] = fg.getAttribute('data-ngo') === '1' ? 0 : 1; store('eh_ngo', JSON.stringify(so)); return renderNdr(); }
   var l = e.target.closest('[data-late]'); if (l) return askLate(l.getAttribute('data-late'));
+  var sr = e.target.closest('[data-stopret]'); if (sr) return askStopReturn(sr.getAttribute('data-stopret'));
   var ag = e.target.closest('[data-again]'); if (ag) return ndrSendAgain(ag.getAttribute('data-again'), ag.getAttribute('data-cn'));
   var rt = e.target.closest('[data-ret]'); if (rt) { openNdrForm(rt.getAttribute('data-ret')); var rb = el('fAns').querySelector('[data-a="refuse"]'); if (rb) rb.click(); return; }
   var b = e.target.closest('[data-rec]'); if (b) openNdrForm(b.getAttribute('data-rec'));
@@ -4160,6 +4171,34 @@ function ndrSendAgain(id, cn) {
   }, function (e) { toast('Not saved: ' + ((e && e.message) || 'try again')); });
 }
 // a stalled / late parcel: straight into the courier list as a Late request (no customer call)
+// Stop the return (user 2026-11-15): a red request on top of the courier's page, then the same in their WhatsApp group
+function askStopReturn(cn) {
+  var c = N.data.cases.filter(function (x) { return x.cn === cn; })[0]; if (!c) return;
+  toast('Asking ' + c.courier + ' to stop the return…');
+  api('appCpAsk', [TOKEN, cn, 'stop', ''], function () {
+    STOP_NEW[cn] = Date.now();
+    el('panel').innerHTML = '<h3>Stop request sent</h3><p>On the ' + esc(c.courier) + ' page within 5 minutes, first on their list in red.</p>' +
+      '<a class="btn wa" data-shsh="' + esc(c.courier) + '" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(stopMessage(c.courier, false, cn)) + '" style="width:100%;margin-bottom:8px"><i class="ti ti-brand-whatsapp"></i>Send in the ' + esc(c.courier) + ' group</a>' +
+      '<p style="font-size:12.5px;color:var(--muted);margin:0 0 10px">In the group, type @ and pick their senior if you want them to see it.</p>' +
+      '<button class="btn" id="srDone" style="width:100%">Done</button>';
+    openPanel();
+    el('srDone').onclick = closePanel;
+    loadNdr(true);
+  }, function (e) { toast('❌ ' + ((e && e.message) || 'Not sent, try again')); });
+}
+var STOP_NEW = {};
+// the group message: every stop request of this courier still without an answer (+ the one just made)
+function stopMessage(name, reminder, extra) {
+  var list = (N.data.cases || []).filter(function (c) {
+    var t = ticketOf(c);
+    return c.courier === name && ((t && t.type === 'stop' && !t.status && !t.reply) || c.cn === extra || (STOP_NEW[c.cn] && Date.now() - STOP_NEW[c.cn] < 3600000));
+  });
+  var lines = list.map(function (c, i) { return (i + 1) + ') ' + c.cn + (c.city ? ' · ' + waCity(c.city) : ''); }).join('\n');
+  var link = courierSheetLink(name, 'stop');
+  return reminder
+    ? '🔴 *' + STORE + ' · Return rukwayen (yaad-dihani)*\n4 ghante se jawab nahi aaya, return ho jayegi:\n' + lines + '\nBarah-e-karam foran return rok kar dobara deliver karwayen.' + (link ? '\nJawab yahan dein: ' + link : '')
+    : '🔴 *' + STORE + ' · Return rukwayen*\nReattempt maanga tha, aap ki team ne haan kaha, phir bhi return ho raha hai:\n' + lines + '\nBarah-e-karam return rok kar dobara deliver karwayen.' + (link ? '\nJawab yahan dein: ' + link : '');
+}
 function askLate(cn) {
   var c = N.data.cases.filter(function (x) { return x.cn === cn; })[0]; if (!c) return;
   var before = JSON.stringify(c);

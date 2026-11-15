@@ -80,11 +80,11 @@ body.mdl-on{overflow:hidden}.mdl-bg{position:fixed;inset:0;background:rgba(15,23
 .qs .th{background:var(--kh,var(--head));color:var(--ink2);border-top:1px solid var(--line)}.qs .tr:last-child{border-bottom:0}
 .kc .n{flex-direction:column;align-items:flex-end;gap:0!important;line-height:1.1}.kc .n span{font-size:10.5px!important}
 .kc .l::before{content:'';display:inline-block;width:8px;height:8px;border-radius:99px;background:var(--ka,var(--faint));margin-right:7px;vertical-align:1px}
-.k-reattempt{--kb:#E3F2EF;--kh:#F1F8F6;--ka:#0F766E}.k-ulta{--kb:#FCE8E8;--kh:#FDF3F3;--ka:#B91C1C}.k-late{--kb:#FBF0D9;--kh:#FDF7EB;--ka:#A1520A}
+.k-stop{--kb:#FDE2E2;--kh:#FEF1F1;--ka:#B91C1C}.k-reattempt{--kb:#E3F2EF;--kh:#F1F8F6;--ka:#0F766E}.k-ulta{--kb:#FCE8E8;--kh:#FDF3F3;--ka:#B91C1C}.k-late{--kb:#FBF0D9;--kh:#FDF7EB;--ka:#A1520A}
 .k-check{--kb:#E5EEFA;--kh:#F2F6FC;--ka:#1D4ED8}.k-return{--kb:#EEE8F8;--kh:#F6F3FB;--ka:#6D28D9}.k-claim{--kb:#F8E6EE;--kh:#FCF2F6;--ka:#BE185D}.k-retlate{--kb:#E8ECF1;--kh:#F3F5F8;--ka:#475569}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .k-reattempt{--kb:#10302C;--kh:#0F1F22;--ka:#3FD0B4}:root:not([data-theme=light]) .k-ulta{--kb:#3A1818;--kh:#24141A;--ka:#F87171}:root:not([data-theme=light]) .k-late{--kb:#33270F;--kh:#211C14;--ka:#FBBF24}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .k-stop{--kb:#3A1414;--kh:#251012;--ka:#F87171}:root:not([data-theme=light]) .k-reattempt{--kb:#10302C;--kh:#0F1F22;--ka:#3FD0B4}:root:not([data-theme=light]) .k-ulta{--kb:#3A1818;--kh:#24141A;--ka:#F87171}:root:not([data-theme=light]) .k-late{--kb:#33270F;--kh:#211C14;--ka:#FBBF24}
 :root:not([data-theme=light]) .k-check{--kb:#14264A;--kh:#111B30;--ka:#60A5FA}:root:not([data-theme=light]) .k-return{--kb:#2A1E48;--kh:#1A1630;--ka:#A78BFA}:root:not([data-theme=light]) .k-claim{--kb:#3A1528;--kh:#24131D;--ka:#F472B6}:root:not([data-theme=light]) .k-retlate{--kb:#1E2633;--kh:#151C28;--ka:#94A3B8}}
-:root[data-theme=dark] .k-reattempt{--kb:#10302C;--kh:#0F1F22;--ka:#3FD0B4}:root[data-theme=dark] .k-ulta{--kb:#3A1818;--kh:#24141A;--ka:#F87171}:root[data-theme=dark] .k-late{--kb:#33270F;--kh:#211C14;--ka:#FBBF24}
+:root[data-theme=dark] .k-stop{--kb:#3A1414;--kh:#251012;--ka:#F87171}:root[data-theme=dark] .k-reattempt{--kb:#10302C;--kh:#0F1F22;--ka:#3FD0B4}:root[data-theme=dark] .k-ulta{--kb:#3A1818;--kh:#24141A;--ka:#F87171}:root[data-theme=dark] .k-late{--kb:#33270F;--kh:#211C14;--ka:#FBBF24}
 :root[data-theme=dark] .k-check{--kb:#14264A;--kh:#111B30;--ka:#60A5FA}:root[data-theme=dark] .k-return{--kb:#2A1E48;--kh:#1A1630;--ka:#A78BFA}:root[data-theme=dark] .k-claim{--kb:#3A1528;--kh:#24131D;--ka:#F472B6}:root[data-theme=dark] .k-retlate{--kb:#1E2633;--kh:#151C28;--ka:#94A3B8}.sh small{font-size:12.5px;color:var(--muted)}.dot{width:8px;height:8px;border-radius:99px;flex:none}
 .more{width:100%;height:38px;display:flex;align-items:center;gap:8px;padding:0 14px;border:0;border-bottom:1px solid var(--line2);background:var(--head);font-size:13px;font-weight:500;color:var(--muted);text-align:left}
 .more .ck{width:20px;height:20px;border-radius:99px;background:var(--okbg);color:var(--ok);display:flex;align-items:center;justify-content:center}.more em{font-style:normal;color:var(--brand-d);font-weight:600}
@@ -232,7 +232,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   var CHEV = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
   function kindOf(k) { return D.kinds.filter(function (x) { return x.key === k; })[0]; }
   function answered(x) { return !!(x.status || x.reply) && !x.reopen; } // a request the store changed after the answer needs an answer again
-  function pendCls(h) { return h >= 48 ? ' r' : h >= 24 ? ' a' : ''; }
+  function pendCls(h, kind) { return kind === 'stop' ? (h >= 4 ? ' r' : h >= 2 ? ' a' : '') : h >= 48 ? ' r' : h >= 24 ? ' a' : ''; }
   function pendTxt(h) { return h < 1 ? 'new' : h < 48 ? h + ' h' : Math.floor(h / 24) + ' days'; }
   function dayName(d) {
     if (d === D.today) return 'Today';
@@ -318,7 +318,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     var ulta = !KIND || KIND === 'reattempt' ? ultaBlock() : '', placed = false;
     D.kinds.forEach(function (k) {
       if (KIND && k.key !== KIND) return;
-      if (k.key !== 'reattempt' && !placed) { body += ulta; placed = true; }
+      if (k.key !== 'reattempt' && k.key !== 'stop' && !placed) { body += ulta; placed = true; }
       var all = list.filter(function (x) { return x.kind === k.key; });
       if (!all.length) { if (KIND) body += '<section class="qs k-' + k.key + '"><div class="empty">No open ' + esc(k.label) + ' requests.</div></section>'; return; }
       var todo = all.filter(function (x) { return !answered(x); }), did = all.filter(answered), shown = ALL ? todo.concat(did) : todo;
@@ -377,7 +377,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       '<div class="city c-city" title="' + esc(x.city) + '">' + esc(x.city) + '</div>' +
       (ret ? '' : '<div class="c-rem" title="' + esc([x.note, x.says].filter(Boolean).join(' · ')) + '">' + (x.note ? '<b>' + esc(x.note) + '</b>' + (x.says ? ' · ' : '') : '') + esc(x.says) + '</div>' +
       '<div class="c-now" title="' + (nw ? esc(nw[0] + ' · ' + nw[1]) + (nw[2] ? ' · no update since our request' : '') : '') + '">' + (nw ? esc(attTxt(x, nw[3])) + ' <small>· ' + esc(nw[1]) + '</small>' : '') + '</div>') +
-      '<div class="c-pend"><span class="pend' + (answered(x) ? '' : pendCls(x.hours)) + '">' + pendTxt(x.hours) + '</span></div>' +
+      '<div class="c-pend"><span class="pend' + (answered(x) ? '' : pendCls(x.hours, x.kind)) + '">' + pendTxt(x.hours) + '</span></div>' +
       '<div class="c-ans">' + (ret ? markCell(x) : answered(x) ? '<span class="done-a">✓ ' + esc(x.status || 'Responded') + '</span>' : '<span class="rp" data-reply="' + esc(x.id) + '">Respond ›</span>') + '</div></div>';
   }
   function timeline(h) {
@@ -398,7 +398,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     var h = '<div class="mdl-bg" data-close></div><div class="mdl k-' + esc(x.kind) + '" role="dialog" aria-label="' + esc(x.cn) + '"><div class="mh">' +
       '<button class="back" data-close aria-label="Back">‹</button><div class="big">' + esc(x.cn) + '</div><button class="cp" data-copy="' + esc(x.cn) + '">Copy</button><span class="mkind">' + esc(k.label) + '</span>' + (x.attempts ? '<span class="matt' + (x.attempts >= (D.maxAttempts || 3) ? ' last' : '') + '">Attempts ' + x.attempts + ' of ' + (D.maxAttempts || 3) + '</span>' : '') +
       '<div class="mcty" title="' + esc(x.city) + '">' + esc(x.city || 'City not given') + (isOpen ? '' : ' · ' + esc(k.label)) + '</div>' + (x.again ? '<i class="again">' + esc(x.again) + '</i>' : '') +
-      (isOpen ? '<span class="pend' + (answered(x) ? '' : pendCls(x.hours)) + '">' + pendTxt(x.hours) + '</span>' : '<span class="res ' + resCls(x.cat) + '">' + esc(x.result) + '</span>') +
+      (isOpen ? '<span class="pend' + (answered(x) ? '' : pendCls(x.hours, x.kind)) + '">' + pendTxt(x.hours) + '</span>' : '<span class="res ' + resCls(x.cat) + '">' + esc(x.result) + '</span>') +
       '<div class="sp"></div>' + (i >= 0 ? '<span class="mpos"><b>' + (i + 1) + ' of ' + ORDER.length + '</b><button data-step="-1" aria-label="Previous" title="Previous (↑ key)">↑</button><button data-step="1" aria-label="Next" title="Next (↓ key)">↓</button></span>' : '') +
       '<button class="mx" data-close aria-label="Close">✕</button></div><div class="mb' + (isOpen ? '' : ' one') + '"><div class="ml">';
     if (x.says || x.ask) h += '<div class="two">' + (x.says ? '<div class="blk blk-rem"><div class="lb">' + (x.kind === 'claim' ? 'Claim' : x.kind === 'return' ? 'Return Reason' : 'Customer Remarks') + '</div><div class="tx">' + esc(x.says) + '</div></div>' : '') +
