@@ -165,7 +165,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   .main{gap:10px}.box{border-radius:8px}
   .tools{padding:6px 10px;gap:6px}.tools input,.tools select{height:28px;font-size:12.5px;padding:0 8px;border-radius:6px}.tools input{width:200px}.tools select{width:150px}
   .fl button{height:24px;padding:0 9px;font-size:11.5px}
-  .th,.tr{grid-template-columns:236px 130px minmax(0,1.6fr) minmax(0,1fr) 70px 96px}.c-rem,.c-now{font-size:12.5px}.tr{min-height:34px}
+  .th,.tr{grid-template-columns:176px 130px minmax(0,1.6fr) minmax(0,1fr) 70px 96px}.c-rem,.c-now{font-size:12.5px}.tr{min-height:34px}
   .th{font-size:11px}.th div{padding:5px 6px}.th div:first-child{padding-left:10px}
   .tr{min-height:30px}.tr>div{padding:0 6px}.tr>div:first-child{padding-left:10px}
   .cn{font-size:12px}.city,.note{font-size:12.5px}.again,.upd-t{font-size:10px;padding:0 5px}
@@ -191,8 +191,8 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
    every table starts at the same left edge and Tracking ID / City keep one width, so columns line up down the page */
 @media (min-width:901px){
   .qs.k-return,.qs.k-ulta{width:max-content;max-width:100%;min-width:440px}
-  .qs.k-return .th,.qs.k-return .tr{grid-template-columns:236px 160px 90px 130px}
-  .qs.k-ulta .ulta-th,.qs.k-ulta .ulta-r{grid-template-columns:236px 130px 300px 260px}
+  .qs.k-return .th,.qs.k-return .tr{grid-template-columns:176px 160px 90px 130px}
+  .qs.k-ulta .ulta-th,.qs.k-ulta .ulta-r{grid-template-columns:176px 130px 300px 260px}
 }
 /* pop-up position and up / down as real buttons (user 2026-11-15) */
 .mdl .mpos{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink)}.mdl .mpos b{font-weight:700;margin-right:2px}
@@ -214,6 +214,9 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   .cards{display:flex;gap:6px}.kc{flex:0 1 230px;min-width:0}.kc.none{flex:0 1 190px;grid-template-columns:1fr}.kc.none .n{display:none}
   .kc .l{overflow:hidden;text-overflow:ellipsis}
 }
+.ctags{display:block;font:500 11px Inter,sans-serif;color:var(--muted);line-height:1.3;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctags .rv{color:#B45309;font-weight:600}.ctags .hot{color:#B91C1C;font-weight:600}
+.tr .cn{line-height:1.25}
 </style>
 </head>
 <body>
@@ -391,7 +394,9 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     var nw = nowOf(x), ret = x.kind === 'return';
     return '<div class="tr' + (x.id === SEL ? ' sel' : '') + (answered(x) || PEND[x.id] ? ' ans' : '') + (ret ? ' nomodal' : '') + '"' + (ret ? '' : ' data-open="' + esc(x.id) + '"') + '>' +
       '<div class="cn">' + esc(x.cn) +
-        (x.again ? ' <i class="again">' + esc(x.again) + '</i>' : '') + (x.updated && !answered(x) ? ' <i class="upd-t">Revised</i>' : '') + '<span class="mcity">' + esc(x.city) + '</span></div>' +
+        // reminder / revised on a small grey line under the ID (user 2026-11-15: tags beside it were heavy and got cut)
+        ((x.again || (x.updated && !answered(x))) ? '<span class="ctags">' + [x.again ? '<span class="' + (/^([3-9]|[1-9][0-9])/.test(x.again) ? 'hot' : '') + '">' + esc(x.again) + '</span>' : '', x.updated && !answered(x) ? '<span class="rv">Revised</span>' : ''].filter(Boolean).join(' · ') + '</span>' : '') +
+        '<span class="mcity">' + esc(x.city) + '</span></div>' +
       '<div class="city c-city" title="' + esc(x.city) + '">' + esc(x.city) + '</div>' +
       (ret ? '' : '<div class="c-rem" title="' + esc([x.note, x.says].filter(Boolean).join(' · ')) + '">' + (x.note ? '<b>' + esc(x.note) + '</b>' + (x.says ? ' · ' : '') : '') + esc(x.says) + '</div>' +
       '<div class="c-now" title="' + (nw ? esc(nw[0] + ' · ' + nw[1]) + (nw[2] ? ' · no update since our request' : '') : '') + '">' + (nw ? esc(attTxt(x, nw[3])) + ' <small>· ' + esc(nw[1]) + '</small>' : '') + '</div>') +
