@@ -376,7 +376,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     if (!h || !h.length) return '';
     // a colour per kind of step (user 2026-11-15: the pop-up was all black and white)
     var kOf = function (e) { return e.k === 'bad' && /return/i.test(e.what) ? 'ret' : e.k; };
-    return '<div class="blk"><div class="lb">Shipment Timeline</div><div class="tkey"><i class="tk-track"></i>Scan<i class="tk-bad"></i>Failed<i class="tk-ret"></i>Return<i class="tk-us"></i>' + esc(D.store) + '<i class="tk-you"></i>Your team</div>' + h.map(function (e, i) {
+    return '<div class="blk"><div class="lb">Shipment Timeline</div><div class="tkey"><i class="tk-track"></i>Tracking<i class="tk-bad"></i>Failed<i class="tk-ret"></i>Return<i class="tk-us"></i>' + esc(D.store) + '<i class="tk-you"></i>' + esc(D.courier) + ' Team</div>' + h.map(function (e, i) {
       var k = kOf(e);
       return '<div class="tl"><div class="rail"><div class="d tk-' + k + '"></div>' + (i < h.length - 1 ? '<div class="ln"></div>' : '') + '</div><div class="c">' +
         (e.who ? '<span class="w-' + k + '">' + esc(e.who) + '</span> ' : '') + esc(e.what) + ' <small>' + esc(e.when) + '</small></div></div>';
