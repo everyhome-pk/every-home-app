@@ -194,6 +194,11 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   .qs.k-return .th,.qs.k-return .tr{grid-template-columns:176px 160px 90px 130px}
   .qs.k-ulta .ulta-th,.qs.k-ulta .ulta-r{grid-template-columns:176px 130px 300px 260px}
 }
+/* pop-up position and up / down as real buttons (user 2026-11-15) */
+.mdl .mpos{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink)}.mdl .mpos b{font-weight:700;margin-right:2px}
+.mdl .mpos button{width:30px;height:28px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--ink);font-size:15px;font-weight:700;padding:0;cursor:pointer}
+.mdl .mpos button:hover{border-color:var(--ka,var(--brand));background:var(--kb,var(--soft));color:var(--ka,var(--brand-d))}
+.matt{font:600 11.5px Inter,sans-serif;color:var(--ink2);background:var(--card);border:1px solid var(--line);border-radius:99px;padding:1px 9px;white-space:nowrap}.matt.last{color:#B91C1C;border-color:#FCA5A5}
 </style>
 </head>
 <body>
@@ -285,6 +290,8 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     if (/attempt failed/i.test(p[0])) { var w = why(p.slice(1).join(' · ')); return 'Failed' + (w ? ' · ' + w : ''); }
     return p[0];
   }
+  // "Failed" → "Attempt 2 of 3 failed" (user 2026-11-15: the page did not show the attempts)
+  function attTxt(x, t) { return x.attempts && /^Failed/.test(t) ? t.replace(/^Failed/, 'Attempt ' + x.attempts + ' of ' + (D.maxAttempts || 3) + ' failed') : t; }
   function nowOf(x) {
     var t = (x.history || []).filter(function (e) { return /^Tracking/.test(e.who || ''); }).slice(-1)[0];
     if (!t) return null;
@@ -336,14 +343,15 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   // said and what the office did — so the courier's seniors see it at once (read only; tap = the parcel's whole story)
   function ultaBlock() {
     var from = (function () { var t = new Date(D.today + 'T00:00:00'); t.setDate(t.getDate() - 7); return t.toISOString().slice(0, 10); })();
-    var ev = function (x) { return (x.history || []).filter(function (h) { return /^Tracking/.test(h.who || '') && /return/i.test(h.what); }).slice(-1)[0]; };
+    var rets = function (x) { return (x.history || []).filter(function (h) { return /^Tracking/.test(h.who || '') && /return/i.test(h.what); }); };
+    var ev = function (x) { return rets(x).slice(-1)[0]; }, ev0 = function (x) { return rets(x)[0]; }; // latest return scan (shown) · the day the return began (decides open)
     var xs = D.done.filter(function (x) { return x.cat === 'ulta' && x.day >= from && match(x, Q, CITY); })
-      .sort(function (a, b) { return ((ev(b) || {}).ms || 0) - ((ev(a) || {}).ms || 0); });
+      .sort(function (a, b) { return ((ev0(b) || {}).ms || 0) - ((ev0(a) || {}).ms || 0); });
     if (!xs.length) return '';
     var did = function (x) { var e = ev(x); return e ? e.what.replace(/\s·\s.*$/, '') + ' · ' + e.when.replace(/,.*$/, '') : 'Return started' + (x.closedAt ? ' · ' + x.closedAt : ''); };
     // yesterday's and today's returns stay open (user 2026-11-14); the older ones (up to 7 days) behind Show
     var y = new Date(D.today + 'T00:00:00'); y.setDate(y.getDate() - 1);
-    var recent = xs.filter(function (x) { var e = ev(x); return e && e.ms && e.ms >= y.getTime(); }), older = xs.filter(function (x) { return recent.indexOf(x) === -1; });
+    var recent = xs.filter(function (x) { var e = ev0(x); return e && e.ms && e.ms >= y.getTime(); }), older = xs.filter(function (x) { return recent.indexOf(x) === -1; });
     var open = ls('cp_ulta') === '1';
     var line = function (x) {
       return '<div class="ulta-r" data-open="' + esc(x.id) + '"><div class="cn">' + esc(x.cn) + '</div><div class="city" title="' + esc(x.city) + '">' + esc(x.city) + '</div>' +
@@ -368,7 +376,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
         (x.again ? ' <i class="again">' + esc(x.again.replace(' request', '')) + '</i>' : '') + (x.updated && !answered(x) ? ' <i class="upd-t">Revised</i>' : '') + '<span class="mcity">' + esc(x.city) + '</span></div>' +
       '<div class="city c-city" title="' + esc(x.city) + '">' + esc(x.city) + '</div>' +
       (ret ? '' : '<div class="c-rem" title="' + esc([x.note, x.says].filter(Boolean).join(' · ')) + '">' + (x.note ? '<b>' + esc(x.note) + '</b>' + (x.says ? ' · ' : '') : '') + esc(x.says) + '</div>' +
-      '<div class="c-now" title="' + (nw ? esc(nw[0] + ' · ' + nw[1]) + (nw[2] ? ' · no update since our request' : '') : '') + '">' + (nw ? esc(nw[3]) + ' <small>· ' + esc(nw[1]) + '</small>' : '') + '</div>') +
+      '<div class="c-now" title="' + (nw ? esc(nw[0] + ' · ' + nw[1]) + (nw[2] ? ' · no update since our request' : '') : '') + '">' + (nw ? esc(attTxt(x, nw[3])) + ' <small>· ' + esc(nw[1]) + '</small>' : '') + '</div>') +
       '<div class="c-pend"><span class="pend' + (answered(x) ? '' : pendCls(x.hours)) + '">' + pendTxt(x.hours) + '</span></div>' +
       '<div class="c-ans">' + (ret ? markCell(x) : answered(x) ? '<span class="done-a">✓ ' + esc(x.status || 'Responded') + '</span>' : '<span class="rp" data-reply="' + esc(x.id) + '">Respond ›</span>') + '</div></div>';
   }
@@ -388,10 +396,10 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     if (!x) return '';
     var k = kindOf(x.kind), pick = PICK[x.id] != null ? PICK[x.id] : x.status, isOpen = editable && D.open.indexOf(x) !== -1, i = ORDER.indexOf(x.id);
     var h = '<div class="mdl-bg" data-close></div><div class="mdl k-' + esc(x.kind) + '" role="dialog" aria-label="' + esc(x.cn) + '"><div class="mh">' +
-      '<button class="back" data-close aria-label="Back">‹</button><div class="big">' + esc(x.cn) + '</div><button class="cp" data-copy="' + esc(x.cn) + '">Copy</button><span class="mkind">' + esc(k.label) + '</span>' +
+      '<button class="back" data-close aria-label="Back">‹</button><div class="big">' + esc(x.cn) + '</div><button class="cp" data-copy="' + esc(x.cn) + '">Copy</button><span class="mkind">' + esc(k.label) + '</span>' + (x.attempts ? '<span class="matt' + (x.attempts >= (D.maxAttempts || 3) ? ' last' : '') + '">Attempts ' + x.attempts + ' of ' + (D.maxAttempts || 3) + '</span>' : '') +
       '<div class="mcty" title="' + esc(x.city) + '">' + esc(x.city || 'City not given') + (isOpen ? '' : ' · ' + esc(k.label)) + '</div>' + (x.again ? '<i class="again">' + esc(x.again) + '</i>' : '') +
       (isOpen ? '<span class="pend' + (answered(x) ? '' : pendCls(x.hours)) + '">' + pendTxt(x.hours) + '</span>' : '<span class="res ' + resCls(x.cat) + '">' + esc(x.result) + '</span>') +
-      '<div class="sp"></div>' + (i >= 0 ? '<span class="mpos">' + (i + 1) + ' of ' + ORDER.length + ' · <button data-step="-1" aria-label="Previous">↑</button><button data-step="1" aria-label="Next">↓</button></span>' : '') +
+      '<div class="sp"></div>' + (i >= 0 ? '<span class="mpos"><b>' + (i + 1) + ' of ' + ORDER.length + '</b><button data-step="-1" aria-label="Previous" title="Previous (↑ key)">↑</button><button data-step="1" aria-label="Next" title="Next (↓ key)">↓</button></span>' : '') +
       '<button class="mx" data-close aria-label="Close">✕</button></div><div class="mb' + (isOpen ? '' : ' one') + '"><div class="ml">';
     if (x.says || x.ask) h += '<div class="two">' + (x.says ? '<div class="blk blk-rem"><div class="lb">' + (x.kind === 'claim' ? 'Claim' : x.kind === 'return' ? 'Return Reason' : 'Customer Remarks') + '</div><div class="tx">' + esc(x.says) + '</div></div>' : '') +
       (x.ask ? '<div class="blk blk-req"><div class="lb">Store Request</div><div class="tx">' + esc(x.ask) + '</div></div>' : '') + '</div>';
