@@ -319,6 +319,9 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     var cards = D.kinds.map(function (k) {
       var all = D.open.filter(function (x) { return x.kind === k.key; }), left = all.filter(function (x) { return !answered(x); }).length, tot = all.length;
       var st = !tot ? 'none' : !left ? 'ok' : left >= 3 ? 'bad' : 'warn';
+      // only kinds with something open (user 2026-11-15); a kind comes back by itself when a request of it arrives.
+      // Nothing open at all → no cards: the list below already says "All queries resolved"
+      if (!tot && KIND !== k.key) return '';
       return '<button class="kc k-' + k.key + (st === 'none' ? ' none' : '') + (KIND === k.key ? ' on' : '') + '" data-jump="' + k.key + '" aria-pressed="' + (KIND === k.key) + '"><div class="l" title="' + esc(k.label) + '">' + esc(k.label) + '</div>' +
         '<div class="n c-' + st + '"><b>' + (st === 'ok' ? '✓' : left) + '</b><span>' + (st === 'ok' ? 'completed' : st === 'none' ? '' : 'pending') + '</span></div>' +
         '<div class="s">' + (tot ? (tot - left) + ' of ' + tot + ' completed' : 'none open') + '</div></button>';
@@ -346,7 +349,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       body += (k.key === 'claim' ? TH.replace('Customer Remarks', 'Claim') : k.key === 'return' ? '<div class="th"><div>Tracking ID</div><div>City</div><div>Ageing</div><div></div></div>' : TH) + shown.map(function (x) { return row(x); }).join('') + '</section>';
     });
     if (!placed) body += ulta;
-    var html = '<div class="cards">' + cards + '</div><div class="box qtools"><div class="tools"><input id="q" type="search" placeholder="Search tracking ID" value="' + esc(Q) + '"><select id="city">' + cityOpts(D.open, CITY) + '</select>' +
+    var html = (cards ? '<div class="cards">' + cards + '</div>' : '') + '<div class="box qtools"><div class="tools"><input id="q" type="search" placeholder="Search tracking ID" value="' + esc(Q) + '"><select id="city">' + cityOpts(D.open, CITY) + '</select>' +
       '<select id="sort" aria-label="Sort"><option value="old"' + (SORT === 'old' ? ' selected' : '') + '>Oldest first</option><option value="city"' + (SORT === 'city' ? ' selected' : '') + '>City A–Z</option></select>' +
       '<div class="fl"><button class="' + (ALL ? '' : 'on') + '" data-all="0">Awaiting Response</button><button class="' + (ALL ? 'on' : '') + '" data-all="1">All</button></div>' +
       (KIND ? '<button class="kchip" data-jump="' + KIND + '">Filter: ' + esc(kindOf(KIND).label) + ' <span aria-hidden="true">✕</span></button>' : '') + '</div></div>' +
