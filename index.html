@@ -928,6 +928,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
     <button class="dr-i" id="btnExp"><i class="ti ti-receipt"></i><span id="btnExpT">Expenses</span></button>
     <button class="dr-i" id="btnPnl"><i class="ti ti-report-money"></i>Profit & loss</button>
     <button class="dr-i" id="btnCashPlan"><i class="ti ti-calendar-dollar"></i>Cash forecast</button>
+    <button class="dr-i" id="btnBal"><i class="ti ti-scale"></i>Balance sheet</button>
     <button class="dr-i" id="btnAcct"><i class="ti ti-building-bank"></i>Banking & equity</button>
   </div>
   <button class="dr-i" id="btnStock"><i class="ti ti-packages"></i>Stock</button>
@@ -1368,6 +1369,7 @@ function applyPerms() {
   el('btnExp').hidden = !(can('finance.add') || can('finance.view') || can('finance.approve'));
   el('btnPnl').hidden = !can('finance.view');
   el('btnCashPlan').hidden = !can('finance.view');
+  el('btnBal').hidden = !can('finance.view');
   el('btnAcct').hidden = !can('finance.view');
   el('btnTeam').hidden = !can('users.manage');
   el('btnConn').hidden = !can('users.manage');
@@ -6104,7 +6106,9 @@ function openAddExpense() {
     '<input id="aeDate" type="date" value="' + pkDay(new Date()) + '" hidden style="margin-top:8px"></div>' +
     fromField('aeFrom', d.from, st.from) +
     '<button class="ae-more" id="aeMore" type="button">+ More details (bill #, note)</button>' +
-    '<div id="aeMoreBox" hidden><div class="fld"><label for="aeRef">Bill # (optional)</label><input id="aeRef" placeholder="e.g. INV-102"></div><div class="fld"><label for="aeNote">Note (optional)</label><input id="aeNote"></div></div>' +
+    '<div id="aeMoreBox" hidden><div class="fld"><label for="aeRef">Bill # (optional)</label><input id="aeRef" placeholder="e.g. INV-102"></div><div class="fld"><label for="aeNote">Note (optional)</label><input id="aeNote"></div>' +
+    // a big cost used for months (laptop, yearly plan): the P&L takes 1/n each month (user 2026-11-17)
+    '<div class="fld"><label for="aeSpread">Spread over (for a big cost used for months)</label><select id="aeSpread"><option value="1">This month only</option><option value="3">3 months</option><option value="6">6 months</option><option value="12">12 months (1 year)</option><option value="24">24 months (2 years)</option><option value="36">36 months (3 years)</option></select></div></div>' +
     '<div class="err" id="aeErr"></div>' +
     '<div class="ae-bar"><button class="btn pri" id="aeGo" type="button">Save</button><button class="btn" id="aeAgain" type="button">Save &amp; add another</button></div>';
   openPanel(true); drawCats();
@@ -6138,7 +6142,7 @@ function openAddExpense() {
     if (!el('aeDesc').value.trim()) { el('aeErr').textContent = 'Who was it paid to?'; return; }
     if (!st.cat) { el('aeErr').textContent = 'Pick a category'; return; }
     el('aeGo').disabled = el('aeAgain').disabled = true;
-    var f = { type: 'Expense', cat: st.cat, amount: amt, desc: el('aeDesc').value.trim(), from: st.from, date: el('aeDate').value, ref: el('aeRef').value.trim(), note: el('aeNote').value.trim(), receipt: st.receipt || '' };
+    var f = { type: 'Expense', cat: st.cat, amount: amt, desc: el('aeDesc').value.trim(), from: st.from, date: el('aeDate').value, ref: el('aeRef').value.trim(), note: el('aeNote').value.trim(), receipt: st.receipt || '', spread: Number(el('aeSpread').value) || 1 };
     var send = function () {
       api('appAddFinance', [TOKEN, f], function (r) {
         var msg = (r.status === 'Approved' ? '✅ Saved' : '✅ Saved · waiting for approval') + ' · ' + rs(amt);
@@ -6197,14 +6201,20 @@ function openPnl(period) {
       (p.perOrder ? '<div class="card"><div class="h"><b>Per delivered order</b></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center">' +
         '<div><b class="num">' + rs(p.perOrder.value) + '</b><br><small style="color:var(--muted)">order value</small></div><div><b class="num">' + rs(p.perOrder.ads) + '</b><br><small style="color:var(--muted)">ads</small></div>' +
         '<div><b class="num"' + (p.perOrder.net < 0 ? ' style="color:var(--red)"' : '') + '>' + signed(p.perOrder.net) + '</b><br><small style="color:var(--muted)">profit</small></div></div>' +
+        (p.mer != null ? '<small class="mnote" style="display:block;margin-top:8px">MER ' + p.mer + '× (sales ÷ ads) · ads cost per delivered order ' + rs(p.cpo || 0) + '</small>' : '') +
         (p.returnFees ? '<small class="mnote" style="display:block;margin-top:8px">Returns cost ' + rs(p.returnFees) + ' in courier fees (' + p.returned + ' returned)</small>' : '') + '</div>' : '') +
+      pnlCompare(p, signed) +
       '<div class="card" style="padding:0">' +
-      line('Sales (delivered orders)', rs(p.sales), '', p.advanceSales ? 'incl. ' + rs(p.advanceSales) + ' paid in advance' : '') +
+      // the sales picture (user 2026-11-17): dispatched and finished → returned (RTO) → net sales
+      (p.dispatched && p.dispatched.rto ? line('Dispatched & finished', rs(p.dispatched.value), '', (p.delivered + p.returned) + ' parcels at order value') +
+        line('Returned (RTO)', minus(p.dispatched.rto), '', p.returned + ' parcels · ' + p.dispatched.rtoPct + '% of the value sent') : '') +
+      line('Net sales (delivered orders)', rs(p.sales), 'b', p.advanceSales ? 'incl. ' + rs(p.advanceSales) + ' paid in advance' : '') +
       line('Cost of goods', minus(p.cogs), '', p.cogsEst ? 'incl. ' + rs(p.cogsEst) + ' estimated (before the stock count, at product costs)' + (p.unknownLines ? ' · ' + p.unknownLines + ' line' + (p.unknownLines > 1 ? 's' : '') + ' without a cost' : '') : 'from stock: average cost of what was sent', pct(p.cogs)) +
       (p.stockLoss ? line('Stock loss', p.stockLoss > 0 ? minus(p.stockLoss) : '+ ' + rs(-p.stockLoss), '', [p.lossBy.count ? 'count differences ' + rs(p.lossBy.count) : '', p.lossBy.damaged ? 'damaged ' + rs(p.lossBy.damaged) : '', p.lossBy.adjust ? 'lost / gift / own use ' + rs(p.lossBy.adjust) : '', p.lossBy.returned ? 'returns damaged / missing ' + rs(p.lossBy.returned) : ''].filter(Boolean).join(' · ').replace(/Rs -/g, 'found Rs '), pct(p.stockLoss)) : '') +
       cmLine('CM1 · Product margin', p.cm1, 'what the products leave') +
       line('Courier fees', minus(p.fees), '', 'delivery + return charges, GST' + (p.returnFees ? ' · returns ' + rs(p.returnFees) : ''), pct(p.fees)) +
       line(p.sstAdjustable ? 'Income tax withheld (WHT)' : 'Taxes (WHT + SST)', minus(p.taxes), '', p.wht != null ? (p.sstAdjustable ? 'final tax on COD (section 153)' : 'WHT ' + rs(p.wht) + ' · sales tax ' + rs(p.sst)) : '', pct(p.taxes)) +
+      (p.packing ? line('Packing material', minus(p.packing), '', p.perOrder ? rs(p.perOrder.pack) + ' per delivered order' : '', pct(p.packing)) : '') +
       cmLine('CM2 · After delivery', p.cm2, 'what a delivered order leaves before ads') +
       (p.sstAdjustable && p.sst ? line('&nbsp;&nbsp;Sales tax withheld', rs(p.sst), '', 'adjustable in your sales tax return · not taken from profit') : '') +
       line('Ads', minus(p.ads), '', Object.keys(p.adSync || {}).map(function (k) { return k + ' ' + rs(p.adSync[k]); }).concat(p.adsEntered ? ['entered ' + rs(p.adsEntered)] : []).join(' · '), pct(p.ads)) +
@@ -6235,6 +6245,7 @@ function openPnl(period) {
         function (e) { toast((e && e.message) || 'Not saved'); });
     };
     if (el('plCloseM')) el('plCloseM').onclick = function () { openCloseMonth(cur); };
+    if (el('plBud')) el('plBud').onclick = function () { openBudget(cur, p.budget); };
     if (el('plVerC')) el('plVerC').onclick = function () {
       api('appVerifyClose', [TOKEN, cur], function () { toast('Verified'); viewClear(); openPnl(cur); }, function (e) { toast((e && e.message) || 'Not saved'); });
     };
@@ -6287,6 +6298,27 @@ function openCashPlan() {
 el('btnExp').onclick = fromMenu(function () { openExpenses(''); });
 el('btnPnl').onclick = fromMenu(function () { openPnl(''); });
 el('btnCashPlan').onclick = fromMenu(function () { openCashPlan(); });
+el('btnBal').onclick = fromMenu(function () { openBalanceSheet(); });
+// Balance sheet (user 2026-11-17): what the business has, what it owes, whose it is; assets − liabilities = equity
+function openBalanceSheet() {
+  apiMem('balsheet', 'getAppBalanceSheet', [TOKEN], function (d) {
+    var signed = function (n) { return (n < 0 ? '− ' : '') + rs(Math.abs(n)); };
+    var rows = function (l) { return l.map(function (x) { return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span>' + esc(x.name) + '</span><b class="num"' + (x.amt < 0 ? ' style="color:var(--red)"' : '') + '>' + signed(x.amt) + '</b></div>' + (x.sub ? '<div class="prow-2"><span>' + esc(x.sub) + '</span></div>' : '') + '</div></div>'; }).join(''); };
+    var tot = function (l, v) { return '<div class="prow pl-cm" style="cursor:default"><div class="prow-m"><div class="prow-1"><b>' + l + '</b><b class="num">' + signed(v) + '</b></div></div></div>'; };
+    var ok = Math.abs(d.gap) < 2;
+    el('panel').innerHTML = '<h3>Balance sheet</h3><p>Today, ' + esc(niceDay(d.day)) + ' · what the business has, what it owes, and whose it is</p>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px">' +
+        '<div class="card" style="margin:0;padding:12px"><small style="color:var(--muted)">The business is worth</small><b class="num" style="display:block;font-size:20px">' + signed(d.totals.net) + '</b><small style="color:var(--muted)">has − owes</small></div>' +
+        '<div class="card" style="margin:0;padding:12px"><small style="color:var(--muted)">Books check</small><b class="num" style="display:block;font-size:20px;color:' + (ok ? 'var(--green)' : 'var(--amber)') + '">' + (ok ? 'Ties ✓' : signed(d.gap)) + '</b><small style="color:var(--muted)">' + (ok ? 'has − owes = equity' : 'not explained yet') + '</small></div></div>' +
+      '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>What the business has</b><span>assets</span></div>' + rows(d.assets) + tot('Total assets', d.totals.assets) + '</div>' +
+      '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>What it owes</b><span>liabilities</span></div>' + (d.liabilities.length ? rows(d.liabilities) : '<div class="prow" style="cursor:default"><div class="prow-m"><span style="color:var(--muted)">Nothing owed</span></div></div>') + tot('Total liabilities', d.totals.liabilities) + '</div>' +
+      '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>Whose it is</b><span>equity</span></div>' + rows(d.equity) + tot('Total equity', d.totals.equity) + '</div>' +
+      (ok ? '' : '<div class="tk" style="margin:0 0 10px"><i class="ti ti-search"></i> ' + signed(d.gap) + ' is not explained: has − owes is ' + signed(d.totals.net) + ', equity is ' + signed(d.totals.equity) + '. Usual causes: money still in an ad account, an entry on the wrong account or date, a bank balance not reconciled, stock not counted.</div>') +
+      '<div class="btns" style="margin-top:10px"><button class="btn" id="bsClose">Close</button></div>';
+    openPanel(true);
+    el('bsClose').onclick = closePanel;
+  }, function () { closePanel(); toast('You don\'t have access to this'); }, '<h3>Balance sheet</h3>');
+}
 el('btnAcct').onclick = fromMenu(function () { openAccounts(); });
 el('btnTeam').onclick = fromMenu(function () { openTeam(); });
 el('btnAds').onclick = fromMenu(function () { openAds(3); });
@@ -6733,6 +6765,35 @@ function openCapWithdrawals(name) {
   openPanel(true);
   el('cwBack').onclick = function () { renderAccounts(); };
   acClipWire(function () { openCapWithdrawals(name); });
+}
+// a month next to the month before, the same month last year and its target (user 2026-11-17)
+function pnlCompare(p, signed) {
+  if (!p.compare) return '';
+  var B = p.budget || {}, hasB = B.sales != null || B.ads != null || B.net != null, mon = function (m) { return fnMonthName(m).slice(0, 3) + ' ' + m.slice(2, 4); };
+  var cols = [['This', p], [mon(p.compare.prev.month), p.compare.prev.v], [mon(p.compare.ly.month), p.compare.ly.v]];
+  var cell = function (v, cls) { return '<span class="num' + (cls ? ' ' + cls : '') + '" style="text-align:right">' + (v == null ? '–' : signed(v)) + '</span>'; };
+  var row = function (l, k) {
+    var t = B[k], v = p[k], good = k === 'ads' ? v <= t : v >= t;
+    return '<span>' + l + '</span>' + cols.map(function (c, i) { return cell(i && !c[1].sales && !c[1].ads ? null : c[1][k]); }).join('') + (hasB ? cell(t, t == null ? '' : good ? 'up' : 'neg') : '');
+  };
+  var g = 'display:grid;grid-template-columns:1.1fr repeat(' + (hasB ? 4 : 3) + ',1fr);gap:6px 8px;font-size:13px;align-items:center';
+  return '<div class="card"><div class="h"><b>Compared</b>' + (p.canClose ? '<button class="btn mini" id="plBud" type="button"><i class="ti ti-target"></i>' + (hasB ? 'Targets' : 'Set targets') + '</button>' : '') + '</div>' +
+    '<div style="' + g + '"><span></span>' + cols.map(function (c) { return '<small style="color:var(--muted);text-align:right">' + c[0] + '</small>'; }).join('') + (hasB ? '<small style="color:var(--muted);text-align:right">Target</small>' : '') +
+    row('Sales', 'sales') + row('After delivery', 'cm2') + row('Ads', 'ads') + row('Net profit', 'net') + '</div>' +
+    (hasB ? '<small class="mnote" style="display:block;margin-top:8px">Target: green = on track, red = behind</small>' : '') + '</div>';
+}
+function openBudget(month, b) {
+  b = b || {};
+  var f = function (id, l, v) { return '<div class="fld"><label>' + l + '</label><div class="inrow"><span class="pre">Rs</span><input id="' + id + '" type="text" inputmode="decimal" value="' + (v == null ? '' : v) + '" placeholder="not set"></div></div>'; };
+  el('panel').innerHTML = '<button class="btn mini" id="bdBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Profit & loss</button><h3>Targets · ' + esc(pnlLabel(month)) + '</h3>' +
+    '<p>What you aim for this month. The P&L shows the actual next to it. Leave a box empty for no target.</p>' +
+    f('bdS', 'Sales (delivered)', b.sales) + f('bdA', 'Ads (at most)', b.ads) + f('bdN', 'Net profit', b.net) +
+    '<button class="btn pri" id="bdGo" type="button" style="width:100%;margin-top:10px">Save targets</button>';
+  openPanel(true);
+  el('bdBack').onclick = function () { openPnl(month); };
+  el('bdGo').onclick = function () {
+    api('appSetBudget', [TOKEN, month, { sales: el('bdS').value, ads: el('bdA').value, net: el('bdN').value }], function () { toast('Targets saved'); viewClear(); openPnl(month); }, function (e) { toast((e && e.message) || 'Not saved'); });
+  };
 }
 // one line under "Closed …": how the month was shared (user 2026-11-17)
 function closeAllocText(c) {
@@ -8195,7 +8256,7 @@ function listSearch(name, group, sel, ph, open) {
 // Looks through what the phone already has: screens (the menu's own items, so a role sees only what it may open), parcels and
 // customers, products, suppliers, purchase orders.
 var GS_SKIP = { btnOut: 1, btnMode: 1, btnLock: 1, btnInstall: 1, btnBio: 1, btnPush: 1 };
-var GS_WORDS = { btnExp: 'spending bills', btnPnl: 'pnl profit loss p&l', btnCashPlan: 'forecast', btnAcct: 'bank account balance equity capital partners', btnStock: 'inventory products', btnTeam: 'users staff roles pin', btnAds: 'meta tiktok roas', btnSync: 'sync status', btnDispatch: 'dispatched shipped' };
+var GS_WORDS = { btnExp: 'spending bills', btnPnl: 'pnl profit loss p&l', btnCashPlan: 'forecast', btnBal: 'balance sheet assets liabilities worth', btnAcct: 'bank account balance equity capital partners', btnStock: 'inventory products', btnTeam: 'users staff roles pin', btnAds: 'meta tiktok roas', btnSync: 'sync status', btnDispatch: 'dispatched shipped' };
 function gsScreens() {
   var out = [['parcels', 'Parcels', 'orders'], ['ndr', 'NDR', 'failed delivery'], ['returns', 'Returns', 'scan rto'], ['cash', 'Cash', 'cod payments courier money']].filter(function (t) { return canTab(t[0]); }).map(function (t) {
     return { t: t[1], s: 'Screen', h: shHay([t[1], t[2]]), close: true, go: function () { showTab(t[0]); } };
