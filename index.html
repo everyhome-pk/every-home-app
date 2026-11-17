@@ -3508,29 +3508,30 @@ function outboxBars() {
 function courierPulse() {
   var cs = (N.data && N.data.couriers) || {}, now = Date.now();
   var rows = Object.keys(cs).map(function (name) {
-    var s = cs[name], tk = s.tickets || {}, on = 0, ans = 0, wait = 0, old = 0, noact = 0;
+    var s = cs[name], tk = s.tickets || {}, on = 0, ans = 0, wait = 0, old = 0;
     Object.keys(tk).forEach(function (cn) {
       var t = tk[cn];
-      if (noActTicket(t)) { noact++; return; }
+      // answered, then no scan for 24 h: off their page and back with us (NDR To do → Courier replied · no action) — not the
+      // courier's to do, and not shown twice (user 2026-11-18: the strip said "1 no action" while their page was clear)
+      if (noActTicket(t)) return;
       // the same lines the courier page lists (user 2026-11-17: the strip said 8 waiting while the page was clear):
       // a line whose tracking moved after the request (✅ Amal hua) has left their page, so it waits for nobody
       if (!/Sheet/.test(t.channel || '') || /Done/.test(t.result || '') || /^✅ Amal hua/.test(t.result || '')) return;
       on++;
       if ((t.status || t.reply) && !t.reopen) ans++; else { wait++; if (t.sentMs && now - t.sentMs >= 24 * 3600000) old++; }
     });
-    if (!on && !noact && !s.open) return '';
+    if (!on && !s.open) return '';
     // one clean line per courier (user 2026-11-14): the whole line opens their page, two numbers (waiting, late = over 24 h)
     // and one WhatsApp button while something waits; "answered" left out (it was waiting said again), escalations live in
     // ☰ Reports → Courier escalations
     var parts = [];
     if (wait) parts.push('<b>' + wait + '</b> waiting');
     if (old) parts.push('<b class="red">' + old + '</b> late');
-    if (noact) parts.push('<b class="red">' + noact + '</b> no action');
     var info = '<span class="cpu-n">' + esc(name) + '</span><span class="cpu-s">' + (parts.length ? parts.join(' · ') : 'All answered ✓') + '</span>';
     var line = s.link ? '<a class="cpu-l" target="_blank" title="Open the ' + esc(name) + ' ' + shW(name) + '" href="' + esc(ownLink(courierSheetLink(name, 'reattempt'))) + '">' + info + '</a>'
       : '<button class="cpu-l" data-cour="' + esc(name) + '">' + info + '</button>';
     return '<div class="cpu-r">' + line +
-      ((wait || noact) && s.link && can('ndr.work') ? '<a class="cpu-b cpu-wa" aria-label="Remind ' + esc(name) + ' on WhatsApp" title="Remind the ' + esc(name) + ' group" data-shsh="' + esc(name) + '" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(sheetReminderText(name)) + '"><i class="ti ti-brand-whatsapp"></i></a>' : '') + '</div>';
+      (wait && s.link && can('ndr.work') ? '<a class="cpu-b cpu-wa" aria-label="Remind ' + esc(name) + ' on WhatsApp" title="Remind the ' + esc(name) + ' group" data-shsh="' + esc(name) + '" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(sheetReminderText(name)) + '"><i class="ti ti-brand-whatsapp"></i></a>' : '') + '</div>';
   }).join('');
   return rows ? '<div class="cpu">' + rows + '</div>' : '';
 }
