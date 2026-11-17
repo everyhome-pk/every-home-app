@@ -1016,7 +1016,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 (function () {
   if (window.google && google.script) return;
   window.EH_PWA = true; // installed app: notifications are possible
-  window.EH_BUILD = '2026-11-15'; // shown at the bottom of the menu
+  window.EH_BUILD = '2026-11-17'; // shown at the bottom of the menu
   var API = "https://script.google.com/macros/s/AKfycbyqtyrClenCG1_iqTSDK5KhtFItfX6rUsYdIexwQ3qPFbSv9d1n8jy06ItjvWXXtB-I/exec", RELAY = "", relayOff = 0;
   // through the relay when there is one; if it fails, straight to Google and skip the relay for 10 min. A save goes
   // straight only when the relay could not be reached at all (never sent twice).
@@ -4564,7 +4564,7 @@ function renderCash() {
       var st = k === 0 ? ['Not transferred', 'var(--red)'] : k === 1 ? ['Verify in bank', 'var(--amber)'] : k === 3 ? ['Matched', 'var(--green)'] : k === 4 ? ['Charges only · nothing to receive', 'var(--muted)'] : [matchText(b.matched), 'var(--red)'];
       return '<div class="prow in" data-bt="' + x.i + '" style="--c:' + st[1] + '"><span class="prow-d"></span><div class="prow-m">' +
         '<div class="prow-1"><b>' + esc(b.courier) + ' · ' + esc(b.ref) + '</b><span class="num">' + rs(b.net) + '</span></div>' +
-        '<div class="prow-2"><span>' + [esc(b.date), b.parcels + ' parcels', b.bank != null ? 'bank ' + rs(b.bank) : ''].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + st[1] + '">' + esc(st[0]) + '</span></div></div>' +
+        '<div class="prow-2"><span>' + [esc(b.date), b.parcels + ' parcels', b.bank != null ? 'bank ' + rs(b.bank) : '', b.exact ? 'exact' : 'estimate'].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + st[1] + '">' + esc(st[0]) + '</span></div></div>' +
         (k !== 4 ? '<button class="btn prow-btn" data-bank="' + x.i + '">' + (b.bank == null ? '<i class="ti ti-building-bank"></i>Record' : 'Edit') + '</button>' : '') + '</div>';
     }).join('') + (shown.length > (C.blim || 5) ? '<button class="btn more" id="bmore">See all ' + shown.length + ' payments</button>' : '') : '<div class="empty">No payments here</div>') + '</div>';
   h += '<div class="card" id="cparcels"></div>';
