@@ -1026,12 +1026,20 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   var API = "https://script.google.com/macros/s/AKfycbyqtyrClenCG1_iqTSDK5KhtFItfX6rUsYdIexwQ3qPFbSv9d1n8jy06ItjvWXXtB-I/exec", RELAY = "", relayOff = 0;
   // through the relay when there is one; if it fails, straight to Google and skip the relay for 10 min. A save goes
   // straight only when the relay could not be reached at all (never sent twice).
+  // big answers come gzipped ({z: base64}) when the phone can unzip them (2026-11-18: Parcels was 430 KB)
+  var ZIP = typeof DecompressionStream === 'function';
+  function unzip(b64) {
+    var bin = atob(b64), u = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+    return new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream('gzip'))).text().then(JSON.parse);
+  }
   function post(url, body) {
     return fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: body })
-      .then(function (r) { if (!r.ok) { var e = new Error('HTTP ' + r.status); e.reached = true; throw e; } return r.json(); });
+      .then(function (r) { if (!r.ok) { var e = new Error('HTTP ' + r.status); e.reached = true; throw e; } return r.json(); })
+      .then(function (j) { return j && typeof j.z === 'string' ? unzip(j.z) : j; });
   }
   function call(fn, args, ok, fail) {
-    var body = JSON.stringify({ fn: fn, args: args }), save = /^app[A-Z]/.test(fn);
+    var body = JSON.stringify(ZIP ? { fn: fn, args: args, z: 1 } : { fn: fn, args: args }), save = /^app[A-Z]/.test(fn);
     (RELAY && Date.now() > relayOff
       ? post(RELAY, body).catch(function (e) { relayOff = Date.now() + 600000; if (save && e.reached) throw e; return post(API, body); })
       : post(API, body))
