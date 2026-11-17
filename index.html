@@ -6313,6 +6313,17 @@ function openBalanceSheet() {
       '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>What the business has</b><span>assets</span></div>' + rows(d.assets) + tot('Total assets', d.totals.assets) + '</div>' +
       '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>What it owes</b><span>liabilities</span></div>' + (d.liabilities.length ? rows(d.liabilities) : '<div class="prow" style="cursor:default"><div class="prow-m"><span style="color:var(--muted)">Nothing owed</span></div></div>') + tot('Total liabilities', d.totals.liabilities) + '</div>' +
       '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>Whose it is</b><span>equity</span></div>' + rows(d.equity) + tot('Total equity', d.totals.equity) + '</div>' +
+      // courier money check (user 2026-11-17): what our parcels say the courier owes vs what the money says, per courier
+      ((d.couriers || []).length ? '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>Courier money check</b><span>parcels vs money</span></div>' + d.couriers.map(function (c) {
+        var line = function (l, v, sub) { return '<div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><span>' + l + '</span><b class="num">' + signed(v) + '</b></div>' + (sub ? '<div class="prow-2"><span>' + sub + '</span></div>' : '') + '</div></div>'; };
+        return '<div style="border-top:1px solid var(--line)"><div class="prow" style="cursor:default"><div class="prow-m"><div class="prow-1"><b>' + esc(c.courier) + '</b><b class="num" style="color:' + (Math.abs(c.diff) < 50 ? 'var(--green)' : 'var(--amber)') + '">' + (Math.abs(c.diff) < 50 ? 'Ties ✓' : signed(c.diff)) + '</b></div></div></div>' +
+          line('Our finished parcels say', c.parcels, 'COD − taxes − charges') +
+          line('Money: received', c.received, 'recorded in Cash (bank + fee)') + (c.unchecked ? line('Money: sent, bank not checked', c.unchecked) : '') + line('Money: still to come', c.unpaid, 'finished parcels not paid') +
+          (c.openTaken ? line('Already taken for parcels on the way', c.openTaken, 'charges in a payment before the parcel finished · part of the difference') : '') +
+          (c.payments.length ? '<div class="prow-2" style="padding:6px 14px 2px"><span><b>Payments where the courier\'s amount ≠ our parcels</b></span></div>' + c.payments.map(function (p) {
+            return line(esc(p.ref) + ' · ' + esc(p.date), p.diff, 'courier ' + rs(p.money) + ' · our parcels ' + rs(p.parcels) + (p.checked ? '' : ' · bank not checked'));
+          }).join('') : '') + '</div>';
+      }).join('') + '</div>' : '') +
       (ok ? '' : '<div class="tk" style="margin:0 0 10px"><i class="ti ti-search"></i> ' + signed(d.gap) + ' is not explained: has − owes is ' + signed(d.totals.net) + ', equity is ' + signed(d.totals.equity) + '. Usual causes: money still in an ad account, an entry on the wrong account or date, a bank balance not reconciled, stock not counted.</div>') +
       '<div class="btns" style="margin-top:10px"><button class="btn" id="bsClose">Close</button></div>';
     openPanel(true);
