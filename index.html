@@ -4573,7 +4573,12 @@ function renderCash() {
   // Payments that need someone first: not transferred, then not checked in the bank, then a gap, then matched
   // charges only (net ≤ 0, user 2026-11-10: Leopards IBLE3463631 −306 was recorded as 306 received): nothing to receive, nothing to record
   var rank = function (b) { return !b.transferred ? 0 : b.bank == null && b.net <= 0 ? 4 : b.bank == null ? 1 : /✅/.test(b.matched) ? 3 : 2; };
-  var shown = d.batches.map(function (b, i) { return { b: b, i: i }; }).filter(function (x) { return bfc[2](x.b); })
+  // a Leopards invoice with only charges (net ≤ 0, nothing banked) is not a cheque: the portal lists only cheques, and these
+  // charges are taken from the next one (user 2026-11-18: IBLE3512941 −367 looked like a cheque the portal did not have)
+  var lchg = function (b) { return /leopards/i.test(b.courier) && b.net <= 0 && b.bank == null; };
+  var chg = d.batches.map(function (b, i) { return { b: b, i: i }; }).filter(function (x) { return lchg(x.b) && bfc[2](x.b); });
+  var chgSum = chg.reduce(function (a, x) { return a + x.b.net; }, 0);
+  var shown = d.batches.map(function (b, i) { return { b: b, i: i }; }).filter(function (x) { return bfc[2](x.b) && !lchg(x.b); })
     .sort(function (a, b) { return rank(a.b) - rank(b.b) || a.i - b.i; });
   h += '<div class="card" id="cpay"><div class="h"><b>Courier payments</b><span>' + shown.length + '</span></div>' +
     fbar('bf', bfc[0] === 'all' ? 'All payments' : bfc[1], shown.length) +
@@ -4584,7 +4589,10 @@ function renderCash() {
         '<div class="prow-1"><b>' + esc(b.courier) + ' · ' + esc(b.ref) + '</b><span class="num">' + rs(b.net) + '</span></div>' +
         '<div class="prow-2"><span>' + [esc(b.date), b.parcels + ' parcels', b.bank != null ? 'bank ' + rs(b.bank) : '', b.exact ? 'exact' : 'estimate'].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + st[1] + '">' + esc(st[0]) + '</span></div></div>' +
         (k !== 4 ? '<button class="btn prow-btn" data-bank="' + x.i + '">' + (b.bank == null ? '<i class="ti ti-building-bank"></i>Record' : 'Edit') + '</button>' : '') + '</div>';
-    }).join('') + (shown.length > (C.blim || 5) ? '<button class="btn more" id="bmore">See all ' + shown.length + ' payments</button>' : '') : '<div class="empty">No payments here</div>') + '</div>';
+    }).join('') + (shown.length > (C.blim || 5) ? '<button class="btn more" id="bmore">See all ' + shown.length + ' payments</button>' : '') : '<div class="empty">No payments here</div>') +
+    (chg.length ? '<div class="prow in" data-bt="' + chg[0].i + '" style="--c:var(--muted)"><span class="prow-d"></span><div class="prow-m">' +
+      '<div class="prow-1"><b>Leopards charges · not a cheque</b><span class="num">' + (chgSum < 0 ? '− ' : '') + rs(Math.abs(chgSum)) + '</span></div>' +
+      '<div class="prow-2"><span>' + chg.map(function (x) { return esc(x.b.ref) + ' · ' + x.b.parcels + ' parcel' + (x.b.parcels === 1 ? '' : 's'); }).join(' · ') + '</span><span class="st" style="--c:var(--muted)">taken from the next cheque</span></div></div></div>' : '') + '</div>';
   h += '<div class="card" id="cparcels"></div>';
   el('cview').innerHTML = h;
   animateBox(el('cview'), 'cash');
@@ -7937,14 +7945,14 @@ function lgSubmit() {
   }).appLogin(n, p);
 }
 el('lgPad').onclick = function (e) { var b = e.target.closest('[data-k]'); if (b) lgKey(b.getAttribute('data-k')); };
-addEventListener('keydown', function (e) {
-  if (el('login').hidden || el('lgStepPin').hidden || e.ctrlKey || e.metaKey || e.altKey) return;
-  if (/^[0-9]$/.test(e.key)) { e.preventDefault(); lgKey(e.key); }
-  else if (e.key === 'Backspace') { e.preventDefault(); lgKey('del'); }
-});
+// ONE keyboard handler for the login PIN (user 2026-11-18: on a laptop every key counted twice — two handlers both
+// typed the digit): digits / Backspace only on the PIN step, Enter = go; never while typing the phone number
 document.addEventListener('keydown', function (e) {
-  if (el('login').hidden || document.activeElement === el('lgName')) return;
-  if (/^\d$/.test(e.key)) lgKey(e.key); else if (e.key === 'Backspace') lgKey('del'); else if (e.key === 'Enter') lgKey('go');
+  if (el('login').hidden || e.ctrlKey || e.metaKey || e.altKey || document.activeElement === el('lgName')) return;
+  var pin = !el('lgStepPin').hidden;
+  if (pin && /^[0-9]$/.test(e.key)) { e.preventDefault(); lgKey(e.key); }
+  else if (pin && e.key === 'Backspace') { e.preventDefault(); lgKey('del'); }
+  else if (e.key === 'Enter') lgKey('go');
 });
 el('lgName').onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); el('lgCont').click(); } };
 el('lgName').oninput = function () { el('lgErr').textContent = ''; };
