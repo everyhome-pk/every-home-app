@@ -246,6 +246,11 @@ body{overscroll-behavior-y:contain}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:none;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:500;cursor:pointer;font-family:inherit}
 .chip.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+.rc{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:12px;padding:10px 12px;margin-top:8px;cursor:pointer;font-family:inherit}
+.rc .dot{flex:none;width:18px;height:18px;border-radius:50%;border:2px solid var(--muted);margin-top:1px;box-sizing:border-box}
+.rc.on{border-color:var(--brand);box-shadow:inset 0 0 0 1px var(--brand)}.rc.on .dot{border:5px solid var(--brand)}
+.rc b{display:block;font-size:14px;font-weight:600}.rc small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px;font-weight:400}
+.rc-pay{margin:8px 0 0;padding:10px 12px;border-radius:12px;background:var(--bg)}
 .seg{display:flex;background:var(--card);border-radius:12px;padding:3px;box-shadow:var(--shadow);margin-bottom:14px}
 .seg button{flex:1;border:0;background:none;color:var(--muted);padding:8px;border-radius:9px;font:500 12.5px Inter,sans-serif;cursor:pointer}
 .seg button.on{background:var(--brand);color:var(--brand-ink)}
@@ -3497,9 +3502,11 @@ function courierPulse() {
     Object.keys(tk).forEach(function (cn) {
       var t = tk[cn];
       if (noActTicket(t)) { noact++; return; }
-      if (!/Sheet/.test(t.channel || '') || /Done/.test(t.result || '')) return;
+      // the same lines the courier page lists (user 2026-11-17: the strip said 8 waiting while the page was clear):
+      // a line whose tracking moved after the request (✅ Amal hua) has left their page, so it waits for nobody
+      if (!/Sheet/.test(t.channel || '') || /Done/.test(t.result || '') || /^✅ Amal hua/.test(t.result || '')) return;
       on++;
-      if (t.status || t.reply) ans++; else { wait++; if (t.sentMs && now - t.sentMs >= 24 * 3600000) old++; }
+      if ((t.status || t.reply) && !t.reopen) ans++; else { wait++; if (t.sentMs && now - t.sentMs >= 24 * 3600000) old++; }
     });
     if (!on && !noact && !s.open) return '';
     // one clean line per courier (user 2026-11-14): the whole line opens their page, two numbers (waiting, late = over 24 h)
@@ -6213,6 +6220,9 @@ function openPnl(period) {
       }).join('') + '</div>' : '') +
       (p.closed ? '<div class="tk ok" style="margin:0 0 10px"><i class="ti ti-lock"></i> Closed ' + esc(p.closed.at) + ' by ' + esc(p.closed.by) + ' · net then ' + signed(p.closed.net) +
           (Math.abs(p.closed.diff) >= 1 ? ' · changed since: ' + (p.closed.diff > 0 ? '+ ' : '− ') + rs(Math.abs(p.closed.diff)) + ' (late courier data)' : '') +
+          closeAllocText(p.closed) +
+          (p.closed.verifiedBy ? '<br>Verified by ' + esc(p.closed.verifiedBy) + ' · ' + esc(p.closed.verifiedAt) : '<br>Waiting for the other partner to verify') +
+          (p.closed.canVerify ? '<br><button class="btn mini" id="plVerC" type="button" style="margin-top:6px"><i class="ti ti-check"></i>Verify this close</button>' : '') +
           (p.canClose ? '<br><button class="btn mini" id="plReopen" type="button" style="margin-top:6px"><i class="ti ti-lock-open"></i>Reopen</button>' : '') + '</div>'
         : p.canClose && isMonth && cur < pkDay(new Date()).slice(0, 7) ? '<button class="btn" id="plCloseM" type="button" style="width:100%;margin:0 0 10px"><i class="ti ti-lock"></i>Close ' + esc(pnlLabel(cur)) + '</button>' : '') +
       '<div class="card"><div class="h"><b>Cash in the period</b></div>' + line('Money in', rs(p.cash.in), '', p.cash.courier != null ? 'courier payments ' + rs(p.cash.courier) + ' · advances & other ' + rs(p.cash.other) : '') + line('Money out', minus(p.cash.out), '', 'expenses, stock bought, owner draws') + '</div>' +
@@ -6224,7 +6234,10 @@ function openPnl(period) {
       api('appCloseMonth', [TOKEN, cur, close], function (r) { toast(close ? 'Closed' + (r.open ? ' · ' + r.open + ' parcels were still with the courier' : '') : 'Reopened'); viewClear(); openPnl(cur); },
         function (e) { toast((e && e.message) || 'Not saved'); });
     };
-    if (el('plCloseM')) el('plCloseM').onclick = function () { closeMonth(true); };
+    if (el('plCloseM')) el('plCloseM').onclick = function () { openCloseMonth(cur); };
+    if (el('plVerC')) el('plVerC').onclick = function () {
+      api('appVerifyClose', [TOKEN, cur], function () { toast('Verified'); viewClear(); openPnl(cur); }, function (e) { toast((e && e.message) || 'Not saved'); });
+    };
     if (el('plReopen')) el('plReopen').onclick = function () { closeMonth(false); };
     el('panel').querySelectorAll('[data-fm]').forEach(function (b) { b.onclick = function () { openPnl(fnMonth(FN.pnl, Number(b.getAttribute('data-fm')))); }; });
     el('plPer').onclick = function () { // the period list (a dropdown under the button)
@@ -6545,7 +6558,8 @@ function renderAccounts() {
     (q ? '<div class="bk-sec">Partners\' equity<span>' + q.partners.map(function (p) { return Math.round(p.pct) + '%'; }).join(' / ') + '</span></div><div class="bk-list">' +
       q.partners.map(function (p) {
         return row({ attr: 'data-eqh="' + esc(p.name) + '"', icon: initials(p.name), tone: 'av', t: esc(p.name), s: 'capital ' + acMoney(p.capital) + ' · retained earnings ' + acMoney(p.profitLeft),
-          v: acMoney(p.total), vt: p.total < 0 ? 'neg' : '', v2: Math.round(p.pct) + '% · equity' });
+          // with the months not closed yet (estimate; user 2026-11-17: a payout from last month's profit made it look wrong)
+          v: acMoney(p.total), vt: p.total < 0 ? 'neg' : '', v2: p.estimate ? '~ ' + acMoney(p.total + p.estimate) + ' with open months' : Math.round(p.pct) + '% · equity' });
       }).join('') +
       (q.months.filter(function (m) { return m.stage !== 'closed'; }).length ? row({ icon: '<i class="ti ti-hourglass"></i>', tone: 'muted', t: 'Unallocated',
         s: q.months.filter(function (m) { return m.stage !== 'closed'; }).map(function (m) { return esc(fnMonthName(m.month).slice(0, 3)) + ' ' + acStage(m); }).join(' · '), v: acMoney(q.estimate), v2: 'estimate' }) : '') +
@@ -6720,16 +6734,131 @@ function openCapWithdrawals(name) {
   el('cwBack').onclick = function () { renderAccounts(); };
   acClipWire(function () { openCapWithdrawals(name); });
 }
+// one line under "Closed …": how the month was shared (user 2026-11-17)
+function closeAllocText(c) {
+  var a = c && c.alloc; if (!a) return c && c.net < 0 ? '<br>Loss shared by capital' : '';
+  if (c.net < 0) return '<br>Loss shared by capital';
+  var bits = [];
+  if (a.reserve) bits.push(rs(a.reserve) + ' kept in the business');
+  bits.push(a.split ? 'agreed split: ' + Object.keys(a.split).map(function (k) { return esc(k.split(' ')[0]) + ' ' + rs(a.split[k]); }).join(' · ') : 'shared by the agreement %');
+  var cap = Object.keys(a.choice || {}).filter(function (k) { return a.choice[k] === 'capital'; });
+  if (cap.length) bits.push(cap.map(function (k) { return esc(k.split(' ')[0]); }).join(', ') + ' moved to capital');
+  return '<br>' + bits.join(' · ');
+}
+/**
+ * Month close (user 2026-11-17, musharakah, agreed after a study): checks → result → (profit) kept in the business,
+ * split by the agreement % or this month's own split, each partner keep / to capital / take now → close; the other
+ * partner verifies. A loss is shared by capital by itself (nothing to choose).
+ */
+function openCloseMonth(month) {
+  el('panel').innerHTML = '<button class="btn mini" id="mcBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Profit & loss</button><h3>Close ' + esc(pnlLabel(month)) + '</h3>' + skList(4);
+  openPanel(true);
+  el('mcBack').onclick = function () { openPnl(month); };
+  api('getAppClosePreview', [TOKEN, month], function (q) { drawCloseMonth(q); }, function (e) { el('panel').innerHTML += '<p class="mnote">' + esc((e && e.message) || 'Could not load') + '</p>'; });
+}
+function drawCloseMonth(q) {
+  var month = q.month, net = q.net, P = q.partners || [], loss = net < 0;
+  var st = { reserve: 0, own: false, split: {}, choice: {}, pay: {} };
+  P.forEach(function (p) { st.choice[p.name] = 'keep'; });
+  var capSum = P.reduce(function (a, p) { return a + Math.max(0, p.capital); }, 0);
+  var dist = function () { return Math.max(0, net - st.reserve); };
+  var shareOf = function (p) {
+    if (loss) return capSum > 0 ? net * Math.max(0, p.capital) / capSum : net * p.pct / 100;
+    return st.own ? (Number(st.split[p.name]) || 0) : dist() * p.pct / 100;
+  };
+  var chk = function (ok, t) { return '<div class="acx-row"><span>' + (ok ? '<i class="ti ti-circle-check" style="color:var(--green)"></i> ' : '<i class="ti ti-alert-triangle" style="color:var(--red)"></i> ') + t + '</span></div>'; };
+  var blocked = q.open > 0 || q.waiting > 0 || !q.finished || q.closed;
+  var checks = '<div class="card"><b>1 · Before closing</b>' +
+    chk(q.finished, q.finished ? 'The month is over' : 'Only a finished month can be closed') +
+    chk(!q.open, q.open ? q.open + ' parcels still with the courier · close when all are delivered or returning' : 'Every parcel delivered or returning') +
+    chk(!q.waiting, q.waiting ? q.waiting + ' entries still waiting for approval' : 'No entry waiting for approval') +
+    (q.banks || []).map(function (b) { return chk(!b.diff, esc(b.name) + ' reconciled ' + esc(b.day) + (b.diff ? ' · difference ' + rs(Math.abs(b.diff)) : '')); }).join('') + '</div>';
+  var draw = function () {
+    var d = dist(), sumOwn = P.reduce(function (a, p) { return a + (Number(st.split[p.name]) || 0); }, 0), left = d - sumOwn;
+    var res = '<div class="card"><b>2 · Result</b><div class="acx-row"><span>' + (loss ? 'Net loss' : 'Net profit') + '<small>' + esc(pnlLabel(month)) + ' · sales ' + rs(q.sales) + '</small></span><b class="num' + (loss ? '' : ' up') + '">' + (loss ? '−' : '+') + rs(Math.abs(net)) + '</b></div>' +
+      (loss ? '<small class="mnote eq-n">A loss is shared by capital (money bears the loss, effort is the working partner\'s loss).</small>' : '') + '</div>';
+    var keep = loss ? '' : '<div class="card"><b>3 · Keep in the business</b><small class="mnote eq-n" style="display:block">Optional · this stays in the business (reserve) and is not given to anyone</small>' +
+      '<div class="inrow"><span>Rs</span><input id="mcRes" type="text" inputmode="decimal" placeholder="0" value="' + (st.reserve || '') + '"></div></div>';
+    var split = loss ? '' : '<div class="card"><b>4 · Share the rest · ' + rs(d) + '</b>' +
+      '<div class="chips" style="margin:8px 0;padding:0;flex-wrap:wrap"><button class="chip' + (st.own ? '' : ' on') + '" data-cm="agr" type="button">By agreement (' + P.map(function (p) { return Math.round(p.pct); }).join(' / ') + ')</button><button class="chip' + (st.own ? ' on' : '') + '" data-cm="own" type="button">This month\'s own split</button></div>' +
+      (st.own ? P.map(function (p) { return '<div class="inrow"><span>' + esc(p.name) + '</span><input data-cs="' + esc(p.name) + '" type="text" inputmode="decimal" value="' + (st.split[p.name] != null ? st.split[p.name] : '') + '"></div>'; }).join('') +
+        '<small class="mnote eq-n" style="display:block;color:' + (Math.abs(left) > 2 ? 'var(--red)' : 'var(--green)') + '">' + (Math.abs(left) > 2 ? (left > 0 ? rs(left) + ' still to share' : rs(-left) + ' too much') : 'Adds up ✓') + ' · both partners agree (the other verifies)</small>' : '') + '</div>';
+    // each partner: one choice as radio cards (user 2026-11-17: chips said nothing; Material / Apple: a single choice with
+    // its meaning = radio list); Take now asks the amount, bank and screenshot right here and is saved with the close
+    var payTotal = 0, rc = function (p, i, v, t, sub) {
+      var on = st.choice[p.name] === v;
+      return '<button class="rc' + (on ? ' on' : '') + '" type="button" role="radio" aria-checked="' + on + '" data-cc="' + esc(p.name) + '" data-cv="' + v + '"><span class="dot"></span><span><b>' + t + '</b><small>' + sub + '</small></span></button>';
+    };
+    var parts = '<div class="card"><b>' + (loss ? '3' : '5') + ' · Each partner</b>' + P.map(function (p, i) {
+      var sh = Math.round(shareOf(p)), after = Math.round(p.profitLeft + sh), pay = st.pay[p.name] || {}, amt = Math.round(Number(pay.amount) || 0);
+      var room = sh + Math.max(0, p.profitLeft), over = st.choice[p.name] === 'pay' ? amt - room : 0;
+      if (st.choice[p.name] === 'pay') { payTotal += amt; after -= amt; }
+      var payBox = st.choice[p.name] !== 'pay' ? '' : '<div class="rc-pay">' +
+        (sh + Math.min(0, p.profitLeft) <= 0 && !amt ? '<small class="mnote eq-n" style="display:block">Already taken before the close · nothing more to take</small>' : '') +
+        '<label class="mini-l">Amount to take now</label><div class="inrow"><span class="pre">Rs</span><input data-pa="' + esc(p.name) + '" type="text" inputmode="decimal" value="' + (amt || '') + '" placeholder="0"></div>' +
+        (over > 0 ? '<small class="mnote eq-n" style="display:block;color:var(--amber)">' + rs(over) + ' more than ' + (p.profitLeft > 0 ? 'this share and what was kept before' : 'this month\'s share') + ' · set off against the next months' +
+          (!st.own && P.length > 1 ? '</small><button class="btn mini" type="button" data-mksp="' + esc(p.name) + '" style="margin-top:6px">Make it this month\'s split · ' + esc(p.name.split(' ')[0]) + ' ' + rs(Math.min(amt, d)) + '</button>' : '</small>') : '') +
+        '<small class="mnote eq-n" style="display:block;margin-top:6px">Paid from ' + esc(q.from || 'the bank') + ' · on the close day</small>' +
+        photoField('mcp' + i, 'Bank screenshot (optional)') + '</div>';
+      return '<div style="padding:10px 0;border-top:1px solid var(--line)"><div class="acx-row" style="border:0;padding:0"><span><b>' + esc(p.name) + '</b><small>' + (loss ? 'capital ' + rs(Math.max(0, p.capital)) + (capSum > 0 ? ' · ' + Math.round(Math.max(0, p.capital) / capSum * 100) + '%' : '') : Math.round(p.pct) + '%') +
+        ' · holds now ' + (p.profitLeft < 0 ? '−' : '') + rs(Math.abs(p.profitLeft)) + (p.profitLeft < 0 ? ' (took before)' : '') + '</small></span><b class="num' + (sh < 0 ? '' : ' up') + '">' + (sh < 0 ? '−' : '+') + rs(Math.abs(sh)) + '</b></div>' +
+        '<small class="mnote eq-n">After the close: ' + (after < 0 ? '−' : '') + rs(Math.abs(after)) + (after < 0 && !loss ? ' · set off against the next months' : '') + '</small>' +
+        (!loss && sh > 0 ? '<div role="radiogroup" aria-label="' + esc(p.name) + '">' +
+          rc(p, i, 'keep', 'Keep in business', 'Stays in your name · take it any time later') +
+          rc(p, i, 'capital', 'Move to capital', 'Becomes your capital · shares later losses too') +
+          rc(p, i, 'pay', 'Take now', 'Paid out with this close') + '</div>' + payBox : '') + '</div>';
+    }).join('') + (payTotal && q.free != null && payTotal > q.free ? '<div class="tk" style="margin-top:8px;color:var(--amber)"><i class="ti ti-alert-triangle"></i> Money free to take out is ' + rs(Math.max(0, q.free)) + ' (bank less the next 30 days\' needs)</div>' : '') + '</div>';
+    var payBad = P.some(function (p) { return st.choice[p.name] === 'pay' && !(Number((st.pay[p.name] || {}).amount) > 0); });
+    var bad = blocked || (st.own && Math.abs(left) > 2) || st.reserve < 0 || st.reserve > Math.max(0, net) || payBad;
+    el('panel').innerHTML = '<button class="btn mini" id="mcBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Profit & loss</button><h3>Close ' + esc(pnlLabel(month)) + '</h3>' +
+      checks + res + keep + split + parts +
+      '<div class="ae-bar"><button class="btn pri" id="mcGo" type="button" style="width:100%"' + (bad ? ' disabled' : '') + '><i class="ti ti-lock"></i>Close ' + esc(pnlLabel(month)) + (payTotal ? ' · pay ' + rs(payTotal) : '') + '</button></div>';
+    el('mcBack').onclick = function () { openPnl(month); };
+    if (el('mcRes')) el('mcRes').onchange = function () { st.reserve = Math.round(Number(String(this.value).replace(/[^0-9.]/g, '')) || 0); draw(); };
+    el('panel').querySelectorAll('[data-cm]').forEach(function (b) { b.onclick = function () {
+      st.own = b.getAttribute('data-cm') === 'own';
+      if (st.own) P.forEach(function (p) { if (st.split[p.name] == null) st.split[p.name] = Math.round(dist() * p.pct / 100); });
+      draw(); }; });
+    el('panel').querySelectorAll('[data-cs]').forEach(function (i) { i.onchange = function () { st.split[i.getAttribute('data-cs')] = Math.round(Number(String(i.value).replace(/[^0-9.]/g, '')) || 0); draw(); }; });
+    el('panel').querySelectorAll('[data-cc]').forEach(function (b) { b.onclick = function () {
+      var n = b.getAttribute('data-cc'), v = b.getAttribute('data-cv'), p = P.filter(function (x) { return x.name === n; })[0];
+      st.choice[n] = v;
+      if (v === 'pay' && !st.pay[n]) st.pay[n] = { amount: Math.max(0, Math.round(shareOf(p) + Math.min(0, p.profitLeft))), receipt: '' };
+      draw(); }; });
+    el('panel').querySelectorAll('[data-pa]').forEach(function (i) { i.onchange = function () { var n = i.getAttribute('data-pa'); st.pay[n] = st.pay[n] || {}; st.pay[n].amount = Math.round(Number(String(i.value).replace(/[^0-9.]/g, '')) || 0); draw(); }; });
+    // a partner taking more than the agreement share: make it this month's own split (the others share the rest by their %)
+    el('panel').querySelectorAll('[data-mksp]').forEach(function (b) { b.onclick = function () {
+      var n = b.getAttribute('data-mksp'), d = dist(), mine = Math.min(Math.round(Number(st.pay[n].amount) || 0), d), rest = d - mine;
+      var others = P.filter(function (p) { return p.name !== n; }), pc = others.reduce(function (a, p) { return a + p.pct; }, 0) || 1;
+      st.own = true; st.split[n] = mine;
+      others.forEach(function (p, k) { st.split[p.name] = k === others.length - 1 ? rest - others.slice(0, -1).reduce(function (a, x) { return a + st.split[x.name]; }, 0) : Math.round(rest * p.pct / pc); });
+      draw(); }; });
+    P.forEach(function (p, i) {
+      if (!el('mcp' + i + 'Btn')) return;
+      photoWire('mcp' + i, function (x) { st.pay[p.name].receipt = x; });
+      if (st.pay[p.name] && st.pay[p.name].receipt) { el('mcp' + i + 'Img').src = st.pay[p.name].receipt; el('mcp' + i + 'Box').hidden = false; el('mcp' + i + 'Btn').hidden = true; }
+    });
+    el('mcGo').onclick = function () {
+      var pay = {}; P.forEach(function (p) { if (st.choice[p.name] === 'pay') pay[p.name] = { amount: Math.round(Number(st.pay[p.name].amount) || 0), receipt: st.pay[p.name].receipt || '' }; });
+      if (!confirm('Close ' + pnlLabel(month) + '? Its P&L is kept as it is now and shared as shown' + (payTotal ? ', and ' + rs(payTotal) + ' is recorded as paid out from ' + (q.from || 'the bank') : '') + '. The other partner then verifies.')) return;
+      api('appCloseMonth', [TOKEN, month, true, { reserve: st.reserve, split: st.own ? st.split : null, choice: st.choice, pay: pay }], function () {
+        viewClear(); toast('Closed' + (payTotal ? ' · ' + rs(payTotal) + ' paid out recorded' : '')); openPnl(month);
+      }, function (e) { toast((e && e.message) || 'Not saved'); });
+    };
+  };
+  draw();
+}
 function openEquityHistory(name) {
   var q = AC.data.equity, p = q && q.partners.filter(function (x) { return x.name === name; })[0]; if (!p) return renderAccounts();
   el('panel').innerHTML = '<button class="btn mini" id="ehBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Accounts</button><h3>' + esc(name) + ' · ' + Math.round(p.pct) + '%</h3>' +
-    '<p>Equity ' + acMoney(p.total) + ' · capital ' + acMoney(p.capital) + ' · retained earnings ' + acMoney(p.profitLeft) + '</p>' +
+    '<p>Equity ' + acMoney(p.total) + ' · capital ' + acMoney(p.capital) + ' · retained earnings ' + acMoney(p.profitLeft) + (p.estimate ? ' · ~ ' + acMoney(p.total + p.estimate) + ' with open months' : '') + '</p>' +
     '<div class="card eh-src"><b>Capital account summary</b>' +
     acRow('Paid personally (net)', 'business costs paid personally, less business receipts held', p.own, 1) + acRow('Card charges', 'recorded as capital', p.card, 1) + acRow('Deposits', 'capital contributed to the bank', p.invested, 1) +
     acRow('Capital withdrawn', '', p.capBack, -1) +
     (p.profit ? '<div class="acx-row"><span>' + (p.profit < 0 ? 'Share of net loss' : 'Share of net income') + '<small>' + Math.round(p.pct) + '% of every closed month</small></span><b class="num' + (p.profit < 0 ? '' : ' up') + '">' + (p.profit < 0 ? '−' : '+') + rs(Math.abs(p.profit)) + '</b></div>' : '') +
     acRow('Distributions', 'profit paid out', p.taken, -1) +
-    (p.estimate ? '<small class="mnote eq-n">Unallocated (months not closed): ' + acMoney(p.estimate) + ' · estimate, not in the balance</small>' : '') + '</div>' +
+    (p.estimate ? '<div class="acx-row"><span>Months not closed yet<small>estimate · joins the balance when the month is closed</small></span><b class="num' + (p.estimate < 0 ? '' : ' up') + '">' + (p.estimate < 0 ? '−' : '+') + rs(Math.abs(p.estimate)) + '</b></div>' +
+      '<div class="acx-row"><span><b>Equity with open months</b><small>estimate</small></span><b class="num">~ ' + acMoney(p.total + p.estimate) + '</b></div>' : '') + '</div>' +
     '<div class="h" style="padding:6px 2px"><b>Statement</b><span><span class="eh-i">capital</span> <span class="eh-i pf">earnings</span></span></div>' +
     '<div class="card" style="padding:0">' + (p.ledger.length ? p.ledger.slice(0, EQ_SHOW).map(function (l) {
       return '<div class="prow" style="cursor:default;--c:' + (l.amt < 0 ? 'var(--red)' : 'var(--green)') + '"><span class="prow-d"></span><div class="prow-m"><div class="prow-1"><span>' + esc(l.text) + (l.rc ? ' <button class="rc-a" type="button" data-rcl="' + esc(l.id) + '" aria-label="Attachment"><i class="ti ti-paperclip"></i></button>' : '') + '</span><b class="num">' + (l.amt < 0 ? '−' : '+') + rs(Math.abs(l.amt)) + '</b></div>' +
