@@ -69,7 +69,10 @@ body.mdl-on{overflow:hidden}.mdl-bg{position:fixed;inset:0;background:rgba(15,23
 .again{flex:none;font-style:normal;font-size:11px;font-weight:600;background:none;color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:0 5px}
 .pend{display:inline-block;min-width:58px;text-align:left;font-size:12px;font-weight:400;padding:2px 0;color:var(--muted)}
 .pend.a{color:var(--ink);font-weight:600}.pend.r{color:var(--ink);font-weight:700}
-.rp{display:inline-block;min-width:84px;text-align:center;font-size:12.5px;font-weight:600;border-radius:6px;padding:4px 0;border:1px solid #99D5CC;background:var(--card);color:var(--brand-d)}
+.rp{display:inline-block;min-width:84px;text-align:center;font-size:12.5px;font-weight:600;border-radius:6px;padding:5px 0;border:1px solid var(--brand);background:var(--brand);color:#fff;box-shadow:0 1px 2px rgba(0,133,122,.25)}
+.tr:hover .rp{background:var(--brand-d);border-color:var(--brand-d)}.tr:not(.ans):not(.nomodal):hover{background:var(--soft)}
+.start{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--brand);border-left:4px solid var(--brand);border-radius:10px;padding:10px 14px;margin-bottom:10px}
+.start b{font-size:15px}.start span{color:var(--muted);font-size:13px}.start .btn.pri{margin-left:auto;flex:none;height:34px;padding:0 18px;border-radius:8px}
 .tr.sel .rp{background:var(--brand);border-color:var(--brand);color:#fff}.done-a{font-size:12.5px;color:var(--ok);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
 .sh{display:flex;align-items:baseline;gap:10px;padding:8px 14px 8px 16px;background:var(--kb,var(--head));font-size:13px}
 .sh b{font-weight:600;color:var(--ka,var(--ink))}
@@ -127,10 +130,22 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
 .dh{display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--head);border-bottom:1px solid var(--line);border-top:1px solid var(--line);flex-wrap:wrap}
 .dh b{font-size:13px;font-weight:600}.dh small{font-size:12.5px;color:var(--muted)}.dh .sum{margin-left:auto;font-size:12.5px;color:var(--muted)}.dh .sum i{font-style:normal;color:var(--ink);font-weight:700}
 .fth,.ftr{display:grid;grid-template-columns:150px 100px 120px minmax(0,1fr) 190px 80px;align-items:center}
-.res{font-size:13px;color:var(--ink2)}.res.bad{color:var(--ink);font-weight:700}.res.warn{color:var(--ink2);font-weight:600}.res.mute{color:var(--muted)}
+.res{display:inline-block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;font-weight:600;border-radius:99px;padding:2px 10px;background:var(--chip);color:var(--ink2)}
+.res.ok{background:var(--okbg);color:var(--ok)}.res.bad{background:var(--redbg);color:var(--red)}.res.warn{background:var(--amberbg);color:var(--amber)}.res.mute{background:var(--chip);color:var(--muted)}
+.fsum{display:flex;gap:18px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--card)}.fsum div{font-size:12.5px;color:var(--muted)}.fsum b{display:block;font-size:20px;font-weight:600;color:var(--ink)}
+.fsum .ok b{color:var(--ok)}.fsum .bad b{color:var(--red)}.fsum .warn b{color:var(--amber)}.fl button i{font-style:normal;color:var(--faint);margin-left:4px}
+.f-resp small{display:block;font-size:11.5px;color:var(--muted)}
 .pcards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0}
 .pc{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}.pc .l{font-size:13px;font-weight:600;color:var(--ink2)}
-.pc b{display:block;font-size:28px;font-weight:600;line-height:1.2;margin-top:4px}.pc b.bad{color:var(--ink)}.pc small{font-size:12px;color:var(--muted)}
+.pc b{display:block;font-size:28px;font-weight:600;line-height:1.2;margin-top:4px}.pc b.bad{color:var(--ink)}.pc small{display:block;font-size:12px;color:var(--muted)}
+.pc{border-top:3px solid var(--line)}.pc.t-g{border-top-color:#16A34A}.pc.t-g b{color:var(--ok)}.pc.t-a{border-top-color:#F59E0B}.pc.t-a b{color:var(--amber)}.pc.t-r{border-top-color:#DC2626}.pc.t-r b{color:var(--red)}
+.cmp{display:inline-block;margin-top:6px;font-size:11.5px;font-weight:600;color:var(--muted)}.cmp.g{color:var(--ok)}.cmp.r{color:var(--red)}
+.pchart{margin-bottom:14px;padding:12px 16px}.pch-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}.pch-h b{font-size:13px}.pch-h span{margin-left:auto;font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.pch-h i{display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--line);margin-left:8px}.pch-h i.g,.pst i.g,.rb i.g{background:#16A34A}.pch-h i.r,.pst i.r,.rb i.r{background:#DC2626}.pch-h i.a,.pst i.a,.rb i.a{background:#F59E0B}
+.pch{display:flex;align-items:flex-end;gap:4px;height:120px}.pcol{flex:1;min-width:6px;display:flex;flex-direction:column;align-items:center;cursor:pointer;height:100%}.pst{flex:1;width:100%;max-width:26px;display:flex;flex-direction:column;justify-content:flex-end;border-radius:4px 4px 0 0;overflow:hidden}
+.pst i{display:block;background:var(--line)}.pcol small{font-size:10px;color:var(--faint);margin-top:3px}.pcol:hover .pst{opacity:.8}
+.dday{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.drate{display:flex;align-items:center;gap:6px}.rb{flex:1;max-width:60px;height:6px;border-radius:3px;background:var(--line2);overflow:hidden}.rb i{display:block;height:100%}
+.dtr .warn{color:var(--amber);font-weight:600}.dtr .bad{color:var(--red);font-weight:700}
 .dth,.dtr{display:grid;grid-template-columns:170px repeat(6,minmax(0,1fr)) 110px 36px;align-items:center}
 .dth{background:var(--head);border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--muted)}.dth div{padding:10px 8px}.dth div:first-child{padding-left:16px}
 .dtr{height:46px;border-bottom:1px solid var(--line2);font-size:13.5px;cursor:pointer}.dtr:hover{background:var(--head)}.dtr>div{padding:0 8px}.dtr>div:first-child{padding-left:16px;font-weight:500}
@@ -352,7 +367,10 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       body += (k.key === 'claim' ? TH.replace('Customer Remarks', 'Claim') : k.key === 'return' ? '<div class="th"><div>Tracking ID</div><div>City</div><div>Ageing</div><div></div></div>' : TH) + shown.map(function (x) { return row(x); }).join('') + '</section>';
     });
     if (!placed) body += ulta;
-    var html = (cards ? '<div class="cards">' + cards + '</div>' : '') + '<div class="box qtools"><div class="tools"><input id="q" type="search" placeholder="Search tracking ID" value="' + esc(Q) + '"><select id="city">' + cityOpts(D.open, CITY) + '</select>' +
+    // one bar that starts the work (user 2026-11-18: Respond should stand out): n waiting · Start → the first one, then Save & next
+    var waitIds = ORDER.filter(function (id) { var x = find(id); return x && !answered(x); });
+    var start = waitIds.length ? '<div class="start"><div><b>' + waitIds.length + ' ' + (waitIds.length === 1 ? 'query needs' : 'queries need') + ' your response</b><br><span>Oldest first · Save & next takes you to the next one</span></div><button class="btn pri" data-open="' + esc(waitIds[0]) + '" data-reply="1">Start responding</button></div>' : '';
+    var html = start + (cards ? '<div class="cards">' + cards + '</div>' : '') + '<div class="box qtools"><div class="tools"><input id="q" type="search" placeholder="Search tracking ID" value="' + esc(Q) + '"><select id="city">' + cityOpts(D.open, CITY) + '</select>' +
       '<select id="sort" aria-label="Sort"><option value="old"' + (SORT === 'old' ? ' selected' : '') + '>Oldest first</option><option value="city"' + (SORT === 'city' ? ' selected' : '') + '>City A–Z</option></select>' +
       '<div class="fl"><button class="' + (ALL ? '' : 'on') + '" data-all="0">Awaiting Response</button><button class="' + (ALL ? 'on' : '') + '" data-all="1">All</button></div>' +
       (KIND ? '<button class="kchip" data-jump="' + KIND + '">Filter: ' + esc(kindOf(KIND).label) + ' <span aria-hidden="true">✕</span></button>' : '') + '</div></div>' +
@@ -401,7 +419,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       (ret ? '' : '<div class="c-rem" title="' + esc([x.note, x.says].filter(Boolean).join(' · ')) + '">' + (x.note ? '<b>' + esc(x.note) + '</b>' + (x.says ? ' · ' : '') : '') + esc(x.says) + '</div>' +
       '<div class="c-now" title="' + (nw ? esc(nw[0] + ' · ' + nw[1]) + (nw[2] ? ' · no update since our request' : '') : '') + '">' + (nw ? esc(attTxt(x, nw[3])) + ' <small>· ' + esc(nw[1]) + '</small>' : '') + '</div>') +
       '<div class="c-pend"><span class="pend' + (answered(x) ? '' : pendCls(x.hours, x.kind)) + '">' + pendTxt(x.hours) + '</span></div>' +
-      '<div class="c-ans">' + (ret ? markCell(x) : answered(x) ? '<span class="done-a">✓ ' + esc(x.status || 'Responded') + '</span>' : '<span class="rp" data-reply="' + esc(x.id) + '">Respond ›</span>') + '</div></div>';
+      '<div class="c-ans">' + (ret ? markCell(x) : answered(x) ? '<span class="done-a">✓ ' + esc(x.status || 'Responded') + '</span>' : '<span class="rp" data-reply="' + esc(x.id) + '">Respond</span>') + '</div></div>';
   }
   function timeline(h) {
     if (!h || !h.length) return '';
@@ -515,10 +533,16 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   }
 
   // ---------- Finished ----------
-  function resCls(cat) { return cat === 'ulta' ? 'bad' : cat === 'failed' || cat === 'noaction' ? 'warn' : cat === 'done' ? 'mute' : ''; }
+  function resCls(cat) { return cat === 'ulta' ? 'bad' : cat === 'failed' || cat === 'noaction' ? 'warn' : cat === 'delivered' ? 'ok' : 'mute'; }
+  // the request kind in one word for the Resolved list (user 2026-11-18: it broke over two lines)
+  function kindShort(k) { return { stop: 'Stop return', reattempt: 'Reattempt', late: 'Delayed', check: 'Status', return: 'Return', claim: 'Claim', retlate: 'Delayed return' }[k] || (kindOf(k) || {}).label || k; }
   function renderF() {
-    var cats = [['all', 'All'], ['delivered', 'Delivered'], ['ulta', 'Returned instead'], ['noaction', 'No action']];
-    var list = D.done.filter(function (x) { return match(x, FQ, FCITY) && (FCAT === 'all' || x.cat === FCAT) && (!FDAY || x.day === FDAY); });
+    var cats = [['all', 'All'], ['delivered', 'Delivered'], ['ulta', 'Returned instead'], ['failed', 'Attempt failed'], ['noaction', 'No action']];
+    var base = D.done.filter(function (x) { return match(x, FQ, FCITY) && (!FDAY || x.day === FDAY); }), cnt = function (c) { return c === 'all' ? base.length : base.filter(function (x) { return x.cat === c; }).length; };
+    var list = base.filter(function (x) { return FCAT === 'all' || x.cat === FCAT; });
+    // summary on top (user 2026-11-18): resolved · delivered · returned instead · failed · no action
+    var fsum = base.length ? '<div class="fsum"><div><b>' + base.length + '</b>resolved</div><div class="ok"><b>' + cnt('delivered') + '</b>delivered</div><div class="bad"><b>' + cnt('ulta') + '</b>returned instead</div>' +
+      '<div class="warn"><b>' + cnt('failed') + '</b>attempt failed</div><div><b>' + cnt('noaction') + '</b>no action</div></div>' : '';
     var byDay = {}; list.forEach(function (x) { (byDay[x.day] = byDay[x.day] || []).push(x); });
     ORDER = [];
     var body = Object.keys(byDay).sort().reverse().map(function (d) {
@@ -527,13 +551,13 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       if (n('failed')) parts.push(n('failed') + ' reattempt failed'); if (n('noaction')) parts.push(n('noaction') + ' no action');
       return '<div class="dh"><b>' + esc(dayName(d)) + '</b><small>' + xs.length + ' quer' + (xs.length > 1 ? 'ies' : 'y') + '</small><span class="sum">' + parts.join(' · ') + '</span></div>' + xs.map(function (x) {
         return '<div class="tr ftr' + (x.id === SEL ? ' sel' : '') + '" data-open="' + esc(x.id) + '"><div class="cn">' + esc(x.cn) + '<span class="mcity">' + esc(x.city) + '</span></div><div class="city f-city" title="' + esc(x.city) + '">' + esc(x.city) + '</div>' +
-          '<div style="font-size:13px;color:var(--muted)">' + esc(kindOf(x.kind).label) + '</div><div style="font-size:13px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc([x.status, x.reply].filter(Boolean).join(' · ') || '— no answer') + '</div>' +
+          '<div style="font-size:13px;color:var(--muted);white-space:nowrap">' + esc(kindShort(x.kind)) + '</div><div class="f-resp" style="font-size:13px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc([x.status, x.reply].filter(Boolean).join(' · ') || '— no answer') + (x.by || x.at ? '<small>' + esc([x.by, shortDay(x.at)].filter(Boolean).join(' · ')) + '</small>' : '') + '</div>' +
           '<div class="f-res"><span class="res ' + resCls(x.cat) + '">' + esc(x.result) + '</span></div><div class="f-closed" style="font-size:12.5px;color:var(--muted)">' + esc(x.closedAt) + '</div></div>';
       }).join('');
     }).join('');
     $('wrap').innerHTML = '<div class="box"><div class="tools"><input id="fq" type="search" placeholder="Search tracking ID" value="' + esc(FQ) + '"><select id="fcity">' + cityOpts(D.done, FCITY) + '</select>' +
-      '<div class="fl">' + cats.map(function (c) { return '<button class="' + (FCAT === c[0] ? 'on' : '') + '" data-fcat="' + c[0] + '">' + c[1] + '</button>'; }).join('') + '</div>' +
-      (FDAY ? '<div class="fl"><button class="on" data-fday="">' + esc(dayName(FDAY)) + ' ✕</button></div>' : '') + '<span class="hint">Last 14 days</span></div>' +
+      '<div class="fl">' + cats.filter(function (c) { return c[0] === 'all' || cnt(c[0]) || FCAT === c[0]; }).map(function (c) { return '<button class="' + (FCAT === c[0] ? 'on' : '') + '" data-fcat="' + c[0] + '">' + c[1] + '<i>' + cnt(c[0]) + '</i></button>'; }).join('') + '</div>' +
+      (FDAY ? '<div class="fl"><button class="on" data-fday="">' + esc(dayName(FDAY)) + ' ✕</button></div>' : '') + '<span class="hint">Last 14 days</span></div>' + fsum +
       '<div class="th fth"><div>Tracking ID</div><div>City</div><div>Request Type</div><div>Response</div><div>Outcome</div><div>Closed On</div></div>' +
       (body || '<div class="empty">No resolved queries yet.</div>') + '</div>' + popup(false);
     document.body.classList.toggle('mdl-on', !!(SEL && find(SEL)));
@@ -543,27 +567,56 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
 
   // ---------- Performance ----------
   function renderP() {
-    var from = PER === 'm' ? D.today.slice(0, 8) + '01' : (function () { var t = new Date(D.today + 'T00:00:00'); t.setDate(t.getDate() - (PER - 1)); return t.toISOString().slice(0, 10); })();
-    var days = D.days.filter(function (d) { return d.day >= from; }), sum = function (k) { return days.reduce(function (a, d) { return a + d[k]; }, 0); };
-    var reFin = sum('reFin'), reDel = sum('reDel'), actBase = sum('actBase'), acted = sum('acted');
-    var hrs = [].concat.apply([], days.map(function (d) { return d.replyH; })).sort(function (a, b) { return a - b; });
-    var med = hrs.length ? hrs[Math.floor(hrs.length / 2)] : null;
-    var card = function (l, v, s, bad) { return '<div class="pc"><div class="l">' + l + '</div><b' + (bad ? ' class="bad"' : '') + '>' + v + '</b><small>' + s + '</small></div>'; };
-    var cards = card('Reattempt Success Rate', reFin ? Math.round(reDel / reFin * 100) + '%' : '—', reFin ? reDel + ' of ' + reFin + ' reattempts' : 'no finished reattempts yet') +
-      card('Returned (RTO)', sum('ulta'), 'reattempt requested, shipment returned', sum('ulta') > 0) +
-      card('24-Hour Action Rate', actBase ? Math.round(acted / actBase * 100) + '%' : '—', 'a scan or a response after the request') +
-      card('Median Response Time', med == null ? '—' : (med < 1 ? Math.max(1, Math.round(med * 60)) + ' min' : Math.round(med) + ' h'), 'half of all responses arrive within this');
-    var z = function (n, cls) { return '<div class="dx ' + (n ? cls : 'z') + '">' + n + '</div>'; };
+    // whole days in UTC: a local midnight turned into UTC fell a day back in Pakistan (+5) and the day loop never ended
+    var dAdd = function (d, n) { var t = new Date(d + 'T00:00:00Z'); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };
+    var from, to = D.today, pFrom, pTo;
+    if (PER === 'm') { from = D.today.slice(0, 8) + '01'; pTo = dAdd(from, -1); pFrom = pTo.slice(0, 8) + '01'; }
+    else { from = dAdd(D.today, -(PER - 1)); pTo = dAdd(from, -1); pFrom = dAdd(pTo, -(PER - 1)); }
+    var inR = function (f, t) { return D.days.filter(function (d) { return d.day >= f && d.day <= t; }); };
+    var days = inR(from, to), prev = inR(pFrom, pTo);
+    // the four numbers of a period (also for the period before, to compare)
+    var mOf = function (ds) {
+      var sm = function (k) { return ds.reduce(function (a, d) { return a + d[k]; }, 0); };
+      var hrs = [].concat.apply([], ds.map(function (d) { return d.replyH; })).sort(function (a, b) { return a - b; });
+      return { succ: sm('reFin') ? Math.round(sm('reDel') / sm('reFin') * 100) : null, reFin: sm('reFin'), reDel: sm('reDel'), ulta: sm('ulta'),
+        act: sm('actBase') ? Math.round(sm('acted') / sm('actBase') * 100) : null, med: hrs.length ? hrs[Math.floor(hrs.length / 2)] : null, n: sm('sent') };
+    };
+    var M = mOf(days), Pm = mOf(prev), hasPrev = Pm.n > 0;
+    var medTxt = function (h) { return h < 1 ? Math.max(1, Math.round(h * 60)) + ' min' : Math.round(h) + ' h'; };
+    // colour by meaning (user 2026-11-18): good green, watch amber, bad red; no colour when there is nothing to judge
+    var tone = function (v, good, ok, lowGood) { if (v == null) return ''; return lowGood ? (v <= good ? 'g' : v <= ok ? 'a' : 'r') : (v >= good ? 'g' : v >= ok ? 'a' : 'r'); };
+    var chg = function (v, p, unit, lowGood) {
+      if (!hasPrev || v == null || p == null || v === p) return hasPrev && v != null && p != null ? '<span class="cmp">same as before</span>' : '';
+      var up = v > p, good = lowGood ? !up : up, dd = Math.abs(v - p);
+      return '<span class="cmp ' + (good ? 'g' : 'r') + '">' + (up ? '▲ ' : '▼ ') + (unit === 'h' ? medTxt(dd) : dd + unit) + ' vs previous</span>';
+    };
+    var card = function (l, v, s, t, c) { return '<div class="pc ' + (t ? 't-' + t : '') + '"><div class="l">' + l + '</div><b>' + v + '</b><small>' + s + '</small>' + (c || '') + '</div>'; };
+    var cards = card('Reattempt Success Rate', M.succ == null ? 'No result yet' : M.succ + '%', M.succ == null ? 'no reattempt finished in this period' : M.reDel + ' of ' + M.reFin + ' reattempts delivered', tone(M.succ, 60, 40), chg(M.succ, Pm.succ, ' pts')) +
+      card('Returned (RTO)', M.ulta, M.ulta ? 'reattempt requested, shipment returned' : 'no reattempt was returned', M.ulta ? 'r' : (M.reFin ? 'g' : ''), chg(M.ulta, Pm.ulta, '', true)) +
+      card('24-Hour Action Rate', M.act == null ? 'No requests yet' : M.act + '%', 'a scan or a response within 24 h of the request', tone(M.act, 80, 50), chg(M.act, Pm.act, ' pts')) +
+      card('Median Response Time', M.med == null ? 'No responses yet' : medTxt(M.med), M.med == null ? 'answer a query to start' : 'half of all responses arrive within this', tone(M.med, 6, 24, true), chg(M.med, Pm.med, 'h', true));
+    // a small daily chart: delivered (green), returned (red), failed (amber), still open / other (grey) per request day
+    // every day of the period, also the empty ones, so the chart reads as a timeline
+    var byD = {}; days.forEach(function (d) { byD[d.day] = d; }), cdays = [];
+    for (var cd = from, guard = 0; cd <= to && guard < 62; cd = dAdd(cd, 1), guard++) cdays.push(byD[cd] || { day: cd, sent: 0, delivered: 0, ulta: 0, failed: 0 });
+    var maxN = Math.max.apply(null, days.map(function (d) { return d.sent; }).concat([1]));
+    var chart = days.length ? '<div class="box pchart"><div class="pch-h"><b>Requests by day</b><span><i class="g"></i>Delivered<i class="r"></i>Returned<i class="a"></i>Failed<i></i>Open / other</span></div><div class="pch">' +
+      cdays.map(function (d) {
+        var rest = Math.max(0, d.sent - d.delivered - d.ulta - d.failed), hp = function (n) { return (n / maxN * 100).toFixed(1) + '%'; };
+        return '<div class="pcol" data-pday="' + d.day + '" title="' + esc(dayName(d.day)) + ': ' + d.sent + ' requests · ' + d.delivered + ' delivered · ' + d.ulta + ' returned · ' + d.failed + ' failed"><div class="pst">' +
+          '<i style="height:' + hp(rest) + '"></i><i class="a" style="height:' + hp(d.failed) + '"></i><i class="r" style="height:' + hp(d.ulta) + '"></i><i class="g" style="height:' + hp(d.delivered) + '"></i></div><small>' + esc(d.day.slice(8)) + '</small></div>';
+      }).join('') + '</div></div>' : '';
+    var z = function (n, cls) { return '<div class="dx ' + (n ? cls : 'z') + '">' + (n || '–') + '</div>'; };
     var rows = days.map(function (d) {
       var fin = d.delivered + d.ulta + d.failed, p = fin ? Math.round(d.delivered / fin * 100) : null;
-      return '<div class="dtr" data-pday="' + d.day + '"><div>' + esc(dayName(d.day)) + '</div><div class="dx">' + d.sent + '</div><div class="dx">' + d.delivered + '</div>' +
-        z(d.ulta, 'bad') + z(d.failed, '') + z(d.noaction, 'warn') + '<div class="dx mute">' + d.open + '</div>' +
-        '<div class="dx"' + (p != null && p < 50 ? ' style="font-weight:700"' : ' style="font-weight:500"') + '>' + (p == null ? '—' : p + '%') + '</div><div class="dx" style="color:var(--faint)">›</div>' +
+      return '<div class="dtr" data-pday="' + d.day + '"><div class="dday" title="' + esc(dayName(d.day)) + '">' + esc(dayName(d.day)) + '</div><div class="dx">' + d.sent + '</div><div class="dx">' + (d.delivered || '–') + '</div>' +
+        z(d.ulta, 'bad') + z(d.failed, 'warn') + z(d.noaction, 'warn') + '<div class="dx mute">' + (d.open || '–') + '</div>' +
+        '<div class="dx drate">' + (p == null ? '<span class="mute">—</span>' : '<span class="rb"><i class="' + (p >= 60 ? 'g' : p >= 40 ? 'a' : 'r') + '" style="width:' + p + '%"></i></span>' + p + '%') + '</div><div class="dx" style="color:var(--faint)">›</div>' +
         '<div class="dm">' + d.sent + ' queries · ' + d.delivered + ' delivered' + (d.ulta ? ' · <b>' + d.ulta + ' returned (RTO)</b>' : '') + (d.noaction ? ' · ' + d.noaction + ' no action' : '') + '</div></div>';
     }).join('');
     var per = [[7, 'Last 7 days'], [30, 'Last 30 days'], ['m', 'This month']];
     $('wrap').innerHTML = '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><div class="seg">' + per.map(function (p) { return '<button data-per="' + p[0] + '" class="' + (String(PER) === String(p[0]) ? 'on' : '') + '">' + p[1] + '</button>'; }).join('') + '</div>' +
-      '<span style="font-size:13px;color:var(--muted)">by request date</span></div><div class="pcards">' + cards + '</div>' +
+      '<span style="font-size:13px;color:var(--muted)">by request date' + (hasPrev ? ' · compared with the ' + (PER === 'm' ? 'month' : PER + ' days') + ' before' : '') + '</span></div><div class="pcards">' + cards + '</div>' + chart +
       '<div class="box"><div class="dth"><div>Date</div><div>Requests</div><div>Delivered</div><div>Returned (RTO)</div><div>Reattempt Failed</div><div>No Action (24 h)</div><div>Open</div><div>Delivery Rate</div><div></div></div>' +
       (rows || '<div class="empty">No requests in this period.</div>') + '<div class="foot">Select a date to view its shipments under Resolved.</div></div>';
   }
