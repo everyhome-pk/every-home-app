@@ -3479,13 +3479,7 @@ function ndrCard(c, seen, inGroup) {
     (calls ? '<div class="nc-ln"><i class="ti ti-phone"></i><span>' + esc(calls) + '</span></div>' : '') + riskLine(p, 'nc-ln') +
     ndrSteps(c, slot) +
     (hint ? '<div class="nc-hint" style="color:' + hint[1] + '">' + esc(hint[0]) + '</div>' : '') +
-    (main || side.concat([ndrStatusBtn(c, slot)]).join('') ? '<div class="nc-act">' + main + side.concat([ndrStatusBtn(c, slot)]).join('') + '</div>' : '') + '</div>';
-}
-// a Status check on the courier's page from any NDR card (user 2026-11-18): "out for delivery yesterday, any update?" /
-// "customer says received, what is the status?" → the page's Status Inquiry table
-function ndrStatusBtn(c, slot) {
-  if (!can('ndr.work') || slot === 'check' || slot === 'closed' || !((N.data.couriers || {})[c.courier] || {}).page) return '';
-  return '<button class="btn sq" data-scheck="' + esc(c.cn) + '" aria-label="Status check" title="Status check · ask ' + esc(c.courier) + '"><i class="ti ti-zoom-question"></i></button>';
+    (main || side.join('') ? '<div class="nc-act">' + main + side.join('') + '</div>' : '') + '</div>';
 }
 // A closed case (user 2026-11-02: who, where, how much, what we did, and whether the parcel is back or still coming)
 function ndrClosedCard(x) {
@@ -4180,8 +4174,6 @@ el('nlist').onclick = function (e) {
   var fg = e.target.closest('[data-ngf]');
   if (fg) { var so = {}; try { so = JSON.parse(store('eh_ngo') || '{}'); } catch (x) {} so[fg.getAttribute('data-ngf')] = fg.getAttribute('data-ngo') === '1' ? 0 : 1; store('eh_ngo', JSON.stringify(so)); return renderNdr(); }
   var l = e.target.closest('[data-late]'); if (l) return askLate(l.getAttribute('data-late'));
-  var sc = e.target.closest('[data-scheck]');
-  if (sc) { var scn = sc.getAttribute('data-scheck'), cc = (N.data.cases || []).filter(function (x) { return x.cn === scn; })[0] || { cn: scn }; return openPageAsk({ cn: cc.cn, courier: cc.courier, city: cc.city }, 'check'); }
   var sr = e.target.closest('[data-stopret]'); if (sr) return askStopReturn(sr.getAttribute('data-stopret'));
   var ag = e.target.closest('[data-again]'); if (ag) return ndrSendAgain(ag.getAttribute('data-again'), ag.getAttribute('data-cn'));
   var rt = e.target.closest('[data-ret]'); if (rt) { openNdrForm(rt.getAttribute('data-ret')); var rb = el('fAns').querySelector('[data-a="refuse"]'); if (rb) rb.click(); return; }
@@ -4244,7 +4236,8 @@ var NDR_FLOW = [
   { k: 'deliver', out: /will receive|reattempt/i },
   { k: 'address', out: /address/i },
   { k: 'refuse', out: /refus|cancel/i },
-  { k: 'other', out: /will receive|reattempt/i }
+  { k: 'other', out: /will receive|reattempt/i },
+  { k: 'check', out: /already received/i }
 ];
 // "Call back at" choices (Pakistan time): in 1 hour, 5 PM / 8 PM while still ahead, tomorrow 11 AM → [label, ms]
 function callBackOpts() {
@@ -4277,11 +4270,13 @@ var NDR_ANS = [
   ['later', 'clock', 'Busy · call later', 'they gave a time', 'var(--amber)'],
   ['noans', 'phone-off', 'No answer / off', 'call again', 'var(--muted)'],
   ['refuse', 'ban', "Doesn't want it", 'ask to return', 'var(--red)'],
-  ['other', 'pencil', 'Other', 'own words', 'var(--muted)']
+  ['other', 'pencil', 'Other', 'own words', 'var(--muted)'],
+  // the customer says it came / asks where it is: a Status check on the courier's page (user 2026-11-18)
+  ['check', 'zoom-question', 'Status check', 'says received · ask the courier', 'var(--blue)']
 ];
 // words the agent can add with one tap (they go into "Your own words")
 var NDR_PHRASES = { deliver: ['Ghar pe hoga', 'Shaam ko ghar pe', 'Rider call kar ke aaye'], address: ['House #', 'Near mosque', 'Call before coming'],
-  later: ['Office time', 'Kal subah'], noans: ['Bell ja rahi hai', 'Busy tone'], refuse: ['Kisi aur se le liya', 'Paise nahi'], other: ['Rider call kar ke aaye', 'Gate peeche hai'] };
+  later: ['Office time', 'Kal subah'], noans: ['Bell ja rahi hai', 'Busy tone'], refuse: ['Kisi aur se le liya', 'Paise nahi'], other: ['Rider call kar ke aaye', 'Gate peeche hai'], check: ['Customer kehta hai mil gaya', 'POD share karein', 'Kal out for delivery tha'] };
 function ndrOwnWords(says) {
   var t = String(says || '').replace(/\s*Please reattempt again\.?\s*$/i, '').trim(), time = '';
   t = t.replace(/^Customer will receive the parcel[^.]*\.\s*/i, '').replace(/^Naya (pata aur phone|pata|phone) diya hai\.\s*/i, '');
@@ -4354,7 +4349,7 @@ function openNdrForm(cn) {
 
   var st = { ans: '', why: 'No answer', day: addDays(today, 1), time: '', reason: '', cb: '' };
   // Edit (user 2026-11-02): "Change request" / "Update case" opens the saved answer, words and date again; not a new call
-  var prevAns = !afterCall && c.says ? (/address/i.test(c.outcome) ? 'address' : /refus|cancel/i.test(c.outcome) ? 'refuse' : /will receive|reattempt/i.test(c.outcome) ? 'deliver' : '') : '';
+  var prevAns = !afterCall && c.says ? (/already received/i.test(c.outcome) ? 'check' : /address/i.test(c.outcome) ? 'address' : /refus|cancel/i.test(c.outcome) ? 'refuse' : /will receive|reattempt/i.test(c.outcome) ? 'deliver' : '') : '';
   var editing = !!prevAns;
   var on = function (box, v) { el(box).querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-v') === v); }); };
   on('fDay', st.day); on('fNoWhy', st.why);
@@ -4401,7 +4396,7 @@ function openNdrForm(cn) {
     el('fPhr').innerHTML = (NDR_PHRASES[st.ans] || []).map(function (w) { return '<button type="button" data-w="' + esc(w) + '">+ ' + esc(w) + '</button>'; }).join('');
     el('fErr').textContent = ''; draw();
   };
-  var want = function () { return { deliver: flow('deliver'), address: flow('address'), refuse: flow('refuse'), other: flow('other') }[st.ans] || null; };
+  var want = function () { return { deliver: flow('deliver'), address: flow('address'), refuse: flow('refuse'), other: flow('other'), check: flow('check') }[st.ans] || null; };
   var whenText = function () {
     if (!st.day) return st.time ? 'in the ' + st.time.toLowerCase() : '';
     var d = st.day === today ? 'today' : st.day === addDays(today, 1) ? 'tomorrow (' + niceDay(st.day) + ')' : 'on ' + niceDay(st.day);
@@ -4418,6 +4413,7 @@ function openNdrForm(cn) {
     if (w.k === 'deliver') m = 'Customer will receive the parcel' + (when ? ' ' + when : '') + '.';
     if (w.k === 'address') m = (newAddr() && el('fNewPhone').value.trim() ? 'Naya pata aur phone' : el('fNewPhone').value.trim() ? 'Naya phone' : 'Naya pata') + ' diya hai.';
     if (w.k === 'refuse') m = 'Customer does not want the parcel' + (st.reason ? ': ' + st.reason.toLowerCase() : '') + '. Please return the parcel to us.';
+    if (w.k === 'check') m = 'Customer kehta hai parcel mil gaya hai. Status confirm karein, POD share karein.';
     if (note && w.k !== 'refuse') m = note.replace(/[.\s]*$/, '.') + (st.time ? ' (' + st.time + ')' : '');
     else if (w.k === 'other') m = '';
     else if (note) m += ' ' + note.replace(/[.\s]*$/, '.');
@@ -4426,6 +4422,7 @@ function openNdrForm(cn) {
   // the lines the courier will get on WhatsApp (same builder as the courier list)
   var preview = function () {
     if (st.ans === 'refuse') return ['Mark for Return', c.cn];
+    if (st.ans === 'check') return ['Status Inquiry', c.cn + (c.city ? ' · ' + c.city : ''), message()];
     var it = { cn: c.cn, city: c.city, reattempt: st.ans === 'address' ? '' : st.day ? dayLong(st.day) : '', says: message(), newInfo: updated(), name: c.name, phone: c.phone };
     return obItem('reattempt', it, 0).replace(/\*/g, '').split('\n');
   };
@@ -4438,34 +4435,35 @@ function openNdrForm(cn) {
   el('fNextN').textContent = nx ? ' · ' + nx.ref + ' ' + String(nx.name || '').split(' ')[0] : ' · none left';
   el('fNext').disabled = !nx;
   var draw = function () {
-    var a = st.ans, send = a === 'deliver' || a === 'address' || a === 'other', w = want();
+    var a = st.ans, send = a === 'deliver' || a === 'address' || a === 'other', chk = a === 'check', w = want();
     el('fAns').querySelectorAll('.ac-t').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-a') === a); });
     el('dDeliver').hidden = a !== 'deliver' && a !== 'other'; el('dAddr').hidden = a !== 'address'; el('dLater').hidden = a !== 'later';
     el('dNo').hidden = a !== 'noans'; el('dWhy').hidden = a !== 'refuse'; el('dWords').hidden = !a;
     el('fNoteL').textContent = a === 'other' ? 'What should ' + cour + ' do?' : 'Your own words (optional)';
-    el('fWordsTo').textContent = send || a === 'refuse' ? 'sent to ' + cour : 'saved on the case';
-    el('fNote').placeholder = { deliver: 'e.g. Gate peeche hai, rider call kar ke aaye', address: 'e.g. Masjid ke saath wali gali', later: 'e.g. Office mein hai, 5 baje ke baad', noans: 'e.g. Bell ja rahi hai, uthaya nahi', refuse: 'e.g. Kisi aur se mangwa liya', other: 'Write it in your own words' }[a] || '';
+    el('fWordsTo').textContent = send || chk || a === 'refuse' ? 'sent to ' + cour : 'saved on the case';
+    el('fNote').placeholder = { deliver: 'e.g. Gate peeche hai, rider call kar ke aaye', address: 'e.g. Masjid ke saath wali gali', later: 'e.g. Office mein hai, 5 baje ke baad', noans: 'e.g. Bell ja rahi hai, uthaya nahi', refuse: 'e.g. Kisi aur se mangwa liya', other: 'Write it in your own words', check: 'e.g. Customer kehta hai 16 Nov ko mil gaya / kal out for delivery tha, kya update hai?' }[a] || '';
     el('fPrev').hidden = !a;
     if (a) {
-      var goes = send || a === 'refuse';
+      var goes = send || chk || a === 'refuse';
       el('fPrev').classList.toggle('none', !goes);
-      el('fPrevH').textContent = goes ? 'Message to ' + cour + ' (WhatsApp)' : 'Nothing goes to ' + cour;
+      el('fPrevH').textContent = goes ? (chk ? 'Goes to ' + cour + ' · Status Inquiry' : 'Message to ' + cour + ' (WhatsApp)') : 'Nothing goes to ' + cour;
       el('fPrevT').innerHTML = (goes ? preview() : [message() || '—']).map(function (l, i) { return '<div' + (i === 0 && goes ? ' class="b"' : '') + '>' + esc(l) + '</div>'; }).join('');
     }
     var go = el('fGo');
     go.disabled = !a; go.className = 'btn ' + (a === 'refuse' ? 'danger' : 'pri');
     go.innerHTML = !a ? 'Pick what happened' : send ? (hasReq ? '<i class="ti ti-refresh"></i>Update ' + esc(cour) + ' request' : '<i class="ti ti-send"></i>Add to ' + esc(cour) + ' list')
       : a === 'refuse' ? '<i class="ti ti-arrow-back-up"></i>Ask ' + esc(cour) + ' to return it'
+      : chk ? '<i class="ti ti-zoom-question"></i>Ask ' + esc(cour) + ' for the status'
       : a === 'later' ? '<i class="ti ti-clock"></i>Save · call at ' + (st.cb ? pkTime(Number(st.cb)) : '…')
       : '<i class="ti ti-phone"></i>Save · ' + (st.cb ? 'try at ' + pkTime(Number(st.cb)) : 'call again later');
-    el('fSaveOnly').hidden = !(send || a === 'refuse');
+    el('fSaveOnly').hidden = !(send || chk || a === 'refuse');
   };
   draw();
   if (editing) {
     el('fAns').querySelector('[data-a="' + prevAns + '"]').click();
     el('panel').querySelector('.ac-q').insertAdjacentHTML('beforebegin', '<div class="ac-just"><i class="ti ti-pencil"></i>Editing the saved answer · change what you need and save</div>');
   }
-  var save = function (send, ret) {
+  var save = function (send, ret, chkReq) {
     var a = st.ans, w = want(), msg = message();
     if (!a) { el('fErr').textContent = 'Pick what happened on the call'; return; }
     if (ret && a === 'noans') msg = calls + 1 + ' calls, no answer' + (st.why && !/no answer/i.test(st.why) ? ' (' + st.why.toLowerCase() + ')' : '') + '. Please return the parcel to us.';
@@ -4477,17 +4475,18 @@ function openNdrForm(cn) {
     // Optimistic: close and update the card now, save in the background.
     c.outcome = outcome; c.says = msg; c.callBack = cb; if (!editing) { c.calls = calls + 1; c.lastCall = 'just now'; c.lastCallMs = Date.now(); }
     if (send) { c.next = 'Escalate to courier'; if (!c.sent || c.sent === 'Not sent') c.sent = 'Queued'; }
+    if (chkReq) { c.next = 'Verify with courier'; if (!c.sent || c.sent === 'Not sent') c.sent = 'Queued'; }
     if (ret) { c.next = 'Let it return (RTO)'; if (!c.sent || c.sent === 'Not sent') c.sent = 'Queued'; }
     var goNext = el('fNext').checked && nx;
     store('eh_nextcall', el('fNext').checked ? '1' : '0');
     closePanel(); renderNdr(); updateBadge();
-    toast(send || ret ? 'Adding to ' + cour + ' list…' : 'Saving…');
+    toast(send || ret || chkReq ? 'Adding to ' + cour + ' list…' : 'Saving…');
     api('saveAppNdrOutcome', [{ token: TOKEN, cn: c.cn, outcome: outcome, next: '', updated: upd, reattempt: a === 'deliver' || a === 'other' ? st.day : '',
-      sent: c.sent || 'Not sent', notes: el('fNotes').value, says: msg, send: send, ret: !!ret, check: false, ask: '', call: !editing, callBack: cb }], function (r) {
+      sent: c.sent || 'Not sent', notes: el('fNotes').value, says: msg, send: send, ret: !!ret, check: !!chkReq, ask: '', call: !editing, callBack: cb }], function (r) {
       c.next = r.next; if (r.sent) c.sent = r.sent; snap('ndr', N.data);
       toast(r.returning ? cour + ' is already returning it · no request needed' :
         r.already ? 'Updated · the ' + (REQ_KIND[r.already.type] || '').toLowerCase() + ' request ' + (r.already.channel ? 'on the ' + cour + ' ' + shW(cour) + ' now says the new answer (marked Updated)' : 'in the ' + cour + ' list has the new answer') :
-        send || ret ? (pageOnly() ? 'Sent · on the ' + cour + ' page within 5 minutes' : 'Request created · in the ' + cour + ' list (not sent yet)') : cb ? 'Saved · call back at ' + pkTime(cb) + ' (reminder on the phone)' : 'Saved');
+        send || ret || chkReq ? (pageOnly() ? 'Sent · on the ' + cour + ' page within 5 minutes' : 'Request created · in the ' + cour + ' list (not sent yet)') : cb ? 'Saved · call back at ' + pkTime(cb) + ' (reminder on the phone)' : 'Saved');
       loadNdr(true);
     }, function (e) {
       Object.assign(c, JSON.parse(keep)); renderNdr(); updateBadge();
@@ -4495,7 +4494,7 @@ function openNdrForm(cn) {
     });
     if (goNext) setTimeout(function () { showNextBar(goNext); }, 350);
   };
-  el('fGo').onclick = function () { var a = st.ans; save(a === 'deliver' || a === 'address' || a === 'other', a === 'refuse'); };
+  el('fGo').onclick = function () { var a = st.ans; save(a === 'deliver' || a === 'address' || a === 'other', a === 'refuse', a === 'check'); };
   el('fSaveOnly').onclick = function () { save(false, false); };
   el('fRet').onclick = function () { save(false, true); };
 }
