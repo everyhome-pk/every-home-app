@@ -235,6 +235,61 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
 .cpy{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-left:4px;vertical-align:-5px;border:0;border-radius:5px;background:transparent;color:var(--faint);cursor:pointer;padding:0}
 .cpy:hover{color:var(--brand-d);background:var(--soft)}.tr:hover .cpy,.ulta-r:hover .cpy{color:var(--muted)}
 @media (hover:none){.cpy{color:var(--muted);width:28px;height:28px}}
+
+/* user 2026-11-18: short tables (Mark for Return, Delayed Return) side by side on a computer, the answer in the table,
+   a calm all-done block; tables a little more air */
+.qs{margin-bottom:20px}.qgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start;margin-bottom:20px}.qgrid .qs{margin:0;width:auto!important;min-width:0!important}
+@media (min-width:901px){.qgrid .qs .th,.qgrid .qs .tr{grid-template-columns:150px minmax(0,1fr) 70px auto!important}}
+.qs.k-retlate .c-ans{display:flex;gap:4px;justify-content:flex-end;padding-right:10px}.mk.q{min-width:0;padding:2px 8px;white-space:nowrap}
+.tr.ans{opacity:1;background:color-mix(in srgb,var(--ok) 6%,var(--card));box-shadow:inset 3px 0 0 var(--ok)}.tr.ans:hover{background:color-mix(in srgb,var(--ok) 10%,var(--card))}
+.c-rem.resp{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.c-rem.resp b{color:var(--ok);font-weight:600}.c-rem.resp small{color:var(--muted);font-size:11.5px}
+.rp.ed{background:transparent!important;color:var(--muted)!important;border-color:var(--line)!important}.tr:hover .rp.ed{color:var(--ink)!important;border-color:var(--ink2)!important}
+.rdiv{padding:5px 14px;font-size:11.5px;font-weight:600;color:var(--ok);background:var(--card);border-bottom:1px solid var(--line2);letter-spacing:.2px}
+.more-r{display:block;width:100%;border:0;background:transparent;color:var(--muted);font:500 12px Inter,sans-serif;padding:7px 14px;text-align:left;cursor:pointer}.more-r:hover{color:var(--ink)}
+.alldone{display:flex;gap:12px;align-items:center;background:color-mix(in srgb,var(--ok) 9%,var(--card));border:1px solid color-mix(in srgb,var(--ok) 30%,var(--line));border-radius:10px;padding:14px 16px;margin-bottom:14px}
+.alldone .ad-i{width:34px;height:34px;border-radius:50%;background:var(--ok);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex:none}
+.alldone b{display:block;font-size:15px;color:var(--ink)}.alldone span{font-size:12.5px;color:var(--muted)}
+@media (max-width:900px){.qgrid{grid-template-columns:1fr}.tr .c-rem.resp{display:block;grid-column:1/-1;grid-row:3;padding-top:2px;white-space:normal}.qs.k-retlate .c-ans{grid-column:1/-1;justify-content:flex-start;padding-left:12px}}
+
+/* WhatsApp-like reply chat (user 2026-11-18): a side panel on a computer (the table stays in view, only its key columns),
+   full screen on a phone */
+.mb.chatm{display:flex;flex-direction:column;min-height:0;flex:1;background:var(--chat,#EFEAE2)}
+.cpin{flex:none;display:flex;gap:8px;align-items:flex-start;padding:8px 14px;background:#FEF7E0;border-bottom:1px solid #F3E2AE;font-size:12.5px;color:#4A3A12;line-height:1.4}
+.cpin b{display:block;font-weight:600;color:#7A5A0B}.cpin span{display:block}.cpin .cpin-s{color:#6B5A2E}.cpin-i{font-size:13px;line-height:1.5}
+.cht{flex:1;min-height:0;overflow-y:auto;padding:10px 14px 12px;display:flex;flex-direction:column}
+.cday{align-self:center;margin:12px 0 4px;background:var(--card);color:var(--muted);font:600 11px Inter,sans-serif;border-radius:8px;padding:3px 10px;box-shadow:0 1px 1px rgba(15,23,42,.08)}
+.cb2{max-width:82%;padding:6px 10px 4px;border-radius:12px;font-size:13.5px;line-height:1.42;margin-top:8px;box-shadow:0 1px 1px rgba(15,23,42,.08);overflow-wrap:anywhere}
+.cb2.g{margin-top:2px}.cb2.l{align-self:flex-start;background:var(--card);border-top-left-radius:4px}.cb2.l.g{border-top-left-radius:12px}
+.cb2.r{align-self:flex-end;background:#D9FDD3;color:#10261A;border-top-right-radius:4px}.cb2.r.g{border-top-right-radius:12px}
+.cw{display:block;font:600 11.5px Inter,sans-serif;color:#0B6E64;margin-bottom:1px}.cb2.r .cw{color:#1F7A3E}
+.ct{display:block;text-align:right;font-size:10.5px;color:var(--muted);margin-top:1px}.cb2.r .ct{color:#4D7A5A}
+.cev{align-self:center;display:flex;gap:10px;align-items:baseline;max-width:92%;margin-top:8px;background:var(--card);border-radius:10px;padding:5px 10px;font-size:12px;color:var(--muted);box-shadow:0 1px 1px rgba(15,23,42,.06)}
+.cev b{font-weight:600;color:var(--ink2)}.cev small{font-size:10.5px;color:var(--faint);white-space:nowrap}.cev.bad b{color:#B91C1C}.cev.warn b{color:#B45309}.cev.ok b{color:var(--ok)}
+.cwait{align-self:center;margin-top:12px;font-size:12px;border-radius:99px;padding:4px 12px;background:var(--card);color:var(--muted)}.cwait.a{background:#FEF3C7;color:#92400E}.cwait.r{background:#FEE2E2;color:#991B1B}
+.ccomp{flex:none;background:var(--head);border-top:1px solid var(--line);padding:8px 10px 10px}.ccomp.over{background:var(--soft)}
+.cqr{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.cqr button{border:1px solid #9BD3C9;background:var(--card);color:#0B6E64;border-radius:99px;padding:5px 12px;font:500 12.5px Inter,sans-serif;cursor:pointer;line-height:1.2}
+.cqr button:hover{border-color:#0B6E64}.cqr button.on{background:#0B6E64;border-color:#0B6E64;color:#fff}
+.crow{display:flex;gap:8px;align-items:flex-end}.crow textarea{flex:1;margin:0;min-height:40px;max-height:120px;border-radius:20px;padding:10px 14px;resize:none;font:13.5px Inter,sans-serif;line-height:1.35;overflow-y:auto}
+.cic{width:40px;height:40px;flex:none;border:0;border-radius:50%;background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer}.cic:hover{background:var(--chip,rgba(0,0,0,.05));color:var(--ink)}
+.csend{width:42px;height:42px;flex:none;border:0;border-radius:50%;background:#00A884;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.15)}.csend:hover{background:#008069}
+.csend.busy{opacity:.6;pointer-events:none}.csend.busy svg{animation:cspin .8s linear infinite}@keyframes cspin{to{transform:rotate(360deg)}}
+.cmeta{margin-top:6px;font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:4px;flex-wrap:wrap}.cmeta b{color:var(--ink2);font-weight:600}.cmeta label{font-size:11.5px}
+.cmeta input{height:24px;width:140px;border:1px solid var(--line);border-radius:6px;padding:0 8px;font-size:12px;background:var(--card)}.cmeta .lnk{font-size:11.5px}
+.cdone{flex:none;padding:10px 14px;background:var(--head);border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .mb.chatm{--chat:#0B141A}:root:not([data-theme=light]) .cb2.r{background:#005C4B;color:#E9EDEF}:root:not([data-theme=light]) .cb2.r .cw{color:#7FE3B0}:root:not([data-theme=light]) .cb2.r .ct{color:#9FD8C3}
+:root:not([data-theme=light]) .cpin{background:#2A220F;border-color:#4A3A12;color:#F3E2AE}:root:not([data-theme=light]) .cpin b{color:#FBD34D}:root:not([data-theme=light]) .cpin .cpin-s{color:#E5D3A0}:root:not([data-theme=light]) .cw{color:#3FE0A8}:root:not([data-theme=light]) .cqr button{color:#3FE0A8;border-color:#1F5E55}}
+:root[data-theme=dark] .mb.chatm{--chat:#0B141A}:root[data-theme=dark] .cb2.r{background:#005C4B;color:#E9EDEF}:root[data-theme=dark] .cb2.r .cw{color:#7FE3B0}:root[data-theme=dark] .cb2.r .ct{color:#9FD8C3}
+:root[data-theme=dark] .cpin{background:#2A220F;border-color:#4A3A12;color:#F3E2AE}:root[data-theme=dark] .cpin b{color:#FBD34D}:root[data-theme=dark] .cpin .cpin-s{color:#E5D3A0}:root[data-theme=dark] .cw{color:#3FE0A8}:root[data-theme=dark] .cqr button{color:#3FE0A8;border-color:#1F5E55}
+@media (min-width:901px){
+  body.mdl-on{overflow:auto}.mdl-bg{display:none}
+  .mdl{left:auto;right:0;top:46px;bottom:0;transform:none;width:min(520px,42vw);max-height:none;height:auto;border-radius:0;border-left:1px solid var(--line);box-shadow:-10px 0 28px rgba(15,23,42,.12)}
+  body.mdl-on .wrap{margin-right:min(520px,42vw)}
+  body.mdl-on .qs .th .c-rem,body.mdl-on .qs .tr .c-rem,body.mdl-on .qs .th .c-now,body.mdl-on .qs .tr .c-now{display:none}
+  body.mdl-on .qs .th,body.mdl-on .qs .tr{grid-template-columns:150px minmax(0,1fr) 64px 92px}
+  body.mdl-on .qgrid{grid-template-columns:1fr}body.mdl-on .cards{flex-wrap:wrap}
+  body.mdl-on .fth>div:nth-child(3),body.mdl-on .ftr>div:nth-child(3),body.mdl-on .fth>div:nth-child(6),body.mdl-on .ftr>div:nth-child(6){display:none}
+  body.mdl-on .fth,body.mdl-on .ftr{grid-template-columns:140px 100px minmax(0,1fr) 150px}
+}
 </style>
 </head>
 <body>
@@ -304,7 +359,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   // Main list full width (user 2026-11-14): the reply opens in a wide pop-up; the list shows what helps decide without
   // opening: customer remarks, where the parcel is now, when it was sent. "Needs answer" hides answered lines; Mark for
   // Return lines can be ticked and answered together.
-  var ALL = ls('cp_all') === '1', BULK = {}, PEND = {}, SURE = false, SURE_T = 0, ORDER = [], KIND = '', FLASH = false;
+  var ALL = ls('cp_all') !== '0', BULK = {}, PEND = {}, PANS = {}, MORE = {}, SURE = false, SURE_T = 0, ORDER = [], KIND = '', FLASH = false;
   // the courier's last scan (user 2026-11-14: every line said "Attempt failed · date"): with its reason, how long ago, and
   // a red "no scan since our request" when nothing moved after we sent it
   function ago(ms) { var h = Math.floor((Date.now() - ms) / 3600000); return h < 1 ? 'just now' : h < 48 ? h + ' h ago' : Math.floor(h / 24) + ' days ago'; }
@@ -351,7 +406,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     var list = D.open.filter(function (x) { return match(x, Q, CITY); }).slice().sort(SORT === 'city'
       ? function (a, b) { return (a.city || 'zz').toLowerCase().localeCompare((b.city || 'zz').toLowerCase()) || b.hours - a.hours; }
       : function (a, b) { return (b.again ? 1 : 0) - (a.again ? 1 : 0) || b.hours - a.hours; }), body = '';
-    ORDER = [];
+    ORDER = []; var QS = [];
     var nSel = Object.keys(BULK).filter(function (id) { var x = find(id); return x && !answered(x); }).length;
     // reattempts the office returned anyway (user 2026-11-14), right under the Reattempt section, before the other kinds
     var ulta = !KIND || KIND === 'reattempt' ? ultaBlock() : '', placed = false;
@@ -360,24 +415,31 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       if (k.key !== 'reattempt' && k.key !== 'stop' && !placed) { body += ulta; placed = true; }
       var all = list.filter(function (x) { return x.kind === k.key; });
       if (!all.length) { if (KIND) body += '<section class="qs k-' + k.key + '"><div class="empty">No open ' + esc(k.label) + ' requests.</div></section>'; return; }
-      var todo = all.filter(function (x) { return !answered(x); }), did = all.filter(answered), shown = ALL ? todo.concat(did) : todo;
-      if (!shown.length && !ALL) { body += '<section class="qs k-' + k.key + '" id="sec_' + k.key + '"><div class="sh"><b>' + esc(k.label) + '</b><small>All ' + did.length + (k.key === 'return' ? ' marked' : ' responded') + ' ✓</small></div></section>'; return; }
+      var todo = all.filter(function (x) { return !answered(x); }), did = all.filter(answered), cap = MORE[k.key] ? did.length : 5, shown = ALL ? todo.concat(did.slice(0, cap)) : todo;
+      var put = function (h) { if (quick(k.key)) { if (!QS.length) body += '%%QUICK%%'; QS.push(h); } else body += h; };
+      if (!shown.length && !ALL) { put('<section class="qs k-' + k.key + '" id="sec_' + k.key + '"><div class="sh"><b>' + esc(k.label) + '</b><small>All ' + did.length + (k.key === 'return' ? ' marked' : ' responded') + ' ✓</small></div></section>'); return; }
       var bulk = k.key === 'return' && todo.filter(function (x) { return !PEND[x.id]; }).length > 1;
-      body += '<section class="qs k-' + k.key + '" id="sec_' + k.key + '"><div class="sh"><b>' + esc(k.label) + '</b><small>' +
+      var sec = '<section class="qs k-' + k.key + '" id="sec_' + k.key + '"><div class="sh"><b>' + esc(k.label) + '</b><small>' +
         (todo.length ? todo.length + ' pending' + (did.length ? ' · ' + did.length + (k.key === 'return' ? ' marked' : ' responded') : '') : 'All ' + (k.key === 'return' ? 'marked' : 'responded') + ' ✓') + '</small>' +
         (bulk ? '<span class="bulk"><button class="btn pri sm" data-markall="1">' + (SURE ? 'Sure? Mark ' + todo.filter(function (x) { return !PEND[x.id]; }).length : 'Mark all (' + todo.filter(function (x) { return !PEND[x.id]; }).length + ')') + '</button></span>' : '') + '</div>';
-      shown.forEach(function (x) { if (x.kind !== 'return') ORDER.push(x.id); });
-      body += (k.key === 'claim' ? TH.replace('Customer Remarks', 'Claim') : k.key === 'return' ? '<div class="th"><div>Tracking ID</div><div>City</div><div>Ageing</div><div></div></div>' : TH) + shown.map(function (x) { return row(x); }).join('') + '</section>';
+      shown.forEach(function (x) { if (!quick(x.kind)) ORDER.push(x.id); });
+      var rows = shown.map(function (x, i) { return (i === todo.length && did.length && ALL ? '<div class="rdiv">Responded · ' + did.length + '</div>' : '') + row(x); }).join('') +
+        (ALL && did.length > cap ? '<button class="more-r" data-moreans="' + k.key + '">Show ' + (did.length - cap) + ' more responded</button>' : '');
+      put(sec + (k.key === 'claim' ? TH.replace('Customer Remarks', 'Claim') : quick(k.key) ? '<div class="th"><div>Tracking ID</div><div>City</div><div>Ageing</div><div></div></div>' : TH) + rows + '</section>');
     });
     if (!placed) body += ulta;
+    body = body.replace('%%QUICK%%', QS.length ? '<div class="qgrid">' + QS.join('') + '</div>' : '');
     // one bar that starts the work (user 2026-11-18: Respond should stand out): n waiting · Start → the first one, then Save & next
     var waitIds = ORDER.filter(function (id) { var x = find(id); return x && !answered(x); });
-    var start = waitIds.length ? '<div class="start"><div><b>' + waitIds.length + ' ' + (waitIds.length === 1 ? 'query needs' : 'queries need') + ' your response</b><br><span>Oldest first · Save & next takes you to the next one</span></div><button class="btn pri" data-open="' + esc(waitIds[0]) + '" data-reply="1">Start responding</button></div>' : '';
-    var html = start + (cards ? '<div class="cards">' + cards + '</div>' : '') + '<div class="box qtools"><div class="tools"><input id="q" type="search" placeholder="Search tracking ID" value="' + esc(Q) + '"><select id="city">' + cityOpts(D.open, CITY) + '</select>' +
+    var start = waitIds.length ? '<div class="start"><div><b>' + waitIds.length + ' ' + (waitIds.length === 1 ? 'query needs' : 'queries need') + ' your response</b><br><span>Oldest first · after you send, the next one opens</span></div><button class="btn pri" data-open="' + esc(waitIds[0]) + '" data-reply="1">Start responding</button></div>' : '';
+    // everything answered (user 2026-11-18): one calm green block instead of an empty page; the answered lines stay below
+    var leftAll = D.open.filter(function (x) { return !answered(x) && !PEND[x.id]; }).length;
+    var done = D.open.length && !leftAll ? '<div class="alldone"><div class="ad-i">✓</div><div><b>All queries answered</b><span>You responded to all ' + D.open.length + ' open quer' + (D.open.length > 1 ? 'ies' : 'y') + ' · new ones appear here by themselves (checked every 2 minutes) · Thank you</span></div></div>' : '';
+    var html = done + start + (cards ? '<div class="cards">' + cards + '</div>' : '') + '<div class="box qtools"><div class="tools"><input id="q" type="search" placeholder="Search tracking ID" value="' + esc(Q) + '"><select id="city">' + cityOpts(D.open, CITY) + '</select>' +
       '<select id="sort" aria-label="Sort"><option value="old"' + (SORT === 'old' ? ' selected' : '') + '>Oldest first</option><option value="city"' + (SORT === 'city' ? ' selected' : '') + '>City A–Z</option></select>' +
       '<div class="fl"><button class="' + (ALL ? '' : 'on') + '" data-all="0">Awaiting Response</button><button class="' + (ALL ? 'on' : '') + '" data-all="1">All</button></div>' +
       (KIND ? '<button class="kchip" data-jump="' + KIND + '">Filter: ' + esc(kindOf(KIND).label) + ' <span aria-hidden="true">✕</span></button>' : '') + '</div></div>' +
-      (body || '<section class="qs"><div class="empty">' + (D.open.length ? 'Nothing matches the search.' : 'All queries resolved. Thank you!') + '</div></section>') + popup(true);
+      (body || (D.open.length ? '<section class="qs"><div class="empty">Nothing matches the search.</div></section>' : '<div class="alldone"><div class="ad-i">✓</div><div><b>No open queries</b><span>Every request from ' + esc(D.store) + ' is resolved · new ones appear here by themselves (checked every 2 minutes) · Thank you</span></div></div>')) + popup(true);
     $('wrap').innerHTML = html; wireQ();
     if (FLASH) { FLASH = false; var box = document.querySelector('.qs'); if (box) { box.scrollIntoView({ behavior: 'smooth', block: 'start' }); var first = box.querySelector('.tr'); if (first) { first.classList.add('flash'); setTimeout(function () { first.classList.remove('flash'); }, 1400); } } }
   }
@@ -403,27 +465,35 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     return '<section class="qs k-ulta"><div class="sh"><b>Returned Despite Reattempt Request · ' + recent.length + ' since yesterday</b><small>Reattempt was requested; the branch returned the shipment · older ones are under Resolved</small></div>' +
       '<div class="ulta-th"><div>Tracking ID</div><div>City</div><div>Your Team&rsquo;s Response</div><div>Branch Action</div></div>' + recent.map(line).join('') + '</section>';
   }
-  // Mark for Return (user 2026-11-14): one tap "Mark" (no answer window), Undo for 10 s before it is sent
+  // one-tap kinds (no answer window), Undo for 10 s before it is sent: Mark for Return (user 2026-11-14) and Delayed Return
+  // (user 2026-11-18: the same short table, three answers as buttons)
+  var QUICK = { return: [0], retlate: [0, 1, 2] };
+  var QLBL = { 'Return mark kar diya': 'Marked', 'Return raste mein hai': 'In transit', 'Return deliver ho gaya': 'Delivered back', 'Parcel nahi mil raha': 'Not found' };
+  function quick(k) { return !!QUICK[k]; }
   function markCell(x) {
-    if (PEND[x.id]) return '<span class="done-a">✓ Marked</span> <button class="undo" data-undo="' + esc(x.id) + '">Undo</button>';
-    if (answered(x)) return '<span class="done-a">✓ Marked' + (x.at ? ' <small>· ' + esc(String(x.at).replace(/^.*,\s*/, '')) + '</small>' : '') + '</span>';
-    return '<button class="mk" data-mark="' + esc(x.id) + '">Mark</button>';
+    var lbl = function (a) { return QLBL[a] || a || 'Responded'; };
+    if (PEND[x.id]) return '<span class="done-a">✓ ' + esc(lbl(PANS[x.id])) + '</span> <button class="undo" data-undo="' + esc(x.id) + '">Undo</button>';
+    if (answered(x)) return '<span class="done-a">✓ ' + esc(lbl(x.status)) + (x.at ? ' <small>· ' + esc(String(x.at).replace(/^.*,\s*/, '')) + '</small>' : '') + '</span>';
+    var ans = kindOf(x.kind).answers;
+    return QUICK[x.kind].map(function (i) { return '<button class="mk' + (x.kind === 'return' ? '' : ' q') + '" data-mark="' + esc(x.id) + '" data-mi="' + i + '">' + esc(x.kind === 'return' ? 'Mark' : lbl(ans[i])) + '</button>'; }).join('');
   }
   // a small copy icon beside every tracking ID (user 2026-11-18: Mark for Return has no pop-up, so its ID could not be copied);
   // it copies only, never opens the line
   function cpyBtn(cn) { return '<button class="cpy" type="button" data-copy="' + esc(cn) + '" aria-label="Copy tracking ID" title="Copy tracking ID"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg></button>'; }
   function row(x) {
-    var nw = nowOf(x), ret = x.kind === 'return';
+    var nw = nowOf(x), ret = quick(x.kind), an = answered(x);
     return '<div class="tr' + (x.id === SEL ? ' sel' : '') + (answered(x) || PEND[x.id] ? ' ans' : '') + (ret ? ' nomodal' : '') + '"' + (ret ? '' : ' data-open="' + esc(x.id) + '"') + '>' +
       '<div class="cn">' + esc(x.cn) + cpyBtn(x.cn) +
         // reminder / revised on a small grey line under the ID (user 2026-11-15: tags beside it were heavy and got cut)
         ((x.again || (x.updated && !answered(x))) ? '<span class="ctags">' + [x.again ? '<span class="' + (/^([3-9]|[1-9][0-9])/.test(x.again) ? 'hot' : '') + '">' + esc(x.again) + '</span>' : '', x.updated && !answered(x) ? '<span class="rv">Revised</span>' : ''].filter(Boolean).join(' · ') + '</span>' : '') +
         '<span class="mcity">' + esc(x.city) + '</span></div>' +
       '<div class="city c-city" title="' + esc(x.city) + '">' + esc(x.city) + '</div>' +
-      (ret ? '' : '<div class="c-rem" title="' + esc([x.note, x.says].filter(Boolean).join(' · ')) + '">' + (x.note ? '<b>' + esc(x.note) + '</b>' + (x.says ? ' · ' : '') : '') + esc(x.says) + '</div>' +
+      (ret ? '' : (an ? '<div class="c-rem resp" title="' + esc([x.status, x.reply].filter(Boolean).join(' – ')) + '"><b>✓ ' + esc(x.status || 'Responded') + '</b>' + (x.reply ? ' – ' + esc(x.reply) : '') +
+          ' <small>' + esc([x.by, String(x.at || '').replace(/^.*,\s*/, '')].filter(Boolean).join(' · ')) + '</small></div>'
+        : '<div class="c-rem" title="' + esc([x.note, x.says].filter(Boolean).join(' · ')) + '">' + (x.note ? '<b>' + esc(x.note) + '</b>' + (x.says ? ' · ' : '') : '') + esc(x.says) + '</div>') +
       '<div class="c-now" title="' + (nw ? esc(nw[0] + ' · ' + nw[1]) + (nw[2] ? ' · no update since our request' : '') : '') + '">' + (nw ? esc(attTxt(x, nw[3])) + ' <small>· ' + esc(nw[1]) + '</small>' : '') + '</div>') +
       '<div class="c-pend"><span class="pend' + (answered(x) ? '' : pendCls(x.hours, x.kind)) + '">' + pendTxt(x.hours) + '</span></div>' +
-      '<div class="c-ans">' + (ret ? markCell(x) : answered(x) ? '<span class="done-a">✓ ' + esc(x.status || 'Responded') + '</span>' : '<span class="rp" data-reply="' + esc(x.id) + '">Respond</span>') + '</div></div>';
+      '<div class="c-ans">' + (ret ? markCell(x) : an ? '<span class="rp ed" data-reply="' + esc(x.id) + '">Edit</span>' : '<span class="rp" data-reply="' + esc(x.id) + '">Respond</span>') + '</div></div>';
   }
   function timeline(h) {
     if (!h || !h.length) return '';
@@ -434,6 +504,40 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       return '<div class="tl"><div class="rail"><div class="d tk-' + k + '"></div>' + (i < h.length - 1 ? '<div class="ln"></div>' : '') + '</div><div class="c">' +
         (e.who ? '<span class="w-' + k + '">' + esc(e.who) + '</span> ' : '') + esc(e.what) + ' <small>' + esc(e.when) + '</small></div></div>';
     }).join('') + '</div>';
+  }
+  // one chat line per history step: their team right, the store left, the rest centre cards; day chips; the answer just
+  // saved shows at once; a line at the end says whose turn it is
+  var NAMEED = false;
+  function chatBody(x, isOpen) {
+    var h = '', day = '', prev = '', pk = function (ms) { return new Date(ms).toLocaleDateString('en-CA', { timeZone: 'Asia/Karachi' }); };
+    var yest = (function () { var t = new Date(D.today + 'T12:00:00'); t.setDate(t.getDate() - 1); return t.toISOString().slice(0, 10); })();
+    var tm = function (e) { return String(e.when || '').replace(/^.*,\s*/, ''); };
+    var list = (x.history || []).slice(), lastYou = -1, lastUs = -1;
+    list.forEach(function (e, i) { if (e.k === 'you') lastYou = i; if (e.k === 'us') lastUs = i; });
+    // the answer saved on this page just now (the history comes with the next refresh)
+    if ((x.status || x.reply) && lastYou < lastUs) list.push({ k: 'you', who: (x.by || D.courier) + ':', what: [x.status, x.reply].filter(Boolean).join(' · '),
+      ms: isOpen ? Date.now() : 0, when: String(x.at || '') });
+    if (!list.length) return '<div class="cev">No history yet</div>';
+    list.forEach(function (e, i) {
+      var d = e.ms ? pk(e.ms) : day;
+      if (d && d !== day) { day = d; prev = ''; h += '<div class="cday">' + (d === D.today ? 'Today' : d === yest ? 'Yesterday' : esc(dayName(d))) + '</div>'; }
+      var who = String(e.who || '').replace(/:\s*$/, '');
+      if (e.k === 'you' || e.k === 'us') {
+        var side = e.k === 'you' ? 'r' : 'l', g = prev === side + who;
+        var txt = String(e.what || '').replace(/^"|"$/g, '');
+        h += '<div class="cb2 ' + side + (g ? ' g' : '') + '">' + (g ? '' : '<span class="cw">' + esc(e.k === 'you' ? (who === D.courier ? D.courier + ' Team' : D.courier + ' · ' + who) : D.store) + '</span>') +
+          esc(txt) + '<span class="ct">' + esc(tm(e)) + (e.k === 'you' ? ' ✓' : '') + '</span></div>';
+        prev = side + who;
+      } else {
+        var bad = e.k === 'noact' || e.k === 'ret', warn = e.k === 'bad';
+        var what = String(e.what || ''), m = what.match(/^([^·]+)(·.*)?$/);
+        h += '<div class="cev' + (bad ? ' bad' : warn ? ' warn' : e.k === 'ok' ? ' ok' : '') + '"><span><b>' + esc((m ? m[1] : what).trim()) + '</b>' + (m && m[2] ? ' ' + esc(m[2]) : '') + '</span><small>' + esc(tm(e)) + '</small></div>';
+        prev = '';
+      }
+    });
+    if (isOpen && x.reopen) h += '<div class="cwait a">Revised by ' + esc(D.store) + ' after your answer · please answer again</div>';
+    else if (isOpen && !answered(x)) h += '<div class="cwait' + pendCls(x.hours, x.kind) + '">Waiting for your response · ' + esc(pendTxt(x.hours)) + '</div>';
+    return h;
   }
   // the reply pop-up: wide, two sides (the parcel's story | the answer); ↑ ↓ move, Esc closes; on a phone it fills the screen
   function popup(editable) {
@@ -453,23 +557,25 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       (x.again ? '<span class="hc r">' + esc(x.again) + '</span>' : '') +
       (isOpen ? (answered(x) ? '<span class="hc ok">✓ Responded</span>' : '<span class="hc' + (wait ? ' ' + wait : '') + '">Waiting ' + esc(pendTxt(x.hours)) + '</span>')
         : '<span class="hc ' + resCls(x.cat) + '">' + esc(x.result) + '</span>') +
-      '</div></div><div class="mb' + (isOpen ? '' : ' one') + '"><div class="ml">';
-    if (x.says || x.ask) h += '<div class="two">' + (x.says ? '<div class="blk blk-rem"><div class="lb">' + (x.kind === 'claim' ? 'Claim' : x.kind === 'return' ? 'Return Reason' : 'Customer Remarks') + '</div><div class="tx">' + esc(x.says) + '</div></div>' : '') +
-      (x.ask ? '<div class="blk blk-req"><div class="lb">Store Request</div><div class="tx">' + esc(x.ask) + '</div></div>' : '') + '</div>';
-    h += timeline(x.history) + '</div>';
+      '</div></div><div class="mb chatm">';
+    // WhatsApp-like chat (user 2026-11-18, after the NDR chat): the courier's team on the right (it is their page), the
+    // store on the left, tracking as small centre cards; the store's current request pinned on top; quick replies, a
+    // message box, photo and Send at the bottom. Send opens the next query (the queue keeps moving).
+    if (x.ask || x.says) h += '<div class="cpin"><span class="cpin-i" aria-hidden="true">📌</span><div><b>' + esc(D.store) + (x.kind === 'claim' ? ' · Claim' : ' · Request') + '</b>' +
+      (x.ask ? '<span>' + esc(x.ask) + '</span>' : '') + (x.says ? '<span class="cpin-s">' + (x.kind === 'claim' ? '' : x.kind === 'return' ? 'Reason: ' : 'Customer: ') + esc(x.says) + '</span>' : '') + '</div></div>';
+    h += '<div class="cht" id="cht">' + chatBody(x, isOpen) + '</div>';
     if (isOpen) {
-      h += '<div class="mr">';
-      if (x.reopen) h += '<div class="ro" style="color:var(--ink2)"><b>Revised ' + esc(x.updated) + '</b> · the customer told ' + esc(D.store) + ' something new after your last answer (' + esc([x.status, x.reply].filter(Boolean).join(' · ')) + '). Please answer again.</div>';
-      if (answered(x)) h += '<div class="now"><b>' + esc(x.status || 'Response') + '</b>' + (x.reply ? ' · ' + esc(x.reply) : '') + '<small>' + esc([x.by, x.at].filter(Boolean).join(' · ')) + (x.photos ? ' · ' + x.photos + ' photo' + (x.photos > 1 ? 's' : '') : '') + '</small></div>';
-      h += '<div id="ansBox"><div class="lb">' + (answered(x) ? 'Update Response' : 'Select a Response') + '</div><div class="ag">' + k.answers.map(function (a) {
-        return '<button class="' + (a === pick ? 'on' : '') + '" data-ans="' + esc(a) + '">' + esc(a) + '</button>'; }).join('') + '</div>' +
-        '<textarea id="words" maxlength="500" placeholder="Or type a response (Roman Urdu is fine)">' + esc(PICK['w' + x.id] != null ? PICK['w' + x.id] : x.reply) + '</textarea></div>' +
-        '<div class="sp"></div><div class="pn"><label for="who">Agent Name</label><input id="who" maxlength="40" placeholder="optional" value="' + esc(ls(NK)) + '"></div>' +
-        '<div class="drop" id="drop">' + (x.photos ? '<b>✓ ' + x.photos + ' proof photo' + (x.photos > 1 ? 's' : '') + '</b> · ' : '') + 'Proof: <button class="lnk" id="photo">choose a photo</button>' +
-          (navigator.clipboard && navigator.clipboard.read ? ' · <button class="lnk" id="pastePf">paste screenshot</button>' : '') + '<small>or press Ctrl+V · or drop the file here</small></div>' +
-        '<div class="pf"><button class="btn pri" id="save" style="flex:1">Save &amp; Next</button></div></div>';
-    } else h += '';
-    h += '</div>' + (isOpen ? '' : '<div class="ro mro">Resolved queries are read-only. If ' + esc(D.store) + ' sends one again, it returns to Open with this history.</div>') + '</div>';
+      var w0 = PICK['w' + x.id] != null ? PICK['w' + x.id] : (answered(x) ? x.reply : '') || '', me = ls(NK);
+      h += '<div class="ccomp" id="drop">' +
+        '<div class="cqr">' + k.answers.map(function (a) { return '<button class="' + (a === pick ? 'on' : '') + '" data-ans="' + esc(a) + '">' + esc(a) + '</button>'; }).join('') + '</div>' +
+        '<div class="crow"><button class="cic" id="photo" aria-label="Add a proof photo" title="Proof photo (or Ctrl+V / drop a screenshot)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 11.1l-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg></button>' +
+        '<textarea id="words" rows="1" maxlength="500" placeholder="' + (pick ? esc(pick) + ' · add details (optional)' : 'Type a response…') + '">' + esc(w0) + '</textarea>' +
+        '<button class="csend" id="save" aria-label="Send" title="Send (Enter)"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4l17.5-7.5a1 1 0 0 0 0-1.8L3.4 3.6a1 1 0 0 0-1.4 1.1L4 11l9 1-9 1-2 6.3a1 1 0 0 0 1.4 1.1z"/></svg></button></div>' +
+        '<div class="cmeta">' + (x.photos ? '<b>✓ ' + x.photos + ' proof photo' + (x.photos > 1 ? 's' : '') + '</b> · ' : '') +
+          (me && !NAMEED ? 'Sending as <b>' + esc(me) + '</b> · <button class="lnk" id="nmEd">change</button>' : '<label for="who">Your name</label> <input id="who" maxlength="40" placeholder="optional" value="' + esc(me) + '">') +
+          (navigator.clipboard && navigator.clipboard.read ? ' · <button class="lnk" id="pastePf">paste screenshot</button>' : '') + '</div></div>';
+    } else h += '<div class="cdone"><span class="hc ' + resCls(x.cat) + '">' + esc(x.result) + '</span> Resolved · read only. If ' + esc(D.store) + ' sends it again, it comes back to Open with this chat.</div>';
+    h += '</div></div>';
     return h;
   }
   function wireQ() {
@@ -477,7 +583,14 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     if ($('city')) $('city').onchange = function () { CITY = this.value; renderQ(); };
     if ($('sort')) $('sort').onchange = function () { SORT = this.value; ls('cp_sort', SORT); renderQ(); };
     if ($('who')) $('who').onchange = function () { ls(NK, this.value.trim()); };
-    if ($('words')) { $('words').oninput = function () { PICK['w' + SEL] = this.value; }; if (FOCUS) { $('words').focus(); FOCUS = false; } }
+    if ($('words')) {
+      var wd = $('words'), grow = function () { wd.style.height = 'auto'; wd.style.height = Math.min(wd.scrollHeight, 120) + 'px'; };
+      wd.oninput = function () { PICK['w' + SEL] = this.value; grow(); }; grow();
+      wd.onkeydown = function (e) { if (e.key === 'Enter' && !e.shiftKey && window.matchMedia('(min-width:901px)').matches) { e.preventDefault(); save(); } };
+      if (FOCUS) { wd.focus(); FOCUS = false; }
+    }
+    if ($('cht')) $('cht').scrollTop = $('cht').scrollHeight;
+    if ($('nmEd')) $('nmEd').onclick = function () { NAMEED = true; renderQ(); if ($('who')) $('who').focus(); };
     if ($('save')) $('save').onclick = save;
     if ($('photo')) $('photo').onclick = function () { $('cam').value = ''; $('cam').click(); };
     if ($('pastePf')) $('pastePf').onclick = function () {
@@ -498,23 +611,23 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   }
   function save() {
     var x = find(SEL); if (!x) return;
-    var st = PICK[x.id] != null ? PICK[x.id] : x.status, w = ($('words').value || '').trim(), who = ($('who').value || '').trim();
+    var st = PICK[x.id] != null ? PICK[x.id] : x.status, w = ($('words').value || '').trim(), who = ($('who') ? $('who').value : ls(NK) || '').trim();
     if (!st && !w) { toast('Tap an answer or write one'); return; }
     ls(NK, who);
-    var b = $('save'); b.disabled = true; b.textContent = 'Saving…';
+    var b = $('save'); b.disabled = true; b.classList.add('busy'); NAMEED = false;
     post('appCpReply', [C, V, S, x.id, st || '', w, who], function (r) {
       x.status = st || ''; x.reply = w; x.by = who || D.courier; x.at = r.at; x.reopen = false; delete PICK[x.id]; delete PICK['w' + x.id];
       toast('Saved · ' + D.store + ' can see it now'); SEL = nextOpen(x.id); render();
-    }, function (m) { b.disabled = false; b.textContent = 'Save & next'; toast(m); });
+    }, function (m) { b.disabled = false; b.classList.remove('busy'); toast(m); });
   }
   function sendMark(id) {
-    var ans = kindOf('return').answers[0], who = ls(NK);
+    var x0 = find(id), ans = PANS[id] || kindOf((x0 && x0.kind) || 'return').answers[0], who = ls(NK);
     clearTimeout(PEND[id]);
-    post('appCpReply', [C, V, S, id, ans, '', who], function (r) { delete PEND[id]; var x = find(id); if (x) { x.status = ans; x.by = who || D.courier; x.at = r.at; } renderQ(); },
+    post('appCpReply', [C, V, S, id, ans, '', who], function (r) { delete PEND[id]; delete PANS[id]; var x = find(id); if (x) { x.status = ans; x.by = who || D.courier; x.at = r.at; } renderQ(); },
       function (m) { delete PEND[id]; renderQ(); toast('Not saved: ' + m); });
   }
-  function mark(ids) {
-    ids.forEach(function (id) { if (!PEND[id]) PEND[id] = setTimeout(function () { sendMark(id); }, 10000); });
+  function mark(ids, ans) {
+    ids.forEach(function (id) { if (!PEND[id]) { if (ans) PANS[id] = ans; PEND[id] = setTimeout(function () { sendMark(id); }, 10000); } });
     renderQ(); toast(ids.length > 1 ? ids.length + ' marked · Undo on each line for 10 s' : 'Marked · Undo for 10 s');
   }
   // closing or leaving the page sends what waits for its 10 s at once
@@ -634,8 +747,9 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     else if (t.dataset.ulta) { ls('cp_ulta', ls('cp_ulta') === '1' ? '0' : '1'); renderQ(); }
     else if (t.dataset.all) { ALL = t.dataset.all === '1'; ls('cp_all', ALL ? '1' : '0'); renderQ(); }
     else if (t.dataset.bulkgo) bulkGo(t);
-    else if (t.dataset.mark) mark([t.dataset.mark]);
-    else if (t.dataset.undo) { clearTimeout(PEND[t.dataset.undo]); delete PEND[t.dataset.undo]; renderQ(); toast('Undone'); }
+    else if (t.dataset.mark) { var mx = find(t.dataset.mark); mark([t.dataset.mark], mx ? kindOf(mx.kind).answers[Number(t.dataset.mi) || 0] : ''); }
+    else if (t.dataset.undo) { clearTimeout(PEND[t.dataset.undo]); delete PEND[t.dataset.undo]; delete PANS[t.dataset.undo]; renderQ(); toast('Undone'); }
+    else if (t.dataset.moreans) { MORE[t.dataset.moreans] = 1; renderQ(); }
     else if (t.dataset.markall) {
       var ids = D.open.filter(function (x) { return x.kind === 'return' && !answered(x) && !PEND[x.id] && match(x, Q, CITY); }).map(function (x) { return x.id; });
       if (!SURE) { SURE = true; clearTimeout(SURE_T); SURE_T = setTimeout(function () { SURE = false; renderQ(); }, 4000); renderQ(); }

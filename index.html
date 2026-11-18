@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+<base target="_top">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#00857A">
@@ -10,12 +11,14 @@
 <style>
 :root{
   --bg:#F5F6F8;--card:#FFFFFF;--text:#0F172A;--muted:#64748B;--box-ink:#334155;--talk:#EEF1F5;--talk-line:#DDE3EA;--talk-label:#475569;--talk-cust:#00695F;--faint:#94A3B8;--line:#E8ECF1;
+  --cu:#DDF3EE;--cu-ink:#08423C;--cu-meta:#0B6E64;--cc:#FFFFFF;--cc-line:#E2E8F0;--chat-bg:#EEF1F4;
   --shadow:0 1px 2px rgba(15,23,42,.04),0 6px 20px rgba(15,23,42,.05);
   --green:#15803D;--green-bg:#ECFDF3;--red:#C2410C;--red-bg:#FFF4ED;--amber:#B45309;--amber-bg:#FFFBEB;--blue:#1D4ED8;--blue-bg:#EFF4FF;
   --brand:#00857A;--brand-ink:#FFFFFF;--hero:#0B3D3A;--hero-2:#12524D;--accent:#3FE0A8;
 }
 [data-mode="dark"]{
   --bg:#0A0F1A;--card:#121A2A;--text:#E6EAF0;--muted:#94A3B8;--box-ink:#CBD5E1;--talk:#1A2434;--talk-line:#2A3648;--talk-label:#94A3B8;--talk-cust:#3FE0A8;--faint:#64748B;--line:#1F2A3C;
+  --cu:#0E3B37;--cu-ink:#DDF3EE;--cu-meta:#7FD8C6;--cc:#1A2434;--cc-line:#263247;--chat-bg:#0E1522;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
   --green:#4ADE80;--green-bg:#0F2A1C;--red:#FB923C;--red-bg:#2A170D;--amber:#FBBF24;--amber-bg:#2A2108;--blue:#93B4FF;--blue-bg:#13203D;
 }
@@ -720,6 +723,25 @@ body.locked{overflow:hidden;overscroll-behavior:none}
 /* P&L contribution subtotals */
 .pl-cm{background:var(--bg)}.pl-cm .prow-2 span{font-size:11.5px}
 /* case history (parcel page) */
+.ch-wrap{background:var(--chat-bg);border-radius:14px;padding:10px 10px 12px}
+.cm{display:flex;flex-direction:column;margin-top:8px}.cm.g{margin-top:2px}
+.cb{max-width:84%;padding:6px 10px 4px;border-radius:14px;font-size:13.5px;line-height:1.42;word-wrap:break-word;overflow-wrap:anywhere}
+.cm.c .cb{align-self:flex-start;background:var(--cc);border:1px solid var(--cc-line);color:var(--text);border-top-left-radius:4px}.cm.c.g .cb{border-top-left-radius:14px}
+.cm.u .cb{align-self:flex-end;background:var(--cu);color:var(--cu-ink);border-top-right-radius:4px}.cm.u.g .cb{border-top-right-radius:14px}
+.cb-w{display:block;font-size:11.5px;font-weight:600;color:var(--blue);margin-bottom:1px}.cm.u .cb-w{color:var(--cu-meta)}
+.cb-s{display:block;font-size:12px;opacity:.85;margin-top:2px}
+.cb-m{display:flex;justify-content:flex-end;align-items:center;gap:4px;font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap}.cm.u .cb-m{color:var(--cu-meta)}.cb-m i{font-size:14px}.cb-m .rd{color:var(--blue)}
+.cb-p{display:block;margin-top:4px;border:0;background:var(--bg);color:var(--muted);border-radius:10px;padding:14px 18px;font:500 12px Inter,sans-serif;cursor:pointer}.cb img{display:block;max-width:220px;width:100%;border-radius:10px;margin-top:4px}
+.chs{display:flex;gap:8px;align-items:flex-start;width:88%;max-width:420px;margin:8px auto 0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 10px;font-size:12px;color:var(--muted);line-height:1.4;text-align:left}.chs i{font-size:15px;flex:none;margin-top:1px}.chs .chs-t{flex:1;min-width:0}.chs b{font-weight:600;color:var(--text)}.chs.bad b,.chs.bad i{color:var(--red)}.chs.warn b,.chs.warn i{color:var(--amber)}.chs.good b,.chs.good i{color:var(--green)}.chs .chs-m{flex:none;font-size:11px;color:var(--faint);margin-top:1px;white-space:nowrap}
+.cn2{display:flex;gap:8px;align-items:flex-start;width:88%;max-width:420px;margin:8px auto 0;background:var(--amber-bg);border-radius:12px;padding:8px 10px;font-size:12.5px;color:var(--text);line-height:1.4;text-align:left}.cn2>i{font-size:15px;color:var(--amber);flex:none;margin-top:1px}.cn2>div{flex:1;min-width:0}.cn2 b{display:block;font-weight:600;color:var(--amber)}.cn2 q{display:block;margin-top:1px}.cn2 small{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+.cd2{width:fit-content;margin:12px auto 2px;background:var(--card);color:var(--muted);border-radius:8px;padding:2px 10px;font-size:11px;font-weight:600;box-shadow:0 1px 1px rgba(15,23,42,.06)}
+.cnew{margin:12px 0 2px;text-align:center;font-size:11px;font-weight:600;color:var(--blue);border-top:1px solid var(--blue);opacity:.9;padding-top:3px}
+.cwait{margin-top:12px;display:flex;gap:6px;align-items:center;font-size:12px;border-radius:10px;padding:7px 10px;background:var(--card);color:var(--muted)}.cwait.a{background:var(--amber-bg);color:var(--amber)}.cwait.r{background:var(--red-bg);color:var(--red)}
+.cmore{display:block;margin:0 auto 4px;border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:99px;padding:4px 12px;font:500 12px Inter,sans-serif;cursor:pointer}
+.nc-pv{display:flex;gap:10px;align-items:center;margin-top:8px;background:var(--talk);border-radius:12px;padding:8px 12px;cursor:pointer;width:100%;border:0;text-align:left;font:inherit;color:inherit}
+.nc-pv .pv-m{flex:1;min-width:0}.nc-pv small{display:block;font-size:11.5px;font-weight:600;color:var(--talk-label)}.nc-pv .pv-t{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nc-pv .pv-r{text-align:right;font-size:11px;color:var(--muted);flex:none;white-space:nowrap}.nc-pv .pv-r i{font-size:14px;vertical-align:-2px}.nc-pv.un .pv-r{color:var(--blue);font-weight:600}
+.pv-dot{width:9px;height:9px;border-radius:50%;background:var(--blue);flex:none}
 .ch-f{display:flex;gap:6px;margin-bottom:6px}.ch-f button{border:1px solid var(--line);background:var(--card);border-radius:99px;height:30px;padding:0 12px;font:500 12px Inter,sans-serif;color:var(--muted);cursor:pointer}
 .ch-f button.on{background:var(--text);color:var(--bg);border-color:var(--text)}
 .ch-d{font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin:12px 0 4px}
@@ -1717,7 +1739,7 @@ function openParcel(key, given) {
     // any parcel to the courier's page (user 2026-11-14), also when it is not an NDR case
     (p.cn && !p.done && p.stage !== 'cancelled' && can('ndr.work') ? '<button class="btn" id="pdAsk" style="width:100%;padding:12px;margin-bottom:12px"><i class="ti ti-send"></i>Ask ' + esc(p.courier || 'courier') + ' on their page</button>' : '') +
     (p.rcv ? '<button class="btn" data-rh="' + esc(p.cn) + '" style="width:100%;padding:12px;margin-bottom:12px"><i class="ti ti-history"></i>Return history</button>' : '') +
-    (p.cn && (ndr || p.attempts) ? '<div class="pp-card"><div class="pp-h"><span>Case history</span></div><div id="pdch"><div class="sk" style="height:80px"></div></div></div>' : '') +
+    (p.cn && (ndr || p.attempts) ? '<div class="pp-card"><div class="pp-h"><span>Courier chat</span></div><div id="pdch"><div class="sk" style="height:80px"></div></div></div>' : '') +
     (p.cn ? '<div class="pp-card"><div class="pp-h"><span>Tracking</span>' +
       // Trax keeps the rider's proof of each attempt (photo, call recording, location) only on its portal, not in its API
       // (API Document SONIC 2.0 checked 2026-11-02): one tap opens that parcel there (the phone / laptop must be logged in)
@@ -3487,8 +3509,10 @@ function ndrCard(c, seen, inGroup) {
     '<div class="nc-m">' + [esc(c.city), esc(c.courier), rs(c.cod), p && /^Draft/.test(p.src || '') ? 'WhatsApp order' : '', c.hours ? (c.hours < 48 ? c.hours + ' h' : Math.floor(c.hours / 24) + ' d') + ' in NDR' : 'new'].filter(Boolean).join(' · ') + '</div>' +
     (items ? '<div class="nc-it">' + esc(items) + '</div>' : '') +
     // one panel, a small label over each statement (user 2026-11-09: premium; the colour is only on the label)
+    // once a request exists the courier talk is one line like a WhatsApp chat list (user 2026-11-18) → the full chat
+    (t && !c.watch ? chatPreview(c, t, cust) :
     '<div class="nc-talk"><div class="nc-row"><small>' + (c.watch ? esc(c.courier) : says[0]) + '</small><div>' + esc(c.watch ? lateText(c.type) : says[1]) + '</div></div>' +
-      (cust ? '<div class="nc-row cu"><small>Customer</small><div>' + esc(cust) + '</div></div>' : '') + '</div>' +
+      (cust ? '<div class="nc-row cu"><small>Customer</small><div>' + esc(cust) + '</div></div>' : '') + '</div>') +
     (tries ? '<div class="nc-ln" style="color:' + tries[1] + ';font-weight:500"><i class="ti ti-hourglass"></i><span>' + esc(tries[0]) + '</span></div>' : '') +
     (calls ? '<div class="nc-ln"><i class="ti ti-phone"></i><span>' + esc(calls) + '</span></div>' : '') + riskLine(p, 'nc-ln') +
     ndrSteps(c, slot) +
@@ -4081,37 +4105,140 @@ document.addEventListener('click', function (e) {
     }, function (er) { toast('Not saved: ' + ((er && er.message) || 'try again')); });
   };
 }, true);
-// Case history on the parcel page (study 2026-11-01: one timeline like Zendesk ticket events / the Shopify order
-// timeline): courier attempts + everything done in the app (calls, requests, sends, replies, notes), newest first,
-// grouped by day, who + when on every line, never edited; filter All / Our actions. Stays after the case closes.
-var CH_IC = { attempt: ['truck', 'var(--red)'], track: ['truck', 'var(--muted)'], done: ['circle-check', 'var(--green)'], call: ['phone', 'var(--brand)'],
-  callback: ['clock', 'var(--amber)'], list: ['inbox', 'var(--amber)'], sent: ['send', 'var(--blue)'], reply: ['message-2', 'var(--green)'],
-  closed: ['archive', 'var(--muted)'], note: ['pencil', 'var(--muted)'], case: ['alert-triangle', 'var(--amber)'] };
+// Courier chat (user 2026-11-18, after a study of WhatsApp / Intercom / Zendesk / Shiprocket): the case history drawn as a
+// conversation. Bubbles only for people talking: the courier's people on the left (rep name), our requests on the right
+// (who sent it, where, ✓ sent · ✓✓ answered); tracking and closes are small centre lines; our calls / notes (never sent
+// to the courier) are amber notes. Day chips, "n new" line, the last 10 lines first (Show earlier), and a line at the end
+// saying whose turn it is (waiting for the courier: amber after 24 h, red after 48 h).
+var CH_SYS = { attempt: ['truck', 'bad'], track: ['truck', ''], done: ['circle-check', ''], case: ['alert-triangle', 'warn'], closed: ['archive', ''] };
+var CH_NOTE = { call: 'phone', callback: 'clock', list: 'inbox', note: 'pencil' };
+function chatSeenAll() { try { return JSON.parse(store('eh_chat_seen') || '{}') || {}; } catch (e) { return {}; } }
+function chatKey(t) { return t ? t.id + '|' + (t.status || '') + '|' + (t.reply || '') : ''; }
+function chatUnread(c, t) { return !!(t && (t.status || t.reply) && !replyHandled(t) && (chatSeenAll()[c.cn] || {}).k !== chatKey(t)); }
+function chatMarkSeen(cn, t) {
+  var s = chatSeenAll(), keys = Object.keys(s);
+  s[cn] = { k: chatKey(t), ms: Date.now() };
+  if (keys.length > 300) keys.sort(function (a, b) { return (s[a].ms || 0) - (s[b].ms || 0); }).slice(0, keys.length - 300).forEach(function (k) { delete s[k]; });
+  store('eh_chat_seen', JSON.stringify(s));
+}
+function chatRep(t) { var b = String((t && (t.cBy || t.replyBy)) || ''); return /\((page|sheet|[^)]* page)\)$/.test(b) ? b.replace(/\s*\([^)]*\)$/, '').replace(/@.*/, '').trim() : ''; }
+// The NDR card's one line (like a WhatsApp chat list): the courier's last answer (blue dot while new), else our request.
+function chatPreview(c, t, cust) {
+  if (!t) return '';
+  var who, txt, right, un = false, rep = chatRep(t);
+  if (t.status || t.reply) {
+    who = c.courier + (rep && rep !== c.courier ? ' · ' + rep : '');
+    txt = [t.status, t.reply].filter(Boolean).join(' – '); un = chatUnread(c, t);
+    right = esc(chatAgo(t.replyAt));
+  } else if (t.channel) {
+    who = 'You'; txt = cust || (REQ_KIND[t.type] || 'Request') + ' request';
+    right = '<i class="ti ti-check"></i> ' + esc(chatAgo(t.sentAt));
+  } else {
+    who = 'You · not sent yet'; txt = cust || (REQ_KIND[t.type] || 'Request') + ' request';
+    right = '<i class="ti ti-clock"></i>';
+  }
+  return '<button type="button" class="nc-pv' + (un ? ' un' : '') + '" data-chat="' + esc(c.cn) + '">' + (un ? '<span class="pv-dot" aria-label="New reply"></span>' : '') +
+    '<span class="pv-m"><small>' + esc(who) + '</small><span class="pv-t" style="display:block">' + esc(txt) + '</span></span>' +
+    '<span class="pv-r">' + right + ' <i class="ti ti-chevron-right"></i></span></button>';
+}
+// "18 Nov, 10:22 AM" → "10:22 AM" today, "Yesterday", else the day
+function chatAgo(s) {
+  s = String(s || ''); var m = s.match(/^(\d{1,2}) (\w{3}),? (.*)$/); if (!m) return s;
+  var now = new Date(), d = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Karachi', day: 'numeric', month: 'short' }), y = new Date(Date.now() - 864e5);
+  if (d.format(now) === m[1] + ' ' + m[2]) return m[3];
+  if (d.format(y) === m[1] + ' ' + m[2]) return 'Yesterday';
+  return m[1] + ' ' + m[2];
+}
+function chatHtml(ev, o) {
+  o = o || {};
+  var list = ev.filter(function (e) { return e.chat && e.kind !== 'case'; }).slice().reverse(), today = pkDay(new Date()), yest = addDays(today, -1);
+  if (!list.length) return '<div class="ch-wrap"><div class="chs">No history yet</div></div>';
+  var hid = !o.all && list.length > 14 ? list.length - 10 : 0, shown = list.slice(hid);
+  var lastC = -1; list.forEach(function (e, i) { if (e.chat.side === 'c') lastC = i; });
+  var seenMs = o.seenMs || 0, newDone = !seenMs, prev = null, day = '', h = '';
+  if (hid) h += '<button type="button" class="cmore" data-chall="1">Show ' + hid + ' earlier</button>';
+  shown.forEach(function (e, j) {
+    var i = j + hid, ch = e.chat, side = ch.side;
+    if (e.day !== day) { day = e.day; prev = null; h += '<div class="cd2">' + (day === today ? 'Today' : day === yest ? 'Yesterday' : esc(dayLong(day))) + '</div>'; }
+    if (!newDone && side === 'c' && e.ms > seenMs) { newDone = true; h += '<div class="cnew">New</div>'; prev = null; }
+    if (side === 'u' || side === 'c') {
+      var who = side === 'u' ? 'You' + (ch.who || e.by ? ' · ' + (ch.who || e.by) : '') : (ch.who || o.courier || 'Courier');
+      var g = prev && prev.side === side && prev.who === who && e.ms - prev.ms < 20 * 60000;
+      var meta = [esc(e.at)];
+      if (side === 'u') {
+        if (ch.via) meta.push(esc(ch.via));
+        meta.push(i < lastC ? '<i class="ti ti-checks rd" aria-label="Answered"></i>' : '<i class="ti ti-check" aria-label="Sent"></i>');
+      } else if (ch.via) meta.push(esc(ch.via) + (ch.noted ? ' · noted by ' + esc(ch.noted) : ''));
+      var txt = ch.txt != null && ch.txt !== '' ? ch.txt : side === 'u' ? (e.t || '') : '';
+      h += '<div class="cm ' + side + (g ? ' g' : '') + '"><div class="cb">' + (g ? '' : '<span class="cb-w">' + esc(who) + '</span>') +
+        (txt ? esc(txt) : '') + (ch.sub ? '<span class="cb-s">Customer: ' + esc(ch.sub) + '</span>' : '') +
+        (e.photo ? '<button type="button" class="cb-p" data-chp="' + esc(e.photo) + '"><i class="ti ti-photo"></i> Proof photo</button>' : '') +
+        (e.next && side === 'c' ? '<span class="cb-s">Next: ' + esc(e.next) + '</span>' : '') +
+        '<span class="cb-m">' + meta.join(' · ').replace(/ · (<i)/g, ' $1') + '</span></div></div>';
+      prev = { side: side, who: who, ms: e.ms };
+    } else if (side === 'n') {
+      var nt = String(e.t).replace(/ · [A-Z]{2}-\d{4}-\w+(-\d+)?$/, '').replace(/ – please reattempt$/, '');
+      h += '<div class="cn2"><i class="ti ti-' + (CH_NOTE[e.kind] || 'pencil') + '"></i><div><b>' + esc(nt) + '</b>' + (e.s ? '<q>' + esc(e.s) + '</q>' : '') +
+        '<small>' + esc(e.at) + (e.by ? ' · ' + esc(e.by) : '') + '</small></div></div>';
+      prev = null;
+    } else {
+      // a small card: what happened in bold (only its colour says good / bad), the courier's words after it, time on the right
+      var sy = CH_SYS[e.kind] || ['point', ''], ttl = ch.txt || String(e.t || '').replace(/^[^:]{1,20}: /, ''), det = ch.txt ? '' : String((e.result ? ticketResult(e.s) : e.s) || '');
+      det = det.replace(/^Pending( · |$)/, '').replace(/ · Pending( · |$)/, '$1'); // Leopards puts "Pending" before every failure reason
+      var cls = ch.warn ? 'warn' : /Delivered|Returned to us/.test(ttl) && e.kind === 'done' ? 'good' : sy[1];
+      h += '<div class="chs' + (cls ? ' ' + cls : '') + '"><i class="ti ti-' + (ch.warn ? 'alert-triangle' : sy[0]) + '"></i><span class="chs-t"><b>' + esc(ttl) + '</b>' + (det ? ' · ' + esc(det) : '') + '</span><span class="chs-m">' + esc(e.at) + '</span></div>';
+      prev = null;
+    }
+  });
+  // whose turn it is now
+  var t = o.t, last = list[list.length - 1];
+  if (t && !t.channel) h += '<div class="cwait a"><i class="ti ti-inbox"></i>In the ' + esc(o.courier || '') + ' list · not sent yet</div>';
+  else if (t && t.sentMs && !(t.status || t.reply) && (!last || last.chat.side !== 'c')) {
+    var hrs = Math.floor((Date.now() - t.sentMs) / 3600000);
+    h += '<div class="cwait' + (hrs >= 48 ? ' r' : hrs >= 24 ? ' a' : '') + '"><i class="ti ti-clock"></i>Waiting for ' + esc(o.courier || 'the courier') + ' · ' + (hrs < 1 ? 'sent just now' : hrs < 48 ? hrs + ' h' : Math.floor(hrs / 24) + ' days') + '</div>';
+  }
+  return '<div class="ch-wrap">' + h + '</div>';
+}
+function chatWire(box, ev, o) {
+  box.querySelectorAll('[data-chall]').forEach(function (b) { b.onclick = function () { o.all = true; box.innerHTML = chatHtml(ev, o); chatWire(box, ev, o); }; });
+  box.querySelectorAll('[data-chp]').forEach(function (b) {
+    b.onclick = function () {
+      b.textContent = 'Loading…';
+      api('getAppNdrPhoto', [TOKEN, b.getAttribute('data-chp')], function (r) { b.outerHTML = '<img alt="Proof" src="data:' + r.type + ';base64,' + r.data + '">'; },
+        function () { b.textContent = 'Photo not found'; });
+    };
+  });
+}
+// Parcel page card: the same chat, inline
 function caseHistory(cn) {
   if (!el('pdch')) return;
-  var draw = function (ev, only) {
+  var c = N.data && (N.data.cases || []).filter(function (x) { return x.cn === cn; })[0], t = c ? ticketOf(c) : null;
+  api('getAppCaseHistory', [TOKEN, cn], function (r) {
     if (!el('pdch')) return;
-    var list = only ? ev.filter(function (e) { return !e.sys; }) : ev, today = pkDay(new Date()), yest = addDays(today, -1), days = {}, order = [];
-    list.forEach(function (e) { if (!days[e.day]) { days[e.day] = []; order.push(e.day); } days[e.day].push(e); });
-    el('pdch').innerHTML = '<div class="ch-f"><button data-chf="0" class="' + (only ? '' : 'on') + '">All</button><button data-chf="1" class="' + (only ? 'on' : '') + '">Our actions</button></div>' +
-      (list.length ? order.map(function (d) {
-        return '<div class="ch-d">' + (d === today ? 'Today' : d === yest ? 'Yesterday' : esc(dayLong(d))) + '</div>' + days[d].map(function (e) {
-          var ic = CH_IC[e.kind] || ['point', 'var(--muted)'], s = e.result ? ticketResult(e.s) : e.s;
-          return '<div class="ch-i"><span class="ch-ic" style="color:' + ic[1] + '"><i class="ti ti-' + ic[0] + '"></i></span><div><div class="ch-t"><b>' + esc(e.t) + '</b><small class="num">' + esc(e.at) + '</small></div>' +
-            (s ? '<div class="ch-s">' + esc(s) + '</div>' : '') + (e.by || e.photo ? '<div class="ch-by">' + esc(e.by) + (e.photo ? ' <button class="pp-more" data-chp="' + esc(e.photo) + '" style="width:auto;padding:0">Proof photo ›</button>' : '') + '</div>' : '') + '</div></div>';
-        }).join('');
-      }).join('') : '<small style="color:var(--muted)">' + (only ? 'Nothing done in the app yet' : 'No history yet') + '</small>');
-    el('pdch').querySelectorAll('[data-chf]').forEach(function (b) { b.onclick = function () { draw(ev, b.getAttribute('data-chf') === '1'); }; });
-    el('pdch').querySelectorAll('[data-chp]').forEach(function (b) {
-      b.onclick = function () {
-        b.textContent = 'Loading…';
-        api('getAppNdrPhoto', [TOKEN, b.getAttribute('data-chp')], function (r) { b.outerHTML = '<img alt="Proof" src="data:' + r.type + ';base64,' + r.data + '" style="display:block;max-width:100%;border-radius:10px;margin-top:6px">'; },
-          function () { b.textContent = 'Photo not found'; });
-      };
-    });
-  };
-  api('getAppCaseHistory', [TOKEN, cn], function (r) { draw(r.events || [], false); }, function () { if (el('pdch')) el('pdch').innerHTML = '<small style="color:var(--muted)">Could not load the history</small>'; });
+    var o = { courier: r.courier || (c && c.courier), t: t };
+    el('pdch').innerHTML = chatHtml(r.events || [], o); chatWire(el('pdch'), r.events || [], o);
+  }, function () { if (el('pdch')) el('pdch').innerHTML = '<small style="color:var(--muted)">Could not load the history</small>'; });
 }
+// Full chat page, from the NDR card's line
+function openChat(cn) {
+  var c = N.data && (N.data.cases || []).filter(function (x) { return x.cn === cn; })[0]; if (!c) { openParcel(cn); return; }
+  var t = ticketOf(c), seen = (chatSeenAll()[cn] || {}).ms || 0, p = findParcel(cn), phone = c.phone || (p && p.phone);
+  var bar = (phone ? '<a class="btn" data-call="' + esc(cn) + '" href="' + telHref(phone) + '"><i class="ti ti-phone"></i>Call</a>' : '') +
+    (can('ndr.work') && t && t.channel ? '<button class="btn" data-wr="' + esc(t.id) + '" data-wc="' + esc(c.courier) + '"><i class="ti ti-message-reply"></i>Note reply</button>' : '') +
+    (can('ndr.work') ? '<button class="btn pri" data-rec="' + esc(cn) + '"><i class="ti ti-pencil"></i>Update</button>' : '');
+  openPage({ title: c.ref + ' · ' + c.name, sub: [c.city, c.courier, c.cn].filter(Boolean).join(' · '), body: '<div id="chBox">' + skList(5) + '</div>' +
+    '<button type="button" class="pp-more" data-p2="' + esc(cn) + '" style="margin-top:10px">Parcel details ›</button>', bar: bar });
+  var dp = el('pgBody').querySelector('[data-p2]'); if (dp) dp.onclick = function () { openParcel(cn); };
+  api('getAppCaseHistory', [TOKEN, cn], function (r) {
+    var box = el('chBox'); if (!box) return;
+    var o = { courier: r.courier || c.courier, t: t, seenMs: seen };
+    box.innerHTML = chatHtml(r.events || [], o); chatWire(box, r.events || [], o);
+    requestAnimationFrame(function () { el('pgBody').scrollTop = el('pgBody').scrollHeight; });
+    chatMarkSeen(cn, t);
+    document.querySelectorAll('.nc-pv[data-chat="' + cn + '"]').forEach(function (b) { b.classList.remove('un'); var d = b.querySelector('.pv-dot'); if (d) d.remove(); });
+  }, function () { if (el('chBox')) el('chBox').innerHTML = '<small style="color:var(--muted)">Could not load the chat</small>'; });
+}
+document.addEventListener('click', function (e) { var b = e.target.closest('[data-chat]'); if (!b) return; e.preventDefault(); e.stopPropagation(); openChat(b.getAttribute('data-chat')); }, true);
 // Full courier escalation cards (sheet link, WhatsApp to the group) in a sheet; one courier or all.
 function openEscalations(only) {
   if (!N.data) { toast('Loading NDR…'); return; }
@@ -5306,9 +5433,9 @@ function openKitForm(sku) {
   var d = STK.data, by = {}; d.items.forEach(function (x) { by[x.sku] = x; });
   var cur = sku ? by[sku] : null, curName = cur ? String(cur.name).split(' · ') : [];
   var st = { mode: 'one', name: cur ? curName[0] : '', variant: cur ? curName.slice(1).join(' · ') : '', parts: cur ? (d.kits[sku] || []).map(function (c) { return { sku: c[0], qty: c[1] }; }) : [],
-    newParts: [], o1: { name: '', vals: [] }, o2: { name: '', vals: [] }, common: [] };
+    newParts: [], o1: { name: '', vals: [] }, o2: { name: '', vals: [] }, common: [], base: '', pend: null };
   var items = function () { return d.items.filter(function (i) { return i.kind === 'Item'; }).map(function (i) { return { sku: i.sku, name: i.name }; }).concat(st.newParts.map(function (p, k) { return { sku: 'new:' + k, name: p.name + ' (new)' }; })); };
-  var sel = function (attr, val) { return '<select ' + attr + '><option value="">Choose a part…</option>' + items().map(function (i) { return '<option value="' + esc(i.sku) + '"' + (i.sku === val ? ' selected' : '') + '>' + esc(i.name) + '</option>'; }).join('') + '</select>'; };
+  var sel = function (attr, val) { return '<select ' + attr + '><option value="">Choose a part…</option>' + items().map(function (i) { return '<option value="' + esc(i.sku) + '"' + (i.sku === val ? ' selected' : '') + '>' + esc(i.name) + '</option>'; }).join('') + '<option value="__newpart">+ New part</option></select>'; };
   var partRows = function (list, tag) {
     return list.map(function (p, k) {
       return '<div class="btns" style="align-items:flex-end;margin-bottom:6px"><div class="fld" style="flex:3;margin:0">' + sel('data-' + tag + 's="' + k + '"', p.sku) + '</div>' +
@@ -5334,7 +5461,13 @@ function openKitForm(sku) {
       }).join('') + '<button class="btn mini" type="button" data-oa="' + n + '"><i class="ti ti-plus"></i>Add value</button></div>';
   };
   var draw = function () {
-    var body = '<div class="fld"><label>Product name (as on the store)</label><input id="kfName" value="' + esc(st.name) + '" placeholder="e.g. Muslim Shower Set"></div>' +
+    // product first (user 2026-11-18): pick the product that is sold (it becomes the kit), or write a new name
+    var baseIt = st.base ? by[st.base] : null;
+    var body = (!sku && st.mode === 'one' ? '<div class="fld"><label>Which product is this kit?</label><select id="kfBase"><option value="">New product · write its name below</option>' +
+        d.items.filter(function (i) { return i.kind === 'Item' && !stkIsAlias(i.sku) && !/-CMP-|^EH-PRT-/.test(i.sku); }).map(function (i) {
+          return '<option value="' + esc(i.sku) + '" data-sub="' + esc(i.onHand ? 'in stock ' + i.onHand : 'no stock') + '"' + (i.sku === st.base ? ' selected' : '') + '>' + esc(i.name) + '</option>'; }).join('') + '</select></div>' +
+        (baseIt && Number(baseIt.onHand) > 0 ? '<small class="mnote" style="display:block;margin:-6px 0 10px;color:var(--amber)">It has ' + baseIt.onHand + ' in stock. As a kit, its stock comes from its parts, so count those pieces as parts.</small>' : '') : '') +
+      '<div class="fld"><label>Product name (as on the store)</label><input id="kfName" value="' + esc(st.name) + '" placeholder="e.g. Muslim Shower Set"' + (st.base ? ' readonly' : '') + '></div>' +
       (sku ? '' : '<div class="chips" id="kfMode" style="margin:0 0 12px"><button class="chip' + (st.mode === 'one' ? ' on' : '') + '" data-m="one" type="button">One kit</button><button class="chip' + (st.mode === 'grid' ? ' on' : '') + '" data-m="grid" type="button">Variants (colour × size …)</button></div>');
     if (st.mode === 'one') body += '<div class="fld"><label>Variant on the store (optional)</label><input id="kfVar" value="' + esc(st.variant) + '" placeholder="e.g. Silver / 1 m"></div><div class="fld"><label>Parts in one kit</label></div>' + partRows(st.parts, 'p');
     else {
@@ -5361,7 +5494,10 @@ function openKitForm(sku) {
     if (el('kfMode')) el('kfMode').onclick = function (e) { var b = e.target.closest('[data-m]'); if (!b) return; keep(); st.mode = b.getAttribute('data-m'); draw(); };
     var listOf = function (tag) { return tag === 'p' ? st.parts : st.common; };
     ['p', 'c'].forEach(function (tag) {
-      p.querySelectorAll('[data-' + tag + 's]').forEach(function (x) { x.onchange = function () { listOf(tag)[+x.getAttribute('data-' + tag + 's')].sku = x.value; if (st.mode === 'grid') { keep(); draw(); } }; });
+      p.querySelectorAll('[data-' + tag + 's]').forEach(function (x) { x.onchange = function () {
+        var k = +x.getAttribute('data-' + tag + 's');
+        if (x.value === '__newpart') { x.value = listOf(tag)[k].sku || ''; st.pend = { tag: tag, k: k }; el('kfNp').focus(); el('kfNp').scrollIntoView({ block: 'center' }); return; }
+        listOf(tag)[k].sku = x.value; if (st.mode === 'grid') { keep(); draw(); } }; });
       p.querySelectorAll('[data-' + tag + 'q]').forEach(function (x) { x.oninput = function () { listOf(tag)[+x.getAttribute('data-' + tag + 'q')].qty = Number(x.value) || 0; }; });
       p.querySelectorAll('[data-' + tag + 'x]').forEach(function (x) { x.onclick = function () { keep(); listOf(tag).splice(+x.getAttribute('data-' + tag + 'x'), 1); draw(); }; });
       p.querySelectorAll('[data-' + tag + 'add]').forEach(function (x) { x.onclick = function () { keep(); listOf(tag).push({ sku: '', qty: 1 }); draw(); }; });
@@ -5369,17 +5505,30 @@ function openKitForm(sku) {
     var opt = function (n) { return n === '1' ? st.o1 : st.o2; };
     p.querySelectorAll('[data-on]').forEach(function (x) { x.oninput = function () { opt(x.getAttribute('data-on')).name = x.value; }; });
     p.querySelectorAll('[data-ov]').forEach(function (x) { x.onchange = function () { var a = x.getAttribute('data-ov').split(':'); opt(a[0]).vals[+a[1]].v = x.value.trim(); keep(); draw(); }; });
-    p.querySelectorAll('[data-op]').forEach(function (x) { x.onchange = function () { var a = x.getAttribute('data-op').split(':'); opt(a[0]).vals[+a[1]].sku = x.value; keep(); draw(); }; });
+    p.querySelectorAll('[data-op]').forEach(function (x) { x.onchange = function () { var a = x.getAttribute('data-op').split(':');
+      if (x.value === '__newpart') { x.value = opt(a[0]).vals[+a[1]].sku || ''; st.pend = { opt: a[0], k: +a[1] }; el('kfNp').focus(); el('kfNp').scrollIntoView({ block: 'center' }); return; }
+      opt(a[0]).vals[+a[1]].sku = x.value; keep(); draw(); }; });
+    if (el('kfBase')) { pickerize(el('kfBase'), { title: 'Which product is this kit?' }); el('kfBase').onchange = function () {
+      keep(); st.base = el('kfBase').value; if (st.base) { var b = by[st.base]; st.name = String(b.name).split(' · ')[0]; st.variant = String(b.name).split(' · ').slice(1).join(' · '); }
+      draw(); }; }
     p.querySelectorAll('[data-ox]').forEach(function (x) { x.onclick = function () { var a = x.getAttribute('data-ox').split(':'); keep(); opt(a[0]).vals.splice(+a[1], 1); draw(); }; });
     p.querySelectorAll('[data-oa]').forEach(function (x) { x.onclick = function () { keep(); opt(x.getAttribute('data-oa')).vals.push({ v: '', sku: '', qty: 1 }); draw(); }; });
-    el('kfNpAdd').onclick = function () { var n = el('kfNp').value.trim(); if (n.length < 2) { el('kfErr').textContent = 'Write the part name'; return; } keep(); st.newParts.push({ name: n, unit: el('kfNu').value }); toast('Part added · choose it in the lists'); draw(); };
+    el('kfNpAdd').onclick = function () {
+      var n = el('kfNp').value.trim(); if (n.length < 2) { el('kfErr').textContent = 'Write the part name'; return; }
+      keep(); st.newParts.push({ name: n, unit: el('kfNu').value });
+      var id = 'new:' + (st.newParts.length - 1), pd = st.pend; st.pend = null;
+      if (pd && pd.opt) opt(pd.opt).vals[pd.k].sku = id; else if (pd) listOf(pd.tag)[pd.k].sku = id;
+      else if (st.mode === 'one') { var empty = st.parts.filter(function (x) { return !x.sku; })[0]; if (empty) empty.sku = id; else st.parts.push({ sku: id, qty: 1 }); }
+      toast(pd || st.mode === 'one' ? 'Part added to the kit' : 'Part added · choose it in the lists'); draw();
+    };
     if (el('kfRetire')) el('kfRetire').onclick = function () {
       api('appRetireKit', [TOKEN, sku], function () { STK.at = 0; toast('Kit stopped · it no longer takes stock'); openStock(''); }, function (e) { el('kfErr').textContent = (e && e.message) || 'Not saved'; });
     };
     el('kfGo').onclick = function () {
       keep();
       if (st.name.trim().length < 2) { el('kfErr').textContent = 'Write the product name as on the store'; return; }
-      var kits = st.mode === 'one' ? [{ sku: sku || '', name: st.name.trim(), variant: st.variant.trim(), parts: st.parts.filter(function (x) { return x.sku; }) }] : combos();
+      var kits = st.mode === 'one' ? [{ sku: sku || st.base || '', convert: !sku && !!st.base, name: st.name.trim(), variant: st.variant.trim(), parts: st.parts.filter(function (x) { return x.sku; }) }] : combos();
+      if (st.base && kits[0].parts.some(function (x) { return x.sku === st.base; })) { el('kfErr').textContent = 'A kit cannot be its own part'; return; }
       if (!kits.length) { el('kfErr').textContent = 'Add option values'; return; }
       var empty = kits.filter(function (k) { return !k.parts.length; })[0]; if (empty) { el('kfErr').textContent = (empty.variant || empty.name) + ': choose its parts'; return; }
       el('kfGo').disabled = true;
@@ -7151,6 +7300,14 @@ function purLast(sku, supplier) {
 }
 function purMain(sku) { var m = ((PUR.data && PUR.data.links) || []).filter(function (l) { return l.sku === sku && l.main; })[0]; return m ? m.supplier : ''; }
 function rs2(n) { return 'Rs ' + (Math.round((n || 0) * 100) / 100).toLocaleString('en-IN'); }
+// products made elsewhere (Stock, kits) show in the purchase pickers before Purchases reloads (user 2026-11-18)
+function purItemsMerge(d) {
+  if (!d || !d.items || !STK.data || !STK.data.items) return;
+  STK.data.items.forEach(function (i) {
+    if (i.kind !== 'Item' || stkIsAlias(i.sku) || d.items.some(function (x) { return x.sku === i.sku; })) return;
+    d.items.push({ sku: i.sku, name: i.name, unit: i.unit || 'pcs', available: i.available != null ? i.available : null, status: '', isNew: /^EH-NEW-/.test(i.sku) });
+  });
+}
 function purItem(sku) { return PUR.data.items.filter(function (i) { return i.sku === sku; })[0] || { sku: sku, name: sku, unit: 'pcs' }; }
 function purKeep(d) { PUR.data = d; PUR.at = Date.now(); try { store('eh_pur', JSON.stringify(d)); } catch (e) {} }
 function purReload(then, r, quiet) {
@@ -7230,14 +7387,21 @@ function openSupplier(name) {
 }
 // one supplier + product pair: quoted rate per unit, ⭐ main supplier (Order soon / Order more pick it), remove
 function openSupplierProduct(sup, sku, back) {
+  purItemsMerge(PUR.data);
   var d = PUR.data, l = (d.links || []).filter(function (x) { return x.supplier === sup && x.sku === sku; })[0] || null, it = sku ? purItem(sku) : null;
   // a product is added to a supplier once: the pickers leave out what is already linked (tap it in the list to change it)
   var linked = function (s, k) { return (d.links || []).some(function (x) { return x.supplier === s && x.sku === k; }); };
   var sups = d.suppliers.filter(function (s) { return !sku || !linked(s.name, sku); }), items = d.items.filter(function (i) { return !sup || !linked(sup, i.sku); });
-  if ((!sup && !sups.length) || (!sku && !items.length)) { toast(sup ? 'Every product is already added to ' + sup : 'Every supplier is already linked'); return; }
+
   el('panel').innerHTML = '<button class="btn mini" id="spBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Back</button><h3>' + (l ? 'Supplier rate' : 'Add who supplies it') + '</h3><p>' + esc([sup, it && it.name].filter(Boolean).join(' · ')) + '</p>' +
-    (sup ? '' : '<div class="fld"><label>Supplier</label><select id="spSup"><option value="">Choose a supplier…</option>' + sups.map(function (s) { return '<option value="' + esc(s.name) + '">' + esc(s.name) + (s.city ? ' · ' + esc(s.city) : '') + '</option>'; }).join('') + '</select></div>') +
-    (sku ? '' : '<div class="fld"><label>Product</label><select id="spSku"><option value="">Choose a product…</option>' + items.map(function (i) { return '<option value="' + esc(i.sku) + '">' + esc(i.name) + '</option>'; }).join('') + '</select></div>') +
+    (sup ? '' : '<div class="fld"><label>Supplier</label><select id="spSup"><option value="">Choose a supplier…</option>' + sups.map(function (s) { return '<option value="' + esc(s.name) + '">' + esc(s.name) + (s.city ? ' · ' + esc(s.city) : '') + '</option>'; }).join('') + '<option value="__new">+ New supplier</option></select></div>' +
+      '<div id="spNewSup" hidden class="card" style="margin-bottom:12px"><div class="fld"><label>Shop / company name</label><input id="snName" placeholder="e.g. Tanveer Traders"></div>' +
+      '<div class="btns"><div class="fld" style="flex:1;margin:0"><label>Person</label><input id="snContact" placeholder="optional"></div><div class="fld" style="flex:1;margin:0"><label>Phone</label><input id="snPhone" type="tel" placeholder="optional"></div></div>' +
+      '<div class="fld" style="margin-top:8px"><label>City</label><input id="snCity" placeholder="optional"></div><button class="btn pri" id="snSave" type="button" style="width:100%">Save supplier</button></div>') +
+    (sku ? '' : '<div class="fld"><label>Product</label><select id="spSku"><option value="">Choose a product…</option>' + items.map(function (i) { return '<option value="' + esc(i.sku) + '">' + esc(i.name) + '</option>'; }).join('') + '<option value="__newp">+ New product</option></select></div>' +
+      '<div id="spNewProd" hidden class="card" style="margin-bottom:12px"><div class="btns" style="align-items:flex-end"><div class="fld" style="flex:3;margin:0"><label>Product name</label><input id="spnName" placeholder="Close to the name on the store"></div>' +
+      '<div class="fld" style="flex:1;margin:0"><label>In</label><select id="spnUnit"><option value="pcs">pcs</option><option value="ft">ft</option></select></div></div>' +
+      '<button class="btn pri" id="spnSave" type="button" style="width:100%;margin-top:8px">Save product</button></div>') +
     '<div class="fld"><label id="spPl">' + (it && it.unit === 'ft' ? 'Rate per ft' : 'Rate per piece') + ' (what they quoted)</label><input id="spPrice" type="text" inputmode="decimal" value="' + (l && l.quoted ? l.quoted : '') + '" placeholder="' + (l && l.lastPrice ? 'last bought ' + l.lastPrice : 'optional') + '"></div>' +
     '<label class="ob-it" style="margin:0 0 12px"><input type="checkbox" id="spMain"' + (l && l.main ? ' checked' : '') + '><div><b>⭐ Main supplier of this product</b><small>Order soon and Order more choose this supplier</small></div></label>' +
     '<div class="err" id="spErr"></div><button class="btn pri" id="spGo" style="width:100%;padding:12px">Save</button>' +
@@ -7245,7 +7409,34 @@ function openSupplierProduct(sup, sku, back) {
   openPanel(true);
   el('spBack').onclick = back;
   if (el('spSup')) pickerize(el('spSup'), { title: 'Supplier' }); if (el('spSku')) pickerize(el('spSku'), { title: 'Product' });
-  if (el('spSku')) el('spSku').onchange = function () { var x = purItem(el('spSku').value); el('spPl').textContent = (x.unit === 'ft' ? 'Rate per ft' : 'Rate per piece') + ' (what they quoted)'; };
+  if (el('spSku')) el('spSku').onchange = function () {
+    if (el('spSku').value === '__newp') { el('spNewProd').hidden = false; el('spnName').focus(); return; }
+    el('spNewProd').hidden = true; var x = purItem(el('spSku').value); el('spPl').textContent = (x.unit === 'ft' ? 'Rate per ft' : 'Rate per piece') + ' (what they quoted)';
+  };
+  if (el('spSup')) el('spSup').onchange = function () { if (el('spSup').value === '__new') { el('spNewSup').hidden = false; el('snName').focus(); } else el('spNewSup').hidden = true; };
+  // set a picker to a value made just now (the select and its picker button)
+  var setPick = function (id, val, label) {
+    var x = el(id); if (!x.querySelector('option[value="' + val.replace(/"/g, '') + '"]')) { var o = document.createElement('option'); o.value = val; o.textContent = label; x.insertBefore(o, x.querySelector('option[value^="__"]')); }
+    x.value = val; x.dispatchEvent(new Event('change'));
+  };
+  if (el('snSave')) el('snSave').onclick = function () {
+    var n = el('snName').value.trim(); if (!n) { el('spErr').textContent = 'Write the supplier name'; return; }
+    el('snSave').disabled = true;
+    api('appSaveSupplier', [TOKEN, { name: n, contact: el('snContact').value.trim(), phone: el('snPhone').value.trim(), city: el('snCity').value.trim() }], function (r) {
+      el('snSave').disabled = false; el('spErr').textContent = '';
+      if (!d.suppliers.some(function (x) { return x.name === r.name; })) d.suppliers.push({ name: r.name, contact: el('snContact').value.trim(), phone: el('snPhone').value.trim(), city: el('snCity').value.trim(), toPay: 0 });
+      setPick('spSup', r.name, r.name); toast(r.existed ? 'Supplier already saved · chosen' : '✅ Supplier saved');
+    }, function (e) { el('snSave').disabled = false; el('spErr').textContent = (e && e.message) || 'Not saved'; });
+  };
+  if (el('spnSave')) el('spnSave').onclick = function () {
+    var n = el('spnName').value.trim(); if (n.length < 3) { el('spErr').textContent = 'Write the product name'; return; }
+    el('spnSave').disabled = true;
+    api('appAddProduct', [TOKEN, { name: n, unit: el('spnUnit').value }], function (r) {
+      el('spnSave').disabled = false; el('spErr').textContent = ''; STK.at = 0;
+      if (!d.items.some(function (i) { return i.sku === r.sku; })) d.items.push({ sku: r.sku, name: r.name, unit: r.unit, available: null, status: '', isNew: true });
+      setPick('spSku', r.sku, r.name); toast(r.existed ? 'Product already there · chosen' : '✅ Product saved');
+    }, function (e) { el('spnSave').disabled = false; el('spErr').textContent = (e && e.message) || 'Not saved'; });
+  };
   var send = function (f) {
     api('appSupplierProduct', [TOKEN, f], function (r) { toast(f.remove ? 'Removed' : '✅ Saved'); purReload(back, r); },
       function (e) { el('spGo').disabled = false; el('spErr').textContent = (e && e.message) || 'Not saved'; });
@@ -7253,7 +7444,9 @@ function openSupplierProduct(sup, sku, back) {
   el('spGo').onclick = function () {
     var s = sup || el('spSup').value, k = sku || el('spSku').value;
     if (!s) { el('spErr').textContent = 'Choose a supplier'; return; }
+    if (s === '__new') { el('spErr').textContent = 'Save the new supplier first'; return; }
     if (!k) { el('spErr').textContent = 'Choose a product'; return; }
+    if (k === '__newp') { el('spErr').textContent = 'Save the new product first'; return; }
     el('spGo').disabled = true; send({ supplier: s, sku: k, price: el('spPrice').value, main: el('spMain').checked });
   };
   if (el('spRm')) el('spRm').onclick = function () { send({ supplier: sup, sku: sku, remove: true }); };
@@ -7304,7 +7497,7 @@ function renderPurchases() {
 }
 // New purchase: supplier (pick or add), products with qty + price (the last price is filled in), expected cargo, optional payment now
 function openNewPurchase(opt) {
-  opt = opt || {};
+  opt = opt || {}; purItemsMerge(PUR.data);
   var d = PUR.data, st = { supplier: '', lines: [], from: (d.from || ['Business account'])[0], inv: '' }, back = opt.back || renderPurchases;
   var want = opt.lines || (opt.skus || []).map(function (s) { return { sku: s, qty: 0 }; });
   if (opt.supplier && d.suppliers.some(function (s) { return s.name === opt.supplier; })) st.supplier = opt.supplier;
@@ -7366,7 +7559,8 @@ function openNewPurchase(opt) {
     // order of the form = order of the work (user 2026-11-01, like a purchase order): who → what → total → the bill → payment
     '<div class="fld"><label>Products</label></div><div id="npLines"></div><div class="fld"><select id="npAdd">' + itemOpts() + '</select></div>' +
     '<div id="npNewProd" hidden class="card" style="margin-bottom:12px"><div class="fld"><label>Product name</label><input id="nnName" placeholder="Close to the name it will have on the store"></div>' +
-    '<div class="fld"><label>Counted in</label><select id="nnUnit"><option value="pcs">Pieces</option><option value="ft">Feet</option></select></div>' +
+    '<div class="btns"><div class="fld" style="flex:1;margin:0"><label>Counted in</label><select id="nnUnit"><option value="pcs">Pieces</option><option value="ft">Feet</option></select></div>' +
+    '<div class="fld" style="flex:1;margin:0"><label>Qty</label><input id="nnQty" type="text" inputmode="decimal" placeholder="0"></div><div class="fld" style="flex:1;margin:0"><label>Price / unit</label><input id="nnPrice" type="text" inputmode="decimal" placeholder="0"></div></div>' +
     '<small class="mnote">When it is listed on Shopify with the same words in its name, its orders link to it by themselves.</small>' +
     '<button class="btn pri" id="nnSave" type="button" style="width:100%;margin-top:8px">Add product</button></div>' +
     '<div class="tk" id="npTotal" style="margin:0 0 10px"></div>' +
@@ -7462,8 +7656,8 @@ function openNewPurchase(opt) {
     api('appAddProduct', [TOKEN, { name: n, unit: el('nnUnit').value }], function (r) {
       el('nnSave').disabled = false;
       if (!d.items.some(function (i) { return i.sku === r.sku; })) d.items.push({ sku: r.sku, name: r.name, unit: r.unit, available: null, status: '', isNew: true });
-      if (!st.lines.some(function (l) { return l.sku === r.sku; })) st.lines.push({ sku: r.sku, name: r.name, unit: r.unit, qty: 0, price: 0 });
-      el('nnName').value = ''; el('npNewProd').hidden = true; el('npErr').textContent = ''; toast(r.existed ? 'Product already there · added' : '✅ Product added'); draw();
+      if (!st.lines.some(function (l) { return l.sku === r.sku; })) st.lines.push({ sku: r.sku, name: r.name, unit: r.unit, qty: Number(el('nnQty').value) || 0, price: Number(el('nnPrice').value) || 0, edited: !!el('nnPrice').value });
+      STK.at = 0; el('nnName').value = ''; el('nnQty').value = ''; el('nnPrice').value = ''; el('npNewProd').hidden = true; el('npErr').textContent = ''; toast(r.existed ? 'Product already there · added' : '✅ Product added'); draw();
     }, function (e) { el('nnSave').disabled = false; el('npErr').textContent = (e && e.message) || 'Not saved'; });
   };
   el('npGo').onclick = function () {
@@ -8463,7 +8657,7 @@ function foldScan() {
       var t = String((h.querySelector('b, span') || h).textContent || '').replace(/[\d·]+/g, '').trim(), k = scr + '|' + t;
       saved = saved || foldStore();
       c.dataset.fk = k; c.classList.add('fold');
-      foldSet(c, saved[k] != null ? !saved[k] : !(FOLD_OPEN.test(t) || (c.classList.contains('pp-card') && !/^Case history/i.test(t))));
+      foldSet(c, saved[k] != null ? !saved[k] : !(FOLD_OPEN.test(t) || (c.classList.contains('pp-card') && !/^(Case history|Courier chat)/i.test(t))));
     });
   });
   // Sections that are a heading over a list: Returns (the first one, what can be collected, starts open) and Banking
