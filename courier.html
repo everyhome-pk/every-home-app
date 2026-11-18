@@ -286,7 +286,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   body.mdl-on .wrap{margin-right:min(520px,42vw)}
   body.mdl-on .qs .th .c-rem,body.mdl-on .qs .tr .c-rem,body.mdl-on .qs .th .c-now,body.mdl-on .qs .tr .c-now{display:none}
   body.mdl-on .qs .th,body.mdl-on .qs .tr{grid-template-columns:150px minmax(0,1fr) 64px 92px}
-  body.mdl-on .qgrid{grid-template-columns:1fr}body.mdl-on .cards{flex-wrap:wrap}
+  body.mdl-on .qgrid{grid-template-columns:1fr}body.mdl-on .cards{flex-wrap:wrap;gap:6px}body.mdl-on .kc{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:99px;grid-template-columns:none}body.mdl-on .kc .s,body.mdl-on .kc .n span{display:none}body.mdl-on .kc .n{grid-row:auto;grid-column:auto;flex-direction:row}body.mdl-on .kc .n b{font-size:13px}body.mdl-on .kc .l{font-size:12px}
   body.mdl-on .fth>div:nth-child(3),body.mdl-on .ftr>div:nth-child(3),body.mdl-on .fth>div:nth-child(6),body.mdl-on .ftr>div:nth-child(6){display:none}
   body.mdl-on .fth,body.mdl-on .ftr{grid-template-columns:140px 100px minmax(0,1fr) 150px}
 }
@@ -295,6 +295,20 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
 .cb2{position:relative}.cb2.l:not(.g),.cb2.r:not(.g){border-top-left-radius:12px;border-top-right-radius:12px}.cb2.l:not(.g){border-top-left-radius:0}.cb2.r:not(.g){border-top-right-radius:0}
 .cb2.l:not(.g)::before{content:'';position:absolute;top:0;left:-7px;width:8px;height:12px;background:inherit;clip-path:polygon(0 0,100% 0,100% 100%)}
 .cb2.r:not(.g)::before{content:'';position:absolute;top:0;right:-7px;width:8px;height:12px;background:inherit;clip-path:polygon(0 0,100% 0,0 100%)}
+
+/* phone room for the chat (user 2026-11-18): answer chips in one line that scrolls sideways; the pinned request one line */
+.cqr{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:2px}.cqr::-webkit-scrollbar{display:none}.cqr button{flex:none;white-space:nowrap}
+.cpin span{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}.cpin:hover span,.cpin:active span{-webkit-line-clamp:unset}
+.cbs{display:block;font-size:12.5px;opacity:.8;margin-top:2px}
+
+.qm{position:relative;display:inline-block}.qmenu{position:absolute;left:0;top:calc(100% + 4px);z-index:20;display:flex;flex-direction:column;min-width:150px;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(15,23,42,.14);padding:4px}
+.qmenu button{border:0;background:none;text-align:left;padding:8px 10px;border-radius:7px;font:500 13px Inter,sans-serif;color:var(--ink);cursor:pointer;white-space:nowrap}.qmenu button:hover{background:var(--head)}
+.qs{overflow:visible}
+@media (min-width:901px){.qmenu{left:auto;right:0}}
+
+/* one size for every line button on the page (user 2026-11-18): Respond, Edit, Mark, Update ▾ */
+.rp,.mk,.mk.q{display:inline-flex!important;align-items:center;justify-content:center;box-sizing:border-box;height:24px!important;min-width:76px!important;padding:0 8px!important;border-radius:6px!important;font:600 11.5px Inter,sans-serif!important;line-height:1!important;white-space:nowrap;vertical-align:middle;cursor:pointer}
+@media (max-width:900px){.rp,.mk,.mk.q{height:30px!important;min-width:84px!important;font-size:12.5px!important}}
 </style>
 </head>
 <body>
@@ -364,7 +378,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   // Main list full width (user 2026-11-14): the reply opens in a wide pop-up; the list shows what helps decide without
   // opening: customer remarks, where the parcel is now, when it was sent. "Needs answer" hides answered lines; Mark for
   // Return lines can be ticked and answered together.
-  var ALL = ls('cp_all') !== '0', BULK = {}, PEND = {}, PANS = {}, MORE = {}, SURE = false, SURE_T = 0, ORDER = [], KIND = '', FLASH = false;
+  var ALL = ls('cp_all') !== '0', BULK = {}, PEND = {}, PANS = {}, MORE = {}, QOPEN = '', SURE = false, SURE_T = 0, ORDER = [], KIND = '', FLASH = false;
   // the courier's last scan (user 2026-11-14: every line said "Attempt failed · date"): with its reason, how long ago, and
   // a red "no scan since our request" when nothing moved after we sent it
   function ago(ms) { var h = Math.floor((Date.now() - ms) / 3600000); return h < 1 ? 'just now' : h < 48 ? h + ' h ago' : Math.floor(h / 24) + ' days ago'; }
@@ -480,6 +494,9 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     if (PEND[x.id]) return '<span class="done-a">✓ ' + esc(lbl(PANS[x.id])) + '</span> <button class="undo" data-undo="' + esc(x.id) + '">Undo</button>';
     if (answered(x)) return '<span class="done-a">✓ ' + esc(lbl(x.status)) + (x.at ? ' <small>· ' + esc(String(x.at).replace(/^.*,\s*/, '')) + '</small>' : '') + '</span>';
     var ans = kindOf(x.kind).answers;
+    // several answers: one "Update" button that opens a small menu (user 2026-11-18: three buttons per line looked busy)
+    if (QUICK[x.kind].length > 1) return '<span class="qm"><button class="mk q" data-qmenu="' + esc(x.id) + '">Update ▾</button>' +
+      (QOPEN === x.id ? '<span class="qmenu">' + QUICK[x.kind].map(function (i) { return '<button data-mark="' + esc(x.id) + '" data-mi="' + i + '">' + esc(lbl(ans[i])) + '</button>'; }).join('') + '</span>' : '') + '</span>';
     return QUICK[x.kind].map(function (i) { return '<button class="mk' + (x.kind === 'return' ? '' : ' q') + '" data-mark="' + esc(x.id) + '" data-mi="' + i + '">' + esc(x.kind === 'return' ? 'Mark' : lbl(ans[i])) + '</button>'; }).join('');
   }
   // a small copy icon beside every tracking ID (user 2026-11-18: Mark for Return has no pop-up, so its ID could not be copied);
@@ -529,9 +546,16 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       var who = String(e.who || '').replace(/:\s*$/, '');
       if (e.k === 'you' || e.k === 'us') {
         var side = e.k === 'you' ? 'r' : 'l', g = prev === side + who;
-        var txt = String(e.what || '').replace(/^"|"$/g, '');
+        var txt = String(e.what || '').replace(/"/g, '');
+        // 2. the store's line says what was asked, not "Sent to the courier page · Reattempt" (user 2026-11-18); the latest
+        // one carries the request in full with the customer's words
+        if (e.k === 'us') {
+          var isLast = i === lastUs, kindW = txt.replace(/^Sent( to the courier page| to the sheet| on WhatsApp)?\s*·?\s*/, '');
+          if (/^Sent( to the courier page| to the sheet| on WhatsApp)?(\s*·|$)/.test(txt)) txt = isLast && x.ask ? x.ask : (kindW || 'Request') + ' request';
+          if (isLast && x.says && x.kind !== 'return') txt += '\n' + (x.kind === 'claim' ? '' : 'Customer: ') + x.says;
+        }
         h += '<div class="cb2 ' + side + (g ? ' g' : '') + '">' + (g ? '' : '<span class="cw">' + esc(e.k === 'you' ? (who === D.courier ? D.courier + ' Team' : D.courier + ' · ' + who) : D.store) + '</span>') +
-          esc(txt) + '<span class="ct">' + esc(tm(e)) + (e.k === 'you' ? ' ✓' : '') + '</span></div>';
+          esc(txt).replace(/\n/g, '<span class="cbs">') + (/\n/.test(txt) ? '</span>' : '') + '<span class="ct">' + esc(tm(e)) + (e.k === 'you' ? ' ✓' : '') + '</span></div>';
         prev = side + who;
       } else {
         var bad = e.k === 'noact' || e.k === 'ret', warn = e.k === 'bad';
@@ -746,13 +770,15 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   // ---------- clicks ----------
   document.addEventListener('click', function (e) {
     if (e.target.closest('[data-bk]')) { var bk = e.target.closest('[data-bk]').getAttribute('data-bk'); if (e.target.checked) BULK[bk] = 1; else delete BULK[bk]; renderQ(); return; }
+    if (QOPEN && !e.target.closest('.qm')) { QOPEN = ''; renderQ(); }
     var t = e.target.closest('button,[data-open],[data-pday]'); if (!t || !D) return;
     if (t.dataset.view) { VIEW = t.dataset.view; SEL = ''; render(); window.scrollTo(0, 0); }
     else if (t.dataset.jump) { KIND = KIND === t.dataset.jump ? '' : t.dataset.jump; FLASH = !!KIND; SEL = ''; renderQ(); }
     else if (t.dataset.ulta) { ls('cp_ulta', ls('cp_ulta') === '1' ? '0' : '1'); renderQ(); }
     else if (t.dataset.all) { ALL = t.dataset.all === '1'; ls('cp_all', ALL ? '1' : '0'); renderQ(); }
     else if (t.dataset.bulkgo) bulkGo(t);
-    else if (t.dataset.mark) { var mx = find(t.dataset.mark); mark([t.dataset.mark], mx ? kindOf(mx.kind).answers[Number(t.dataset.mi) || 0] : ''); }
+    else if (t.dataset.qmenu) { QOPEN = QOPEN === t.dataset.qmenu ? '' : t.dataset.qmenu; renderQ(); }
+    else if (t.dataset.mark) { QOPEN = ''; var mx = find(t.dataset.mark); mark([t.dataset.mark], mx ? kindOf(mx.kind).answers[Number(t.dataset.mi) || 0] : ''); }
     else if (t.dataset.undo) { clearTimeout(PEND[t.dataset.undo]); delete PEND[t.dataset.undo]; delete PANS[t.dataset.undo]; renderQ(); toast('Undone'); }
     else if (t.dataset.moreans) { MORE[t.dataset.moreans] = 1; renderQ(); }
     else if (t.dataset.markall) {

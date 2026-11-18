@@ -11,14 +11,14 @@
 <style>
 :root{
   --bg:#F5F6F8;--card:#FFFFFF;--text:#0F172A;--muted:#64748B;--box-ink:#334155;--talk:#EEF1F5;--talk-line:#DDE3EA;--talk-label:#475569;--talk-cust:#00695F;--faint:#94A3B8;--line:#E8ECF1;
-  --cu:#DDF3EE;--cu-ink:#08423C;--cu-meta:#0B6E64;--cc:#FFFFFF;--cc-line:#E2E8F0;--chat-bg:#EEF1F4;
+  --cu:#D9FDD3;--cu-ink:#10261A;--cu-meta:#1F7A3E;--cc:#FFFFFF;--cc-line:#E2E8F0;--chat-bg:#EFEAE2;
   --shadow:0 1px 2px rgba(15,23,42,.04),0 6px 20px rgba(15,23,42,.05);
   --green:#15803D;--green-bg:#ECFDF3;--red:#C2410C;--red-bg:#FFF4ED;--amber:#B45309;--amber-bg:#FFFBEB;--blue:#1D4ED8;--blue-bg:#EFF4FF;
   --brand:#00857A;--brand-ink:#FFFFFF;--hero:#0B3D3A;--hero-2:#12524D;--accent:#3FE0A8;
 }
 [data-mode="dark"]{
   --bg:#0A0F1A;--card:#121A2A;--text:#E6EAF0;--muted:#94A3B8;--box-ink:#CBD5E1;--talk:#1A2434;--talk-line:#2A3648;--talk-label:#94A3B8;--talk-cust:#3FE0A8;--faint:#64748B;--line:#1F2A3C;
-  --cu:#0E3B37;--cu-ink:#DDF3EE;--cu-meta:#7FD8C6;--cc:#1A2434;--cc-line:#263247;--chat-bg:#0E1522;
+  --cu:#005C4B;--cu-ink:#E9EDEF;--cu-meta:#9FD8C3;--cc:#1A2434;--cc-line:#263247;--chat-bg:#0B141A;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
   --green:#4ADE80;--green-bg:#0F2A1C;--red:#FB923C;--red-bg:#2A170D;--amber:#FBBF24;--amber-bg:#2A2108;--blue:#93B4FF;--blue-bg:#13203D;
 }
@@ -744,7 +744,7 @@ body.locked{overflow:hidden;overscroll-behavior:none}
 .tb.l::before,.cm.c:not(.g) .cb::before{content:'';position:absolute;top:0;left:-7px;width:8px;height:12px;background:inherit;clip-path:polygon(0 0,100% 0,100% 100%)}
 .tb.r::before,.cm.u:not(.g) .cb::before{content:'';position:absolute;top:0;right:-7px;width:8px;height:12px;background:inherit;clip-path:polygon(0 0,100% 0,0 100%)}
 .cm .cb{position:relative}.cm.c:not(.g) .cb{border-top-left-radius:0;border-left:0}.cm.u:not(.g) .cb{border-top-right-radius:0}.cm.c .cb{border:0;box-shadow:0 1px 1px rgba(15,23,42,.08)}
-.ch-wrap{background:var(--chat-bg);border-radius:14px;padding:8px 8px 10px}.lnkb{border:0;background:none;padding:0;font:600 12.5px Inter,sans-serif;color:var(--brand);cursor:pointer;display:inline-flex;align-items:center;gap:3px}.lnkb i{font-size:14px}.pp-card.chcard{padding:0;overflow:hidden;background:var(--chat-bg)}.chcard>.pp-h{padding:10px 16px 2px}#pdch .ch-wrap{margin:0;border-radius:0;padding:0 10px 12px;background:transparent}#pdch .ch-wrap>.cd2:first-child{margin-top:4px}#chBox .ch-wrap{margin:-14px -16px 0;border-radius:0;padding:4px 10px 14px}
+.ch-wrap{background:var(--chat-bg);border-radius:14px;padding:8px 8px 10px}.lnkb{border:0;background:none;padding:0;font:600 12.5px Inter,sans-serif;color:var(--brand);cursor:pointer;display:inline-flex;align-items:center;gap:3px}.lnkb i{font-size:14px}.pp-card.chcard{padding:0;overflow:hidden;background:var(--chat-bg);border:1px solid rgba(15,23,42,.06)}.chcard>.pp-h{padding:10px 16px 2px}#pdch .ch-wrap{margin:0;border-radius:0;padding:0 10px 12px;background:transparent}#pdch .ch-wrap>.cd2:first-child{margin-top:4px}#chBox .ch-wrap{margin:-14px -16px 0;border-radius:0;padding:4px 10px 14px}
 .cm{display:flex;flex-direction:column;margin-top:8px}.cm.g{margin-top:2px}
 .cb{max-width:84%;padding:6px 10px 4px;border-radius:14px;font-size:13.5px;line-height:1.42;word-wrap:break-word;overflow-wrap:anywhere}
 .cm.c .cb{align-self:flex-start;background:var(--cc);border:1px solid var(--cc-line);color:var(--text);border-top-left-radius:4px}.cm.c.g .cb{border-top-left-radius:14px}
@@ -3434,22 +3434,22 @@ function cutoffText() {
 }
 // the 4 steps of a case, each with its time: Called → In list → Sent → Courier (late parcels: Asked instead of Called)
 function ndrSteps(c, slot) {
-  var t = ticketOf(c), ob = inOutbox(c), noAns = /no answer|phone off/i.test(c.outcome || ''), called = c.calls > 0;
+  // only the request's steps (user 2026-11-18: nothing twice): the call and the failed attempt are already in the bubbles
+  // (with their times) and "Failed again" is the tag, so before a request there is no bar at all; never an empty "—"
+  var t = ticketOf(c), ob = inOutbox(c);
   var S = function (l, at, k) { var a = stepAt(at); return { l: l, d1: a[0], d2: a[1], k: k }; };
   var sentNow = t ? SENT_NOW[t.type + '|' + c.cn] : null, sent = !!(t && (t.channel || sentNow)) || /^(Sent|Courier confirmed)$/.test(c.sent || '');
   var listed = sent || !!ob || c.sent === 'Queued' || !!t;
-  if (!called && !listed && c.sent !== 'Attempt failed') return ''; // nothing happened yet: the button says what is next
-  var s1 = c.watch ? S(c.next === 'Chase courier (late)' ? 'Asked' : 'Ask', '', c.next === 'Chase courier (late)' ? 'ok' : '')
-    : called ? S(noAns ? 'No answer' : 'Called', c.lastCall, noAns ? 'wt' : 'ok') : S('Call', 'not yet', '');
-  var s2 = slot === 'later' ? S('Call back', 'waiting', 'wt') : listed ? S('In list', (t && t.created) || c.queuedAt || '', sent ? 'ok' : 'wt') : S('In list', '', '');
-  var s3 = sent ? S('Sent', (t && t.sentAt) || (sentNow ? 'just now' : ''), 'ok') : S('Sent', listed ? 'not yet' : '', '');
-  var s4 = c.sent === 'Attempt failed' ? S('Failed again', '', 'bd')
-    : noActTicket(t) ? S('No action', '', 'bd')
-    : t && (t.status || t.reply) ? S('Replied', t.replyAt || '', 'ok')
+  if (!listed) return '';
+  var s2 = S('In list', (t && t.created) || c.queuedAt || '', sent ? 'ok' : 'wt');
+  var s3 = sent ? S('Sent', (t && t.sentAt) || (sentNow ? 'just now' : ''), 'ok') : S('Sent', 'not yet', '');
+  var s4 = noActTicket(t) ? S('No action', '24 h after reply', 'bd')
+    : t && (t.status || t.reply) ? null // their answer and its time are in the chat line above the steps
     : c.sent === 'Courier confirmed' || /Amal hua/.test((t && t.result) || '') ? S('Acted', '', 'ok')
-    : sent ? S('Courier', t && t.sentMs ? 'waiting ' + hrsText(Date.now() - t.sentMs) : 'waiting', 'wt') : S('Courier', '', '');
-  return '<div class="nc-st">' + [s1, s2, s3, s4].map(function (s) {
-    return '<span class="' + s.k + '"><i></i><b>' + esc(s.l) + '</b><small class="num">' + esc((s.d1 === 'today' ? s.d2 : s.d1) || '—') + '</small></span>';
+    : sent ? S('Courier', t && t.sentMs ? 'waiting ' + hrsText(Date.now() - t.sentMs) : 'waiting', 'wt') : null;
+  return '<div class="nc-st" style="grid-template-columns:repeat(' + (s4 ? 3 : 2) + ',minmax(0,1fr))">' + [s2, s3, s4].filter(Boolean).map(function (x) {
+    var d = (x.d1 === 'today' ? x.d2 : x.d1) || '';
+    return '<span class="' + x.k + '"><i></i><b>' + esc(x.l) + '</b>' + (d ? '<small class="num">' + esc(d) + '</small>' : '') + '</span>';
   }).join('') + '</div>';
 }
 var NDR_TAG = {
