@@ -388,19 +388,17 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       .sort(function (a, b) { return ((ev0(b) || {}).ms || 0) - ((ev0(a) || {}).ms || 0); });
     if (!xs.length) return '';
     var did = function (x) { var e = ev(x); return e ? e.what.replace(/\s·\s.*$/, '') + ' · ' + e.when.replace(/,.*$/, '') : 'Return started' + (x.closedAt ? ' · ' + x.closedAt : ''); };
-    // yesterday's and today's returns stay open (user 2026-11-14); the older ones (up to 7 days) behind Show
+    // only returns that began yesterday or today (user 2026-11-18: the older ones are in Resolved already); none → no block
     var y = new Date(D.today + 'T00:00:00'); y.setDate(y.getDate() - 1);
-    var recent = xs.filter(function (x) { var e = ev0(x); return e && e.ms && e.ms >= y.getTime(); }), older = xs.filter(function (x) { return recent.indexOf(x) === -1; });
-    var open = ls('cp_ulta') === '1';
+    var recent = xs.filter(function (x) { var e = ev0(x); return e && e.ms && e.ms >= y.getTime(); });
+    if (!recent.length) return '';
     var line = function (x) {
       return '<div class="ulta-r" data-open="' + esc(x.id) + '"><div class="cn">' + esc(x.cn) + '</div><div class="city" title="' + esc(x.city) + '">' + esc(x.city) + '</div>' +
         '<div>' + (x.status || x.reply ? esc(x.status || x.reply) + ' <small>· ' + esc(shortDay(x.at)) + '</small>' : '<small>No response</small>') + '</div>' +
         '<div>' + esc(did(x)) + '</div></div>';
     };
-    var shown = recent.concat(open ? older : []);
-    return '<section class="qs k-ulta"><div class="sh"><b>Returned Despite Reattempt Request · ' + (recent.length ? recent.length + ' since yesterday' : xs.length) + '</b><small>Reattempt was requested; the branch returned the shipment</small>' +
-      (older.length ? '<button class="ulta-more" data-ulta="1">' + (open ? 'Hide earlier' : 'Show ' + older.length + ' earlier') + '</button>' : '') + '</div>' +
-      (shown.length ? '<div class="ulta-th"><div>Tracking ID</div><div>City</div><div>Your Team&rsquo;s Response</div><div>Branch Action</div></div>' + shown.map(line).join('') : '') + '</section>';
+    return '<section class="qs k-ulta"><div class="sh"><b>Returned Despite Reattempt Request · ' + recent.length + ' since yesterday</b><small>Reattempt was requested; the branch returned the shipment · older ones are under Resolved</small></div>' +
+      '<div class="ulta-th"><div>Tracking ID</div><div>City</div><div>Your Team&rsquo;s Response</div><div>Branch Action</div></div>' + recent.map(line).join('') + '</section>';
   }
   // Mark for Return (user 2026-11-14): one tap "Mark" (no answer window), Undo for 10 s before it is sent
   function markCell(x) {

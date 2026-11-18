@@ -251,6 +251,8 @@ body{overscroll-behavior-y:contain}
 .rc.on{border-color:var(--brand);box-shadow:inset 0 0 0 1px var(--brand)}.rc.on .dot{border:5px solid var(--brand)}
 .rc b{display:block;font-size:14px;font-weight:600}.rc small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px;font-weight:400}
 .rc-pay{margin:8px 0 0;padding:10px 12px;border-radius:12px;background:var(--bg)}
+.cm-d{display:block}.cm-d summary{cursor:pointer;list-style:none}.cm-d summary::-webkit-details-marker{display:none}.cm-d[open] summary .ti-chevron-down{transform:rotate(180deg)}
+.cm-more{margin:8px 0 2px 22px}.cm-li{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-top:1px solid var(--line);font-size:13px}.cm-li small{display:block;color:var(--muted);font-size:11.5px}.cm-li b{font-weight:600;white-space:nowrap}
 .seg{display:flex;background:var(--card);border-radius:12px;padding:3px;box-shadow:var(--shadow);margin-bottom:14px}
 .seg button{flex:1;border:0;background:none;color:var(--muted);padding:8px;border-radius:9px;font:500 12.5px Inter,sans-serif;cursor:pointer}
 .seg button.on{background:var(--brand);color:var(--brand-ink)}
@@ -1022,7 +1024,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 (function () {
   if (window.google && google.script) return;
   window.EH_PWA = true; // installed app: notifications are possible
-  window.EH_BUILD = '2026-11-17'; // shown at the bottom of the menu
+  window.EH_BUILD = '2026-11-18'; // shown at the bottom of the menu
   var API = "https://script.google.com/macros/s/AKfycbyqtyrClenCG1_iqTSDK5KhtFItfX6rUsYdIexwQ3qPFbSv9d1n8jy06ItjvWXXtB-I/exec", RELAY = "", relayOff = 0;
   // through the relay when there is one; if it fails, straight to Google and skip the relay for 10 min. A save goes
   // straight only when the relay could not be reached at all (never sent twice).
@@ -1753,12 +1755,12 @@ function openParcel(key, given) {
   }
 }
 // Ask the courier about any parcel on their page: what to ask + our words (the courier reads Roman Urdu)
-function openPageAsk(p) {
-  var kinds = [['reattempt', 'Reattempt', 'Customer wants it · deliver again'], ['late', 'Late delivery', 'Trace it and deliver'], ['check', 'Status check', 'Where is it / POD'], ['return', 'Mark for return', 'Send it back to us']], pick = 'check';
+function openPageAsk(p, first) {
+  var kinds = [['reattempt', 'Reattempt', 'Customer wants it · deliver again'], ['late', 'Late delivery', 'Trace it and deliver'], ['check', 'Status check', 'Where is it / POD'], ['return', 'Mark for return', 'Send it back to us']], pick = first || 'check';
   var draw = function () {
     el('panel').innerHTML = '<h3>Ask ' + esc(p.courier || 'courier') + '</h3><p>' + esc(p.cn) + ' · ' + esc(p.city || '') + ' · goes on the ' + esc(p.courier || '') + ' page within 5 minutes</p>' +
       '<div class="ag2">' + kinds.map(function (k) { return '<button class="' + (k[0] === pick ? 'on' : '') + '" data-pk="' + k[0] + '"><b>' + k[1] + '</b><small>' + k[2] + '</small></button>'; }).join('') + '</div>' +
-      '<div class="fld" style="margin-top:12px"><label>What should ' + esc(p.courier || 'the courier') + ' know?' + (pick === 'return' ? ' (optional)' : '') + '</label><textarea id="paW" rows="3" placeholder="e.g. Customer ghar par hai, kal 2 baje ke baad deliver karein">' + esc(el('paW') ? el('paW').value : '') + '</textarea></div>' +
+      '<div class="fld" style="margin-top:12px"><label>What should ' + esc(p.courier || 'the courier') + ' know?' + (pick === 'return' ? ' (optional)' : '') + '</label><textarea id="paW" rows="3" placeholder="' + (pick === 'check' ? 'e.g. Kal out for delivery tha, kya update hai? / Customer kehta hai mil gaya, status kya hai?' : 'e.g. Customer ghar par hai, kal 2 baje ke baad deliver karein') + '">' + esc(el('paW') ? el('paW').value : '') + '</textarea></div>' +
       '<div class="btns" style="margin-top:12px"><button class="btn" id="paX">Cancel</button><button class="btn pri" id="paGo"><i class="ti ti-send"></i>Send to page</button></div>';
     el('panel').querySelectorAll('[data-pk]').forEach(function (b) { b.onclick = function () { pick = b.getAttribute('data-pk'); var w = el('paW').value; draw(); el('paW').value = w; }; });
     el('paX').onclick = closePanel;
@@ -3477,7 +3479,13 @@ function ndrCard(c, seen, inGroup) {
     (calls ? '<div class="nc-ln"><i class="ti ti-phone"></i><span>' + esc(calls) + '</span></div>' : '') + riskLine(p, 'nc-ln') +
     ndrSteps(c, slot) +
     (hint ? '<div class="nc-hint" style="color:' + hint[1] + '">' + esc(hint[0]) + '</div>' : '') +
-    (main || side.join('') ? '<div class="nc-act">' + main + side.join('') + '</div>' : '') + '</div>';
+    (main || side.concat([ndrStatusBtn(c, slot)]).join('') ? '<div class="nc-act">' + main + side.concat([ndrStatusBtn(c, slot)]).join('') + '</div>' : '') + '</div>';
+}
+// a Status check on the courier's page from any NDR card (user 2026-11-18): "out for delivery yesterday, any update?" /
+// "customer says received, what is the status?" → the page's Status Inquiry table
+function ndrStatusBtn(c, slot) {
+  if (!can('ndr.work') || slot === 'check' || slot === 'closed' || !((N.data.couriers || {})[c.courier] || {}).page) return '';
+  return '<button class="btn sq" data-scheck="' + esc(c.cn) + '" aria-label="Status check" title="Status check · ask ' + esc(c.courier) + '"><i class="ti ti-zoom-question"></i></button>';
 }
 // A closed case (user 2026-11-02: who, where, how much, what we did, and whether the parcel is back or still coming)
 function ndrClosedCard(x) {
@@ -4172,6 +4180,8 @@ el('nlist').onclick = function (e) {
   var fg = e.target.closest('[data-ngf]');
   if (fg) { var so = {}; try { so = JSON.parse(store('eh_ngo') || '{}'); } catch (x) {} so[fg.getAttribute('data-ngf')] = fg.getAttribute('data-ngo') === '1' ? 0 : 1; store('eh_ngo', JSON.stringify(so)); return renderNdr(); }
   var l = e.target.closest('[data-late]'); if (l) return askLate(l.getAttribute('data-late'));
+  var sc = e.target.closest('[data-scheck]');
+  if (sc) { var scn = sc.getAttribute('data-scheck'), cc = (N.data.cases || []).filter(function (x) { return x.cn === scn; })[0] || { cn: scn }; return openPageAsk({ cn: cc.cn, courier: cc.courier, city: cc.city }, 'check'); }
   var sr = e.target.closest('[data-stopret]'); if (sr) return askStopReturn(sr.getAttribute('data-stopret'));
   var ag = e.target.closest('[data-again]'); if (ag) return ndrSendAgain(ag.getAttribute('data-again'), ag.getAttribute('data-cn'));
   var rt = e.target.closest('[data-ret]'); if (rt) { openNdrForm(rt.getAttribute('data-ret')); var rb = el('fAns').querySelector('[data-a="refuse"]'); if (rb) rb.click(); return; }
@@ -6855,13 +6865,21 @@ function drawCloseMonth(q) {
     if (loss) return capSum > 0 ? net * Math.max(0, p.capital) / capSum : net * p.pct / 100;
     return st.own ? (Number(st.split[p.name]) || 0) : dist() * p.pct / 100;
   };
-  var chk = function (ok, t) { return '<div class="acx-row"><span>' + (ok ? '<i class="ti ti-circle-check" style="color:var(--green)"></i> ' : '<i class="ti ti-alert-triangle" style="color:var(--red)"></i> ') + t + '</span></div>'; };
+  // a check with something behind it opens its details (user 2026-11-18)
+  var chk = function (ok, t, more) {
+    var head = (ok ? '<i class="ti ti-circle-check" style="color:var(--green)"></i> ' : '<i class="ti ti-alert-triangle" style="color:var(--red)"></i> ') + t;
+    return more ? '<details class="acx-row cm-d"><summary>' + head + ' <i class="ti ti-chevron-down" style="color:var(--muted)"></i></summary><div class="cm-more">' + more + '</div></details>' : '<div class="acx-row"><span>' + head + '</span></div>';
+  };
+  var li = function (a, b) { return '<div class="cm-li"><span>' + a + '</span><b>' + (b || '') + '</b></div>'; };
+  var openMore = (q.openList || []).length ? (q.openList || []).map(function (x) { return li(esc(x.cn) + ' <small>' + esc(x.courier) + ' · booked ' + esc(x.booked) + '</small>', esc(String(x.status).replace(/_/g, ' ').toLowerCase())); }).join('') + (q.open > (q.openList || []).length ? '<small class="mnote">and more · see Parcels</small>' : '') : '';
+  var waitMore = (q.waitList || []).map(function (x) { return li(esc(x.desc) + ' <small>' + esc(x.date) + ' · ' + esc(x.cat || x.type) + ' · by ' + esc(x.by) + '</small>', rs(x.amount)); }).join('') + ((q.waitList || []).length ? '<small class="mnote">Approve them under Finance → Expenses → To approve</small>' : '');
   var blocked = q.open > 0 || q.waiting > 0 || !q.finished || q.closed;
   var checks = '<div class="card"><b>1 · Before closing</b>' +
     chk(q.finished, q.finished ? 'The month is over' : 'Only a finished month can be closed') +
-    chk(!q.open, q.open ? q.open + ' parcels still with the courier · close when all are delivered or returning' : 'Every parcel delivered or returning') +
-    chk(!q.waiting, q.waiting ? q.waiting + ' entries still waiting for approval' : 'No entry waiting for approval') +
-    (q.banks || []).map(function (b) { return chk(!b.diff, esc(b.name) + ' reconciled ' + esc(b.day) + (b.diff ? ' · difference ' + rs(Math.abs(b.diff)) : '')); }).join('') + '</div>';
+    chk(!q.open, q.open ? q.open + ' parcels still with the courier · close when all are delivered or returning' : 'Every parcel delivered or returning', q.open ? openMore : '') +
+    chk(!q.waiting, q.waiting ? q.waiting + ' entries still waiting for approval' : 'No entry waiting for approval', q.waiting ? waitMore : '') +
+    (q.banks || []).map(function (b) { return chk(!b.diff, esc(b.name) + ' reconciled ' + esc(b.day) + (b.diff ? ' · difference ' + rs(Math.abs(b.diff)) : ''),
+      li('Bank statement showed', b.bank != null ? rs(b.bank) : '') + li('ORDI showed then', b.app != null ? rs(b.app) : '') + (b.diff ? '<small class="mnote">Reconcile again in Banking & equity → ' + esc(b.name) + ' → Reconcile with bank</small>' : '')); }).join('') + '</div>';
   var draw = function () {
     var d = dist(), sumOwn = P.reduce(function (a, p) { return a + (Number(st.split[p.name]) || 0); }, 0), left = d - sumOwn;
     var res = '<div class="card"><b>2 · Result</b><div class="acx-row"><span>' + (loss ? 'Net loss' : 'Net profit') + '<small>' + esc(pnlLabel(month)) + ' · sales ' + rs(q.sales) + '</small></span><b class="num' + (loss ? '' : ' up') + '">' + (loss ? '−' : '+') + rs(Math.abs(net)) + '</b></div>' +
@@ -6908,7 +6926,19 @@ function drawCloseMonth(q) {
       st.own = b.getAttribute('data-cm') === 'own';
       if (st.own) P.forEach(function (p) { if (st.split[p.name] == null) st.split[p.name] = Math.round(dist() * p.pct / 100); });
       draw(); }; });
-    el('panel').querySelectorAll('[data-cs]').forEach(function (i) { i.onchange = function () { st.split[i.getAttribute('data-cs')] = Math.round(Number(String(i.value).replace(/[^0-9.]/g, '')) || 0); draw(); }; });
+    // own split balances itself (user 2026-11-18): change one partner's amount and the rest of the profit goes to the
+    // others (by their %), so the shares always add up; the boxes follow while typing, the page redraws when done
+    var rebalance = function (n, raw) {
+      var d = dist(), v = Math.max(0, Math.min(d, Math.round(Number(String(raw).replace(/[^0-9.]/g, '')) || 0))), others = P.filter(function (p) { return p.name !== n; });
+      var pc = others.reduce(function (a, p) { return a + p.pct; }, 0) || 1, rest = d - v, given = 0;
+      st.split[n] = v;
+      others.forEach(function (p, k) { var a = k === others.length - 1 ? rest - given : Math.round(rest * p.pct / pc); given += a; st.split[p.name] = a; });
+      el('panel').querySelectorAll('[data-cs]').forEach(function (x) { if (x.getAttribute('data-cs') !== n) x.value = st.split[x.getAttribute('data-cs')]; });
+    };
+    el('panel').querySelectorAll('[data-cs]').forEach(function (i) {
+      i.oninput = function () { rebalance(i.getAttribute('data-cs'), i.value); };
+      i.onchange = function () { rebalance(i.getAttribute('data-cs'), i.value); draw(); };
+    });
     el('panel').querySelectorAll('[data-cc]').forEach(function (b) { b.onclick = function () {
       var n = b.getAttribute('data-cc'), v = b.getAttribute('data-cv'), p = P.filter(function (x) { return x.name === n; })[0];
       st.choice[n] = v;
