@@ -309,6 +309,8 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
 /* one size for every line button on the page (user 2026-11-18): Respond, Edit, Mark, Update ▾ */
 .rp,.mk,.mk.q{display:inline-flex!important;align-items:center;justify-content:center;box-sizing:border-box;height:24px!important;min-width:76px!important;padding:0 8px!important;border-radius:6px!important;font:600 11.5px Inter,sans-serif!important;line-height:1!important;white-space:nowrap;vertical-align:middle;cursor:pointer}
 @media (max-width:900px){.rp,.mk,.mk.q{height:30px!important;min-width:84px!important;font-size:12.5px!important}}
+
+.mdl,.cht{overscroll-behavior:contain}
 </style>
 </head>
 <body>
@@ -804,6 +806,15 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); step(e.key === 'ArrowDown' ? 1 : -1); }
   });
   $('rf').onclick = function () { load(false); };
+  // each area scrolls on its own (user 2026-11-18): the mouse over the chat panel scrolls the chat, never the table behind;
+  // anywhere on the panel (header, pinned bar, answer box) the wheel moves the chat; the message box scrolls itself first
+  document.addEventListener('wheel', function (e) {
+    var m = e.target.closest && e.target.closest('.mdl'); if (!m) return;
+    var c = $('cht'), w = e.target.closest('textarea');
+    if (w && w.scrollHeight > w.clientHeight && !((e.deltaY < 0 && w.scrollTop <= 0) || (e.deltaY > 0 && w.scrollTop + w.clientHeight >= w.scrollHeight - 1))) return;
+    e.preventDefault();
+    if (c) c.scrollTop += e.deltaMode === 1 ? e.deltaY * 32 : e.deltaY;
+  }, { passive: false });
   $('cam').onchange = function () { var f = this.files && this.files[0]; if (f && SEL) sendPhoto(f, SEL); };
   // Ctrl+V with a screenshot while an open query is shown (text still pastes into the box as usual)
   document.addEventListener('paste', function (e) {
