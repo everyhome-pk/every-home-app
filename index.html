@@ -723,7 +723,7 @@ body.locked{overflow:hidden;overscroll-behavior:none}
 /* P&L contribution subtotals */
 .pl-cm{background:var(--bg)}.pl-cm .prow-2 span{font-size:11.5px}
 /* case history (parcel page) */
-.ch-wrap{background:var(--chat-bg);border-radius:14px;padding:10px 10px 12px}
+.ch-wrap{background:var(--chat-bg);border-radius:14px;padding:8px 8px 10px}.pp-card.chcard{padding:0;overflow:hidden;background:var(--chat-bg)}.chcard>.pp-h{padding:10px 16px 2px}#pdch .ch-wrap{margin:0;border-radius:0;padding:0 10px 12px;background:transparent}#pdch .ch-wrap>.cd2:first-child{margin-top:4px}#chBox .ch-wrap{margin:-14px -16px 0;border-radius:0;padding:4px 10px 14px}
 .cm{display:flex;flex-direction:column;margin-top:8px}.cm.g{margin-top:2px}
 .cb{max-width:84%;padding:6px 10px 4px;border-radius:14px;font-size:13.5px;line-height:1.42;word-wrap:break-word;overflow-wrap:anywhere}
 .cm.c .cb{align-self:flex-start;background:var(--cc);border:1px solid var(--cc-line);color:var(--text);border-top-left-radius:4px}.cm.c.g .cb{border-top-left-radius:14px}
@@ -732,8 +732,8 @@ body.locked{overflow:hidden;overscroll-behavior:none}
 .cb-s{display:block;font-size:12px;opacity:.85;margin-top:2px}
 .cb-m{display:flex;justify-content:flex-end;align-items:center;gap:4px;font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap}.cm.u .cb-m{color:var(--cu-meta)}.cb-m i{font-size:14px}.cb-m .rd{color:var(--blue)}
 .cb-p{display:block;margin-top:4px;border:0;background:var(--bg);color:var(--muted);border-radius:10px;padding:14px 18px;font:500 12px Inter,sans-serif;cursor:pointer}.cb img{display:block;max-width:220px;width:100%;border-radius:10px;margin-top:4px}
-.chs{display:flex;gap:8px;align-items:flex-start;width:88%;max-width:420px;margin:8px auto 0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 10px;font-size:12px;color:var(--muted);line-height:1.4;text-align:left}.chs i{font-size:15px;flex:none;margin-top:1px}.chs .chs-t{flex:1;min-width:0}.chs b{font-weight:600;color:var(--text)}.chs.bad b,.chs.bad i{color:var(--red)}.chs.warn b,.chs.warn i{color:var(--amber)}.chs.good b,.chs.good i{color:var(--green)}.chs .chs-m{flex:none;font-size:11px;color:var(--faint);margin-top:1px;white-space:nowrap}
-.cn2{display:flex;gap:8px;align-items:flex-start;width:88%;max-width:420px;margin:8px auto 0;background:var(--amber-bg);border-radius:12px;padding:8px 10px;font-size:12.5px;color:var(--text);line-height:1.4;text-align:left}.cn2>i{font-size:15px;color:var(--amber);flex:none;margin-top:1px}.cn2>div{flex:1;min-width:0}.cn2 b{display:block;font-weight:600;color:var(--amber)}.cn2 q{display:block;margin-top:1px}.cn2 small{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+.chs{display:flex;gap:8px;align-items:flex-start;width:100%;margin:8px auto 0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 10px;font-size:12px;color:var(--muted);line-height:1.4;text-align:left}.chs i{font-size:15px;flex:none;margin-top:1px}.chs .chs-t{flex:1;min-width:0}.chs b{font-weight:600;color:var(--text)}.chs.bad b,.chs.bad i{color:var(--red)}.chs.warn b,.chs.warn i{color:var(--amber)}.chs.good b,.chs.good i{color:var(--green)}.chs .chs-m{flex:none;font-size:11px;color:var(--faint);margin-top:1px;white-space:nowrap}
+.cn2{display:flex;gap:8px;align-items:flex-start;width:100%;margin:8px auto 0;background:var(--amber-bg);border-radius:12px;padding:8px 10px;font-size:12.5px;color:var(--text);line-height:1.4;text-align:left}.cn2>i{font-size:15px;color:var(--amber);flex:none;margin-top:1px}.cn2>div{flex:1;min-width:0}.cn2 b{display:block;font-weight:600;color:var(--amber)}.cn2 q{display:block;margin-top:1px}.cn2 small{display:block;font-size:11px;color:var(--muted);margin-top:2px}
 .cd2{width:fit-content;margin:12px auto 2px;background:var(--card);color:var(--muted);border-radius:8px;padding:2px 10px;font-size:11px;font-weight:600;box-shadow:0 1px 1px rgba(15,23,42,.06)}
 .cnew{margin:12px 0 2px;text-align:center;font-size:11px;font-weight:600;color:var(--blue);border-top:1px solid var(--blue);opacity:.9;padding-top:3px}
 .cwait{margin-top:12px;display:flex;gap:6px;align-items:center;font-size:12px;border-radius:10px;padding:7px 10px;background:var(--card);color:var(--muted)}.cwait.a{background:var(--amber-bg);color:var(--amber)}.cwait.r{background:var(--red-bg);color:var(--red)}
@@ -1739,7 +1739,7 @@ function openParcel(key, given) {
     // any parcel to the courier's page (user 2026-11-14), also when it is not an NDR case
     (p.cn && !p.done && p.stage !== 'cancelled' && can('ndr.work') ? '<button class="btn" id="pdAsk" style="width:100%;padding:12px;margin-bottom:12px"><i class="ti ti-send"></i>Ask ' + esc(p.courier || 'courier') + ' on their page</button>' : '') +
     (p.rcv ? '<button class="btn" data-rh="' + esc(p.cn) + '" style="width:100%;padding:12px;margin-bottom:12px"><i class="ti ti-history"></i>Return history</button>' : '') +
-    (p.cn && (ndr || p.attempts) ? '<div class="pp-card"><div class="pp-h"><span>Courier chat</span></div><div id="pdch"><div class="sk" style="height:80px"></div></div></div>' : '') +
+    (p.cn && (ndr || p.attempts) ? '<div class="pp-card chcard"><div class="pp-h"><span>Courier chat</span></div><div id="pdch"><div class="sk" style="height:80px"></div></div></div>' : '') +
     (p.cn ? '<div class="pp-card"><div class="pp-h"><span>Tracking</span>' +
       // Trax keeps the rider's proof of each attempt (photo, call recording, location) only on its portal, not in its API
       // (API Document SONIC 2.0 checked 2026-11-02): one tap opens that parcel there (the phone / laptop must be logged in)
