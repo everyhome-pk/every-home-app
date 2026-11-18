@@ -254,6 +254,11 @@ body{overscroll-behavior-y:contain}
 .rc.on{border-color:var(--brand);box-shadow:inset 0 0 0 1px var(--brand)}.rc.on .dot{border:5px solid var(--brand)}
 .rc b{display:block;font-size:14px;font-weight:600}.rc small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px;font-weight:400}
 .rc-pay{margin:8px 0 0;padding:10px 12px;border-radius:12px;background:var(--bg)}
+.ntl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 10px}
+.ntl button{display:flex;flex-direction:column;align-items:flex-start;gap:1px;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;cursor:pointer;font:inherit;color:var(--muted);min-width:0}
+.ntl button:active{transform:scale(.98)}.ntl button.on{border-color:var(--red);box-shadow:inset 0 0 0 1px var(--red)}
+.ntl b{font-size:18px;font-weight:700;color:var(--text);line-height:1.15}.ntl b small{font-size:12px;font-weight:600;color:var(--muted)}
+.ntl span{font-size:11.5px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.ntl span i{font-style:normal}.ntl span i{font-style:normal;font-weight:600;color:var(--amber)}
 .nsum{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin:0 0 10px;padding:10px 14px;border-radius:12px;background:var(--card);border:1px solid var(--line);font-size:13px;color:var(--muted)}
 .nsum span{cursor:pointer}.nsum span.on{color:var(--red)}.nsum b{color:var(--text);font-weight:600;font-size:15px}
 .cm-d{display:block}.cm-d summary{cursor:pointer;list-style:none}.cm-d summary::-webkit-details-marker{display:none}.cm-d[open] summary .ti-chevron-down{transform:rotate(180deg)}
@@ -502,11 +507,18 @@ body.nb-on #nlist{padding-bottom:84px}
 .ngr em{font-style:normal;font-weight:600;color:var(--muted);margin-left:2px}.ngr .ngh-new{margin-left:6px}.ngr i{margin-left:auto;color:var(--muted)}
 .cpu{margin:0 0 10px;background:var(--card);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
 .cpu-r{display:flex;align-items:center;gap:6px;padding:4px 6px 4px 0;min-height:44px}.cpu-l{flex:1;min-width:0;display:flex;align-items:center;gap:10px;padding:8px 0 8px 14px;border:0;background:none;font:inherit;color:inherit;text-align:left;text-decoration:none;cursor:pointer}.cpu-r+.cpu-r{border-top:1px solid var(--line)}
-.cpu-n{font:600 14px Inter,sans-serif;color:var(--text);flex:none;min-width:76px}
-.cpu-s{flex:1;min-width:0;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cpu-s b{font-weight:600;color:var(--text)}
-.cpu-s b.amb{color:var(--amber)}.cpu-s b.red{color:var(--red)}
-.cpu-wa{color:#16A34A}button.cpu-b{border:0;background:none;cursor:pointer}.cpu-b{flex:none;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--brand);font-size:17px}
+.cpu-n{font:600 14px Inter,sans-serif;color:var(--text);flex:none;min-width:92px;display:inline-flex;align-items:center;gap:3px}.cpu-n i{font-size:13px;color:var(--faint)}
+.cpu-s{flex:1;min-width:0;font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;align-items:center;gap:3px 8px}.cpu-s b{font-weight:600;color:var(--text)}
+.cpu-s b.amb{color:var(--amber)}.cpu-s b.red{color:var(--red)}.cpu-late{font-style:normal;font-size:11.5px;font-weight:600;color:var(--red);background:var(--red-bg);border-radius:99px;padding:2px 8px;white-space:nowrap}.cpu-ok{color:var(--green);font-weight:500}
+.cpu-wa{color:#15803D;width:auto!important;padding:0 10px;gap:4px;font:600 12.5px Inter,sans-serif!important;border:1px solid #86EFAC;border-radius:99px!important;height:30px!important;text-decoration:none;margin-right:6px}.cpu-wa i{font-size:16px}button.cpu-b{border:0;background:none;cursor:pointer}.cpu-b{flex:none;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--brand);font-size:17px}
 @media (min-width:1024px){.cpu{max-width:640px}}
+/* compact (user 2026-11-18: it covered too much): couriers side by side, name over the numbers, small round remind */
+.cpu{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0}
+.cpu-r{min-height:0;padding:0;position:relative}.cpu-r+.cpu-r{border-top:0;border-left:1px solid var(--line)}
+.cpu-l{flex-direction:column;align-items:flex-start;gap:2px;padding:8px 40px 8px 12px}
+.cpu-n{min-width:0;font-size:13.5px}.cpu-s{font-size:12.5px;gap:2px 6px}.cpu-late{font-size:11px;padding:1px 7px}
+.cpu-wa{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:30px!important;height:30px!important;padding:0!important;border-radius:50%!important;margin:0!important}
+
 .ob-top{margin:0 0 8px}.ob-top .obar{margin-bottom:8px}
 .nsub{display:flex;gap:6px;margin:4px 0 12px}.nsub button{flex:1 1 auto;height:36px;border-radius:99px;border:1px solid var(--line);background:var(--card);font:500 13px Inter,sans-serif;color:var(--muted);cursor:pointer;white-space:nowrap}
 .nsub button b{font-weight:600;color:var(--text);margin-left:2px}.nsub button.on{background:var(--brand);border-color:var(--brand);color:#fff}.nsub button.on b{color:#fff}
@@ -3564,10 +3576,10 @@ function courierPulse() {
     // one clean line per courier (user 2026-11-14): the whole line opens their page, two numbers (waiting, late = over 24 h)
     // and one WhatsApp button while something waits; "answered" left out (it was waiting said again), escalations live in
     // ☰ Reports → Courier escalations
-    var parts = [];
-    if (wait) parts.push('<b>' + wait + '</b> waiting');
-    if (old) parts.push('<b class="red">' + old + '</b> late');
-    var info = '<span class="cpu-n">' + esc(name) + '</span><span class="cpu-s">' + (parts.length ? parts.join(' · ') : 'All answered ✓') + '</span>';
+    // tidied in place (user 2026-11-18): name + ↗ (it opens their page), "n awaiting reply", a red chip for over 24 h,
+    // and a labelled Remind button (the bare underlined WhatsApp icon read like a link)
+    var info = '<span class="cpu-n">' + esc(name) + (s.link ? ' <i class="ti ti-external-link"></i>' : '') + '</span><span class="cpu-s">' +
+      (wait ? '<span><b>' + wait + '</b> waiting</span>' + (old ? '<em class="cpu-late">' + old + ' late</em>' : '') : '<span class="cpu-ok">✓ All answered</span>') + '</span>';
     var line = s.link ? '<a class="cpu-l" target="_blank" title="Open the ' + esc(name) + ' ' + shW(name) + '" href="' + esc(ownLink(courierSheetLink(name, 'reattempt'))) + '">' + info + '</a>'
       : '<button class="cpu-l" data-cour="' + esc(name) + '">' + info + '</button>';
     return '<div class="cpu-r">' + line +
@@ -3593,9 +3605,11 @@ function renderNdr() {
   var left = callNow.length, oldest = callNow.reduce(function (m, c) { return Math.max(m, c.hours || 0); }, 0);
   var oldestT = oldest < 1 ? 'under 1 h' : oldest < 48 ? oldest + ' h' : Math.floor(oldest / 24) + ' d';
   // one line on top, every number once (user 2026-11-18): called today · still to call · saved in 7 days · on their last try
-  var score = '<div class="nsum"><span data-ns="call" role="button"><b class="num">' + doneToday + '</b> called today · <b class="num"' + (oldest >= 24 && left ? ' style="color:var(--amber)"' : '') + '>' + left + '</b> to call</span>' +
-    '<span data-ns="saved" role="button"><b class="num" style="color:var(--green)">' + (wk.done ? Math.round(wk.saved / wk.done * 100) + '%' : '—') + '</b> saved · 7 days</span>' +
-    (last ? '<span data-ns="last" role="button"' + (N.last ? ' class="on"' : '') + '><b class="num" style="color:var(--red)">' + last + '</b> on last try</span>' : '') + '</div>';
+  // three small tile buttons (user 2026-11-18: the one line broke over two lines on a phone and did not look tappable);
+  // every number once: calls today (called · still to call), saved in 7 days, on their last try
+  var score = '<div class="ntl"><button data-ns="call"><b class="num">' + doneToday + '</b><span>called today</span></button>' + // "to call" = the Call tab's number, so not here (user 2026-11-18: nothing twice)
+    '<button data-ns="saved"><b class="num" style="color:var(--green)">' + (wk.done ? Math.round(wk.saved / wk.done * 100) + '%' : '—') + '</b><span>saved · 7 days</span></button>' +
+    '<button data-ns="last"' + (N.last ? ' class="on"' : '') + '><b class="num" style="color:' + (last ? 'var(--red)' : 'var(--muted)') + '">' + last + '</b><span>on last try</span></button></div>';
   // cases per tab / group
   var by = {}; NDR_TABS.forEach(function (t) { by[t[0]] = {}; });
   typed.forEach(function (c) { var s = ndrView(c); (by[s[0]][s[1]] = by[s[0]][s[1]] || []).push(c); });
@@ -3613,7 +3627,7 @@ function renderNdr() {
   var tabs = '<div class="ntabs">' + NDR_TABS.map(function (t) { var n = tabN(t[0]); return '<button data-nt="' + t[0] + '" class="' + [t[0] === N.tab ? 'on' : '', t[0] === 'call' && urgentN ? 'hot' : '', !n || t[0] === 'closed' || t[0] === 'wait' ? 'calm' : ''].filter(Boolean).join(' ') + '"><span class="nt-l">' + t[1] + '</span><b class="num">' + n + '</b></button>'; }).join('') + '</div>';
   // the courier lists (what is ready to send, Send, the cut-off) stay on top of every NDR tab (user 2026-11-02); the
   // parcels in them stay under To do → In list
-  el('ncour').innerHTML = score + tabs + (N.tab === 'courier' ? courierPulse() + (obars ? '<div class="ob-top">' + obars + '</div>' : '') : '');
+  el('ncour').innerHTML = score + courierPulse() + tabs + (N.tab === 'courier' && obars ? '<div class="ob-top">' + obars + '</div>' : '');
   // search: tracking ID, order #, phone (any way it is written) or name — across all tabs
   if (N.last) {
     var lt = typed.filter(function (c) { return c.attempts && triesLeft(c) <= 1 && caseType(c) !== 'premature' && caseType(c) !== 'rto' && !c.watch; })
