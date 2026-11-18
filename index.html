@@ -497,8 +497,8 @@ body.nb-on #nlist{padding-bottom:84px}
 .prow-acts{display:flex;gap:6px;flex:none}.pp-tags{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:-2px 0 10px}.pp-tags small{color:var(--muted)}.pp-tags .btn{margin-left:auto}
 .prow-call{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);color:var(--brand);margin-top:2px}[data-mode="dark"] .prow-call{color:var(--accent)}
 /* NDR (2026-11-01): tabs, score, group headers, case card, courier list bars */
-.ntabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;background:var(--line);border-radius:12px;padding:4px;margin:0 0 6px}
-.ntabs button{border:0;border-radius:9px;padding:6px 2px;font:500 12px Inter,sans-serif;background:transparent;color:var(--muted);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ntabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;background:var(--line);border-radius:999px;padding:4px;margin:0 0 6px}
+.ntabs button{border:0;border-radius:999px;padding:6px 2px;font:500 12px Inter,sans-serif;background:transparent;color:var(--muted);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (min-width:1024px){.ntabs,.nsub,.nscore,.ob-top{max-width:640px}}
 .ag2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}.ag2 button{text-align:left;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 12px;font:inherit;color:var(--text)}
 .ag2 button b{display:block;font-size:14px;font-weight:600}.ag2 button small{font-size:12px;color:var(--muted)}.ag2 button.on{border-color:var(--brand);box-shadow:0 0 0 2px var(--soft, #E7F5F2)}
@@ -513,7 +513,7 @@ body.nb-on #nlist{padding-bottom:84px}
 .cpu-wa{color:#15803D;width:auto!important;padding:0 10px;gap:4px;font:600 12.5px Inter,sans-serif!important;border:1px solid #86EFAC;border-radius:99px!important;height:30px!important;text-decoration:none;margin-right:6px}.cpu-wa i{font-size:16px}button.cpu-b{border:0;background:none;cursor:pointer}.cpu-b{flex:none;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--brand);font-size:17px}
 @media (min-width:1024px){.cpu{max-width:640px}}
 /* compact (user 2026-11-18: it covered too much): couriers side by side, name over the numbers, small round remind */
-.cpu{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0}
+.cpu{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0;border-radius:999px}.cpu-r:first-child .cpu-l{padding-left:20px}.cpu-r:last-child .cpu-wa{right:12px}.cpu-r:last-child .cpu-l{padding-right:48px}
 .cpu-r{min-height:0;padding:0;position:relative}.cpu-r+.cpu-r{border-top:0;border-left:1px solid var(--line)}
 .cpu-l{flex-direction:column;align-items:flex-start;gap:2px;padding:8px 40px 8px 12px}
 .cpu-n{min-width:0;font-size:13.5px}.cpu-s{font-size:12.5px;gap:2px 6px}.cpu-late{font-size:11px;padding:1px 7px}
@@ -735,6 +735,15 @@ body.locked{overflow:hidden;overscroll-behavior:none}
 /* P&L contribution subtotals */
 .pl-cm{background:var(--bg)}.pl-cm .prow-2 span{font-size:11.5px}
 /* case history (parcel page) */
+.nc-chat{margin-top:8px;background:var(--chat-bg);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+.tb{position:relative;max-width:88%;padding:5px 9px 3px;border-radius:10px;font-size:13.5px;font-weight:500;line-height:1.35;color:var(--text);box-shadow:0 1px 1px rgba(15,23,42,.08)}
+.tb.l{align-self:flex-start;background:var(--cc);border-top-left-radius:0}.tb.r{align-self:flex-end;background:var(--cu);color:var(--cu-ink);border-top-right-radius:0}
+.tw{display:block;font-size:11px;font-weight:600;color:var(--blue)}.tb.r .tw{color:var(--cu-meta)}
+.tt{display:block;text-align:right;font-size:10.5px;font-weight:400;color:var(--muted);margin-top:1px}.tb.r .tt{color:var(--cu-meta)}
+/* WhatsApp tail (user 2026-11-18): the first bubble of a group gets a small point at its top corner */
+.tb.l::before,.cm.c:not(.g) .cb::before{content:'';position:absolute;top:0;left:-7px;width:8px;height:12px;background:inherit;clip-path:polygon(0 0,100% 0,100% 100%)}
+.tb.r::before,.cm.u:not(.g) .cb::before{content:'';position:absolute;top:0;right:-7px;width:8px;height:12px;background:inherit;clip-path:polygon(0 0,100% 0,0 100%)}
+.cm .cb{position:relative}.cm.c:not(.g) .cb{border-top-left-radius:0;border-left:0}.cm.u:not(.g) .cb{border-top-right-radius:0}.cm.c .cb{border:0;box-shadow:0 1px 1px rgba(15,23,42,.08)}
 .ch-wrap{background:var(--chat-bg);border-radius:14px;padding:8px 8px 10px}.lnkb{border:0;background:none;padding:0;font:600 12.5px Inter,sans-serif;color:var(--brand);cursor:pointer;display:inline-flex;align-items:center;gap:3px}.lnkb i{font-size:14px}.pp-card.chcard{padding:0;overflow:hidden;background:var(--chat-bg)}.chcard>.pp-h{padding:10px 16px 2px}#pdch .ch-wrap{margin:0;border-radius:0;padding:0 10px 12px;background:transparent}#pdch .ch-wrap>.cd2:first-child{margin-top:4px}#chBox .ch-wrap{margin:-14px -16px 0;border-radius:0;padding:4px 10px 14px}
 .cm{display:flex;flex-direction:column;margin-top:8px}.cm.g{margin-top:2px}
 .cb{max-width:84%;padding:6px 10px 4px;border-radius:14px;font-size:13.5px;line-height:1.42;word-wrap:break-word;overflow-wrap:anywhere}
@@ -3523,8 +3532,9 @@ function ndrCard(c, seen, inGroup) {
     // one panel, a small label over each statement (user 2026-11-09: premium; the colour is only on the label)
     // once a request exists the courier talk is one line like a WhatsApp chat list (user 2026-11-18) → the full chat
     (t && !c.watch ? chatPreview(c, t, cust) :
-    '<div class="nc-talk"><div class="nc-row"><small>' + (c.watch ? esc(c.courier) : says[0]) + '</small><div>' + esc(c.watch ? lateText(c.type) : says[1]) + '</div></div>' +
-      (cust ? '<div class="nc-row cu"><small>Customer</small><div>' + esc(cust) + '</div></div>' : '') + '</div>') +
+    // the courier's words and the customer's as chat bubbles (user 2026-11-18, like WhatsApp): the courier on the left,
+    // what the customer told us on our call on the right (our side), the time inside the bubble
+    talkBubbles(c, t, cust)) +
     (tries ? '<div class="nc-ln" style="color:' + tries[1] + ';font-weight:500"><i class="ti ti-hourglass"></i><span>' + esc(tries[0]) + '</span></div>' : '') +
     (calls ? '<div class="nc-ln"><i class="ti ti-phone"></i><span>' + esc(calls) + '</span></div>' : '') + riskLine(p, 'nc-ln') +
     ndrSteps(c, slot) +
@@ -4136,6 +4146,14 @@ function chatMarkSeen(cn, t) {
   store('eh_chat_seen', JSON.stringify(s));
 }
 function chatRep(t) { var b = String((t && (t.cBy || t.replyBy)) || ''); return /\((page|sheet|[^)]* page)\)$/.test(b) ? b.replace(/\s*\([^)]*\)$/, '').replace(/@.*/, '').trim() : ''; }
+function talkBubbles(c, t, cust) {
+  var rep = t && (t.status || t.reply);
+  var who = c.watch ? c.courier : rep ? c.courier + ' replied' : c.courier + ' · attempt failed';
+  var txt = c.watch ? lateText(c.type) : rep ? [t.status, t.reply].filter(Boolean).join(' – ') : (niceReason(c.reason || c.courierStatus) || 'Delivery failed') + (c.attempts && (caseType(c) === 'premature' || caseType(c) === 'rto') ? ' · attempt ' + c.attempts : '');
+  var when = rep ? t.replyAt : c.watch ? '' : c.failedAt;
+  return '<div class="nc-chat"><div class="tb l"><span class="tw">' + esc(who) + '</span>' + esc(txt) + (when ? '<span class="tt">' + esc(when) + '</span>' : '') + '</div>' +
+    (cust ? '<div class="tb r"><span class="tw">Customer · on call</span>' + esc(cust) + (c.lastCall ? '<span class="tt">' + esc(c.lastCall) + '</span>' : '') + '</div>' : '') + '</div>';
+}
 // The NDR card's one line (like a WhatsApp chat list): the courier's last answer (blue dot while new), else our request.
 function chatPreview(c, t, cust) {
   if (!t) return '';

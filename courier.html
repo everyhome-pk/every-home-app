@@ -290,6 +290,11 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   body.mdl-on .fth>div:nth-child(3),body.mdl-on .ftr>div:nth-child(3),body.mdl-on .fth>div:nth-child(6),body.mdl-on .ftr>div:nth-child(6){display:none}
   body.mdl-on .fth,body.mdl-on .ftr{grid-template-columns:140px 100px minmax(0,1fr) 150px}
 }
+
+/* WhatsApp tail (user 2026-11-18): a small point at the top corner of the first bubble of a group */
+.cb2{position:relative}.cb2.l:not(.g),.cb2.r:not(.g){border-top-left-radius:12px;border-top-right-radius:12px}.cb2.l:not(.g){border-top-left-radius:0}.cb2.r:not(.g){border-top-right-radius:0}
+.cb2.l:not(.g)::before{content:'';position:absolute;top:0;left:-7px;width:8px;height:12px;background:inherit;clip-path:polygon(0 0,100% 0,100% 100%)}
+.cb2.r:not(.g)::before{content:'';position:absolute;top:0;right:-7px;width:8px;height:12px;background:inherit;clip-path:polygon(0 0,100% 0,0 100%)}
 </style>
 </head>
 <body>
