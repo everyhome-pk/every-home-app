@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-<base target="_top">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#00857A">
@@ -918,6 +917,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 }
 .pl-close{display:flex;align-items:center;gap:12px;margin:0 0 10px;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--brand) 10%,var(--card,#fff));border:1px solid color-mix(in srgb,var(--brand) 35%,transparent)}.pl-ci{font-size:22px;color:var(--brand);flex:none}.pl-ct{flex:1;min-width:0}.pl-ct b{display:block;font-size:15px}.pl-ct small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}#plCloseM{flex:none;width:auto;padding:0 18px;min-height:42px;font-size:14px}
 .ps-w{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line)}.ps-w small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}.ps-wb{display:flex;gap:6px;flex:none}.ps-wb .btn{width:auto}.ps-o{font-size:15px;margin:2px 0 8px}.ps-o.pos b{color:var(--green)}.ps-o.neg b{color:var(--red)}.ps-gh{font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:10px 0 2px}
+.nc-chatb{cursor:pointer}.nc-chatb:active{filter:brightness(.97)}.nc-open{align-self:flex-end;font-size:11.5px;font-weight:600;color:var(--brand);display:inline-flex;align-items:center;gap:2px;margin-top:-1px}.tb.un .tw{font-weight:700}.tb .pv-dot{display:inline-block;vertical-align:1px;margin-left:4px}.tt .ti{font-size:12px;vertical-align:-1px}.tt .ti-checks{color:#53BDEB}
 </style>
 <link rel="manifest" href="ordi.webmanifest">
 <link rel="icon" href="ordi-192.png">
@@ -4208,24 +4208,19 @@ function talkBubbles(c, t, cust) {
   return '<div class="nc-chat"><div class="tb l"><span class="tw">' + esc(who) + '</span>' + esc(txt) + (when ? '<span class="tt">' + esc(when) + '</span>' : '') + '</div>' +
     (cust ? '<div class="tb r"><span class="tw">Customer · on call</span>' + esc(cust) + (c.lastCall ? '<span class="tt">' + esc(c.lastCall) + '</span>' : '') + '</div>' : '') + '</div>';
 }
-// The NDR card's one line (like a WhatsApp chat list): the courier's last answer (blue dot while new), else our request.
+// Once a request exists the card shows the last exchange as bubbles too (user 2026-11-19: "cards with a courier reply still
+// look like before, no bubbles"): no reply yet → the courier's failed attempt (left) then our request (right, ✓ sent / in the
+// list); a reply → our request (right) then the courier's answer (left, last, blue dot while new). Tap = the whole chat.
 function chatPreview(c, t, cust) {
   if (!t) return '';
-  var who, txt, right, un = false, rep = chatRep(t);
-  if (t.status || t.reply) {
-    who = c.courier + (rep && rep !== c.courier ? ' · ' + rep : '');
-    txt = [t.status, t.reply].filter(Boolean).join(' – '); un = chatUnread(c, t);
-    right = esc(chatAgo(t.replyAt));
-  } else if (t.channel) {
-    who = 'You'; txt = cust || (REQ_KIND[t.type] || 'Request') + ' request';
-    right = '<i class="ti ti-check"></i> ' + esc(chatAgo(t.sentAt));
-  } else {
-    who = 'You · not sent yet'; txt = cust || (REQ_KIND[t.type] || 'Request') + ' request';
-    right = '<i class="ti ti-clock"></i>';
-  }
-  return '<button type="button" class="nc-pv' + (un ? ' un' : '') + '" data-chat="' + esc(c.cn) + '">' + (un ? '<span class="pv-dot" aria-label="New reply"></span>' : '') +
-    '<span class="pv-m"><small>' + esc(who) + '</small><span class="pv-t" style="display:block">' + esc(txt) + '</span></span>' +
-    '<span class="pv-r">' + right + ' <i class="ti ti-chevron-right"></i></span></button>';
+  var rep = chatRep(t), replied = !!(t.status || t.reply), un = replied && chatUnread(c, t);
+  var ours = '<div class="tb r"><span class="tw">You · ' + esc((REQ_KIND[t.type] || 'Request').toLowerCase()) + ' request</span>' + esc(cust || (REQ_KIND[t.type] || 'Request') + ' request') +
+    '<span class="tt">' + (t.channel ? '<i class="ti ti-checks"></i> ' + esc(chatAgo(t.sentAt) || 'sent') : '<i class="ti ti-clock"></i> in the ' + esc(c.courier) + ' list · not sent yet') + '</span></div>';
+  var theirs = replied
+    ? '<div class="tb l' + (un ? ' un' : '') + '"><span class="tw">' + esc(c.courier + (rep && rep !== c.courier ? ' · ' + rep : '')) + (un ? ' <span class="pv-dot" aria-label="New reply"></span>' : '') + '</span>' + esc([t.status, t.reply].filter(Boolean).join(' – ')) + (t.replyAt ? '<span class="tt">' + esc(chatAgo(t.replyAt)) + '</span>' : '') + '</div>'
+    : '<div class="tb l"><span class="tw">' + esc(c.courier) + ' · attempt failed</span>' + esc(niceReason(c.reason || c.courierStatus) || 'Delivery failed') + (c.failedAt ? '<span class="tt">' + esc(c.failedAt) + '</span>' : '') + '</div>';
+  return '<div class="nc-chat nc-chatb' + (un ? ' un' : '') + '" role="button" tabindex="0" data-chat="' + esc(c.cn) + '" aria-label="Open the chat with ' + esc(c.courier) + '">' +
+    (replied ? ours + theirs : theirs + ours) + '<span class="nc-open">Open chat <i class="ti ti-chevron-right"></i></span></div>';
 }
 // "18 Nov, 10:22 AM" → "10:22 AM" today, "Yesterday", else the day
 function chatAgo(s) {
@@ -4321,7 +4316,7 @@ function openChat(cn) {
     box.innerHTML = chatHtml(r.events || [], o); chatWire(box, r.events || [], o);
     requestAnimationFrame(function () { el('pgBody').scrollTop = el('pgBody').scrollHeight; });
     chatMarkSeen(cn, t);
-    document.querySelectorAll('.nc-pv[data-chat="' + cn + '"]').forEach(function (b) { b.classList.remove('un'); var d = b.querySelector('.pv-dot'); if (d) d.remove(); });
+    document.querySelectorAll('.nc-pv[data-chat="' + cn + '"], .nc-chatb[data-chat="' + cn + '"]').forEach(function (b) { b.classList.remove('un'); b.querySelectorAll('.pv-dot').forEach(function (d) { d.remove(); }); b.querySelectorAll('.tb.un').forEach(function (x) { x.classList.remove('un'); }); });
   }, function () { if (el('chBox')) el('chBox').innerHTML = '<small style="color:var(--muted)">Could not load the chat</small>'; });
 }
 document.addEventListener('click', function (e) { var b = e.target.closest('[data-chat]'); if (!b) return; e.preventDefault(); e.stopPropagation(); openChat(b.getAttribute('data-chat')); }, true);
