@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+<base target="_top">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#00857A">
@@ -7283,7 +7284,9 @@ function drawCloseMonth(q) {
     };
     var parts = '<div class="card"><b>' + (loss ? '3' : '5') + ' · Each partner</b>' + P.map(function (p, i) {
       var sh = Math.round(shareOf(p)), after = Math.round(p.profitLeft + sh), pay = st.pay[p.name] || {}, amt = Math.round(Number(pay.amount) || 0);
-      var room = sh + Math.max(0, p.profitLeft), over = st.choice[p.name] === 'pay' ? amt - room : 0;
+      // room = this share + what was kept before, less what was taken before the close (user 2026-11-19: a payout taken on
+      // 16 Nov and the same Rs 20,000 again at the close gave no warning — a negative profit left in was ignored)
+      var room = sh + p.profitLeft, over = st.choice[p.name] === 'pay' ? amt - Math.max(0, room) : 0;
       if (st.choice[p.name] === 'pay') { payTotal += amt; after -= amt; }
       var payBox = st.choice[p.name] !== 'pay' ? '' : '<div class="rc-pay">' +
         (sh + Math.min(0, p.profitLeft) <= 0 && !amt ? '<small class="mnote eq-n" style="display:block">Already taken before the close · nothing more to take</small>' : '') +
