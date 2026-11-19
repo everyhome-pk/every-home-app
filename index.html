@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-<base target="_top">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#00857A">
@@ -916,6 +915,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   #mrPrint0 .mr-sheet{box-shadow:none;border-radius:0;padding:0;max-width:none}
   #mrPrint0 *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
+.pl-close{display:flex;align-items:center;gap:12px;margin:0 0 10px;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--brand) 10%,var(--card,#fff));border:1px solid color-mix(in srgb,var(--brand) 35%,transparent)}.pl-ci{font-size:22px;color:var(--brand);flex:none}.pl-ct{flex:1;min-width:0}.pl-ct b{display:block;font-size:15px}.pl-ct small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}#plCloseM{flex:none;width:auto;padding:0 18px;min-height:42px;font-size:14px}
 </style>
 <link rel="manifest" href="ordi.webmanifest">
 <link rel="icon" href="ordi-192.png">
@@ -5830,7 +5830,8 @@ function openStockItem(sku) {
       (i.cost != null ? row('Average cost', rs(i.cost)) + row('Stock value', rs(i.value)) : '') : '') + '</div>' +
     (edit && d.started && stkNeg(i) ? '<div class="neg-box"><b>' + stkQty(i.onHand, i.unit) + ' · below zero</b><p>Booked ' + stkQty(-i.onHand, i.unit) + ' more than the app had. Usually goods came but were not received in the app, or orders are linked to the wrong product.</p>' +
       '<div class="btns"><button class="btn pri" type="button" id="siNegIn"><i class="ti ti-truck-loading"></i>Goods came · Stock in</button><button class="btn" type="button" id="siNegLink"><i class="ti ti-link"></i>Check order links</button></div></div>' : '') +
-    (edit ? '<div class="btns" style="margin:0 0 12px"><button class="btn pri" id="siIn"><i class="ti ti-truck-loading"></i>Stock in</button><button class="btn" id="siAdj"><i class="ti ti-adjustments"></i>Adjust</button></div>' : '') +
+    (edit ? '<div class="btns" style="margin:0 0 12px"><button class="btn pri" id="siIn"><i class="ti ti-truck-loading"></i>Stock in</button><button class="btn" id="siAdj"><i class="ti ti-adjustments"></i>Adjust</button>' + (i.kind === 'Item' ? '<button class="btn" id="siCnt"><i class="ti ti-list-numbers"></i>Count</button>' : '') + '</div>'
+      : i.kind === 'Item' && can('inventory.count') ? '<div class="btns" style="margin:0 0 12px"><button class="btn pri" id="siCnt"><i class="ti ti-list-numbers"></i>Count</button></div>' : '') +
     (can('inventory.count') && !edit && i.kind === 'Item' ? '<button class="btn" id="siDmg" style="width:100%;margin:0 0 12px"><i class="ti ti-alert-triangle"></i>Report damaged</button>' : '') +
     (can('inventory.edit') ? '<button class="btn' + (i.kind === 'Kit' ? ' pri' : '') + '" id="siBuy" style="width:100%;margin:0 0 12px"><i class="ti ti-shopping-cart-plus"></i>Order more' + (i.kind === 'Kit' ? ' (its parts)' : '') + '</button>' : '') +
     (i.kind === 'Kit' ? kitPartsHtml(i) + '<p style="color:var(--muted);font-size:12.5px">A bundle / clothes line has no stock of its own: its parts go down when it is booked.</p>' : '') +
@@ -5844,6 +5845,7 @@ function openStockItem(sku) {
   el('siBack').onclick = renderStock;
   if (el('siIn')) el('siIn').onclick = function () { openStockIn(sku); };
   if (el('siAdj')) el('siAdj').onclick = function () { openStockAdjust(sku); };
+  if (el('siCnt')) el('siCnt').onclick = function () { CNT.v = {}; CNT.all = true; CNT.q = sku; openStockCount(); }; // only this product (the search finds it by SKU)
   if (el('siDmg')) el('siDmg').onclick = function () { whReportDamaged(i); };
   if (el('siRe')) el('siRe').onclick = function () { openReorderEdit(i); };
   if (el('siName')) el('siName').onclick = function () { openNameEdit(i); };
@@ -6531,7 +6533,7 @@ function openPnl(period) {
           (p.closed.verifiedBy ? '<br>Verified by ' + esc(p.closed.verifiedBy) + ' · ' + esc(p.closed.verifiedAt) : '<br>Waiting for the other partner to verify') +
           (p.closed.canVerify ? '<br><button class="btn mini" id="plVerC" type="button" style="margin-top:6px"><i class="ti ti-check"></i>Verify this close</button>' : '') +
           (p.canClose ? '<br><button class="btn mini" id="plReopen" type="button" style="margin-top:6px"><i class="ti ti-lock-open"></i>Reopen</button>' : '') + '</div>'
-        : p.canClose && isMonth && cur < pkDay(new Date()).slice(0, 7) ? '<button class="btn" id="plCloseM" type="button" style="width:100%;margin:0 0 10px"><i class="ti ti-lock"></i>Close ' + esc(pnlLabel(cur)) + '</button>' : '') +
+        : p.canClose && isMonth && cur < pkDay(new Date()).slice(0, 7) ? '<div class="pl-close"><i class="ti ti-lock pl-ci"></i><div class="pl-ct"><b>Close ' + esc(pnlLabel(cur)) + '</b><small>' + (p.open && p.open.n ? p.open.n + ' parcel' + (p.open.n > 1 ? 's' : '') + ' still with the courier · close when every parcel is finished' : 'Every parcel is finished · lock the month and share the profit') + '</small></div><button class="btn pri" id="plCloseM" type="button">Close month</button></div>' : '') +
       (isMonth ? '<button class="btn" id="plRpt" type="button" style="width:100%;margin:0 0 10px"><i class="ti ti-file-text"></i>Monthly report · ' + (p.closed ? 'Final' : 'Draft') + ' (PDF)</button>' : '') +
       '<div class="card"><div class="h"><b>Cash in the period</b></div>' + line('Money in', rs(p.cash.in), '', p.cash.courier != null ? 'courier payments ' + rs(p.cash.courier) + ' · advances & other ' + rs(p.cash.other) : '') + line('Money out', minus(p.cash.out), '', 'expenses, stock bought, owner draws') + '</div>' +
       '<div class="btns" style="margin-top:10px"><button class="btn" id="plClose">Close</button></div>';
