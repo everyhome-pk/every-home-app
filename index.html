@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+<base target="_top">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#00857A">
@@ -916,6 +917,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   #mrPrint0 *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 .pl-close{display:flex;align-items:center;gap:12px;margin:0 0 10px;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--brand) 10%,var(--card,#fff));border:1px solid color-mix(in srgb,var(--brand) 35%,transparent)}.pl-ci{font-size:22px;color:var(--brand);flex:none}.pl-ct{flex:1;min-width:0}.pl-ct b{display:block;font-size:15px}.pl-ct small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}#plCloseM{flex:none;width:auto;padding:0 18px;min-height:42px;font-size:14px}
+.ps-w{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line)}.ps-w small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}.ps-wb{display:flex;gap:6px;flex:none}.ps-wb .btn{width:auto}.ps-o{font-size:15px;margin:2px 0 8px}.ps-o.pos b{color:var(--green)}.ps-o.neg b{color:var(--red)}.ps-gh{font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:10px 0 2px}
 </style>
 <link rel="manifest" href="ordi.webmanifest">
 <link rel="icon" href="ordi-192.png">
@@ -5665,6 +5667,7 @@ function renderStock() {
     ((edit || can('inventory.count')) && items.some(function (i) { return i.countDue; }) ? '<div class="oc-warn" id="stDue" style="margin:0 0 10px;cursor:pointer"><i class="ti ti-list-numbers"></i><span><b>' + items.filter(function (i) { return i.countDue; }).length + ' to count</b> · quick check of fast movers</span><i class="ti ti-chevron-right"></i></div>' : '') +
     ((d.plan || []).length ? '<div class="oc-warn" id="stPlan" style="margin:0 0 10px;cursor:pointer"><i class="ti ti-shopping-cart"></i><span><b>' + d.plan.length + ' to order soon</b> · ' + esc(d.plan.slice(0, 3).map(function (x) { return x.name; }).join(', ')) + (d.plan.length > 3 ? '…' : '') + '</span><i class="ti ti-chevron-right"></i></div>' : '') +
     (edit ? '<div class="btns" style="margin:0 0 12px"><button class="btn pri" id="stNew"><i class="ti ti-plus"></i>New purchase</button><button class="btn" id="stPur"><i class="ti ti-list-details"></i>Orders</button><button class="btn" id="stSup"><i class="ti ti-users"></i>Suppliers</button><button class="btn" id="stKits"><i class="ti ti-box-multiple"></i>Kits</button></div>' : '') +
+    (edit || can('inventory.count') ? '<button class="btn" id="stPartner" type="button" style="width:100%;margin:0 0 12px"><i class="ti ti-arrows-exchange"></i>Lend &amp; borrow goods</button>' : '') +
     '<div class="search"><i class="ti ti-search"></i><input id="stQ" autocomplete="off" placeholder="Find a product" value="' + esc(STK.q) + '"></div>' +
     '<div class="chips">' + chip('all', 'All · ' + items.length) + chip('low', 'Low · ' + low) + chip('out', 'Out · ' + out) + (negs.length ? chip('neg', 'Below zero · ' + negs.length) : '') + (d.items.some(stkIsPart) ? chip('parts', 'Parts') : '') + chip('kits', 'Bundles & lines') + '</div>' +
     '<div class="card" style="padding:0">' + (list.length ? list.map(function (i) {
@@ -5692,6 +5695,7 @@ function renderStock() {
     api('appUnlinkName', [TOKEN, sku], function () { STK.data.nameLinks = (STK.data.nameLinks || []).filter(function (x) { return x.sku !== sku; }); STK.at = 0; toast('Removed · the line asks again within 15 minutes'); renderStock(); }, function (e) { toast((e && e.message) || 'Not removed'); });
   }; });
   if (el('stKits')) el('stKits').onclick = openKits;
+  if (el('stPartner')) el('stPartner').onclick = openPartners;
   if (el('stSup')) el('stSup').onclick = function () { if (PUR.data) openSuppliers(); else purReload(openSuppliers); };
   el('stQ').oninput = function (e) { STK.q = e.target.value; var p = e.target.selectionStart; renderStock(); var n = el('stQ'); n.focus(); try { n.setSelectionRange(p, p); } catch (x) {} };
   el('panel').querySelectorAll('[data-sf]').forEach(function (b) { b.onclick = function () { STK.f = b.getAttribute('data-sf'); renderStock(); }; });
@@ -8132,6 +8136,7 @@ function drawAlerts() {
       // the same screens a push opens at start (user 2026-11-10: a bilti notification did nothing from the 🔔 list)
       if (q('wh')) { openWarehouse(); return; }
       if (q('pack')) { openPacking(); return; }
+      if (q('partner')) { openPartners(); return; }
       if (q('remind')) { closePanel(); showTab('ndr'); openSheetRemind(q('remind')); return; }
       if (q('stock') === 'count') { openStock(''); setTimeout(function () { if (STK.data) openStockCount(true); }, 1200); return; }
       if (q('stock') === 'link') { openStockLink(); return; }
@@ -8870,6 +8875,117 @@ function drawPacking() {
   el('panel').querySelectorAll('[data-pu]').forEach(function (b) { b.onclick = function (ev) { ev.stopPropagation(); set(b.getAttribute('data-pu'), false, b); }; });
 }
 el('btnPack').onclick = fromMenu(openPacking);
+// ---------- Partner stores (user 2026-11-19): a friend's store shares our warehouse; goods lent both ways at OUR cost ----------
+// Settled product to product (goods back, any product, by value) or product to cash (received / paid later). The warehouse
+// records, an owner approves before stock changes. Never a sale or a loss in the P&L.
+var PSD = null;
+function openPartners() {
+  if (!PSD) { el('panel').innerHTML = '<h3>Lend &amp; borrow</h3>' + skList(4); openPanel(true); }
+  else drawPartners();
+  api('getAppPartners', [TOKEN], function (d) { PSD = d; var h = el('panel').querySelector('h3'); if (h && /Lend/.test(h.textContent)) drawPartners(); },
+    function (e) { if (!PSD) { el('panel').innerHTML = '<h3>Lend &amp; borrow</h3><div class="card empty">' + esc((e && e.message) || 'Could not load') + '</div><div class="btns"><button class="btn" id="psX">Close</button></div>'; el('psX').onclick = closePanel; } });
+}
+function psQty(q, unit) { return stkQty(Math.abs(q), unit || 'pcs'); }
+function psMsg(store, b) {
+  var mine = b.goods.filter(function (g) { return g.qty > 0; }), theirs = b.goods.filter(function (g) { return g.qty < 0; });
+  var t = '*' + (PSD.store || 'Store') + ' ↔ ' + store + ' · ' + new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Asia/Karachi' }) + '*\n';
+  if (mine.length) t += '\nHamara maal aap ke paas:\n' + mine.map(function (g) { return '- ' + g.qty + ' × ' + g.name; }).join('\n') + '\n';
+  if (theirs.length) t += '\nAap ka maal hamare paas:\n' + theirs.map(function (g) { return '- ' + (-g.qty) + ' × ' + g.name; }).join('\n') + '\n';
+  if (b.owes != null && b.owes) t += '\nHisaab (cost par): ' + (b.owes > 0 ? 'aap ne Rs ' + b.owes.toLocaleString('en-IN') + ' dene hain' : 'hum ne Rs ' + (-b.owes).toLocaleString('en-IN') + ' dene hain') + '\n';
+  return t + '\nShukriya';
+}
+function drawPartners() {
+  var d = PSD, canMove = can('inventory.count') || can('inventory.edit');
+  var groups = {}; d.waiting.forEach(function (l) { (groups[l.id] = groups[l.id] || []).push(l); });
+  var wait = Object.keys(groups).map(function (id) { var g = groups[id], f = g[0];
+    return '<div class="ps-w"><div><b>' + (f.kind === 'Given' ? 'Given to ' : 'Taken from ') + esc(f.store) + '</b><small>' + g.map(function (l) { return l.qty + ' × ' + esc(l.name); }).join(' · ') + '</small><small>By ' + esc(f.by) + ' · ' + esc(f.at) + (f.note ? ' · ' + esc(f.note) : '') + '</small></div>' +
+      (d.owner ? '<div class="ps-wb"><button class="btn mini" data-psr="' + esc(id) + '" type="button">Reject</button><button class="btn mini pri" data-psa="' + esc(id) + '" type="button"><i class="ti ti-check"></i>Approve</button></div>' : '<span class="pk-tag">Waiting for the owner</span>') + '</div>';
+  }).join('');
+  var cards = d.stores.map(function (s) {
+    var b = d.balance[s] || { goods: [], owes: d.money ? 0 : null }, mine = b.goods.filter(function (g) { return g.qty > 0; }), theirs = b.goods.filter(function (g) { return g.qty < 0; });
+    var head = b.owes == null ? '' : b.owes > 0 ? '<div class="ps-o pos">' + esc(s) + ' owes us <b>' + rs(b.owes) + '</b></div>' : b.owes < 0 ? '<div class="ps-o neg">We owe ' + esc(s) + ' <b>' + rs(-b.owes) + '</b></div>' : '<div class="ps-o">All settled</div>';
+    var gl = function (list, label) { return list.length ? '<div class="ps-gh">' + label + '</div>' + list.map(function (g) { return '<div class="sp-dr"><span>' + esc(g.name) + '</span><span class="num">' + psQty(g.qty) + (g.value != null ? ' · ' + rs(Math.abs(g.value)) : '') + '</span></div>'; }).join('') : ''; };
+    return '<div class="card ps-c"><div class="h"><b>' + esc(s) + '</b></div>' + head +
+      gl(mine, 'Our goods with them') + gl(theirs, 'Their goods with us') + (!mine.length && !theirs.length ? '<p class="mnote">No goods lent either way.</p>' : '') +
+      (b.cash ? '<p class="mnote">Cash settled so far: ' + (b.cash > 0 ? 'received ' + rs(b.cash) : 'paid ' + rs(-b.cash)) + '</p>' : '') +
+      (canMove ? '<div class="btns" style="margin-top:10px"><button class="btn pri" data-psg="' + esc(s) + '" type="button"><i class="ti ti-arrow-up-right"></i>Give</button><button class="btn" data-pst="' + esc(s) + '" type="button"><i class="ti ti-arrow-down-left"></i>Take</button></div>' : '') +
+      (d.cashOk ? '<div class="btns" style="margin-top:8px"><button class="btn" data-psci="' + esc(s) + '" type="button"><i class="ti ti-cash"></i>Cash received</button><button class="btn" data-psco="' + esc(s) + '" type="button"><i class="ti ti-cash-banknote"></i>Cash paid</button></div>' : '') +
+      (mine.length || theirs.length ? '<a class="btn" style="margin-top:8px;width:100%" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(psMsg(s, b)) + '"><i class="ti ti-brand-whatsapp"></i>Send summary on WhatsApp</a>' : '') + '</div>';
+  }).join('');
+  var hist = d.list.slice(0, 40).map(function (l) {
+    var cash = /^Cash/.test(l.kind);
+    return '<div class="sp-dr"><span>' + esc(l.kind === 'Given' ? 'Given to ' + l.store : l.kind === 'Taken' ? 'Taken from ' + l.store : l.kind + ' · ' + l.store) + (cash ? '' : ' · ' + l.qty + ' × ' + esc(l.name)) +
+      '<small style="display:block;color:var(--muted)">' + esc(l.at) + ' · ' + esc(l.by) + (l.status !== 'Approved' ? ' · ' + esc(l.status) : '') + (l.note ? ' · ' + esc(l.note) : '') + '</small></span><span class="num">' + (l.value != null ? rs(l.value) : '') + '</span></div>';
+  }).join('');
+  el('panel').innerHTML = '<h3>Lend &amp; borrow</h3><p>Goods given to or taken from anyone (a store, a shop, a person) · at our cost · settled with goods or cash · never a sale or a loss</p>' +
+    (canMove ? '<div class="btns" style="margin:0 0 12px"><button class="btn pri" id="psNewG" type="button"><i class="ti ti-arrow-up-right"></i>Give goods</button><button class="btn" id="psNewT" type="button"><i class="ti ti-arrow-down-left"></i>Take goods</button></div>' : '') +
+    (wait ? '<div class="card"><div class="h"><b>' + (d.owner ? 'To approve' : 'Waiting for the owner') + '</b><span>' + Object.keys(groups).length + '</span></div>' + wait + '</div>' : '') +
+    (cards || '<div class="card empty"><i class="ti ti-building-store"></i>Nothing lent or borrowed yet · tap Give goods or Take goods</div>') +
+    (hist ? '<div class="card"><div class="h"><b>History</b><span>' + d.list.length + '</span></div>' + hist + '</div>' : '') +
+    '<div class="btns" style="margin-top:10px"><button class="btn" id="psX">Close</button></div>';
+  if (!el('overlay').classList.contains('show')) openPanel(true);
+  el('psX').onclick = closePanel;
+  if (el('psNewG')) el('psNewG').onclick = function () { openPartnerMove('', 'Given'); };
+  if (el('psNewT')) el('psNewT').onclick = function () { openPartnerMove('', 'Taken'); };
+  var pq = function (sel, fn) { el('panel').querySelectorAll(sel).forEach(function (b) { b.onclick = function () { fn(b); }; }); };
+  pq('[data-psg]', function (b) { openPartnerMove(b.getAttribute('data-psg'), 'Given'); });
+  pq('[data-pst]', function (b) { openPartnerMove(b.getAttribute('data-pst'), 'Taken'); });
+  pq('[data-psci]', function (b) { openPartnerCash(b.getAttribute('data-psci'), 'in'); });
+  pq('[data-psco]', function (b) { openPartnerCash(b.getAttribute('data-psco'), 'out'); });
+  var decide = function (b, ok) { api('appPartnerDecide', [TOKEN, b.getAttribute(ok ? 'data-psa' : 'data-psr'), ok], function (r) { PSD = r.data; drawPartners(); toast(ok ? 'Approved · stock changes within minutes' : 'Rejected'); }, function (e) { toast((e && e.message) || 'Not saved'); }); };
+  pq('[data-psa]', function (b) { decide(b, true); });
+  pq('[data-psr]', function (b) { decide(b, false); });
+}
+function openPartnerMove(store, kind) {
+  var lines = [], d = PSD, who = '';
+  var draw = function () {
+    if (el('pmWho')) who = el('pmWho').value;
+    el('panel').innerHTML = '<button class="btn mini" id="pmBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Partner stores</button>' +
+      '<h3>' + (kind === 'Given' ? 'Give goods' : 'Take goods') + (store ? (kind === 'Given' ? ' to ' : ' from ') + esc(store) : '') + '</h3><p>' + (kind === 'Given' ? 'Our goods leave the shelf. They owe us these goods (or their cost).' : 'Their goods come to our shelf. We owe them these goods (or their cost).') + '</p>' +
+      (store ? '' : '<div class="fld"><label>' + (kind === 'Given' ? 'Given to' : 'Taken from') + ' (store, shop or person)</label><input id="pmWho" type="text" list="pmWhoL" placeholder="e.g. Ali Store" value="' + esc(who) + '"><datalist id="pmWhoL">' + d.stores.map(function (x) { return '<option value="' + esc(x) + '">'; }).join('') + '</datalist></div>') +
+      (lines.length ? '<div class="card">' + lines.map(function (l, i) { return '<div class="sp-dr"><span>' + esc(l.name) + '</span><span class="num">' + l.qty + ' <button class="btn mini" data-rm="' + i + '" type="button" aria-label="Remove"><i class="ti ti-x"></i></button></span></div>'; }).join('') + '</div>' : '') +
+      '<div class="fld"><label>Product</label><select id="pmSku"><option value="">Choose a product</option>' + d.items.map(function (i) { return '<option value="' + esc(i.sku) + '">' + esc(i.name) + '</option>'; }).join('') + '</select></div>' +
+      '<div class="fld"><label>Quantity</label><input id="pmQty" type="text" inputmode="decimal" placeholder="pcs / ft"></div>' +
+      '<button class="btn" id="pmAdd" type="button" style="width:100%"><i class="ti ti-plus"></i>Add to the list</button>' +
+      '<div class="fld" style="margin-top:12px"><label>Note (optional)</label><input id="pmNote" type="text" placeholder="e.g. for their order #1234"></div>' +
+      '<p class="mnote">' + (can('inventory.edit') ? 'Saved at once · stock changes within minutes.' : 'Goes to the owner to approve · stock changes after that.') + '</p>' +
+      '<div class="btns"><button class="btn" id="pmX" type="button">Cancel</button><button class="btn pri" id="pmGo" type="button"><i class="ti ti-check"></i>Save</button></div>';
+    pickerize(el('pmSku'), { title: 'Product' });
+    el('pmBack').onclick = el('pmX').onclick = function () { drawPartners(); };
+    el('panel').querySelectorAll('[data-rm]').forEach(function (b) { b.onclick = function () { lines.splice(Number(b.getAttribute('data-rm')), 1); draw(); }; });
+    var addLine = function () {
+      var sku = el('pmSku').value, q = Number(String(el('pmQty').value).replace(/[^0-9.]/g, ''));
+      if (!sku) return false; if (!(q > 0)) { toast('Write the quantity'); return null; }
+      var it = d.items.filter(function (i) { return i.sku === sku; })[0]; lines.push({ sku: sku, qty: q, name: it ? it.name : sku }); return true;
+    };
+    el('pmAdd').onclick = function () { if (addLine() === false) toast('Choose a product'); else draw(); };
+    el('pmGo').onclick = function () {
+      var r = addLine(); if (r === null) return;
+      if (!lines.length) { toast('Add a product'); return; }
+      var party = store || (el('pmWho') ? el('pmWho').value.trim() : '');
+      if (party.length < 2) { toast('Write who it is for'); if (r) lines.pop(); return; }
+      api('appPartnerMove', [TOKEN, { store: party, kind: kind, lines: lines.map(function (l) { return { sku: l.sku, qty: l.qty }; }), note: el('pmNote').value }],
+        function (x) { PSD = x.data; drawPartners(); toast(x.waiting ? 'Sent to the owner to approve' : 'Saved · stock changes within minutes'); },
+        function (e) { if (r) lines.pop(); toast((e && e.message) || 'Not saved'); });
+    };
+  };
+  draw();
+}
+function openPartnerCash(store, dir) {
+  var b = PSD.balance[store] || { owes: 0 }, photo = '';
+  el('panel').innerHTML = '<button class="btn mini" id="pcBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Partner stores</button>' +
+    '<h3>' + (dir === 'in' ? 'Cash received from ' : 'Cash paid to ') + esc(store) + '</h3><p>' + (b.owes > 0 ? esc(store) + ' owes us ' + rs(b.owes) : b.owes < 0 ? 'We owe ' + esc(store) + ' ' + rs(-b.owes) : 'All settled') + ' · at our cost · ' + (dir === 'in' ? 'goes into ' : 'paid from ') + esc((FN.data && FN.data.from && FN.data.from[0]) || 'the bank') + '</p>' +
+    '<div class="fld"><label>Amount (Rs)</label><input id="pcAmt" type="text" inputmode="decimal" value="' + (dir === 'in' && b.owes > 0 ? b.owes : dir === 'out' && b.owes < 0 ? -b.owes : '') + '"></div>' +
+    '<div class="fld"><label>Note (optional)</label><input id="pcNote" type="text"></div>' + photoField('pcPh', 'Payment screenshot (optional)') +
+    '<div class="btns" style="margin-top:12px"><button class="btn" id="pcX" type="button">Cancel</button><button class="btn pri" id="pcGo" type="button"><i class="ti ti-check"></i>Save</button></div>';
+  photoWire('pcPh', function (x) { photo = x; });
+  el('pcBack').onclick = el('pcX').onclick = function () { drawPartners(); };
+  el('pcGo').onclick = function () {
+    api('appPartnerCash', [TOKEN, { store: store, dir: dir, amount: Number(String(el('pcAmt').value).replace(/[^0-9.]/g, '')), note: el('pcNote').value, receipt: photo }],
+      function (x) { PSD = x.data; drawPartners(); toast('Saved'); }, function (e) { toast((e && e.message) || 'Not saved'); });
+  };
+}
+
 
 // ---------- long screens fold (user 2026-11-09; Shopify Polaris, EU / design-system accordion guidance) ----------
 // A card of 200 px or more opens and closes by its heading, starts closed, several can be open, each person's choice stays on the
@@ -9095,9 +9211,10 @@ function start() {
   if (qpay) { PAY_OPEN = qpay; setTimeout(function () { showTab('cash'); openPayIfReady(); }, 700); }
   if (qs.get('ask')) { ASK_OPEN = qs.get('ask'); setTimeout(function () { showTab('cash'); }, 700); }
   if (qsy) setTimeout(openSyncStatus, 600);
-  var qwh = qs.get('wh'), qpk = qs.get('pack');
+  var qwh = qs.get('wh'), qpk = qs.get('pack') || qs.get('partner');
   if (qwh && (can('inventory.count') || can('users.manage'))) setTimeout(openWarehouse, 600);
-  if (qpk && can('parcels.view')) setTimeout(openPacking, 900);
+  if (qs.get('pack') && (can('parcels.view') || can('inventory.count') || can('inventory.edit'))) setTimeout(openPacking, 900);
+  if (qs.get('partner') && (can('inventory.count') || can('inventory.edit'))) setTimeout(openPartners, 900);
   applyPerms();
   if (qt && TABS[qt] && canTab(qt)) showTab(qt);
   if (!(qt || qp || qb || qsy || qpay || qst || qfin || qacct || qpur || qads || qteam || qchg || qrm || qwh || qpk || qs.get('ask'))) viewRestore(); // a notification decides the screen itself
