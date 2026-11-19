@@ -920,6 +920,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 .ps-w{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line)}.ps-w small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}.ps-wb{display:flex;gap:6px;flex:none}.ps-wb .btn{width:auto}.ps-o{font-size:15px;margin:2px 0 8px}.ps-o.pos b{color:var(--green)}.ps-o.neg b{color:var(--red)}.ps-gh{font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:10px 0 2px}
 .nc-chatb{cursor:pointer}.nc-chatb:active{filter:brightness(.97)}.nc-open{align-self:flex-end;font-size:11.5px;font-weight:600;color:var(--brand);display:inline-flex;align-items:center;gap:2px;margin-top:-1px}.tb.un .tw{font-weight:700}.tb .pv-dot{display:inline-block;vertical-align:1px;margin-left:4px}.tt .ti{font-size:12px;vertical-align:-1px}.tt .ti-checks{color:#53BDEB}
 .bk-lnk{margin-left:auto;border:0;background:none;color:var(--brand);font:600 12.5px Inter,sans-serif;display:inline-flex;align-items:center;gap:2px;cursor:pointer;padding:0;text-transform:none;letter-spacing:0}.ma-row{align-items:center}.ma-ed{flex:none;width:36px;height:36px;border:0;border-radius:50%;background:transparent;color:var(--muted);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;margin-left:6px}.ma-ed:hover{background:var(--chip,rgba(0,0,0,.05));color:var(--ink)}.ma-who{display:flex;align-items:center;gap:10px;margin:14px 2px 8px}.ma-who b{font-size:14.5px;font-weight:600}.ma-av{width:28px;height:28px;border-radius:50%;background:color-mix(in srgb,var(--brand) 14%,var(--card,#fff));color:var(--brand);font:700 11.5px Inter,sans-serif;display:inline-flex;align-items:center;justify-content:center}
+.pp-ask{padding:4px 2px}
 .mr-t.cnt td{padding:9px 8px}.mr-box{display:inline-block;width:70px;height:22px;border:1px solid #9AA8A5;border-radius:4px;vertical-align:middle}.mr-box.w{width:140px}
 </style>
 <link rel="manifest" href="ordi.webmanifest">
@@ -7459,8 +7460,9 @@ function openPrintHub() {
   el('prX').onclick = closePanel;
   var on = function (id, fn) { if (el(id)) el(id).onclick = fn; };
   var ask = function (title, html, go) {
-    showPick(title, '', html + '<div class="btns" style="margin-top:12px"><button class="btn pri" id="ppGo" type="button" style="width:100%"><i class="ti ti-printer"></i>Open report</button></div>', function () {});
-    setTimeout(function () { if (el('ppGo')) el('ppGo').onclick = function () { var v = go(); if (v !== false) closePick(); }; }, 30);
+    // showPick wires its own click handler on a .sheet-list (without one it stopped and Open report did nothing — user 2026-11-19)
+    showPick(title, '', '<div class="sheet-list pp-ask">' + html + '<div class="btns" style="margin-top:12px"><button class="btn pri" id="ppGo" type="button" style="width:100%"><i class="ti ti-printer"></i>Open report</button></div></div>', function () {});
+    if (el('ppGo')) el('ppGo').onclick = function (e) { e.stopPropagation(); var v = go(); if (v === false) return; closePick(); };
   };
   on('prMonth', function () { ask('Month-end report', '<div class="fld"><label>Month</label><input id="ppM" type="month" value="' + prevM + '"></div>', function () { var m = el('ppM').value; if (!m) return false; openMonthReport(m); }); });
   on('prBs', printBalanceSheet);
