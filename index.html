@@ -260,7 +260,7 @@ body{overscroll-behavior-y:contain}
 .ntl span{font-size:11.5px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.ntl span i{font-style:normal}.ntl span i{font-style:normal;font-weight:600;color:var(--amber)}
 .nsum{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin:0 0 10px;padding:10px 14px;border-radius:12px;background:var(--card);border:1px solid var(--line);font-size:13px;color:var(--muted)}
 .nsum span{cursor:pointer}.nsum span.on{color:var(--red)}.nsum b{color:var(--text);font-weight:600;font-size:15px}
-.cm-d{display:block}.cm-d summary{cursor:pointer;list-style:none}.cm-d summary::-webkit-details-marker{display:none}.cm-d[open] summary .ti-chevron-down{transform:rotate(180deg)}
+.cm-d,.acx-row.cm-d{display:block}.cm-cn{display:inline-flex;align-items:center;gap:6px}.cm-cn .cn-copy{display:inline-flex}.cm-d summary{cursor:pointer;list-style:none}.cm-d summary::-webkit-details-marker{display:none}.cm-d[open] summary .ti-chevron-down{transform:rotate(180deg)}
 .cm-more{margin:8px 0 2px 22px}.cm-li{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-top:1px solid var(--line);font-size:13px}.cm-li small{display:block;color:var(--muted);font-size:11.5px}.cm-li b{font-weight:600;white-space:nowrap}
 .seg{display:flex;background:var(--card);border-radius:12px;padding:3px;box-shadow:var(--shadow);margin-bottom:14px}
 .seg button{flex:1;border:0;background:none;color:var(--muted);padding:8px;border-radius:9px;font:500 12.5px Inter,sans-serif;cursor:pointer}
@@ -6488,6 +6488,7 @@ function openPnl(period) {
     el('panel').innerHTML = '<h3>Profit & loss</h3><p>Parcels in the month they were dispatched · counted once delivered or returned</p>' + bar +
       // finished by tracking, not in the courier's figures yet: counted at the order total and that courier's usual fees
       (p.estimate ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-calculator"></i> ' + p.estimate.n + ' finished parcel' + (p.estimate.n > 1 ? 's' : '') + ' not in the courier\'s figures yet · counted at the order total (' + rs(p.estimate.sales) + ') and the usual courier fees + taxes (' + rs(p.estimate.fees) + ') until the courier\'s figures come</div>' : '') +
+      (p.late ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-history"></i> ' + p.late.n + ' parcel' + (p.late.n > 1 ? 's' : '') + ' booked in ' + Object.keys(p.late.months).map(function (m) { return fnMonthName(m); }).join(', ') + ' (closed) finished in this period · ' + p.late.delivered + ' delivered' + (p.late.returned ? ' · ' + p.late.returned + ' returned' : '') + (p.late.value ? ' · ' + rs(p.late.value) : '') + ' · counted here</div>' : '') +
       (p.open && p.open.n ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-truck"></i> ' + p.open.n + ' of ' + p.booked + ' parcels still with the courier · ' + rs(p.open.value) + (p.open.goods > 0 ? ' · goods cost ' + rs(p.open.goods) : '') + ' · sale and goods cost join when delivered</div>'
         : p.booked ? '<div class="tk" style="margin:0 0 10px"><i class="ti ti-circle-check"></i> Final · all ' + p.booked + ' parcels finished</div>' : '') +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px">' +
@@ -6532,7 +6533,7 @@ function openPnl(period) {
           (p.closed.verifiedBy ? '<br>Verified by ' + esc(p.closed.verifiedBy) + ' · ' + esc(p.closed.verifiedAt) : '<br>Waiting for the other partner to verify') +
           (p.closed.canVerify ? '<br><button class="btn mini" id="plVerC" type="button" style="margin-top:6px"><i class="ti ti-check"></i>Verify this close</button>' : '') +
           (p.canClose ? '<br><button class="btn mini" id="plReopen" type="button" style="margin-top:6px"><i class="ti ti-lock-open"></i>Reopen</button>' : '') + '</div>'
-        : p.canClose && isMonth && cur < pkDay(new Date()).slice(0, 7) ? '<div class="pl-close"><i class="ti ti-lock pl-ci"></i><div class="pl-ct"><b>Close ' + esc(pnlLabel(cur)) + '</b><small>' + (p.open && p.open.n ? p.open.n + ' parcel' + (p.open.n > 1 ? 's' : '') + ' still with the courier · close when every parcel is finished' : 'Every parcel is finished · lock the month and share the profit') + '</small></div><button class="btn pri" id="plCloseM" type="button">Close month</button></div>' : '') +
+        : p.canClose && isMonth && cur < pkDay(new Date()).slice(0, 7) ? '<div class="pl-close"><i class="ti ti-lock pl-ci"></i><div class="pl-ct"><b>Close ' + esc(pnlLabel(cur)) + '</b><small>' + (p.open && p.open.n ? p.open.n + ' parcel' + (p.open.n > 1 ? 's' : '') + ' still with the courier · they count in the month they finish' : 'Every parcel is finished · lock the month and share the profit') + '</small></div><button class="btn pri" id="plCloseM" type="button">Close month</button></div>' : '') +
       (isMonth ? '<button class="btn" id="plRpt" type="button" style="width:100%;margin:0 0 10px"><i class="ti ti-file-text"></i>Monthly report · ' + (p.closed ? 'Final' : 'Draft') + ' (PDF)</button>' : '') +
       '<div class="card"><div class="h"><b>Cash in the period</b></div>' + line('Money in', rs(p.cash.in), '', p.cash.courier != null ? 'courier payments ' + rs(p.cash.courier) + ' · advances & other ' + rs(p.cash.other) : '') + line('Money out', minus(p.cash.out), '', 'expenses, stock bought, owner draws') + '</div>' +
       '<div class="btns" style="margin-top:10px"><button class="btn" id="plClose">Close</button></div>';
@@ -7212,7 +7213,8 @@ function drawMonthReport(d) {
     })), 'Put in / withdrawn / taken = in ' + esc(mon) + '. Capital, profit left in and total = each partner’s account on ' + dm(d.to) + ' (closed months only).');
   // notes + sign
   var notes = [];
-  if (p.open && p.open.n) notes.push(p.open.n + ' parcels of this month are still with the courier (' + n0(p.open.value) + '); their sale counts when delivered.');
+  if (p.open && p.open.n) notes.push(p.open.n + ' parcels of this month are still with the courier (' + n0(p.open.value) + '); their result counts in the month they are delivered or returned.');
+  if (p.late) notes.push(p.late.n + ' parcels booked in ' + Object.keys(p.late.months).map(function (m) { return fnMonthName(m); }).join(', ') + ' (already closed) finished in this month and are counted here (' + p.late.delivered + ' delivered, ' + p.late.returned + ' returned).');
   if (p.estimate && p.estimate.n) notes.push(p.estimate.n + ' finished parcels are not in the courier figures yet and are estimated.');
   if (p.cogsEst) notes.push('Cost of goods for parcels booked before the first stock count' + (p.stockStart ? ' (' + dm(p.stockStart) + ')' : '') + ' is estimated from product costs.');
   if (p.unknownLines) notes.push(p.unknownLines + ' order lines have no known cost.');
@@ -7254,12 +7256,12 @@ function drawCloseMonth(q) {
     return more ? '<details class="acx-row cm-d"><summary>' + head + ' <i class="ti ti-chevron-down" style="color:var(--muted)"></i></summary><div class="cm-more">' + more + '</div></details>' : '<div class="acx-row"><span>' + head + '</span></div>';
   };
   var li = function (a, b) { return '<div class="cm-li"><span>' + a + '</span><b>' + (b || '') + '</b></div>'; };
-  var openMore = (q.openList || []).length ? (q.openList || []).map(function (x) { return li(esc(x.cn) + ' <small>' + esc(x.courier) + ' · booked ' + esc(x.booked) + '</small>', esc(String(x.status).replace(/_/g, ' ').toLowerCase())); }).join('') + (q.open > (q.openList || []).length ? '<small class="mnote">and more · see Parcels</small>' : '') : '';
+  var openMore = (q.openList || []).length ? (q.openList || []).map(function (x) { return li('<span class="cm-cn"><span class="num">' + esc(x.cn) + '</span><button type="button" class="cn-copy" data-copy="' + esc(x.cn) + '" aria-label="Copy tracking ID"><i class="ti ti-copy"></i></button></span> <small>' + esc(x.courier) + ' · booked ' + esc(x.booked) + '</small>', esc(String(x.status).replace(/_/g, ' ').toLowerCase())); }).join('') + (q.open > (q.openList || []).length ? '<small class="mnote">and more · see Parcels</small>' : '') : '';
   var waitMore = (q.waitList || []).map(function (x) { return li(esc(x.desc) + ' <small>' + esc(x.date) + ' · ' + esc(x.cat || x.type) + ' · by ' + esc(x.by) + '</small>', rs(x.amount)); }).join('') + ((q.waitList || []).length ? '<small class="mnote">Approve them under Finance → Expenses → To approve</small>' : '');
-  var blocked = q.open > 0 || q.waiting > 0 || !q.finished || q.closed;
+  var blocked = q.waiting > 0 || !q.finished || q.closed; // parcels on the way no longer stop a close (rule B, user 2026-11-19)
   var checks = '<div class="card"><b>1 · Before closing</b>' +
     chk(q.finished, q.finished ? 'The month is over' : 'Only a finished month can be closed') +
-    chk(!q.open, q.open ? q.open + ' parcels still with the courier · close when all are delivered or returning' : 'Every parcel delivered or returning', q.open ? openMore : '') +
+    (q.open ? '<details class="acx-row cm-d"><summary><i class="ti ti-truck" style="color:var(--amber)"></i> ' + q.open + ' parcel' + (q.open > 1 ? 's' : '') + ' still with the courier · ' + rs(q.openValue) + ' <i class="ti ti-chevron-down" style="color:var(--muted)"></i></summary><div class="cm-more"><small class="mnote" style="display:block;margin-bottom:6px">The month closes on what is finished. These parcels count (sale, courier fees, taxes, goods cost) in the month they are delivered or returned · this month never changes.</small>' + openMore + '</div></details>' + (q.openBig ? '<div class="tk warn" style="margin:6px 0 0"><i class="ti ti-alert-triangle"></i> ' + q.openShare + '% of this month is still on the way · better wait a few days so most parcels finish</div>' : '') : chk(true, 'Every parcel delivered or returning')) +
     chk(!q.waiting, q.waiting ? q.waiting + ' entries still waiting for approval' : 'No entry waiting for approval', q.waiting ? waitMore : '') +
     (q.banks || []).map(function (b) { return chk(!b.diff, esc(b.name) + ' reconciled ' + esc(b.day) + (b.diff ? ' · difference ' + rs(Math.abs(b.diff)) : ''),
       li('Bank statement showed', b.bank != null ? rs(b.bank) : '') + li('ORDI showed then', b.app != null ? rs(b.app) : '') + (b.diff ? '<small class="mnote">Reconcile again in Banking & equity → ' + esc(b.name) + ' → Reconcile with bank</small>' : '')); }).join('') + '</div>';
@@ -7343,7 +7345,7 @@ function drawCloseMonth(q) {
     el('mcGo').onclick = function () {
       var pay = {}; P.forEach(function (p) { if (st.choice[p.name] === 'pay') pay[p.name] = { amount: Math.round(Number(st.pay[p.name].amount) || 0), receipt: st.pay[p.name].receipt || '' }; });
       if (!confirm('Close ' + pnlLabel(month) + '? Its P&L is kept as it is now and shared as shown' + (payTotal ? ', and ' + rs(payTotal) + ' is recorded as paid out from ' + (q.from || 'the bank') : '') + '. The other partner then verifies.')) return;
-      api('appCloseMonth', [TOKEN, month, true, { reserve: st.reserve, split: st.own ? st.split : null, choice: st.choice, pay: pay }], function () {
+      api('appCloseMonth', [TOKEN, month, true, { reserve: st.reserve, split: st.own ? st.split : null, choice: st.choice, pay: pay, lateOk: true }], function () {
         viewClear(); toast('Closed' + (payTotal ? ' · ' + rs(payTotal) + ' paid out recorded' : '')); openPnl(month);
       }, function (e) { toast((e && e.message) || 'Not saved'); });
     };
