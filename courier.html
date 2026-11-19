@@ -316,6 +316,38 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
    phone; a soft fade at the edge says there is more */
 .cqr{cursor:grab;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
 .cqr.end{-webkit-mask-image:none;mask-image:none}.cqr.drag{cursor:grabbing;user-select:none}
+/* ---- 2026-11-19 (user): short tables, the details live in the chat; the chat in WhatsApp's own colours, a rounded floating
+   panel on a computer, a rounded sheet on a tablet, full screen on a phone; pinned request in full, no hover jump ---- */
+.qs .th .c-rem,.qs .tr .c-rem,.qs .th .c-now,.qs .tr .c-now{display:none!important}
+@media (min-width:901px){.qs .th,.qs .tr{grid-template-columns:176px minmax(0,1fr) 80px 104px}}
+.mdl{--wa:#008069;--wa-d:#005E54;--wa-bar:#F0F2F5;--wa-ink:#111B21;--wa-mut:#54656F}
+.mdl .mh{background:var(--wa)!important;box-shadow:none!important;border-bottom:0;color:#fff}
+.mdl .mh .big,.mdl .mcity2,.mdl .mpos,.mdl .mpos b{color:#fff}
+.mdl .mx,.mdl .back{color:#fff}.mdl .mx:hover{background:rgba(255,255,255,.14)}
+.mdl .mpos button{background:rgba(255,255,255,.12)!important;border:0!important;color:#fff!important}.mdl .mpos button:hover{background:rgba(255,255,255,.24)!important}
+.mdl .cp{width:28px;height:28px;padding:0;border:0;border-radius:50%;background:transparent;color:rgba(255,255,255,.85);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}.mdl .cp:hover{background:rgba(255,255,255,.16);color:#fff}
+.mdl .hc{height:24px;padding:0 10px;border:0;background:rgba(255,255,255,.16);color:#fff;font:500 12px Inter,sans-serif;letter-spacing:.01em}
+.mdl .hc.kind{background:#fff;color:var(--wa)}.mdl .hc.r,.mdl .hc.bad{background:#FDE2E4;color:#B4232C}.mdl .hc.a,.mdl .hc.warn{background:#FFF1D6;color:#8A5300}.mdl .hc.ok{background:#D9FDD3;color:#0D5C2E}
+.mdl .hc::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.7;margin-right:6px}.mdl .hc.kind::before{display:none}
+.cpin{background:var(--wa-bar);border-bottom:1px solid #E1E5E8;color:var(--wa-ink);padding:9px 14px;gap:10px}
+.cpin b{color:var(--wa);font-weight:600}.cpin span,.cpin:hover span,.cpin:active span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.cpin-i{color:var(--wa-mut);font-size:0}.cpin-i::before{content:'';display:block;width:16px;height:16px;margin-top:2px;background:var(--wa-mut);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M16 3l5 5-3 1-4 4 1 5-2 2-4-4-5 5-1-1 5-5-4-4 2-2 5 1 4-4z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M16 3l5 5-3 1-4 4 1 5-2 2-4-4-5 5-1-1 5-5-4-4 2-2 5 1 4-4z'/%3E%3C/svg%3E") center/contain no-repeat}
+.cqr button{border-color:#C6E6DF;color:var(--wa)}.cqr button:hover{border-color:var(--wa)}.cqr button.on{background:var(--wa);border-color:var(--wa);color:#fff}
+.mdl .ccomp,.mdl .cdone{background:var(--wa-bar);border-top:0}.mdl .csend{background:var(--wa)}.mdl .csend:hover{background:var(--wa-d)}.mdl .cw{color:var(--wa)}
+@media (min-width:901px){
+  .mdl{right:12px;top:58px;bottom:12px;width:min(520px,42vw);border-radius:16px;border-left:0;box-shadow:0 12px 40px rgba(17,27,33,.22),0 2px 6px rgba(17,27,33,.08)}
+  body.mdl-on .wrap{margin-right:calc(min(520px,42vw) + 12px)}
+}
+@media (min-width:601px) and (max-width:900px){
+  body.mdl-on .mdl-bg{display:block}
+  .mdl{top:auto;bottom:0;left:0;right:0;height:92vh;border-radius:16px 16px 0 0;box-shadow:0 -8px 30px rgba(17,27,33,.2)}
+  .mdl .mh::before{content:'';display:block;width:40px;height:4px;border-radius:2px;background:rgba(255,255,255,.5);margin:-4px auto 2px}
+}
+@media (max-width:900px){.mdl .back{display:inline}}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .mdl{--wa:#00A884;--wa-d:#06CF9C;--wa-bar:#202C33;--wa-ink:#E9EDEF;--wa-mut:#8696A0}
+  :root:not([data-theme=light]) .mdl .mh{background:#202C33!important}:root:not([data-theme=light]) .mdl .hc.kind{background:#00A884;color:#0B141A}:root:not([data-theme=light]) .cpin{border-color:#2A3942}:root:not([data-theme=light]) .cpin b{color:#00A884}}
+:root[data-theme=dark] .mdl{--wa:#00A884;--wa-d:#06CF9C;--wa-bar:#202C33;--wa-ink:#E9EDEF;--wa-mut:#8696A0}
+:root[data-theme=dark] .mdl .mh{background:#202C33!important}:root[data-theme=dark] .mdl .hc.kind{background:#00A884;color:#0B141A}:root[data-theme=dark] .cpin{border-color:#2A3942}:root[data-theme=dark] .cpin b{color:#00A884}
 </style>
 </head>
 <body>
@@ -415,7 +447,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     var p = t.what.split(' · '), what = p[0] + (p[1] ? ' · ' + p[1].replace(/^delivery\s+/i, '').slice(0, 26) : '');
     return [what, t.ms ? ago(t.ms) : t.when.replace(/,.*$/, ''), !!(t.ms && x.sentMs && t.ms < x.sentMs), statusShort(t.what)];
   }
-  var TH = '<div class="th"><div>Tracking ID</div><div>City</div><div class="c-rem">Customer Remarks</div><div class="c-now">Current Status</div><div>Ageing</div><div></div></div>';
+  var TH = '<div class="th"><div>Tracking ID</div><div>City</div><div>Ageing</div><div></div></div>';
   function shortDay(s) { return String(s || '').replace(/,.*$/, ''); }
   function renderQ() {
     var cards = D.kinds.map(function (k) {
@@ -559,7 +591,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
         if (e.k === 'us') {
           var isLast = i === lastUs, kindW = txt.replace(/^Sent( to the courier page| to the sheet| on WhatsApp)?\s*·?\s*/, '');
           if (/^Sent( to the courier page| to the sheet| on WhatsApp)?(\s*·|$)/.test(txt)) txt = isLast && x.ask ? x.ask : (kindW || 'Request') + ' request';
-          if (isLast && x.says && x.kind !== 'return') txt += '\n' + (x.kind === 'claim' ? '' : 'Customer: ') + x.says;
+          if (isLast && x.says && x.kind !== 'return' && String(txt).indexOf(x.says) === -1) txt += '\n' + x.says;
         }
         h += '<div class="cb2 ' + side + (g ? ' g' : '') + '">' + (g ? '' : '<span class="cw">' + esc(e.k === 'you' ? (who === D.courier ? D.courier + ' Team' : D.courier + ' · ' + who) : D.store) + '</span>') +
           esc(txt).replace(/\n/g, '<span class="cbs">') + (/\n/.test(txt) ? '</span>' : '') + '<span class="ct">' + esc(tm(e)) + (e.k === 'you' ? ' ✓' : '') + '</span></div>';
@@ -584,7 +616,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     // bold — with the position and close on the right; 2) its status as chips of one style: kind, attempts, request no., waiting
     var maxA = D.maxAttempts || 3, wait = isOpen ? pendCls(x.hours, x.kind).trim() : '';
     var h = '<div class="mdl-bg" data-close></div><div class="mdl k-' + esc(x.kind) + '" role="dialog" aria-label="' + esc(x.cn) + '"><div class="mh">' +
-      '<div class="mh1"><button class="back" data-close aria-label="Back">‹</button><div class="big">' + esc(x.cn) + '</div><button class="cp" data-copy="' + esc(x.cn) + '">Copy</button>' +
+      '<div class="mh1"><button class="back" data-close aria-label="Back">‹</button><div class="big">' + esc(x.cn) + '</div><button class="cp" data-copy="' + esc(x.cn) + '" aria-label="Copy tracking ID" title="Copy tracking ID"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg></button>' +
       '<span class="mcity2" dir="auto" title="' + esc(x.city) + '"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>' + esc(x.city || 'City not given') + '</span>' +
       '<div class="sp"></div>' + (i >= 0 ? '<span class="mpos"><b>' + (i + 1) + ' of ' + ORDER.length + '</b><button data-step="-1" aria-label="Previous" title="Previous (↑ key)">↑</button><button data-step="1" aria-label="Next" title="Next (↓ key)">↓</button></span>' : '') +
       '<button class="mx" data-close aria-label="Close">✕</button></div>' +
@@ -597,8 +629,10 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     // WhatsApp-like chat (user 2026-11-18, after the NDR chat): the courier's team on the right (it is their page), the
     // store on the left, tracking as small centre cards; the store's current request pinned on top; quick replies, a
     // message box, photo and Send at the bottom. Send opens the next query (the queue keeps moving).
-    if (x.ask || x.says) h += '<div class="cpin"><span class="cpin-i" aria-hidden="true">📌</span><div><b>' + esc(D.store) + (x.kind === 'claim' ? ' · Claim' : ' · Request') + '</b>' +
-      (x.ask ? '<span>' + esc(x.ask) + '</span>' : '') + (x.says ? '<span class="cpin-s">' + (x.kind === 'claim' ? '' : x.kind === 'return' ? 'Reason: ' : 'Customer: ') + esc(x.says) + '</span>' : '') + '</div></div>';
+    // pinned: the store's request in its own voice (user 2026-11-19: no "Customer:" line — the customer did not write it);
+    // the customer's words are joined in when the request does not already hold them; up to 3 lines, never a hover jump
+    var pinTxt = [x.ask, x.says && x.kind !== 'return' && (!x.ask || String(x.ask).indexOf(x.says) === -1) ? x.says : '', x.kind === 'return' && x.says ? 'Reason: ' + x.says : ''].filter(Boolean).join(' · ');
+    if (pinTxt) h += '<div class="cpin"><span class="cpin-i" aria-hidden="true"></span><div><b>' + esc(D.store) + (x.kind === 'claim' ? ' · Claim' : ' · Request') + '</b><span>' + esc(pinTxt) + '</span></div></div>';
     h += '<div class="cht" id="cht">' + chatBody(x, isOpen) + '</div>';
     if (isOpen) {
       var w0 = PICK['w' + x.id] != null ? PICK['w' + x.id] : (answered(x) ? x.reply : '') || '', me = ls(NK);
