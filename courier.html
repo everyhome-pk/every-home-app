@@ -311,6 +311,11 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
 @media (max-width:900px){.rp,.mk,.mk.q{height:30px!important;min-width:84px!important;font-size:12.5px!important}}
 
 .mdl,.cht{overscroll-behavior:contain}
+
+/* chips: one line everywhere that slides (user 2026-11-18): the mouse wheel or a drag moves it on a computer, a swipe on a
+   phone; a soft fade at the edge says there is more */
+.cqr{cursor:grab;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
+.cqr.end{-webkit-mask-image:none;mask-image:none}.cqr.drag{cursor:grabbing;user-select:none}
 </style>
 </head>
 <body>
@@ -609,6 +614,12 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     h += '</div></div>';
     return h;
   }
+  // the answer chips slide: drag with the mouse (a drag is not a tap), fade off at the end
+  function chipEnd(r) { r.classList.toggle('end', r.scrollLeft + r.clientWidth >= r.scrollWidth - 2); }
+  var CHD = null;
+  document.addEventListener('pointerdown', function (e) { var r = e.pointerType === 'mouse' && e.target.closest && e.target.closest('.cqr'); if (r && r.scrollWidth > r.clientWidth) CHD = { r: r, x: e.clientX, l: r.scrollLeft, moved: false }; });
+  document.addEventListener('pointermove', function (e) { if (!CHD) return; var d = e.clientX - CHD.x; if (Math.abs(d) > 4) { CHD.moved = true; CHD.r.classList.add('drag'); } if (CHD.moved) { CHD.r.scrollLeft = CHD.l - d; chipEnd(CHD.r); } });
+  document.addEventListener('pointerup', function () { if (CHD) { var was = CHD; CHD.r.classList.remove('drag'); CHD = null; if (was.moved) { var stop = function (ev) { ev.stopPropagation(); ev.preventDefault(); document.removeEventListener('click', stop, true); }; document.addEventListener('click', stop, true); setTimeout(function () { document.removeEventListener('click', stop, true); }, 0); } } });
   function wireQ() {
     var q = $('q'); if (q) q.oninput = function () { Q = q.value; renderQ(); var n = $('q'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); };
     if ($('city')) $('city').onchange = function () { CITY = this.value; renderQ(); };
@@ -621,6 +632,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       if (FOCUS) { wd.focus(); FOCUS = false; }
     }
     if ($('cht')) $('cht').scrollTop = $('cht').scrollHeight;
+    var cq = document.querySelector('.cqr'); if (cq) { chipEnd(cq); cq.onscroll = function () { chipEnd(cq); }; }
     if ($('nmEd')) $('nmEd').onclick = function () { NAMEED = true; renderQ(); if ($('who')) $('who').focus(); };
     if ($('save')) $('save').onclick = save;
     if ($('photo')) $('photo').onclick = function () { $('cam').value = ''; $('cam').click(); };
@@ -810,6 +822,8 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   // anywhere on the panel (header, pinned bar, answer box) the wheel moves the chat; the message box scrolls itself first
   document.addEventListener('wheel', function (e) {
     var m = e.target.closest && e.target.closest('.mdl'); if (!m) return;
+    var row = e.target.closest('.cqr');
+    if (row && row.scrollWidth > row.clientWidth) { e.preventDefault(); row.scrollLeft += (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY) * (e.deltaMode === 1 ? 32 : 1); chipEnd(row); return; }
     var c = $('cht'), w = e.target.closest('textarea');
     if (w && w.scrollHeight > w.clientHeight && !((e.deltaY < 0 && w.scrollTop <= 0) || (e.deltaY > 0 && w.scrollTop + w.clientHeight >= w.scrollHeight - 1))) return;
     e.preventDefault();

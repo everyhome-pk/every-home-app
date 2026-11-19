@@ -443,6 +443,8 @@ body.nb-on #nlist{padding-bottom:84px}
 .cn-prog{display:flex;flex-direction:column;gap:6px;margin:0 0 10px;font-size:13.5px}.cn-bar{display:block;height:6px;border-radius:3px;background:var(--line);overflow:hidden}.cn-bar u{display:block;height:100%;background:var(--brand);border-radius:3px}
 .cn-row{padding:12px 0;border-top:1px solid var(--line)}.cn-row:first-child{border-top:0}.cn-row.done{opacity:.72}.cn-top{display:flex;align-items:flex-start;gap:8px}.cn-name{flex:1;min-width:0}.cn-name b{display:block;font-size:14.5px;font-weight:600}.cn-name small{display:block;font-size:12px;color:var(--muted);margin-top:2px}.cn-ok{color:var(--green);font-size:20px}
 .cn-in{display:flex;align-items:center;gap:6px;margin-top:8px}.cn-in input{width:84px;min-height:44px;text-align:center;font-size:18px;font-weight:600;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--text);padding:0 6px}.cn-step{width:44px;height:44px;border:1px solid var(--line);border-radius:12px;background:var(--card);font-size:20px;color:var(--text);cursor:pointer}.cn-zero{margin-left:auto;white-space:nowrap}
+.pk-row{align-items:center}.pk-b{flex:none!important;width:auto!important;min-width:0!important;align-self:center;margin-left:10px;padding:0 12px!important;height:34px}.pk-tag{font-size:11.5px;font-weight:600;color:var(--amber);white-space:nowrap}
+.cn-pk{display:block;color:var(--brand);font-size:12px;margin-top:2px}
 .cn-d{display:block;font-size:12.5px;color:var(--amber);margin-top:6px}.cn-d.ok{color:var(--green)}.cn-d.big{color:var(--red);font-weight:600}
 .cn-sum{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}.cn-sum span{font-size:12.5px;padding:5px 10px;border-radius:12px;background:var(--bg);color:var(--muted)}.cn-sum .ok{background:rgba(22,163,74,.1);color:var(--green)}.cn-sum .df{background:rgba(217,119,6,.12);color:#B45309}.cn-sum .ng{background:rgba(220,38,38,.1);color:var(--red)}
 /* iPhone zooms into any box under 16px when it is tapped and, in the Home Screen app, never zooms back (user 2026-11-03:
@@ -864,6 +866,56 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   #view>#hdash>#hdTrend{grid-column:2;grid-row:2/span 3;align-self:stretch;margin-bottom:12px;display:flex}#view>#hdash>#hdTrend>.hd-trend{flex:1;display:flex;flex-direction:column}#view>#hdash>#hdTrend>.hd-trend>.hd-plot{margin-top:auto}
   #view>#todo{grid-column:1;grid-row:4}#view>#hstock{grid-column:1;grid-row:5}#view>.hjr{grid-column:2;grid-row:5/span 6}
 }
+/* Monthly report: paper look (always light), A4 when printed */
+.mr-wrap{background:#E9EDEC;margin:-12px -16px;padding:14px 10px 30px;min-height:100%}
+.mr-sheet{background:#fff;color:#1B2A28;max-width:794px;margin:0 auto;padding:34px 30px;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.08),0 8px 24px rgba(0,0,0,.06);font:13px/1.45 Inter,system-ui,sans-serif;font-variant-numeric:tabular-nums}
+.mr-h{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;padding-bottom:16px;border-bottom:3px solid #00857A}
+.mr-store{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#00857A}
+.mr-h h1{font-size:26px;line-height:1.15;margin:4px 0 2px;font-weight:700;color:#10201E}
+.mr-mon{font-size:14px;color:#4F5F5C}
+.mr-hr{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.mr-hr small{font-size:11px;color:#6B7A77;line-height:1.4}
+.mr-st{font-size:11.5px;font-weight:600;padding:4px 10px;border-radius:99px;white-space:nowrap}
+.mr-st.fin{background:#E2F4EF;color:#00695F}.mr-st.dr{background:#FDF0D9;color:#8A5A00}
+.mr-k{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0 8px}
+.mr-k div{background:#F4F7F6;border-radius:8px;padding:10px 12px}
+.mr-k small{display:block;font-size:11px;color:#6B7A77;text-transform:uppercase;letter-spacing:.04em}
+.mr-k b{display:block;font-size:19px;font-weight:700;margin:3px 0 1px;color:#10201E}.mr-k b.pos{color:#00695F}.mr-k b.neg{color:#B42318}
+.mr-k i{font-style:normal;font-size:11.5px;color:#6B7A77}
+.mr-n{font-size:11.5px;color:#6B7A77;margin:6px 0 0}
+.mr-s{margin-top:24px;break-inside:auto}
+.mr-s h2{font-size:15px;font-weight:700;margin:0 0 8px;color:#10201E;display:flex;align-items:center;gap:8px;break-after:avoid}
+.mr-s h2 span{width:22px;height:22px;border-radius:6px;background:#00857A;color:#fff;font-size:12px;display:inline-flex;align-items:center;justify-content:center}
+.mr-s h3{font-size:12.5px;font-weight:600;margin:14px 0 6px;color:#33433F}
+.mr-t{width:100%;border-collapse:collapse;font-size:12.5px}
+.mr-t th{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#6B7A77;font-weight:600;text-align:left;padding:6px 8px;border-bottom:1px solid #D5DEDB;background:#F4F7F6}
+.mr-t td{display:table-cell;padding:6px 8px;border-bottom:1px solid #EDF1F0;vertical-align:top}
+.mr-t td small{display:block;font-size:11px;color:#6B7A77}
+.mr-t .r{text-align:right;white-space:nowrap}.mr-t td.m{color:#6B7A77;width:70px}
+.mr-t tr{break-inside:avoid}
+.mr-t tfoot td{border-top:1.5px solid #B9C6C2;border-bottom:0;background:#FAFBFB}
+.mr-t tr.mr-cm td{background:#F1F8F6;font-weight:600;color:#00695F}
+.mr-t tr.mr-b td{font-weight:600}
+.mr-t tr.mr-tot td{border-top:2px solid #10201E;border-bottom:3px double #10201E;font-weight:700;font-size:14px;background:#E2F4EF}
+.mr-t tr.mr-tot.mr-neg td{background:#FDECEA;color:#B42318}
+.mr-e{color:#8A9895;text-align:center!important;font-style:italic}
+.mr-draft{background:#FDF6E8;border:1px solid #F1DDB0;border-radius:8px;padding:10px 12px;font-size:12.5px;color:#6E4B00;margin:0}
+.mr-ul{margin:0;padding-left:18px;font-size:12px;color:#4F5F5C}.mr-ul li{margin:3px 0}
+.mr-sign{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:40px;font-size:11.5px;color:#6B7A77}
+.mr-sign span{display:block;border-bottom:1px solid #9AA8A5;height:30px;margin-bottom:5px}
+.mr-f{margin-top:26px;padding-top:10px;border-top:1px solid #E3E9E7;font-size:10.5px;color:#8A9895;text-align:center}
+@media (max-width:600px){.mr-sheet{padding:20px 12px;border-radius:8px}.mr-t td:first-child{min-width:110px}.mr-hr small{display:none}.mr-k{grid-template-columns:1fr 1fr}.mr-h h1{font-size:21px}.mr-t{font-size:11.5px}.mr-t th,.mr-t td{padding:5px 5px}.mr-wrap{padding:8px 4px 24px}}
+#mrPrint0{display:none}
+.mr-tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media print{.mr-tw{overflow:visible}}
+@media print{
+  @page{size:A4;margin:12mm}
+  body.mr-printing>*:not(#mrPrint0){display:none!important}
+  body.mr-printing{background:#fff!important;overflow:visible!important}
+  body.mr-printing #mrPrint0{display:block!important}
+  #mrPrint0 .mr-sheet{box-shadow:none;border-radius:0;padding:0;max-width:none}
+  #mrPrint0 *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
 </style>
 <link rel="manifest" href="ordi.webmanifest">
 <link rel="icon" href="ordi-192.png">
@@ -1069,7 +1121,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 (function () {
   if (window.google && google.script) return;
   window.EH_PWA = true; // installed app: notifications are possible
-  window.EH_BUILD = '2026-11-18'; // shown at the bottom of the menu
+  window.EH_BUILD = '2026-11-19'; // shown at the bottom of the menu
   var API = "https://script.google.com/macros/s/AKfycbyqtyrClenCG1_iqTSDK5KhtFItfX6rUsYdIexwQ3qPFbSv9d1n8jy06ItjvWXXtB-I/exec", RELAY = "", relayOff = 0;
   // through the relay when there is one; if it fails, straight to Google and skip the relay for 10 min. A save goes
   // straight only when the relay could not be reached at all (never sent twice).
@@ -1419,7 +1471,7 @@ function applyPerms() {
   });
   el('btnDispatch').hidden = !can('parcels.view');
   el('btnStock').hidden = !can('inventory.view');
-  el('btnPack').hidden = !can('parcels.view');
+  el('btnPack').hidden = !(can('parcels.view') || can('inventory.count') || can('inventory.edit'));
   el('btnWh').hidden = !(can('inventory.count') || can('users.manage'));
   el('btnExp').hidden = !(can('finance.add') || can('finance.view') || can('finance.approve'));
   el('btnPnl').hidden = !can('finance.view');
@@ -5620,7 +5672,7 @@ function renderStock() {
       return '<div class="prow" data-sk="' + esc(i.sku) + '" style="--c:' + st[1] + '"><span class="prow-d"></span><div class="prow-m">' +
         '<div class="prow-1"><b>' + esc(i.name) + '</b><span class="num">' + stkQty(i.available, i.unit) + '</span></div>' +
         '<div class="prow-2"><span>' + (i.kind === 'Kit' ? (function () { var l = stkLimit(i); return l ? 'can make ' + l.can + ' · limited by ' + l.name : 'made from parts'; })() :
-          (stkDays(i) != null ? '~' + stkDays(i) + ' days left' : 'on hand ' + stkQty(i.onHand, i.unit)) + (i.incoming ? ' · ' + stkQty(i.incoming, i.unit) + ' coming' : '') + (i.committed ? ' · ' + stkQty(i.committed, i.unit) + ' for orders' : '')) + '</span>' +
+          (stkDays(i) != null ? '~' + stkDays(i) + ' days left' : 'on hand ' + stkQty(i.onHand, i.unit)) + (i.incoming ? ' · ' + stkQty(i.incoming, i.unit) + ' coming' : '') + (i.committed ? ' · ' + stkQty(i.committed, i.unit) + ' reserved' : '') + (i.pending ? ' · ' + stkQty(i.pending, i.unit) + ' pending' : '')) + '</span>' +
         (st[0] ? '<span class="st" style="--c:' + st[1] + '">' + st[0] + '</span>' : '') + '</div></div></div>';
     }).join('') : '<div class="empty">No products here</div>') + '</div>' +
     (um.length ? '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>Order lines without a product</b><span>' + um.length + '</span></div><p style="margin:0 14px 6px;color:var(--muted);font-size:12.5px">Stock is not taken for these. Link each one to your product once.</p>' +
@@ -5768,7 +5820,8 @@ function openStockItem(sku) {
   el('panel').innerHTML = '<button class="btn mini" id="siBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Stock</button>' +
     '<h3>' + esc(i.name) + '</h3><p>' + esc(i.sku) + (can('inventory.edit') && !stkIsAlias(i.sku) ? ' · <button class="lnkb" id="siName" type="button"><i class="ti ti-pencil"></i> Edit name</button>' : '') + (st[0] ? ' · <span class="st" style="--c:' + st[1] + '">' + st[0] + '</span>' : '') + '</p>' +
     '<div class="card" style="padding:0">' + row('Available', stkQty(i.available, i.unit)) +
-    (i.kind === 'Item' ? row('On hand', stkQty(i.onHand, i.unit)) + row('For orders (not booked yet)', stkQty(i.committed, i.unit)) +
+    (i.kind === 'Item' ? row('On the shelf', stkQty(i.shelf != null ? i.shelf : i.onHand, i.unit)) + (i.unpacked ? row('&nbsp;&nbsp;of which booked, not packed yet', stkQty(i.unpacked, i.unit)) : '') + (i.packed ? row('Packed · waiting for the courier', stkQty(i.packed, i.unit)) : '') +
+      row('Reserved for confirmed orders', stkQty(i.committed, i.unit)) + (i.pending ? row('In pending orders (not reserved)', stkQty(i.pending, i.unit)) : '') +
       (i.incoming ? row('On the way (ordered)', stkQty(i.incoming, i.unit)) : '') +
       (i.perDay ? row('Sells per day (30 days)', stkQty(i.perDay, i.unit)) + row('Lasts about', Math.floor(Math.max(0, i.available + (i.incoming || 0)) / i.perDay) + ' days') : '') +
       (i.lastCount ? row('Last counted', esc(i.lastCount) + ' · every ' + (i.countEvery === 7 ? 'week' : i.countEvery === 30 ? 'month' : '3 months') + (i.countDue ? ' · <b style="color:var(--amber)">due</b>' : '')) : '') +
@@ -5861,14 +5914,15 @@ function stkSave(list, back) {
       STK.data.pending.push({ type: x.type, sku: x.sku, qty: x.qty });
       var i = STK.data.items.filter(function (y) { return y.sku === x.sku; })[0]; if (!i) return;
       var was = i.onHand || 0, q = Number(x.qty) || 0;
-      i.onHand = x.type === 'Count' ? q : x.type === 'Damaged' ? was - q : x.type === 'Purchase' ? was + q - (Number(x.rejected) || 0) : was + q;
-      i.available = Math.round((i.onHand - (i.committed || 0)) * 100) / 100; i.waiting = true;
+      i.onHand = x.type === 'Count' ? q - (i.unpacked || 0) : x.type === 'Damaged' ? was - q : x.type === 'Purchase' ? was + q - (Number(x.rejected) || 0) : was + q;
+      i.available = Math.round((i.onHand - (i.committed || 0)) * 100) / 100; i.shelf = Math.round((i.onHand + (i.unpacked || 0)) * 100) / 100; i.waiting = true;
     });
     try { store('eh_stk', JSON.stringify(STK.data)); } catch (e) {}
     back();
   }, function (e) { toast('❌ Not saved: ' + ((e && e.message) || 'try again')); });
 }
 // Goods received from a supplier: quantity, rejected, unit price + extra cost per unit (freight, packing) → average cost
+function stkShelf(i) { return i.shelf != null ? i.shelf : i.onHand; } // what is on the shelf (packed parcels are not)
 function stkNeg(i) { return i.kind === 'Item' && i.onHand != null && i.onHand < 0; }
 // pre = { qty, note, back } (from a below-zero product or a count that found the reason)
 function openStockIn(sku, pre) {
@@ -5934,11 +5988,11 @@ function openStockCount(dueOnly) {
   var items = (CNT.all || !due.length ? all : due).slice().sort(function (x, y) { return rank(x) - rank(y) || String(x.name).localeCompare(y.name); });
   var num = function (v) { return Number(String(v).replace(/[^0-9.]/g, '')) || 0; };
   var counted = function () { return items.filter(function (i) { return CNT.v[i.sku] != null && String(CNT.v[i.sku]).trim() !== ''; }); };
-  var big = function (i, n) { var dif = n - i.onHand; return Math.abs(dif) >= Math.max(3, Math.abs(i.onHand) * 0.2); };
+  var big = function (i, n) { var dif = n - stkShelf(i); return Math.abs(dif) >= Math.max(3, Math.abs(stkShelf(i)) * 0.2); };
   var line = function (i) {
-    var v = CNT.v[i.sku], has = v != null && String(v).trim() !== '', n = num(v), dif = has && sys && i.onHand != null ? Math.round((n - i.onHand) * 100) / 100 : null;
+    var v = CNT.v[i.sku], has = v != null && String(v).trim() !== '', n = num(v), dif = has && sys && stkShelf(i) != null ? Math.round((n - stkShelf(i)) * 100) / 100 : null;
     return '<div class="cn-row' + (has ? ' done' : '') + '" data-row="' + esc(i.sku) + '"><div class="cn-top"><span class="cn-name"><b>' + esc(i.name) + '</b>' +
-      '<small>' + esc([sys && stkNeg(i) ? 'below zero' : i.countDue ? 'due' : '', i.lastCount ? 'counted ' + i.lastCount : 'not counted yet', sys && i.onHand != null ? 'system ' + stkQty(i.onHand, i.unit) : ''].filter(Boolean).join(' · ')) + '</small></span>' +
+      '<small>' + esc([sys && stkNeg(i) ? 'below zero' : i.countDue ? 'due' : '', i.lastCount ? 'counted ' + i.lastCount : 'not counted yet', sys && stkShelf(i) != null ? 'system shelf ' + stkQty(stkShelf(i), i.unit) : ''].filter(Boolean).join(' · ')) + '</small>' + (i.unpacked ? '<small class="cn-pk"><i class="ti ti-package"></i> Count everything on the shelf · ' + stkQty(i.unpacked, i.unit) + ' in booked parcels not packed yet are taken off by themselves</small>' : '') + '</span>' +
       (has ? '<i class="ti ti-circle-check-filled cn-ok"></i>' : '') + '</div>' +
       '<div class="cn-in"><button type="button" class="cn-step" data-st="-1" aria-label="One less">−</button><input type="text" inputmode="decimal" data-cs="' + esc(i.sku) + '" value="' + (has ? esc(v) : '') + '" placeholder="' + (i.unit === 'ft' ? 'ft' : 'pcs') + '" aria-label="' + esc(i.name) + ' counted">' +
       '<button type="button" class="cn-step" data-st="1" aria-label="One more">+</button><button type="button" class="chip cn-zero" data-z="1">0 · shelf empty</button></div>' +
@@ -5977,7 +6031,7 @@ function openStockCount(dueOnly) {
     var st = e.target.closest('[data-st]');
     // − / + on an empty box start from the system number for owners (staff count blind: from 0)
     if (st) { var it = items.filter(function (x) { return x.sku === sku; })[0], has = CNT.v[sku] != null && String(CNT.v[sku]).trim() !== '';
-      var cur = has ? num(CNT.v[sku]) : sys && it && it.onHand > 0 ? it.onHand - Number(st.getAttribute('data-st')) : 0; set(sku, String(Math.max(0, Math.round((cur + Number(st.getAttribute('data-st'))) * 100) / 100))); return; }
+      var cur = has ? num(CNT.v[sku]) : sys && it && stkShelf(it) > 0 ? stkShelf(it) - Number(st.getAttribute('data-st')) : 0; set(sku, String(Math.max(0, Math.round((cur + Number(st.getAttribute('data-st'))) * 100) / 100))); return; }
     if (e.target.closest('[data-z]')) set(sku, '0');
   };
   el('cnGo').onclick = function () { openCountReview(items, blind, sys); };
@@ -5985,9 +6039,9 @@ function openStockCount(dueOnly) {
 function openCountReview(items, blind, sys) {
   var num = function (v) { return Number(String(v).replace(/[^0-9.]/g, '')) || 0; };
   var done = items.filter(function (i) { return CNT.v[i.sku] != null && String(CNT.v[i.sku]).trim() !== ''; });
-  var miss = items.length - done.length, diff = sys ? done.filter(function (i) { return num(CNT.v[i.sku]) !== i.onHand; }) : [], neg = sys ? done.filter(stkNeg) : [];
-  var row = function (i) { var n = num(CNT.v[i.sku]), d = Math.round((n - i.onHand) * 100) / 100;
-    return '<div class="acx-row"><span>' + esc(i.name) + '<small>counted ' + stkQty(n, i.unit) + (sys ? ' · system ' + stkQty(i.onHand, i.unit) : '') + '</small></span>' + (sys ? '<b class="num" style="color:' + (d < 0 ? 'var(--red)' : d > 0 ? 'var(--amber)' : 'var(--green)') + '">' + (d > 0 ? '+' : '') + stkQty(d, i.unit) + '</b>' : '') + '</div>'; };
+  var miss = items.length - done.length, diff = sys ? done.filter(function (i) { return num(CNT.v[i.sku]) !== stkShelf(i); }) : [], neg = sys ? done.filter(stkNeg) : [];
+  var row = function (i) { var n = num(CNT.v[i.sku]), d = Math.round((n - stkShelf(i)) * 100) / 100;
+    return '<div class="acx-row"><span>' + esc(i.name) + '<small>counted ' + stkQty(n, i.unit) + (sys ? ' · system ' + stkQty(stkShelf(i), i.unit) : '') + '</small></span>' + (sys ? '<b class="num" style="color:' + (d < 0 ? 'var(--red)' : d > 0 ? 'var(--amber)' : 'var(--green)') + '">' + (d > 0 ? '+' : '') + stkQty(d, i.unit) + '</b>' : '') + '</div>'; };
   el('panel').innerHTML = '<button class="btn mini" id="crBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Count</button><h3>Review count</h3>' +
     '<div class="cn-sum">' + (sys ? '<span class="ok">' + (done.length - diff.length) + ' match</span><span class="df">' + diff.length + ' differ</span>' + (neg.length ? '<span class="ng">' + neg.length + ' below zero</span>' : '') : '<span class="ok">' + done.length + ' counted</span>') +
     (miss ? '<span>' + miss + ' not counted · stay as they are</span>' : '') + '</div>' +
@@ -6011,7 +6065,7 @@ function stkCountNeg(list, blind) {
   var item = function (sku) { return STK.data.items.filter(function (x) { return x.sku === sku; })[0] || {}; };
   var negs = STK.data.started ? list.filter(function (e) { return stkNeg(item(e.sku)); }) : [];
   if (blind || !negs.length) {
-    negs.forEach(function (e) { e.note = 'stock count · system was ' + item(e.sku).onHand + ' (below zero)'; });
+    negs.forEach(function (e) { e.note = 'stock count · system was ' + stkShelf(item(e.sku)) + ' (below zero)'; });
     return stkSave(list, renderStock);
   }
   var came = [], link = false, k = 0;
@@ -6020,14 +6074,14 @@ function stkCountNeg(list, blind) {
       var save = list.filter(function (e) { return came.indexOf(e) === -1; });
       var then = function () {
         if (came.length) { var c = came[0], i = item(c.sku); toast(came.length > 1 ? came.length + ' products to receive · one by one' : 'Now enter the goods that came');
-          return openStockIn(c.sku, { qty: Math.round((c.qty - i.onHand) * 100) / 100, note: 'came but not entered · found at count', back: renderStock }); }
+          return openStockIn(c.sku, { qty: Math.round((c.qty - stkShelf(i)) * 100) / 100, note: 'came but not entered · found at count', back: renderStock }); }
         if (link) return openStockLink();
         renderStock();
       };
       return save.length ? stkSave(save, then) : then();
     }
-    var e = negs[k], i = item(e.sku), miss = Math.round((e.qty - i.onHand) * 100) / 100;
-    el('panel').innerHTML = '<h3>' + esc(i.name) + '</h3><p>The app has ' + stkQty(i.onHand, i.unit) + ', you counted ' + stkQty(e.qty, i.unit) + ' · ' + stkQty(miss, i.unit) + ' were booked without stock in the app</p>' +
+    var e = negs[k], i = item(e.sku), miss = Math.round((e.qty - stkShelf(i)) * 100) / 100;
+    el('panel').innerHTML = '<h3>' + esc(i.name) + '</h3><p>The app has ' + stkQty(stkShelf(i), i.unit) + ', you counted ' + stkQty(e.qty, i.unit) + ' · ' + stkQty(miss, i.unit) + ' were booked without stock in the app</p>' +
       '<div class="fld"><label>What happened?</label></div>' +
       '<button class="ac-it" type="button" data-nr="came"><i class="ti ti-truck-loading"></i><span><b>Goods came, not entered in the app</b><small>Enter them now with the price (Stock in) · the count is not needed</small></span></button>' +
       '<button class="ac-it" type="button" data-nr="link"><i class="ti ti-link"></i><span><b>Orders linked to the wrong product</b><small>Save the count, then check the order links</small></span></button>' +
@@ -6037,7 +6091,7 @@ function stkCountNeg(list, blind) {
     el('panel').querySelectorAll('[data-nr]').forEach(function (b) { b.onclick = function () {
       var r = b.getAttribute('data-nr');
       if (r === 'came') came.push(e);
-      else { e.note = 'stock count · was ' + i.onHand + ' (below zero) · ' + (r === 'link' ? 'orders linked to the wrong product' : 'reason not found'); if (r === 'link') link = true; }
+      else { e.note = 'stock count · was ' + stkShelf(i) + ' (below zero) · ' + (r === 'link' ? 'orders linked to the wrong product' : 'reason not found'); if (r === 'link') link = true; }
       k++; ask();
     }; });
   };
@@ -6478,6 +6532,7 @@ function openPnl(period) {
           (p.closed.canVerify ? '<br><button class="btn mini" id="plVerC" type="button" style="margin-top:6px"><i class="ti ti-check"></i>Verify this close</button>' : '') +
           (p.canClose ? '<br><button class="btn mini" id="plReopen" type="button" style="margin-top:6px"><i class="ti ti-lock-open"></i>Reopen</button>' : '') + '</div>'
         : p.canClose && isMonth && cur < pkDay(new Date()).slice(0, 7) ? '<button class="btn" id="plCloseM" type="button" style="width:100%;margin:0 0 10px"><i class="ti ti-lock"></i>Close ' + esc(pnlLabel(cur)) + '</button>' : '') +
+      (isMonth ? '<button class="btn" id="plRpt" type="button" style="width:100%;margin:0 0 10px"><i class="ti ti-file-text"></i>Monthly report · ' + (p.closed ? 'Final' : 'Draft') + ' (PDF)</button>' : '') +
       '<div class="card"><div class="h"><b>Cash in the period</b></div>' + line('Money in', rs(p.cash.in), '', p.cash.courier != null ? 'courier payments ' + rs(p.cash.courier) + ' · advances & other ' + rs(p.cash.other) : '') + line('Money out', minus(p.cash.out), '', 'expenses, stock bought, owner draws') + '</div>' +
       '<div class="btns" style="margin-top:10px"><button class="btn" id="plClose">Close</button></div>';
     openPanel(true);
@@ -6488,6 +6543,7 @@ function openPnl(period) {
         function (e) { toast((e && e.message) || 'Not saved'); });
     };
     if (el('plCloseM')) el('plCloseM').onclick = function () { openCloseMonth(cur); };
+    if (el('plRpt')) el('plRpt').onclick = function () { openMonthReport(cur); };
     if (el('plBud')) el('plBud').onclick = function () { openBudget(cur, p.budget); };
     if (el('plVerC')) el('plVerC').onclick = function () {
       api('appVerifyClose', [TOKEN, cur], function () { toast('Verified'); viewClear(); openPnl(cur); }, function (e) { toast((e && e.message) || 'Not saved'); });
@@ -7065,6 +7121,116 @@ function closeAllocText(c) {
  * split by the agreement % or this month's own split, each partner keep / to capital / take now → close; the other
  * partner verifies. A loss is shared by capital by itself (nothing to choose).
  */
+// ---------- Monthly report (user 2026-11-19): a professional A4 summary of a month, Draft while open, Final once closed ----------
+// P&L → "Monthly report"; Print / Save as PDF opens the phone's print (save as PDF there). Paper look in light and dark mode.
+function openMonthReport(month) {
+  openPage({ title: 'Monthly report', sub: pnlLabel(month), body: '<div class="mr-wrap">' + skList(6) + '</div>', bar: '' });
+  api('getAppMonthReport', [TOKEN, month], function (d) { if (!el('page').hidden && el('pgTitle').textContent === 'Monthly report') drawMonthReport(d); },
+    function (e) { el('pgBody').innerHTML = '<div class="pg-in"><div class="empty">' + esc((e && e.message) || 'Could not load the report') + '</div></div>'; });
+}
+function drawMonthReport(d) {
+  var p = d.pnl, S = p.sales || 0, mon = fnMonthName(d.month).replace(' ', ' ');
+  var n0 = function (v) { return Math.round(v || 0).toLocaleString('en-IN'); };
+  var mny = function (v) { v = Math.round(v || 0); return (v < 0 ? '(' : '') + n0(Math.abs(v)) + (v < 0 ? ')' : ''); };
+  var pc = function (v) { return S ? (Math.round(v / S * 1000) / 10) + '%' : ''; };
+  var dm = function (s) { var x = String(s || '').slice(0, 10).split('-'); return x.length === 3 ? Number(x[2]) + ' ' + fnMonthName(x[0] + '-' + x[1]).split(' ')[0] : esc(s || ''); };
+  var row = function (a, v, o) { o = o || {}; return '<tr class="' + (o.c || '') + '"><td>' + a + (o.sub ? '<small>' + o.sub + '</small>' : '') + '</td><td class="r">' + (o.raw != null ? o.raw : mny(v)) + '</td><td class="r m">' + (o.p === false ? '' : pc(o.net ? v : Math.abs(v))) + '</td></tr>'; };
+  var sec = function (n, t, body, note) { return '<section class="mr-s"><h2><span>' + n + '</span>' + t + '</h2>' + (note ? '<p class="mr-n">' + note + '</p>' : '') + body + '</section>'; };
+  var tbl = function (head, rows, foot) { return '<div class="mr-tw"><table class="mr-t"><thead><tr>' + head.map(function (h, i) { return '<th' + (i ? ' class="r"' : '') + '>' + h + '</th>'; }).join('') + '</tr></thead><tbody>' + (rows.join('') || '<tr><td colspan="' + head.length + '" class="mr-e">Nothing in this month</td></tr>') + '</tbody>' + (foot ? '<tfoot>' + foot + '</tfoot>' : '') + '</table></div>'; };
+  var tr = function (cells) { return '<tr>' + cells.map(function (c, i) { return '<td' + (i ? ' class="r"' : '') + '>' + c + '</td>'; }).join('') + '</tr>'; };
+  var exp = Object.keys(p.expenses || {});
+  var deliv = p.delivered || 0, ret = p.returned || 0, rate = deliv + ret ? Math.round(deliv / (deliv + ret) * 100) : 0;
+  var status = d.final ? '<span class="mr-st fin">Final · closed</span>' : '<span class="mr-st dr">Draft · month not closed</span>';
+  var h = '<div class="mr-sheet" id="mrSheet">' +
+    '<header class="mr-h"><div><div class="mr-store">' + esc(d.store || 'Store') + '</div><h1>Monthly report</h1><div class="mr-mon">' + esc(mon) + ' · 1–' + Number(d.to.slice(8)) + ' ' + esc(mon.split(' ')[0]) + '</div></div>' +
+      '<div class="mr-hr">' + status + '<small>Prepared ' + esc(d.made) + '<br>by ' + esc(d.by) + '</small></div></header>' +
+    '<div class="mr-k">' +
+      '<div><small>Net sales</small><b>' + n0(S) + '</b><i>' + deliv + ' delivered orders</i></div>' +
+      '<div><small>Net profit</small><b class="' + (p.net < 0 ? 'neg' : 'pos') + '">' + mny(p.net) + '</b><i>' + pc(p.net) + ' of sales</i></div>' +
+      '<div><small>Delivery rate</small><b>' + rate + '%</b><i>' + ret + ' returned</i></div>' +
+      '<div><small>Ads</small><b>' + n0(p.ads) + '</b><i>' + (p.mer ? 'MER ' + p.mer + '×' : pc(p.ads) + ' of sales') + '</i></div></div>' +
+    '<p class="mr-n">All amounts in Pakistani rupees (PKR). Parcels count in the month they were dispatched (booked); a sale counts once it is delivered. Brackets ( ) = minus.</p>';
+  // 1 P&L
+  h += sec(1, 'Profit &amp; loss statement', '<table class="mr-t pl"><thead><tr><th>Line</th><th class="r">PKR</th><th class="r">% of sales</th></tr></thead><tbody>' +
+    (p.dispatched ? row('Orders dispatched &amp; finished', p.dispatched.value, { p: false }) + row('Returned (RTO)', -p.dispatched.rto, { sub: p.dispatched.rtoPct + '% of value sent', p: false }) : '') +
+    row('<b>Net sales</b>', S, { c: 'mr-b', sub: deliv + ' delivered' + (p.advanceSales ? ' · advances ' + n0(p.advanceSales) : '') }) +
+    row('Cost of goods sold', -p.cogs, { sub: p.cogsEst ? 'of which estimated (before the stock count) ' + n0(p.cogsEst) : '' }) +
+    (p.stockLoss ? row('Stock loss', -p.stockLoss, { sub: 'count differences, damaged, lost' }) : '') +
+    row('CM1 · Product margin', p.cm1, { c: 'mr-cm' }) +
+    row('Courier fees', -p.fees, { sub: p.returnFees ? 'returns ' + n0(p.returnFees) : '' }) +
+    row('Taxes withheld', -p.taxes, { sub: p.wht != null ? 'WHT ' + n0(p.wht) + ' · sales tax ' + n0(p.sst) : '' }) +
+    (p.packing ? row('Packing material', -p.packing) : '') +
+    row('CM2 · After delivery', p.cm2, { c: 'mr-cm' }) +
+    row('Ads', -p.ads, { sub: p.adDollar && p.adDollar.usd ? '$' + p.adDollar.usd + ' · dollar extra ' + n0(p.adDollar.extra) : '' }) +
+    row('CM3 · After ads', p.cm3, { c: 'mr-cm' }) +
+    exp.map(function (k) { return row(esc(k), -p.expenses[k]); }).join('') +
+    row('<b>Net profit</b>', p.net, { c: 'mr-tot' + (p.net < 0 ? ' mr-neg' : ''), net: 1 }) + '</tbody></table>');
+  // 2 sold
+  var sd = d.sold || [];
+  h += sec(2, 'What we sold', tbl(['Product', 'Sent', 'Delivered', 'Returned', 'Sales'], sd.map(function (x) { return tr([esc(x.name), n0(x.sent), n0(x.delivered), x.returned ? n0(x.returned) : '–', n0(x.sale)]); }),
+    tr(['<b>Total</b>', n0(sd.reduce(function (a, x) { return a + x.sent; }, 0)), n0(sd.reduce(function (a, x) { return a + x.delivered; }, 0)), n0(sd.reduce(function (a, x) { return a + x.returned; }, 0)), '<b>' + n0(sd.reduce(function (a, x) { return a + x.sale; }, 0)) + '</b>'])),
+    'Pieces in parcels dispatched this month. Sales = order value of delivered lines (before advances).');
+  // 3 bought
+  var bp = d.bought.products || [], bl = d.bought.lines || [];
+  h += sec(3, 'What we bought', tbl(['Product', 'Quantity', 'Amount'], bp.map(function (x) { return tr([esc(x.p), n0(x.qty) + (x.ft ? ' ft' : ' pcs'), n0(x.amt)]); })) +
+    '<h3>Payments for stock &amp; cargo</h3>' + tbl(['Date · what', 'Paid from', 'Amount'], bl.map(function (x) { return tr([dm(x.date) + ' · ' + esc(x.desc || x.cat), esc(x.from || ''), n0(x.amount)]); }),
+      bl.length ? tr(['<b>Total paid</b>', '', '<b>' + n0(bl.reduce(function (a, x) { return a + (x.status === 'Rejected' ? 0 : x.amount); }, 0)) + '</b>']) : ''),
+    'Stock bought is an asset, not a cost: it becomes cost of goods when it is sold.');
+  // 4 ads
+  var ad = d.ads || [];
+  h += sec(4, 'Advertising', tbl(['Platform', 'Days', 'Dollars', 'Dollar extra', 'Spend'], ad.map(function (x) { return tr([esc(x.name), n0((x.days || []).length), x.usd ? '$' + x.usd.toLocaleString('en-US') : '–', x.extra ? n0(x.extra) : '–', n0(x.amount)]); }),
+    ad.length > 1 ? tr(['<b>Total</b>', '', '', '', '<b>' + n0(p.ads) + '</b>']) : ''),
+    p.mer ? 'MER ' + p.mer + '× (sales ÷ ads) · ads per delivered order ' + n0(p.cpo) : '');
+  // 5 couriers
+  var cr = d.couriers || [];
+  h += sec(5, 'Couriers', tbl(['Courier', 'Delivered', 'Returned', 'Fees', 'Taxes', 'Total'], cr.map(function (x) { return tr([esc(x.name), n0(x.del), n0(x.ret), n0(x.fees), n0(x.wht + x.sst), n0(x.amount)]); })) +
+    (p.unpaid && p.unpaid.n ? '<p class="mr-n">' + p.unpaid.n + ' delivered parcels of this month not paid by the courier yet · ' + n0(p.unpaid.amount) + '</p>' : ''),
+    'Finished parcels of the month. Fees and taxes are taken from the COD before the courier pays.');
+  // 6 expenses
+  var ex = d.expenses || [];
+  h += sec(6, 'Business expenses', tbl(['Date · what', 'Category', 'Amount'], ex.map(function (x) { return tr([dm(x.date) + ' · ' + esc(x.desc || ''), esc(x.cat || ''), n0(x.amount)]); }),
+    ex.length ? tr(['<b>Total</b>', '', '<b>' + n0(ex.reduce(function (a, x) { return a + x.amount; }, 0)) + '</b>']) : ''));
+  // 7 bank
+  var bk = d.bank || [];
+  h += sec(7, 'Bank &amp; cash accounts', tbl(['Account', 'Opening', 'Money in', 'Money out', 'Closing'], bk.map(function (x) { return tr([esc(x.name), mny(x.open), n0(x.in), '(' + n0(x.out) + ')', '<b>' + mny(x.close) + '</b>']); })),
+    'Every rupee in and out of each account in ' + esc(mon) + '.');
+  // 8 shared
+  var pt = d.partners || [], al = d.close && d.close.alloc;
+  var shareBody = d.final
+    ? tbl(['Partner', 'Agreement', 'Share of ' + esc(mon.split(' ')[0]), 'Choice'], pt.map(function (x) {
+        var ch = al && al.choice ? ({ keep: 'Kept in the business', capital: 'Moved to capital', pay: 'Taken' })[al.choice[x.name]] || '–' : (p.net < 0 ? 'Loss by capital' : '–');
+        return tr([esc(x.name), x.pct + '%', mny(x.share), ch]);
+      }), (al && al.reserve ? tr(['Kept in the business (reserve)', '', n0(al.reserve), '']) : '') + tr(['<b>Net profit</b>', '', '<b>' + mny(p.net) + '</b>', ''])) +
+      '<p class="mr-n">Closed ' + esc(d.close.at) + ' by ' + esc(d.close.by) + (d.close.verifiedBy ? ' · verified by ' + esc(d.close.verifiedBy) + ' ' + esc(d.close.verifiedAt) : ' · not verified yet by the other partner') +
+      (Math.abs(d.close.diff || 0) >= 1 ? ' · changed since the close by ' + mny(d.close.diff) + ' (late courier data)' : '') + '. A loss is shared by capital, a profit by the agreement.</p>'
+    : '<p class="mr-draft">This month is not closed yet, so nothing is shared. When it is closed the profit goes to the partners by the agreement (' + pt.map(function (x) { return esc(x.name) + ' ' + x.pct + '%'; }).join(' · ') + '); a loss by capital.</p>';
+  h += sec(8, 'How the profit was shared', shareBody);
+  // 9 partners
+  h += sec(9, 'Partners’ money at the end of ' + esc(mon), tbl(['Partner', 'Put in', 'Withdrawn', 'Profit taken', 'Capital', 'Profit left in', 'Total'], pt.map(function (x) {
+      return tr([esc(x.name), n0(x.putIn), x.withdrawn ? '(' + n0(x.withdrawn) + ')' : '–', x.taken ? '(' + n0(x.taken) + ')' : '–', mny(x.capital), mny(x.profit), '<b>' + mny(x.balance) + '</b>']);
+    })), 'Put in / withdrawn / taken = in ' + esc(mon) + '. Capital, profit left in and total = each partner’s account on ' + dm(d.to) + ' (closed months only).');
+  // notes + sign
+  var notes = [];
+  if (p.open && p.open.n) notes.push(p.open.n + ' parcels of this month are still with the courier (' + n0(p.open.value) + '); their sale counts when delivered.');
+  if (p.estimate && p.estimate.n) notes.push(p.estimate.n + ' finished parcels are not in the courier figures yet and are estimated.');
+  if (p.cogsEst) notes.push('Cost of goods for parcels booked before the first stock count' + (p.stockStart ? ' (' + dm(p.stockStart) + ')' : '') + ' is estimated from product costs.');
+  if (p.unknownLines) notes.push(p.unknownLines + ' order lines have no known cost.');
+  h += (notes.length ? sec(10, 'Notes', '<ul class="mr-ul">' + notes.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>') : '') +
+    '<div class="mr-sign"><div><span></span>Closed by' + (d.close ? ' · ' + esc(d.close.by) : '') + '</div><div><span></span>Verified by' + (d.close && d.close.verifiedBy ? ' · ' + esc(d.close.verifiedBy) : '') + '</div></div>' +
+    '<footer class="mr-f">' + esc(d.store) + ' · Monthly report ' + esc(mon) + ' · ' + (d.final ? 'Final' : 'Draft') + ' · made with ORDI</footer></div>';
+  el('pgBody').innerHTML = '<div class="pg-in"><div class="mr-wrap">' + h + '</div></div>';
+  el('pgBar').innerHTML = '<button class="btn pri" id="mrPrint" type="button" style="width:100%"><i class="ti ti-printer"></i>Print / Save as PDF</button>';
+  el('mrPrint').onclick = function () { printMonthReport(d); };
+}
+function printMonthReport(d) {
+  var old = el('mrPrint0'); if (old) old.remove();
+  var box = document.createElement('div'); box.id = 'mrPrint0'; box.innerHTML = el('mrSheet').outerHTML; document.body.appendChild(box);
+  var t = document.title; document.title = (d.store || 'Store') + ' · Monthly report · ' + fnMonthName(d.month) + (d.final ? '' : ' (draft)');
+  document.body.classList.add('mr-printing');
+  var done = function () { document.body.classList.remove('mr-printing'); document.title = t; var b = el('mrPrint0'); if (b) b.remove(); window.removeEventListener('afterprint', done); };
+  window.addEventListener('afterprint', done);
+  setTimeout(function () { window.print(); setTimeout(done, 1500); }, 60);
+}
 function openCloseMonth(month) {
   el('panel').innerHTML = '<button class="btn mini" id="mcBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Profit & loss</button><h3>Close ' + esc(pnlLabel(month)) + '</h3>' + skList(4);
   openPanel(true);
@@ -8661,30 +8827,52 @@ el('btnFind').onclick = openFind;
 
 // ---------- packing list (user 2026-11-09): confirmed orders not booked yet, what to take off the shelf, then order by order ----------
 var PK = { f: 'today' };
+// Packing list (user 2026-11-19; the store's order: confirm → book → pack → courier): booked parcels the courier has not picked
+// up. The warehouse taps Packed when the parcel leaves the shelf, so a shelf count stays right (booked, not packed = on the shelf).
+var PKD = null;
 function openPacking() {
-  if (!P.data) { el('panel').innerHTML = '<h3>Packing list</h3>' + skList(5); openPanel(true); return api('getAppParcels', [{ token: TOKEN }], function (d) { P.data = d; snap('parcels', d); openPacking(); }); }
-  var today = pkDay(new Date()), all = P.data.parcels.filter(function (p) { return p.stage === 'confirmed'; });
-  var mine = all.filter(function (p) { return p.ms && pkDay(new Date(p.ms)) === today; }), list = PK.f === 'today' ? mine : all;
+  if (!PKD) { el('panel').innerHTML = '<h3>Packing list</h3>' + skList(5); openPanel(true); }
+  else drawPacking();
+  api('getAppPacking', [TOKEN], function (d) { PKD = d; if (el('panel').querySelector('#pkClose') || !el('panel').querySelector('h3') || /Packing list/.test(el('panel').querySelector('h3').textContent)) drawPacking(); },
+    function (e) { if (!PKD) el('panel').innerHTML = '<h3>Packing list</h3><div class="card empty">' + esc((e && e.message) || 'Could not load') + '</div><div class="btns"><button class="btn" id="pkClose">Close</button></div>'; if (el('pkClose')) el('pkClose').onclick = closePanel; });
+}
+function drawPacking() {
+  var all = PKD.orders || [], todo = all.filter(function (o) { return !o.packed; }), done = all.filter(function (o) { return o.packed; });
+  if (PK.f !== 'packed') PK.f = 'todo';
+  var list = PK.f === 'packed' ? done.slice().reverse() : todo;
   var per = {}, pcs = 0;
-  list.forEach(function (p) { String(p.items || '').split(/\n|;/).map(function (x) { return x.trim(); }).filter(Boolean).forEach(function (x) { var m = x.match(/^(\d+)\s*x\s*(.+)$/i), q = m ? +m[1] : 1, n = m ? m[2] : x; per[n] = (per[n] || 0) + q; pcs += q; }); });
-  var names = Object.keys(per).sort(function (a, b) { return per[b] - per[a]; });
-  el('panel').innerHTML = '<h3>Packing list</h3><p>' + list.length + ' order' + (list.length === 1 ? '' : 's') + ' · ' + pcs + ' piece' + (pcs === 1 ? '' : 's') + '</p>' +
-    '<div class="chips"><button class="chip' + (PK.f === 'today' ? ' on' : '') + '" data-pk="today" type="button">Today · ' + mine.length + '</button><button class="chip' + (PK.f === 'all' ? ' on' : '') + '" data-pk="all" type="button">All confirmed · ' + all.length + '</button></div>' +
-    (list.length ? '<div class="card"><div class="h"><b>Products to pack</b><span>' + names.length + '</span></div>' + names.map(function (n) { return '<div class="sp-dr"><span>' + esc(n) + '</span><span class="num">× ' + per[n] + '</span></div>'; }).join('') + '</div>' +
-      '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>Orders</b><span>' + list.length + '</span></div>' + list.map(function (p) {
-        return '<div class="prow" data-p="' + esc(p.cn || p.ref) + '" style="--c:var(--brand)"><span class="prow-d"></span><div class="prow-m"><div class="prow-1"><b>' + esc(p.ref) + ' · ' + esc(p.name) + '</b><span class="num">' + rs(p.adv ? p.due : p.total) + '</span></div><div class="prow-2"><span>' + esc(p.items) + '</span></div><div class="prow-2"><span>' + esc([p.city, p.date].filter(Boolean).join(' · ')) + '</span></div></div></div>';
-      }).join('') + '</div>' : '<div class="card empty"><i class="ti ti-circle-check"></i>' + (PK.f === 'today' && all.length ? 'Nothing confirmed today · ' + all.length + ' older waiting' : 'No confirmed orders to pack') + '</div>') +
+  todo.forEach(function (o) { o.items.forEach(function (x) { per[x.name] = (per[x.name] || 0) + x.qty; pcs += x.qty; }); });
+  var names = Object.keys(per).sort(function (a, b) { return per[b] - per[a]; }), open = can('parcels.view');
+  var day = function (ms) { return ms ? 'booked ' + new Date(ms).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Karachi' }) : ''; };
+  el('panel').innerHTML = '<h3>Packing list</h3><p>' + todo.length + ' to pack · ' + pcs + ' piece' + (pcs === 1 ? '' : 's') + ' · ' + done.length + ' packed, waiting for the courier</p><p class="mnote">Booked parcels the courier has not picked up yet. Tap Packed when the parcel leaves the shelf.</p>' +
+    '<div class="chips"><button class="chip' + (PK.f === 'todo' ? ' on' : '') + '" data-pk="todo" type="button">To pack · ' + todo.length + '</button><button class="chip' + (PK.f === 'packed' ? ' on' : '') + '" data-pk="packed" type="button">Packed · ' + done.length + '</button></div>' +
+    (PK.f === 'todo' && names.length ? '<div class="card"><div class="h"><b>Products to pack</b><span>' + names.length + '</span></div>' + names.map(function (n) { return '<div class="sp-dr"><span>' + esc(n) + '</span><span class="num">× ' + per[n] + '</span></div>'; }).join('') + '</div>' : '') +
+    (list.length ? '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>' + (PK.f === 'packed' ? 'Packed · waiting for the courier' : 'To pack') + '</b><span>' + list.length + '</span></div>' + list.map(function (o) {
+      var items = o.items.map(function (x) { return x.qty + 'x ' + x.name; }).join(', ');
+      return '<div class="prow pk-row"' + (open ? ' data-p="' + esc(o.cn || o.ref) + '"' : '') + ' style="--c:' + (o.packed ? 'var(--green)' : 'var(--brand)') + '"><span class="prow-d"></span><div class="prow-m">' +
+        '<div class="prow-1"><b>' + esc(o.ref) + ' · ' + esc(o.name) + '</b></div>' +
+        '<div class="prow-2"><span class="mono">' + esc(o.cn) + (o.courier ? ' · ' + esc(o.courier) : '') + '</span></div>' +
+        '<div class="prow-2"><span>' + esc(items) + '</span></div><div class="prow-2"><span>' + esc([o.city, day(o.ms)].filter(Boolean).join(' · ')) + (o.packed ? ' · packed ' + esc(o.packed.at) + (o.packed.by ? ' by ' + esc(o.packed.by) : '') : '') + '</span></div></div>' +
+        (o.packed ? '<button class="btn mini pk-b" type="button" data-pu="' + esc(o.id) + '">Undo</button>' : '<button class="btn mini pri pk-b" type="button" data-pp="' + esc(o.id) + '"><i class="ti ti-check"></i>Packed</button>') + '</div>';
+    }).join('') + '</div>' : '<div class="card empty"><i class="ti ti-circle-check"></i>' + (PK.f === 'packed' ? 'No packed parcels waiting for the courier' : 'Nothing to pack · every booked parcel is packed') + '</div>') +
     '<div class="btns" style="margin-top:10px"><button class="btn" id="pkClose">Close</button></div>';
-  openPanel(true);
+  if (!el('overlay').classList.contains('show')) openPanel(true);
   el('pkClose').onclick = closePanel;
-  el('panel').querySelectorAll('[data-pk]').forEach(function (b) { b.onclick = function () { PK.f = b.getAttribute('data-pk'); openPacking(); }; });
+  el('panel').querySelectorAll('[data-pk]').forEach(function (b) { b.onclick = function () { PK.f = b.getAttribute('data-pk'); drawPacking(); }; });
+  var set = function (id, packed, b) {
+    b.classList.add('wait');
+    api('appSetPacked', [TOKEN, [id], packed], function (r) { PKD = r.data; drawPacking(); toast(packed ? 'Packed · off the shelf' : 'Back to To pack'); },
+      function (e) { b.classList.remove('wait'); toast((e && e.message) || 'Not saved'); });
+  };
+  el('panel').querySelectorAll('[data-pp]').forEach(function (b) { b.onclick = function (ev) { ev.stopPropagation(); set(b.getAttribute('data-pp'), true, b); }; });
+  el('panel').querySelectorAll('[data-pu]').forEach(function (b) { b.onclick = function (ev) { ev.stopPropagation(); set(b.getAttribute('data-pu'), false, b); }; });
 }
 el('btnPack').onclick = fromMenu(openPacking);
 
 // ---------- long screens fold (user 2026-11-09; Shopify Polaris, EU / design-system accordion guidance) ----------
 // A card of 200 px or more opens and closes by its heading, starts closed, several can be open, each person's choice stays on the
 // phone. Never folded: what needs action now, forms, a screen with only one big card. Home keeps its layout, Parcels and NDR have their own.
-var FOLD_MIN = 200, FOLD_NEVER = /^(To approve|To verify|Waiting for approval|Needs attention)/i, FOLD_OPEN = /^Settlement summary/i;
+var FOLD_MIN = 200, FOLD_NEVER = /^(To approve|To verify|Waiting for approval|Needs attention|To pack|Packed · waiting|Products to pack)/i, FOLD_OPEN = /^Settlement summary/i;
 function foldStore() { try { return JSON.parse(store('eh_fold') || '{}'); } catch (e) { return {}; } }
 function foldSet(n, closed) {
   n.classList.toggle('fold-closed', closed);
