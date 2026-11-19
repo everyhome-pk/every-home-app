@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-<base target="_top">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#00857A">
@@ -919,6 +918,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 .pl-close{display:flex;align-items:center;gap:12px;margin:0 0 10px;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--brand) 10%,var(--card,#fff));border:1px solid color-mix(in srgb,var(--brand) 35%,transparent)}.pl-ci{font-size:22px;color:var(--brand);flex:none}.pl-ct{flex:1;min-width:0}.pl-ct b{display:block;font-size:15px}.pl-ct small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}#plCloseM{flex:none;width:auto;padding:0 18px;min-height:42px;font-size:14px}
 .ps-w{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line)}.ps-w small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}.ps-wb{display:flex;gap:6px;flex:none}.ps-wb .btn{width:auto}.ps-o{font-size:15px;margin:2px 0 8px}.ps-o.pos b{color:var(--green)}.ps-o.neg b{color:var(--red)}.ps-gh{font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:10px 0 2px}
 .nc-chatb{cursor:pointer}.nc-chatb:active{filter:brightness(.97)}.nc-open{align-self:flex-end;font-size:11.5px;font-weight:600;color:var(--brand);display:inline-flex;align-items:center;gap:2px;margin-top:-1px}.tb.un .tw{font-weight:700}.tb .pv-dot{display:inline-block;vertical-align:1px;margin-left:4px}.tt .ti{font-size:12px;vertical-align:-1px}.tt .ti-checks{color:#53BDEB}
+.bk-lnk{margin-left:auto;border:0;background:none;color:var(--brand);font:600 12.5px Inter,sans-serif;display:inline-flex;align-items:center;gap:2px;cursor:pointer;padding:0;text-transform:none;letter-spacing:0}.ma-row{align-items:center}.ma-ed{flex:none;width:36px;height:36px;border:0;border-radius:50%;background:transparent;color:var(--muted);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;margin-left:6px}.ma-ed:hover{background:var(--chip,rgba(0,0,0,.05));color:var(--ink)}.ma-who{display:flex;align-items:center;gap:10px;margin:14px 2px 8px}.ma-who b{font-size:14.5px;font-weight:600}.ma-av{width:28px;height:28px;border-radius:50%;background:color-mix(in srgb,var(--brand) 14%,var(--card,#fff));color:var(--brand);font:700 11.5px Inter,sans-serif;display:inline-flex;align-items:center;justify-content:center}
 </style>
 <link rel="manifest" href="ordi.webmanifest">
 <link rel="icon" href="ordi-192.png">
@@ -6853,7 +6853,73 @@ function acOwnerRows(o) {
     row('Repaid by the business', '', o.back, -1);
 }
 // a partner's own pocket / card: not the business's money, shown in the partners' card instead of a bank card
-function acPartnerAcct(n) { var d = AC.data; return !!((d.ownerMoney && n === d.ownerMoney.name) || (d.card && n === d.card.name)); }
+// ---------- Accounts (user 2026-11-19): business accounts apart from each partner's own; rename moves every old entry ----------
+function acInitials(n) { return String(n || '').split(/\s+/).filter(Boolean).slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase(); }
+function openManageAccounts() {
+  var d = AC.data, pk = (d.pockets || []).map(function (o) { return o.name; }), card = d.card && d.card.name;
+  var bal = {}; (d.accounts || []).forEach(function (a) { if (a) bal[a.name] = a.balance; });
+  var biz = (d.business || (d.accounts || []).map(function (a) { return a && a.name; }).filter(function (n) { return n && pk.indexOf(n) === -1 && n !== card; }));
+  var partners = (d.equity && d.equity.partners || []).map(function (p) { return p.name; });
+  var item = function (name, icon, tone, sub, v, label) {
+    return '<div class="bk-row ma-row"><span class="bk-ic ' + tone + '">' + icon + '</span><span class="bk-m"><b title="' + esc(name) + '">' + esc(label || name) + '</b><small>' + sub + '</small></span>' +
+      (v != null ? '<span class="bk-v"><b class="num">' + v + '</b></span>' : '') +
+      '<button type="button" class="ma-ed" data-ren="' + esc(name) + '" aria-label="Rename ' + esc(name) + '"><i class="ti ti-pencil"></i></button></div>';
+  };
+  // inside a partner's group the account shows without the partner's name (the group title has it): "Co-founder · Bank"
+  var short = function (n, p) { var t = n.slice(p.length).trim().replace(/^[(·–-]\s*/, '').replace(/\)\s*$/, '').trim(); return t ? t.charAt(0).toUpperCase() + t.slice(1) : n; };
+  var ownerOf = function (n) { return partners.filter(function (p) { return n.toLowerCase().indexOf(p.toLowerCase()) === 0; })[0] || ''; };
+  var group = partners.map(function (p) {
+    var mine = pk.filter(function (n) { return ownerOf(n) === p; }), c = card && ownerOf(card) === p ? card : '';
+    if (!mine.length && !c) return '';
+    return '<div class="ma-who"><span class="ma-av">' + esc(acInitials(p)) + '</span><b>' + esc(p) + '</b></div><div class="bk-list">' +
+      mine.map(function (n) { return item(n, '<i class="ti ti-wallet"></i>', 'pur', 'Own money · counts as capital', null, short(n, p)); }).join('') +
+      (c ? item(c, '<i class="ti ti-credit-card"></i>', 'pur', 'Card · Meta, TikTok, Shopify bills', null, short(c, p)) : '') + '</div>';
+  }).join('');
+  el('panel').innerHTML = '<button class="btn mini" id="maBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Banking &amp; equity</button>' +
+    '<h3>Accounts</h3><p>Business money and each partner\'s own money are kept apart. Renaming moves every past entry with it.</p>' +
+    '<div class="bk-sec">Business</div><div class="bk-list">' + biz.map(function (n) { return item(n, '<i class="ti ti-building-bank"></i>', '', 'Business money', bal[n] != null ? acMoney(bal[n]) : null); }).join('') + '</div>' +
+    (group ? '<div class="bk-sec">Partners · their own money</div>' + group : '') +
+    '<button class="btn pri" id="maAdd" type="button" style="width:100%;margin-top:14px"><i class="ti ti-plus"></i>Add account</button>' +
+    '<div class="btns" style="margin-top:10px"><button class="btn" id="maX" type="button">Close</button></div>';
+  openPanel(true);
+  el('maBack').onclick = el('maX').onclick = function () { closePanel(); };
+  el('maAdd').onclick = function () { openAddAccount(partners); };
+  el('panel').querySelectorAll('[data-ren]').forEach(function (b) { b.onclick = function () { openRenameAccount(b.getAttribute('data-ren')); }; });
+}
+function openRenameAccount(name) {
+  el('panel').innerHTML = '<button class="btn mini" id="raBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Accounts</button>' +
+    '<h3>Rename account</h3><p>' + esc(name) + '</p><div class="fld"><label>New name</label><input id="raName" type="text" maxlength="60" value="' + esc(name) + '"></div>' +
+    '<p class="mnote">Every past entry paid from or sent to this account moves to the new name · balances do not change.</p>' +
+    '<div class="btns"><button class="btn" id="raX" type="button">Cancel</button><button class="btn pri" id="raGo" type="button"><i class="ti ti-check"></i>Rename</button></div>';
+  el('raBack').onclick = el('raX').onclick = openManageAccounts;
+  el('raGo').onclick = function () {
+    api('appRenameAccount', [TOKEN, name, el('raName').value], function (r) { if (r.data) AC.data = r.data; viewClear(); openManageAccounts(); toast('Renamed · ' + r.n + ' entr' + (r.n === 1 ? 'y' : 'ies') + ' moved'); },
+      function (e) { toast((e && e.message) || 'Not saved'); });
+  };
+}
+function openAddAccount(partners) {
+  var st = { kind: 'business', owner: partners[0] || '' };
+  var draw = function () {
+    var nm = el('aaName') ? el('aaName').value : '';
+    var prev = st.kind === 'partner' && st.owner ? (nm.toLowerCase().indexOf(st.owner.toLowerCase()) === 0 ? nm : st.owner + ' (' + (nm || 'Co-founder · Bank') + ')') : (nm || 'Meezan Bank · everyhome.pk');
+    el('panel').innerHTML = '<button class="btn mini" id="aaBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Accounts</button><h3>Add account</h3>' +
+      '<div class="ag2"><button class="' + (st.kind === 'business' ? 'on' : '') + '" data-ak="business"><b>Business</b><small>a bank or cash of the business</small></button><button class="' + (st.kind === 'partner' ? 'on' : '') + '" data-ak="partner"><b>Partner\'s own</b><small>what they pay is their capital</small></button></div>' +
+      (st.kind === 'partner' ? '<div class="fld" style="margin-top:12px"><label>Partner</label><div class="chips" style="padding:0">' + partners.map(function (p) { return '<button class="chip' + (p === st.owner ? ' on' : '') + '" data-ao="' + esc(p) + '" type="button">' + esc(p) + '</button>'; }).join('') + '</div></div>' : '') +
+      '<div class="fld" style="margin-top:12px"><label>Name</label><input id="aaName" type="text" maxlength="60" placeholder="' + (st.kind === 'partner' ? 'Co-founder · Bank' : 'Meezan Bank · everyhome.pk') + '" value="' + esc(nm) + '"></div>' +
+      '<p class="mnote">Shows as <b>' + esc(prev) + '</b></p>' +
+      '<div class="btns"><button class="btn" id="aaX" type="button">Cancel</button><button class="btn pri" id="aaGo" type="button"><i class="ti ti-check"></i>Add</button></div>';
+    el('aaBack').onclick = el('aaX').onclick = openManageAccounts;
+    el('panel').querySelectorAll('[data-ak]').forEach(function (b) { b.onclick = function () { st.kind = b.getAttribute('data-ak'); draw(); }; });
+    el('panel').querySelectorAll('[data-ao]').forEach(function (b) { b.onclick = function () { st.owner = b.getAttribute('data-ao'); draw(); }; });
+    el('aaName').oninput = function () { var p = el('panel').querySelector('.mnote b'); if (!p) return; var v = el('aaName').value; p.textContent = st.kind === 'partner' && st.owner ? (v.toLowerCase().indexOf(st.owner.toLowerCase()) === 0 ? v : st.owner + ' (' + (v || 'Co-founder · Bank') + ')') : (v || 'Meezan Bank · everyhome.pk'); };
+    el('aaGo').onclick = function () {
+      api('appAddAccount', [TOKEN, { kind: st.kind, owner: st.owner, name: el('aaName').value }], function (r) { if (r.data) AC.data = r.data; viewClear(); openManageAccounts(); toast('Added · ' + r.name); },
+        function (e) { toast((e && e.message) || 'Not saved'); });
+    };
+  };
+  draw();
+}
+function acPartnerAcct(n) { var d = AC.data; return !!((d.pockets || []).some(function (o) { return o.name === n; }) || (d.ownerMoney && n === d.ownerMoney.name) || (d.card && n === d.card.name)); }
 function renderAccounts() {
   var d = AC.data, pk = Object.keys(d.drawn || {}), unk = Object.keys(d.unknown || {}), today = pkDay(new Date());
   var daysAgo = function (day) { var n = Math.round((new Date(today + 'T12:00:00Z') - new Date(day + 'T12:00:00Z')) / 86400000); return n <= 0 ? 'today' : n === 1 ? 'yesterday' : n + ' days ago'; };
@@ -6893,7 +6959,7 @@ function renderAccounts() {
     (todo.length ? '<div class="bk-sec">Needs attention</div><div class="bk-list">' + todo.join('') + '</div>' : '') +
     '<div id="bkVfBox">' + verifyCard(d.toVerify) + '</div>' +
     // bank accounts
-    '<div class="bk-sec">Bank accounts</div><div class="bk-list">' + banks.map(function (x) {
+    '<div class="bk-sec">Bank accounts' + (d.owner ? '<button type="button" class="bk-lnk" id="acMng">Manage accounts <i class="ti ti-chevron-right"></i></button>' : '') + '</div><div class="bk-list">' + banks.map(function (x) {
       var k = x.check;
       return row({ attr: 'data-acc="' + esc(x.name) + '"', icon: '<i class="ti ti-building-bank"></i>', t: esc(x.name),
         s: !x.opened && !k ? 'no opening balance' : (k ? (k.diff ? 'bank ' + (k.diff > 0 ? '+' : '−') + rs(Math.abs(k.diff)) + ' · ' : '✓ ') + 'reconciled ' + daysAgo(k.day) : 'not reconciled'),
@@ -6945,6 +7011,7 @@ function renderAccounts() {
   el('panel').querySelectorAll('[data-acc]').forEach(function (r) { r.onclick = function () { openLedger(r.getAttribute('data-acc')); }; });
   el('panel').querySelectorAll('[data-acbank]').forEach(function (r) { r.onclick = function () { openAcForm('bank', r.getAttribute('data-acbank')); }; });
   if (el('acRec')) el('acRec').onclick = openAcRecord;
+  if (el('acMng')) el('acMng').onclick = openManageAccounts;
   if (el('acPayCard')) el('acPayCard').onclick = function () { openAcForm('cardpay'); };
   if (el('acCardMode')) el('acCardMode').onclick = openCardMode;
   if (el('acDecide')) el('acDecide').onclick = openCardDecide;
