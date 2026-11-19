@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-<base target="_top">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#00857A">
@@ -443,6 +442,7 @@ body.nb-on #nlist{padding-bottom:84px}
 .cn-prog{display:flex;flex-direction:column;gap:6px;margin:0 0 10px;font-size:13.5px}.cn-bar{display:block;height:6px;border-radius:3px;background:var(--line);overflow:hidden}.cn-bar u{display:block;height:100%;background:var(--brand);border-radius:3px}
 .cn-row{padding:12px 0;border-top:1px solid var(--line)}.cn-row:first-child{border-top:0}.cn-row.done{opacity:.72}.cn-top{display:flex;align-items:flex-start;gap:8px}.cn-name{flex:1;min-width:0}.cn-name b{display:block;font-size:14.5px;font-weight:600}.cn-name small{display:block;font-size:12px;color:var(--muted);margin-top:2px}.cn-ok{color:var(--green);font-size:20px}
 .cn-in{display:flex;align-items:center;gap:6px;margin-top:8px}.cn-in input{width:84px;min-height:44px;text-align:center;font-size:18px;font-weight:600;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--text);padding:0 6px}.cn-step{width:44px;height:44px;border:1px solid var(--line);border-radius:12px;background:var(--card);font-size:20px;color:var(--text);cursor:pointer}.cn-zero{margin-left:auto;white-space:nowrap}
+.cb-c{padding:12px 14px}.cb-1{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.cb-k{margin-left:auto;font-size:11.5px;font-weight:600}.cb-2{font-size:12.5px;color:var(--muted);margin-top:3px}.cb-g{font-size:13px;margin-top:6px}.cb-q{display:flex;align-items:center;gap:8px}.cb-q .btn{min-width:32px;height:30px;padding:0;justify-content:center;font-size:16px}
 .pk-row{align-items:center}.pk-b{flex:none!important;width:auto!important;min-width:0!important;align-self:center;margin-left:10px;padding:0 12px!important;height:34px}.pk-tag{font-size:11.5px;font-weight:600;color:var(--amber);white-space:nowrap}
 .cn-pk{display:block;color:var(--brand);font-size:12px;margin-top:2px}
 .cn-d{display:block;font-size:12.5px;color:var(--amber);margin-top:6px}.cn-d.ok{color:var(--green)}.cn-d.big{color:var(--red);font-weight:600}
@@ -1039,6 +1039,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   </div>
   <button class="dr-i" id="btnStock"><i class="ti ti-packages"></i>Stock</button>
   <button class="dr-i" id="btnPack" hidden><i class="ti ti-package"></i>Packing list</button>
+  <button class="dr-i" id="btnMatch" hidden><i class="ti ti-link"></i><span>Courier parcels to match</span><em class="dr-n" id="drNmatch" hidden></em></button>
   <button class="dr-i" id="btnWh" hidden><i class="ti ti-package-import"></i><span>Warehouse</span><em class="dr-n" id="drNwh" hidden></em></button>
   <button class="dr-i" id="btnTeam" hidden><i class="ti ti-users-group"></i>Team</button>
   <button class="dr-i dr-g" data-g="set" aria-expanded="false"><i class="ti ti-settings"></i><span>Settings</span><i class="ti ti-chevron-down dr-c"></i></button>
@@ -1457,7 +1458,7 @@ var PERMS = null; try { PERMS = JSON.parse(store('eh_perms') || 'null'); } catch
 var ROLE = store('eh_role') || '';
 var TAB_PERM = { home: 'home.view', parcels: 'parcels.view', ndr: 'ndr.view', returns: 'returns.view', cash: 'cash.view' };
 var KIND_PERM = { ndr: 'ndr.view', courier: 'ndr.work', back: 'returns.view', late: 'parcels.view', nocn: 'parcels.view', brief: 'home.view', cash: 'cash.view',
-  money: 'finance.approve', mine: 'finance.add', stock: 'inventory.view', buy: 'inventory.edit', link: 'inventory.edit', goods: 'inventory.count', approve: 'users.manage', ads: 'reports.view', adcharge: 'users.manage', security: 'users.manage', sync: 'users.manage' };
+  money: 'finance.approve', mine: 'finance.add', stock: 'inventory.view', buy: 'inventory.edit', link: 'inventory.edit', goods: 'inventory.count', approve: 'users.manage', match: 'orders.book', ads: 'reports.view', adcharge: 'users.manage', security: 'users.manage', sync: 'users.manage' };
 function can(p) { return !PERMS || PERMS.indexOf(p) !== -1; } // not known yet (old login): show all until the server answers
 function canTab(t) { return can(TAB_PERM[t]); }
 function firstTab() { return ['home', 'parcels', 'ndr', 'returns', 'cash'].filter(canTab)[0] || ''; }
@@ -1479,6 +1480,7 @@ function applyPerms() {
   el('btnDispatch').hidden = !can('parcels.view');
   el('btnStock').hidden = !can('inventory.view');
   el('btnPack').hidden = !(can('parcels.view') || can('inventory.count') || can('inventory.edit'));
+  el('btnMatch').hidden = !can('orders.book');
   el('btnWh').hidden = !(can('inventory.count') || can('users.manage'));
   el('btnExp').hidden = !(can('finance.add') || can('finance.view') || can('finance.approve'));
   el('btnPnl').hidden = !can('finance.view');
@@ -8361,7 +8363,7 @@ function openBriefList(day, k) {
 }
 
 // ---------- 🔔 notification list (everything W1 sent; the dot = new since you last opened it) ----------
-var ALERT_ICON = { goods: ['package', 'var(--brand)'], approve: ['package-import', 'var(--amber)'], link: ['link', 'var(--amber)'], adcharge: ['credit-card', 'var(--brand)'], courier: ['message-reply', 'var(--blue)'], money: ['receipt', 'var(--amber)'], mine: ['circle-check', 'var(--green)'], buy: ['truck-delivery', 'var(--amber)'],
+var ALERT_ICON = { match: ['link', 'var(--amber)'], goods: ['package', 'var(--brand)'], approve: ['package-import', 'var(--amber)'], link: ['link', 'var(--amber)'], adcharge: ['credit-card', 'var(--brand)'], courier: ['message-reply', 'var(--blue)'], money: ['receipt', 'var(--amber)'], mine: ['circle-check', 'var(--green)'], buy: ['truck-delivery', 'var(--amber)'],
   ads: ['speakerphone', 'var(--brand)'], security: ['lock', 'var(--red)'], stock: ['packages', 'var(--amber)'], cash: ['cash-banknote', 'var(--green)'], sync: ['alert-circle', 'var(--text)'], ndr: ['headset', 'var(--red)'], back: ['arrow-back-up', 'var(--amber)'], late: ['clock-exclamation', 'var(--amber)'], nocn: ['barcode-off', 'var(--amber)'], brief: ['sun', 'var(--brand)'], test: ['bell', 'var(--muted)'] };
 var alertsData = null;
 function loadAlerts(open) {
@@ -8412,6 +8414,7 @@ function drawAlerts() {
       // the same screens a push opens at start (user 2026-11-10: a bilti notification did nothing from the 🔔 list)
       if (q('wh')) { openWarehouse(); return; }
       if (q('pack')) { openPacking(); return; }
+      if (q('match')) { openMatch(); return; }
       if (q('partner')) { openPartners(); return; }
       if (q('remind')) { closePanel(); showTab('ndr'); openSheetRemind(q('remind')); return; }
       if (q('stock') === 'count') { openStock(''); setTimeout(function () { if (STK.data) openStockCount(true); }, 1200); return; }
@@ -8480,7 +8483,7 @@ var PUSH_KINDS = [['ndr', 'NDR cases', 'Failed delivery, refused, stuck with cou
   ['money', 'Approvals', 'Expenses waiting for your approval · monthly bank check'], ['mine', 'My entries', 'Your expense was approved or rejected'],
   ['stock', 'Low stock', 'A product is low or out of stock'], ['buy', 'Purchases', 'A purchase is late from the supplier'],
   ['goods', 'Warehouse', 'Bilti expected, today\'s packing, weekly count, your reports'], ['approve', 'To approve', 'A bilti or damaged goods wait for your decision'],
-  ['link', 'Order lines to link', 'A hand-made order line: which product is it?'], ['ads', 'Ads', 'Daily: ad sets to scale or to stop'], ['adcharge', 'Meta charges', 'Meta charged the card · check the dollar rate'], ['security', 'Security', 'A login was locked after wrong PINs'],
+  ['link', 'Order lines to link', 'A hand-made order line: which product is it?'], ['match', 'Courier parcels to match', 'Booked in a courier portal, not in ORDI (reship / replacement)'], ['ads', 'Ads', 'Daily: ad sets to scale or to stop'], ['adcharge', 'Meta charges', 'Meta charged the card · check the dollar rate'], ['security', 'Security', 'A login was locked after wrong PINs'],
   ['sync', 'System alerts', 'A sync stopped or failed · and when it is back']];
 function openPushPrefs() {
   var kinds = PUSH_KINDS.filter(function (k) { return can(KIND_PERM[k[0]]); }); // only what this role gets
@@ -9151,6 +9154,102 @@ function drawPacking() {
   el('panel').querySelectorAll('[data-pu]').forEach(function (b) { b.onclick = function (ev) { ev.stopPropagation(); set(b.getAttribute('data-pu'), false, b); }; });
 }
 el('btnPack').onclick = fromMenu(openPacking);
+// ---------- Courier parcels not in ORDI (user 2026-11-19): booked straight in a courier portal → match them ----------
+// W1 finds them (Leopards booked list, Trax portal list); here the Owner / orders.book decides: Reship, Replacement, Link, Ignore.
+var CBD = null;
+var CB_KIND = { Reship: ['Reship', 'var(--amber)', 'Sent again (e.g. not in service area, sent by another courier)'], Replacement: ['Replacement', 'var(--blue)', 'New item sent, the old one comes back'],
+  Link: ['Link', 'var(--brand)', 'Our order had no tracking number'], Unknown: ['Not matched', 'var(--muted)', 'No order of ours found'] };
+function cbBadge() {
+  if (!can('orders.book')) return;
+  api('getAppCourierBookings', [TOKEN], function (d) { CBD = d; cbCount(); }, function () {});
+}
+function cbCount() {
+  var n = CBD ? CBD.list.filter(function (b) { return b.state === 'New' || /^Failed:/.test(b.state); }).length : 0;
+  el('drNmatch').textContent = n || ''; el('drNmatch').hidden = !n;
+}
+function openMatch() {
+  if (!CBD) { el('panel').innerHTML = '<h3>Courier parcels to match</h3>' + skList(3); openPanel(true); }
+  else drawMatch();
+  api('getAppCourierBookings', [TOKEN], function (d) { CBD = d; cbCount(); var h = el('panel').querySelector('h3'); if (h && /to match/.test(h.textContent)) drawMatch(); },
+    function (e) { if (!CBD) { el('panel').innerHTML = '<h3>Courier parcels to match</h3><div class="card empty">' + esc((e && e.message) || 'Could not load') + '</div><div class="btns"><button class="btn" id="cbX">Close</button></div>'; el('cbX').onclick = closePanel; } });
+}
+function cbStateLine(b) {
+  if (b.state === 'Queued' || /^Try /.test(b.state)) return '<span style="color:var(--amber)"><i class="ti ti-clock"></i> ' + esc(b.decision) + (b.order ? ' · ' + esc(b.order.ref) : '') + ' · being made in Shopify · within 5 minutes' + (/^Try /.test(b.state) ? ' · ' + esc(b.state.replace(/^Try \d · /, 'retrying: ')) : '') + '</span>';
+  if (/^Failed:/.test(b.state)) return '<span style="color:var(--red)"><i class="ti ti-alert-triangle"></i> ' + esc(b.decision) + ' not made · ' + esc(b.state.replace(/^Failed:\s*/, '')) + '</span>';
+  if (b.state === 'Done') return '<span style="color:var(--green)"><i class="ti ti-circle-check"></i> ' + (b.decision === 'Link' ? 'Linked to ' + esc(b.newOrder) : b.newOrder && /^#|^[A-Z]{1,4}\d/.test(b.newOrder) ? esc(b.decision) + ' order ' + esc(b.newOrder) + ' made · ORDI tracks it' : esc(b.note || b.newOrder || 'Done')) + (b.by ? ' · ' + esc(b.by) : '') + '</span>';
+  if (b.state === 'Ignored') return '<span class="muted"><i class="ti ti-eye-off"></i> Ignored · ' + esc(b.note) + (b.by ? ' · ' + esc(b.by) : '') + '</span>';
+  return '';
+}
+function drawMatch() {
+  var d = CBD, todo = d.list.filter(function (b) { return b.state === 'New'; }), rest = d.list.filter(function (b) { return b.state !== 'New'; });
+  var card = function (b) {
+    var k = CB_KIND[b.kind] || CB_KIND.Unknown, g = b.guess;
+    return '<div class="card cb-c" style="border-left:3px solid ' + k[1] + '"><div class="cb-1"><b>' + esc(b.courier) + '</b> <span class="mono">' + esc(b.cn) + '</span>' +
+      '<button class="cn-copy" type="button" data-copy="' + esc(b.cn) + '" aria-label="Copy tracking ID"><i class="ti ti-copy"></i></button>' + (b.state === 'New' ? '<span class="cb-k" style="color:' + k[1] + '">' + k[0] + '</span>' : '') + '</div>' +
+      '<div class="cb-2">' + esc([b.text ? '"' + b.text + '"' : '', b.city, b.amount ? rs(b.amount) : 'Rs 0', b.booked ? 'booked ' + b.booked : ''].filter(Boolean).join(' · ')) + '</div>' +
+      '<div class="cb-2">' + esc([b.name, b.service && b.service !== 'Regular' ? b.service : '', b.status].filter(Boolean).join(' · ')) + '</div>' +
+      (b.state === 'New' ? (g ? '<div class="cb-g">Looks like <b>' + esc(g.ref) + '</b> · ' + esc([g.name, g.city, g.cn ? 'first sent ' + g.cn : 'no tracking yet'].filter(Boolean).join(' · ')) + '</div>' : '<div class="cb-g muted">No order of ours found by its order id or phone</div>') +
+        '<div class="btns" style="margin-top:8px"><button class="btn" type="button" data-cbi="' + esc(b.cn) + '">Ignore</button><button class="btn pri" type="button" data-cbo="' + esc(b.cn) + '">' + (b.kind === 'Unknown' ? 'Match' : esc(k[0])) + ' ›</button></div>'
+      : '<div class="cb-g">' + cbStateLine(b) + '</div>' + (/^(Queued|Ignored|Failed:|Try )/.test(b.state) ? '<div class="btns" style="margin-top:6px"><button class="btn mini" type="button" data-cbu="' + esc(b.cn) + '">' + (/^Failed:/.test(b.state) ? 'Change' : 'Undo') + '</button></div>' : '')) + '</div>';
+  };
+  el('panel').innerHTML = '<h3>Courier parcels to match</h3><p>Booked straight in a courier portal, so ORDI does not track them yet. Match each one once.</p>' +
+    (d.err ? '<p class="mnote" style="color:var(--amber)">' + esc(d.err) + '</p>' : '') +
+    (todo.length ? todo.map(card).join('') : '<div class="card empty"><i class="ti ti-circle-check"></i>Every courier parcel is in ORDI</div>') +
+    (rest.length ? '<p class="mnote" style="margin-top:14px"><b>Decided · last 7 days</b></p>' + rest.map(card).join('') : '') +
+    '<p class="mnote">Checked every 30 minutes (Leopards booked list, Trax portal).</p><div class="btns"><button class="btn" id="cbX" type="button">Close</button></div>';
+  if (!el('overlay').classList.contains('show')) openPanel(true);
+  el('cbX').onclick = closePanel;
+  var find = function (cn) { return d.list.filter(function (b) { return b.cn === cn; })[0]; };
+  el('panel').querySelectorAll('[data-cbo]').forEach(function (x) { x.onclick = function () { openMatchForm(find(x.getAttribute('data-cbo')), ''); }; });
+  el('panel').querySelectorAll('[data-cbi]').forEach(function (x) { x.onclick = function () { openMatchForm(find(x.getAttribute('data-cbi')), 'Ignore'); }; });
+  el('panel').querySelectorAll('[data-cbu]').forEach(function (x) { x.onclick = function () {
+    x.classList.add('wait');
+    api('appCourierBookingDecide', [TOKEN, { cn: x.getAttribute('data-cbu'), decision: 'Undo' }], function (r) { CBD = r.data; cbCount(); drawMatch(); toast('Back to match'); },
+      function (e) { x.classList.remove('wait'); toast((e && e.message) || 'Not saved'); });
+  }; });
+}
+function openMatchForm(b, pick) {
+  var dec = pick || (b.kind === 'Unknown' ? (b.guess ? 'Reship' : 'Ignore') : b.kind), ord = b.guess ? b.guess.ref : '', lines = null, collect = b.amount;
+  var linesOf = function () { var o = b.guess && b.guess.ref === ord ? b.guess : null; return o ? o.lines.map(function (l) { return { title: l.title, qty: l.qty, variant: l.variant, price: l.price }; }) : []; };
+  var draw = function () {
+    if (el('cbOrd')) ord = el('cbOrd').value.trim();
+    if (el('cbAmt')) collect = Number(String(el('cbAmt').value).replace(/[^0-9.]/g, '')) || 0;
+    if (lines === null) lines = linesOf();
+    var g = b.guess && b.guess.ref === ord ? b.guess : null, mk = dec === 'Reship' || dec === 'Replacement';
+    el('panel').innerHTML = '<button class="btn mini" id="cbBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Parcels to match</button>' +
+      '<h3>' + esc(b.courier) + ' · <span class="mono">' + esc(b.cn) + '</span></h3><p>' + esc([b.text ? '"' + b.text + '"' : '', b.city, rs(b.amount || 0), b.booked].filter(Boolean).join(' · ')) + '</p>' +
+      '<div class="seg">' + ['Reship', 'Replacement', 'Link', 'Ignore'].map(function (k) { return '<button type="button" data-cbk="' + k + '" class="' + (dec === k ? 'on' : '') + '">' + (k === 'Link' ? 'Link to order' : k) + '</button>'; }).join('') + '</div>' +
+      '<p class="mnote">' + esc(dec === 'Ignore' ? 'Not our parcel, a test booking, or nothing to track.' : (CB_KIND[dec] || CB_KIND.Unknown)[2]) + '</p>' +
+      (dec === 'Ignore' ? '<div class="fld"><label>Why ignore it</label><input id="cbNote" type="text" placeholder="e.g. booked by mistake, cancelled at the counter"></div>' :
+        '<div class="fld"><label>' + (dec === 'Link' ? 'Our order that gets this tracking number' : 'Original order') + '</label><input id="cbOrd" type="text" value="' + esc(ord) + '" placeholder="e.g. #EH11254"></div>' +
+        (g ? '<p class="mnote">' + esc([g.name, g.city, g.cn ? 'first sent ' + g.cn : 'no tracking yet', g.status].filter(Boolean).join(' · ')) + '</p>' : '') +
+        (dec === 'Link' && g && g.cn ? '<p class="mnote" style="color:var(--red)">' + esc(g.ref) + ' already has a tracking number · choose Reship</p>' : '') +
+        (mk ? '<div class="card"><div class="h"><b>Products in this parcel</b></div>' + (lines.length ? lines.map(function (l, i) {
+          return '<div class="sp-dr"><span>' + esc(l.title) + '</span><span class="num cb-q"><button class="btn mini" type="button" data-cbm="' + i + '" aria-label="Less">−</button><b>' + l.qty + '</b><button class="btn mini" type="button" data-cbp="' + i + '" aria-label="More">+</button></span></div>';
+        }).join('') : '<div class="muted" style="padding:6px 0">No products yet · add what is in the parcel</div>') + '</div>' +
+          '<div class="fld"><label>Add a product</label><select id="cbAdd"><option value="">Choose a product</option>' + CBD.products.map(function (p, i) { return '<option value="' + i + '">' + esc(p.title) + '</option>'; }).join('') + '</select></div>' +
+          '<div class="fld"><label>Amount the courier collects (Rs)</label><input id="cbAmt" type="text" inputmode="decimal" value="' + collect + '"></div>' +
+          '<p class="mnote">' + (b.amount ? esc(b.courier) + ' booked it for ' + rs(b.amount) + '. ' : '') + 'A new Shopify order is made for the same customer, tagged ' + esc(dec) + ', already fulfilled with this tracking number (no stock booked twice in Shopify). ' + esc(ord || 'The original order') + ' gets the tag ' + (dec === 'Reship' ? 'Reshipped' : 'Replacement sent') + '.</p>' : '') +
+        '<div class="fld"><label>Note (optional)</label><input id="cbNote" type="text" placeholder="e.g. Trax NSA, sent by Leopards"></div>') +
+      '<div class="btns"><button class="btn" id="cbCancel" type="button">Cancel</button><button class="btn pri" id="cbGo" type="button"><i class="ti ti-check"></i>' +
+      ({ Reship: 'Make reship order', Replacement: 'Make replacement order', Link: 'Link', Ignore: 'Ignore' })[dec] + '</button></div>';
+    el('cbBack').onclick = el('cbCancel').onclick = function () { drawMatch(); };
+    el('panel').querySelectorAll('[data-cbk]').forEach(function (x) { x.onclick = function () { dec = x.getAttribute('data-cbk'); draw(); }; });
+    if (el('cbOrd')) el('cbOrd').onchange = function () { var v = el('cbOrd').value.trim(); if (v !== ord) { ord = v; lines = linesOf(); draw(); } };
+    el('panel').querySelectorAll('[data-cbm]').forEach(function (x) { x.onclick = function () { var i = +x.getAttribute('data-cbm'); lines[i].qty--; if (lines[i].qty <= 0) lines.splice(i, 1); draw(); }; });
+    el('panel').querySelectorAll('[data-cbp]').forEach(function (x) { x.onclick = function () { lines[+x.getAttribute('data-cbp')].qty++; draw(); }; });
+    if (el('cbAdd')) { pickerize(el('cbAdd'), { title: 'Product' }); el('cbAdd').onchange = function () { var p = CBD.products[+el('cbAdd').value]; if (p) { lines.push({ title: p.title, qty: 1, variant: p.variant, price: p.price }); draw(); } }; }
+    el('cbGo').onclick = function () {
+      var f = { cn: b.cn, decision: dec, note: el('cbNote') ? el('cbNote').value : '' };
+      if (dec !== 'Ignore') { f.order = el('cbOrd').value.trim().replace(/^([A-Za-z])/, '#$1').replace(/^##/, '#'); }
+      if (dec === 'Reship' || dec === 'Replacement') { f.lines = lines; f.collect = Number(String(el('cbAmt').value).replace(/[^0-9.]/g, '')); if (!lines.length) { toast('Add the products in this parcel'); return; } }
+      api('appCourierBookingDecide', [TOKEN, f], function (r) { CBD = r.data; cbCount(); drawMatch(); toast(dec === 'Ignore' ? 'Ignored' : dec === 'Link' ? 'Linked · ORDI tracks it within 5 minutes' : dec + ' order is being made in Shopify · within 5 minutes'); },
+        function (e) { toast((e && e.message) || 'Not saved'); });
+    };
+  };
+  draw();
+}
+el('btnMatch').onclick = fromMenu(openMatch);
 // ---------- Partner stores (user 2026-11-19): a friend's store shares our warehouse; goods lent both ways at OUR cost ----------
 // Settled product to product (goods back, any product, by value) or product to cash (received / paid later). The warehouse
 // records, an owner approves before stock changes. Never a sale or a loss in the P&L.
@@ -9487,8 +9586,9 @@ function start() {
   if (qpay) { PAY_OPEN = qpay; setTimeout(function () { showTab('cash'); openPayIfReady(); }, 700); }
   if (qs.get('ask')) { ASK_OPEN = qs.get('ask'); setTimeout(function () { showTab('cash'); }, 700); }
   if (qsy) setTimeout(openSyncStatus, 600);
-  var qwh = qs.get('wh'), qpk = qs.get('pack') || qs.get('partner');
+  var qwh = qs.get('wh'), qpk = qs.get('pack') || qs.get('partner') || qs.get('match');
   if (qwh && (can('inventory.count') || can('users.manage'))) setTimeout(openWarehouse, 600);
+  if (qs.get('match') && can('orders.book')) setTimeout(openMatch, 900);
   if (qs.get('pack') && (can('parcels.view') || can('inventory.count') || can('inventory.edit'))) setTimeout(openPacking, 900);
   if (qs.get('partner') && (can('inventory.count') || can('inventory.edit'))) setTimeout(openPartners, 900);
   applyPerms();
@@ -9499,6 +9599,7 @@ function start() {
   // Warm the other tabs in the background so switching is instant.
   loadAllowed();
   setTimeout(fnBadge, 2500); // approvers: expenses waiting
+  setTimeout(cbBadge, 3500); // courier parcels to match
   google.script.run.withSuccessHandler(setPerms).withFailureHandler(function (e) { authFail(e); }).appGetProfile(TOKEN);
   loadSync(); drawBioBtn(); setTimeout(bioOffer, 1500);
   if (!started) { started = true; setInterval(function () { if (TOKEN) { if (can('ndr.view')) loadNdr(false); loadAlerts(false); loadSync(); } }, 120000); }
