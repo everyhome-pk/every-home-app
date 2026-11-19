@@ -920,7 +920,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 .ps-w{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line)}.ps-w small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}.ps-wb{display:flex;gap:6px;flex:none}.ps-wb .btn{width:auto}.ps-o{font-size:15px;margin:2px 0 8px}.ps-o.pos b{color:var(--green)}.ps-o.neg b{color:var(--red)}.ps-gh{font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:10px 0 2px}
 .nc-chatb{cursor:pointer}.nc-chatb:active{filter:brightness(.97)}.nc-open{align-self:flex-end;font-size:11.5px;font-weight:600;color:var(--brand);display:inline-flex;align-items:center;gap:2px;margin-top:-1px}.tb.un .tw{font-weight:700}.tb .pv-dot{display:inline-block;vertical-align:1px;margin-left:4px}.tt .ti{font-size:12px;vertical-align:-1px}.tt .ti-checks{color:#53BDEB}
 .bk-lnk{margin-left:auto;border:0;background:none;color:var(--brand);font:600 12.5px Inter,sans-serif;display:inline-flex;align-items:center;gap:2px;cursor:pointer;padding:0;text-transform:none;letter-spacing:0}.ma-row{align-items:center}.ma-ed{flex:none;width:36px;height:36px;border:0;border-radius:50%;background:transparent;color:var(--muted);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;margin-left:6px}.ma-ed:hover{background:var(--chip,rgba(0,0,0,.05));color:var(--ink)}.ma-who{display:flex;align-items:center;gap:10px;margin:14px 2px 8px}.ma-who b{font-size:14.5px;font-weight:600}.ma-av{width:28px;height:28px;border-radius:50%;background:color-mix(in srgb,var(--brand) 14%,var(--card,#fff));color:var(--brand);font:700 11.5px Inter,sans-serif;display:inline-flex;align-items:center;justify-content:center}
-.pp-ask{padding:4px 2px}
+.pp-ask{padding:4px 2px}.pp-ask .inrow2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .mr-t.cnt td{padding:9px 8px}.mr-box{display:inline-block;width:70px;height:22px;border:1px solid #9AA8A5;border-radius:4px;vertical-align:middle}.mr-box.w{width:140px}
 </style>
 <link rel="manifest" href="ordi.webmanifest">
@@ -7347,28 +7347,6 @@ function ppBsBody(b, n0) {
     PP.sec(n0 ? n0 + 2 : '', 'Whose it is · equity', t(b.equity, 'Total equity', b.totals.equity),
       ok ? 'Assets − liabilities = equity · the books tie.' : 'Assets − liabilities is ' + PP.m(b.totals.net) + ', equity is ' + PP.m(b.totals.equity) + ' · ' + PP.m(b.gap) + ' not explained yet.');
 }
-function printBalanceSheet() {
-  ppLoad('Balance sheet', 'bs', '', '', function (r) {
-    var b = r.data, ok = Math.abs(b.gap) < 2;
-    ppOpen('Balance sheet', '', PP.head(r, 'Balance sheet', 'As on ' + esc(niceDay(b.day)), ok ? ['Books tie ✓', 'fin'] : ['Gap ' + PP.m(b.gap), 'dr']) +
-      PP.kpi([['Total assets', PP.n(b.totals.assets), 'what the business has'], ['Liabilities', PP.n(b.totals.liabilities), 'what it owes'], ['Net worth', PP.m(b.totals.net), 'assets − liabilities', b.totals.net < 0 ? 'neg' : 'pos'], ['Equity', PP.m(b.totals.equity), 'partners + reserve + not shared']]) +
-      '<p class="mr-n">All amounts in PKR · today\'s figures · brackets ( ) = minus.</p>' + ppBsBody(b, 1) +
-      PP.sign('Prepared by · ' + esc(r.by), 'Checked by') + PP.foot(r, 'Balance sheet ' + esc(niceDay(b.day))), 'Balance sheet ' + b.day);
-  });
-}
-function printStockReport() {
-  ppLoad('Stock report', 'stock', '', '', function (r) {
-    var it = (r.data.items || []).filter(function (i) { return i.kind === 'Item'; }).sort(function (a, b) { return String(a.name).localeCompare(b.name); }), money = it.some(function (i) { return i.cost != null; });
-    var val = it.reduce(function (a, i) { return a + (i.value || 0); }, 0), low = it.filter(function (i) { return /Low|Out/.test(i.status); }).length;
-    var head = ['Product', 'On the shelf', 'Reserved', 'Available'].concat(money ? ['Avg cost', 'Value'] : []);
-    var rows = it.map(function (i) { return PP.tr([esc(i.name) + '<small>' + esc(i.sku) + (i.status && i.status !== 'OK' ? ' · ' + esc(i.status) : '') + '</small>', PP.q(i.shelf != null ? i.shelf : i.onHand, i.unit), PP.q(i.committed, i.unit), PP.q(i.available, i.unit)].concat(money ? [PP.n(i.cost), PP.n(i.value)] : [])); });
-    ppOpen('Stock report', '', PP.head(r, 'Stock report', 'As on ' + esc(r.made.replace(/,.*$/, '')), ['Live', 'fin']) +
-      PP.kpi([['Products', it.length, 'stocked items'], ['Low / out', low, 'below the alert level']].concat(money ? [['Stock value', PP.n(val), 'at average cost']] : [])) +
-      PP.sec(1, 'Stock by product', PP.tbl(head, rows, money ? PP.tr(['<b>Total</b>', '', '', '', '', '<b>' + PP.n(val) + '</b>']) : ''),
-        'On the shelf counts booked parcels not packed yet (still on the shelf). Reserved = confirmed orders not booked. Kits are made from these parts.') +
-      PP.sign('Prepared by · ' + esc(r.by), 'Checked by') + PP.foot(r, 'Stock report'), 'Stock report ' + r.made.replace(/,.*$/, ''));
-  });
-}
 function printCountSheet() {
   ppLoad('Count sheet', 'count', '', '', function (r) {
     var it = r.data.items || [];
@@ -7378,82 +7356,123 @@ function printCountSheet() {
       PP.sign('Counted by', 'Checked by') + PP.foot(r, 'Count sheet'), 'Count sheet');
   });
 }
-function printCourierStatement(courier, month) {
-  ppLoad('Courier statement', 'courier', courier, month, function (r) {
-    var d = r.data, st = d.stats || {}, cn = (CLIST.filter(function (c) { return c.key === courier; })[0] || {}).name || (courier === 'all' ? 'All couriers' : courier), per = month && month !== 'all' ? fnMonthName(month) : 'All time';
+// ---- periods (user 2026-11-19): one chooser for every report; the server understands the same strings ----
+function ppTaxYear(d) { var y = Number(d.slice(0, 4)), m = Number(d.slice(5, 7)); return m >= 7 ? y : y - 1; }
+function ppPeriodField(def, opts) {
+  var now = pkDay(new Date()), m0 = now.slice(0, 7), y = now.slice(0, 4), ty = ppTaxYear(now);
+  var lm = (function () { var a = Number(m0.slice(0, 4)), b = Number(m0.slice(5, 7)) - 1; if (!b) { a--; b = 12; } return a + '-' + ('0' + b).slice(-2); })();
+  var list = [[m0, 'This month · ' + fnMonthName(m0)], [lm, 'Last month · ' + fnMonthName(lm)], [y, 'This year · ' + y], ['tax:' + ty, 'Tax year ' + ty + '-' + String(ty + 1).slice(2) + ' (July – June)'], ['tax:' + (ty - 1), 'Tax year ' + (ty - 1) + '-' + String(ty).slice(2)], ['all', 'All time'], ['own', 'Choose dates…']];
+  if (opts && opts.only) list = list.filter(function (x) { return opts.only.indexOf(x[0].replace(/:\d+$/, ':').replace(/^\d{4}-\d{2}$/, 'm').replace(/^\d{4}$/, 'y')) !== -1 || opts.only.indexOf(x[0]) !== -1; });
+  return '<div class="fld"><label>Period</label><select id="ppPer">' + list.map(function (x) { return '<option value="' + x[0] + '"' + (x[0] === def ? ' selected' : '') + '>' + esc(x[1]) + '</option>'; }).join('') + '</select></div>' +
+    '<div class="inrow2" id="ppOwn" hidden><div class="fld"><label>From</label><input id="ppFrom" type="date" value="' + m0 + '-01"></div><div class="fld"><label>To</label><input id="ppTo" type="date" value="' + now + '"></div></div>';
+}
+function ppPeriodWire() { var s = el('ppPer'); if (!s) return; var f = function () { el('ppOwn').hidden = s.value !== 'own'; }; s.onchange = f; f(); }
+function ppPeriodVal() { var s = el('ppPer'); if (!s) return 'all'; if (s.value !== 'own') return s.value; var a = el('ppFrom').value, b = el('ppTo').value; return a && b ? a + '..' + b : 'all'; }
+function ppMonthsBack(n) { var out = [], d = new Date(); for (var i = 1; i <= n; i++) { var x = new Date(d.getFullYear(), d.getMonth() - i, 1); out.push(x.getFullYear() + '-' + ('0' + (x.getMonth() + 1)).slice(-2)); } return out; }
+function printBalanceSheet(asOf) {
+  ppLoad('Balance sheet', 'bs', asOf || '', '', function (r) {
+    var b = r.data, ok = Math.abs(b.gap || 0) < 2;
+    ppOpen('Balance sheet', '', PP.head(r, 'Balance sheet', esc(r.asOf || ('As on ' + niceDay(b.day))), ok ? ['Books tie ✓', 'fin'] : ['Gap ' + PP.m(b.gap), 'dr']) +
+      PP.kpi([['Total assets', PP.n(b.totals.assets), 'what the business has'], ['Liabilities', PP.n(b.totals.liabilities), 'what it owes'], ['Net worth', PP.m(b.totals.net), 'assets − liabilities', b.totals.net < 0 ? 'neg' : 'pos'], ['Equity', PP.m(b.totals.equity), 'partners + reserve + not shared']]) +
+      '<p class="mr-n">All amounts in PKR · brackets ( ) = minus.</p>' + ppBsBody(b, 1) +
+      PP.sign('Prepared by · ' + esc(r.by), 'Checked by') + PP.foot(r, 'Balance sheet ' + esc(r.asOf || niceDay(b.day))), 'Balance sheet ' + (asOf || b.day));
+  });
+}
+function printStockReport(asOf) {
+  ppLoad('Stock report', 'stock', asOf || '', '', function (r) {
+    var it = (r.data.items || []).filter(function (i) { return i.kind === 'Item'; }).sort(function (a, b) { return String(a.name).localeCompare(b.name); }), money = it.some(function (i) { return i.cost != null; });
+    var val = it.reduce(function (a, i) { return a + (i.value || 0); }, 0), low = it.filter(function (i) { return /Low|Out/.test(i.status); }).length, past = !!r.past;
+    var head = past ? ['Product', 'On hand'].concat(money ? ['Avg cost', 'Value'] : []) : ['Product', 'On the shelf', 'Reserved', 'Available'].concat(money ? ['Avg cost', 'Value'] : []);
+    var rows = it.map(function (i) { var q = past ? [PP.q(i.onHand, i.unit)] : [PP.q(i.shelf != null ? i.shelf : i.onHand, i.unit), PP.q(i.committed, i.unit), PP.q(i.available, i.unit)];
+      return PP.tr([esc(i.name) + '<small>' + esc(i.sku) + (!past && i.status && i.status !== 'OK' ? ' · ' + esc(i.status) : '') + '</small>'].concat(q).concat(money ? [PP.n(i.cost), PP.n(i.value)] : [])); });
+    var blanks = head.length - (money ? 3 : 1);
+    ppOpen('Stock report', '', PP.head(r, 'Stock report', esc(past ? 'End of ' + r.asOf : 'As on ' + r.made.replace(/,.*$/, '')), [past ? 'Past day' : 'Live', 'fin']) +
+      PP.kpi([['Products', it.length, 'stocked items']].concat(past ? [] : [['Low / out', low, 'below the alert level']]).concat(money ? [['Stock value', PP.n(val), 'at average cost']] : [])) +
+      PP.sec(1, 'Stock by product', PP.tbl(head, rows, money ? PP.tr(['<b>Total</b>'].concat(new Array(blanks + 1).join('x').split('').map(function () { return ''; })).concat(['<b>' + PP.n(val) + '</b>'])) : ''),
+        past ? 'On hand at the end of that day = today\'s stock less every stock move after it. Value at today\'s average cost.' : 'On the shelf counts booked parcels not packed yet (still on the shelf). Reserved = confirmed orders not booked. Kits are made from these parts.') +
+      PP.sign('Prepared by · ' + esc(r.by), 'Checked by') + PP.foot(r, 'Stock report'), 'Stock report ' + (asOf || r.made.replace(/,.*$/, '')));
+  });
+}
+function printCourierStatement(courier, per) {
+  ppLoad('Courier statement', 'courier', courier, per, function (r) {
+    var d = r.data, st = d.stats || {}, cn = (CLIST.filter(function (c) { return c.key === courier; })[0] || {}).name || (courier === 'all' ? 'All couriers' : courier), pl = (r.period && r.period.label) || 'All time';
     var pays = (d.batches || []), unpaid = (d.parcels || []).filter(function (p) { return p.cat !== 'paid' && !p.returned; });
-    ppOpen('Courier statement', '', PP.head(r, 'Courier statement', esc(cn) + ' · ' + esc(per)) +
+    ppOpen('Courier statement', '', PP.head(r, 'Courier statement', esc(cn) + ' · ' + esc(pl)) +
       PP.kpi([['Delivered', PP.n(st.delivered), PP.n(st.returned) + ' returned'], ['COD collected', PP.n(st.cod), 'charges ' + PP.n(st.charges)], ['Net payout', PP.n(st.net), 'taxes ' + PP.n(st.tax)], ['Received', PP.n(st.received), 'to come ' + PP.n(st.pending)]]) +
       PP.sec(1, 'Payments', PP.tbl(['Date · payment', 'Parcels', 'Net', 'Bank', 'Check'], pays.map(function (p) { return PP.tr([esc(p.date) + ' · ' + esc(p.ref) + '<small>' + esc(p.courier) + (p.exact ? ' · exact' : '') + '</small>', PP.n(p.parcels), PP.m(p.net), p.bank == null ? '–' : PP.n(p.bank), esc(p.bank == null ? (p.transferred ? 'not recorded' : 'not sent') : p.matched || '')]); }))) +
       PP.sec(2, 'Delivered, not paid yet', PP.tbl(['Tracking ID · order', 'COD', 'Net', 'Status'], unpaid.map(function (p) { return PP.tr([esc(p.cn) + '<small>' + esc(p.order || '') + '</small>', PP.n(p.cod), PP.m(p.net), esc(p.due ? (p.dueLate ? 'late · due ' : 'due ') + p.due : p.note || '')]); }),
         unpaid.length ? PP.tr(['<b>Total</b>', '<b>' + PP.n(unpaid.reduce(function (a, p) { return a + p.cod; }, 0)) + '</b>', '<b>' + PP.m(unpaid.reduce(function (a, p) { return a + p.net; }, 0)) + '</b>', '']) : '')) +
-      PP.sign('Prepared by · ' + esc(r.by), esc(cn) + ' · checked by') + PP.foot(r, 'Courier statement ' + esc(cn) + ' · ' + esc(per)), 'Courier statement ' + cn + ' ' + per);
+      PP.sign('Prepared by · ' + esc(r.by), esc(cn) + ' · checked by') + PP.foot(r, 'Courier statement ' + esc(cn) + ' · ' + esc(pl)), 'Courier statement ' + cn + ' ' + pl);
   });
 }
-function printSupplierStatement(name) {
-  ppLoad('Supplier statement', 'supplier', name, '', function (r) {
-    var d = r.data, s = d.supplier || {}, t = d.total, bal = 0;
-    ppOpen('Supplier statement', '', PP.head(r, 'Supplier statement', esc(s.name) + (s.city ? ' · ' + esc(s.city) : '') + (s.phone ? ' · ' + esc(s.phone) : '')) +
-      PP.kpi([['Bills', PP.n(t.goods), d.pos.length + ' purchases'], ['Cargo & other', PP.n(t.cargo), ''], ['Paid', PP.n(t.paid), d.pays.length + ' payments'], ['Left to pay', PP.n(t.toPay), '', t.toPay > 0 ? 'neg' : 'pos']]) +
-      PP.sec(1, 'Purchases', PP.tbl(['Date · purchase', 'Bill', 'Cargo', 'Paid', 'Balance'], d.pos.map(function (p) { bal += p.toPay; return PP.tr([PP.d(p.date) + ' · ' + esc(p.po) + '<small>' + p.lines.map(function (l) { return l.qty + ' × ' + esc(l.name); }).join(', ') + '</small>', PP.n(p.goods), PP.n(p.cargo + p.other), PP.n(p.paid), PP.m(bal)]); }),
-        PP.tr(['<b>Total</b>', '<b>' + PP.n(t.goods) + '</b>', '<b>' + PP.n(t.cargo) + '</b>', '<b>' + PP.n(t.paid) + '</b>', '<b>' + PP.m(t.toPay) + '</b>']))) +
-      PP.sec(2, 'Payments', PP.tbl(['Date · what', 'Paid from', 'Amount'], d.pays.map(function (p) { return PP.tr([PP.d(p.date) + ' · ' + esc(p.desc || p.cat) + (p.po ? '<small>' + esc(p.po) + '</small>' : ''), esc(p.from || ''), PP.n(p.amount)]); }))) +
-      PP.sign('Prepared by · ' + esc(r.by), esc(s.name) + ' · checked by') + PP.foot(r, 'Supplier statement ' + esc(s.name)), 'Supplier statement ' + s.name);
+function printSupplierStatement(name, per) {
+  ppLoad('Supplier statement', 'supplier', name, per, function (r) {
+    var d = r.data, s = d.supplier || {}, pl = d.period.label;
+    var rows = [PP.tr(['<b>Opening balance</b>' + (d.period.all ? '' : '<small>before ' + esc(d.period.from) + '</small>'), '', '', '<b>' + PP.m(d.opening) + '</b>'], 'mr-b')].concat(d.lines.map(function (l) {
+      return PP.tr([PP.d(l.day) + ' · ' + esc(l.text), l.bill ? PP.n(l.bill) : '', l.paid ? PP.n(l.paid) : '', PP.m(l.balance)]); }));
+    ppOpen('Supplier statement', '', PP.head(r, 'Supplier statement', esc(s.name) + ' · ' + esc(pl) + (s.city ? ' · ' + esc(s.city) : '')) +
+      PP.kpi([['Opening', PP.m(d.opening), 'owed before'], ['Bills', PP.n(d.total.bills), 'in the period'], ['Paid', PP.n(d.total.paid), 'in the period'], ['Closing', PP.m(d.closing), 'left to pay', d.closing > 0 ? 'neg' : 'pos']]) +
+      PP.sec(1, 'Statement', PP.tbl(['Date · what', 'Bill', 'Paid', 'Balance'], rows, PP.tr(['<b>Closing balance</b>', '<b>' + PP.n(d.total.bills) + '</b>', '<b>' + PP.n(d.total.paid) + '</b>', '<b>' + PP.m(d.closing) + '</b>'])),
+        'Bill = goods + cargo + other charges of a purchase. Balance = what is still to pay the supplier.') +
+      PP.sign('Prepared by · ' + esc(r.by), esc(s.name) + ' · checked by') + PP.foot(r, 'Supplier statement ' + esc(s.name) + ' · ' + esc(pl)), 'Supplier statement ' + s.name + ' ' + pl);
   });
 }
-function printPartyStatement(party) {
-  ppLoad('Lend & borrow statement', 'party', party, '', function (r) {
-    var d = r.data, b = d.balance || { goods: [], owes: 0 };
-    ppOpen('Lend & borrow statement', '', PP.head(r, 'Lend &amp; borrow statement', esc(party)) +
-      (d.money ? PP.kpi([[b.owes >= 0 ? esc(party) + ' owes us' : 'We owe ' + esc(party), PP.n(Math.abs(b.owes || 0)), 'at our cost, less cash', b.owes > 0 ? 'pos' : b.owes < 0 ? 'neg' : ''], ['Goods value', PP.m(b.value), 'given − taken'], ['Cash settled', PP.m(b.cash), 'received − paid']]) : '') +
-      PP.sec(1, 'Goods now', PP.tbl(['Product', 'Quantity', 'Value'], (b.goods || []).map(function (g) { return PP.tr([esc(g.name) + '<small>' + (g.qty > 0 ? 'ours with them' : 'theirs with us') + '</small>', PP.q(Math.abs(g.qty)), g.value != null ? PP.m(g.value) : '–']); }))) +
-      PP.sec(2, 'Every entry', PP.tbl(['Date · what', 'Quantity', 'Value', 'Status'], (d.list || []).map(function (l) { return PP.tr([esc(l.at) + ' · ' + esc(l.kind) + (l.name ? ' · ' + esc(l.name) : '') + '<small>by ' + esc(l.by) + (l.note ? ' · ' + esc(l.note) : '') + '</small>', l.qty ? PP.q(l.qty) : '–', l.value != null ? PP.n(l.value) : '–', esc(l.status)]); }))) +
-      PP.sign('Every Home · ' + esc(r.by), esc(party) + ' · checked by') + PP.foot(r, 'Lend & borrow ' + esc(party)), 'Lend and borrow ' + party);
+function printPartyStatement(party, per) {
+  ppLoad('Lend & borrow statement', 'party', party, per, function (r) {
+    var d = r.data, pl = d.period.label, m = d.money;
+    var rows = (m ? [PP.tr(['<b>Opening</b>' + (d.period.all ? '' : '<small>before ' + esc(d.period.from) + '</small>'), '', '', '<b>' + PP.m(d.opening) + '</b>'], 'mr-b')] : []).concat(d.lines.map(function (l) {
+      return PP.tr([PP.d(l.day) + ' · ' + esc(l.kind) + (l.name ? ' · ' + esc(l.name) : '') + '<small>by ' + esc(l.by) + (l.note ? ' · ' + esc(l.note) : '') + '</small>', l.qty ? PP.q(l.qty) : '–', l.value != null ? PP.n(l.value) : '–', l.balance != null ? PP.m(l.balance) : '']); }));
+    ppOpen('Lend & borrow statement', '', PP.head(r, 'Lend &amp; borrow statement', esc(party) + ' · ' + esc(pl)) +
+      (m ? PP.kpi([['Opening', PP.m(d.opening), 'before the period'], ['Closing', PP.m(d.closing), d.closing > 0 ? esc(party) + ' owes us' : d.closing < 0 ? 'we owe ' + esc(party) : 'settled', d.closing > 0 ? 'pos' : d.closing < 0 ? 'neg' : '']]) : '') +
+      PP.sec(1, 'Statement', PP.tbl(['Date · what', 'Quantity', 'Value', m ? 'Balance' : ''], rows, m ? PP.tr(['<b>Closing</b>', '', '', '<b>' + PP.m(d.closing) + '</b>']) : ''),
+        'At our cost. Given and cash we paid raise what they owe us; taken and cash we received lower it. A minus = we owe them.') +
+      PP.sign(esc(r.store) + ' · ' + esc(r.by), esc(party) + ' · checked by') + PP.foot(r, 'Lend & borrow ' + esc(party) + ' · ' + esc(pl)), 'Lend and borrow ' + party + ' ' + pl);
   });
 }
-function printTaxSummary(year) {
-  ppLoad('Tax summary', 'tax', year, '', function (r) {
+function printTaxSummary(per) {
+  ppLoad('Tax summary', 'tax', per, '', function (r) {
     var d = r.data, t = d.total;
     ppOpen('Tax summary', '', PP.head(r, 'Taxes withheld by couriers', esc(d.year) + ' · delivered parcels by dispatch month') +
       PP.kpi([['Parcels', PP.n(t.parcels), 'delivered'], ['COD', PP.n(t.cod), ''], ['Income tax (WHT)', PP.n(t.wht), 'section 153'], ['Sales tax', PP.n(t.sst), d.sstAdjustable ? 'adjustable' : 'withheld']]) +
       PP.sec(1, 'By month', PP.tbl(['Month', 'Parcels', 'COD', 'WHT', 'Sales tax'], d.months.map(function (m) { return PP.tr([esc(fnMonthName(m.month)), PP.n(m.parcels), PP.n(m.cod), PP.n(m.wht), PP.n(m.sst)]); }),
         PP.tr(['<b>Total</b>', '<b>' + PP.n(t.parcels) + '</b>', '<b>' + PP.n(t.cod) + '</b>', '<b>' + PP.n(t.wht) + '</b>', '<b>' + PP.n(t.sst) + '</b>']))) +
       PP.sec(2, 'By courier', PP.tbl(['Courier', 'Parcels', 'COD', 'WHT', 'Sales tax'], d.couriers.map(function (c) { return PP.tr([esc(c.courier), PP.n(c.parcels), PP.n(c.cod), PP.n(c.wht), PP.n(c.sst)]); })),
-        'From the couriers\' own figures (COD ledger). Ask each courier for its withholding certificate and give these to your tax advisor.') +
+        'From the couriers\' own figures (COD ledger). The Pakistan tax year runs 1 July – 30 June. Ask each courier for its withholding certificate and give these to your tax advisor.') +
       PP.foot(r, 'Tax summary ' + esc(d.year)), 'Tax summary ' + d.year);
   });
 }
-function printCapital() {
-  ppLoad('Capital statement', 'capital', '', '', function (r) {
-    var q = r.data.equity; if (!q) { ppOpen('Capital statement', '', '<p class="mr-draft">No partners set.</p>', 'Capital'); return; }
+function printCapital(per) {
+  ppLoad('Capital statement', 'capital', per, '', function (r) {
+    var q = r.data.equity, pl = r.data.period.label; if (!q) { ppOpen('Capital statement', '', '<p class="mr-draft">No partners set.</p>', 'Capital'); return; }
     var body = q.partners.map(function (p, i) {
-      var led = (p.ledger || []).slice().reverse();
-      return PP.sec(i + 1, esc(p.name) + ' · ' + Math.round(p.pct) + '%', PP.tbl(['Date · what', 'Capital', 'Profit / loss', 'Balance'], led.map(function (l) { return PP.tr([PP.d(l.day) + ' · ' + esc(l.text), l.kind === 'capital' ? PP.m(l.amt) : '', l.kind === 'profit' ? PP.m(l.amt) : '', PP.m(l.balance)]); }),
-        PP.tr(['<b>Now</b>', '<b>' + PP.m(p.capital) + '</b>', '<b>' + PP.m(p.profit) + '</b>', '<b>' + PP.m(p.total) + '</b>'])));
+      var rows = [PP.tr(['<b>Opening</b>' + (r.data.period.all ? '' : '<small>before ' + esc(r.data.period.from) + '</small>'), PP.m(p.opening.capital), PP.m(p.opening.profit), '<b>' + PP.m(p.opening.balance) + '</b>'], 'mr-b')].concat(p.lines.map(function (l) {
+        return PP.tr([PP.d(l.day) + ' · ' + esc(l.text), l.kind === 'capital' ? PP.m(l.amt) : '', l.kind === 'profit' ? PP.m(l.amt) : '', PP.m(l.balance)]); }));
+      return PP.sec(i + 1, esc(p.name) + ' · ' + Math.round(p.pct) + '%', PP.tbl(['Date · what', 'Capital', 'Profit / loss', 'Balance'], rows,
+        PP.tr(['<b>Closing</b>', '<b>' + PP.m(p.closing.capital) + '</b>', '<b>' + PP.m(p.closing.profit) + '</b>', '<b>' + PP.m(p.closing.balance) + '</b>'])));
     }).join('');
-    ppOpen('Capital statement', '', PP.head(r, 'Partners\' capital statement', 'From ' + esc(q.from ? fnMonthName(q.from) : 'the start') + ' · as on ' + esc(r.made.replace(/,.*$/, ''))) +
-      PP.kpi(q.partners.map(function (p) { return [esc(p.name), PP.m(p.total), 'capital ' + PP.m(p.capital) + ' · profit ' + PP.m(p.profit), p.total < 0 ? 'neg' : 'pos']; })) +
-      '<p class="mr-n">Capital = money put in less money taken back. Profit / loss = each closed month\'s share less profit taken. Total = the partner\'s part of the business.</p>' + body +
-      PP.sign(esc(q.partners[0] ? q.partners[0].name : ''), esc(q.partners[1] ? q.partners[1].name : '')) + PP.foot(r, 'Capital statement'), 'Capital statement');
+    ppOpen('Capital statement', '', PP.head(r, 'Partners\' capital statement', esc(pl)) +
+      PP.kpi(q.partners.map(function (p) { return [esc(p.name), PP.m(p.closing.balance), 'capital ' + PP.m(p.closing.capital) + ' · profit ' + PP.m(p.closing.profit), p.closing.balance < 0 ? 'neg' : 'pos']; })) +
+      '<p class="mr-n">Capital = money put in less money taken back. Profit / loss = each closed month\'s share less profit taken. Balance = the partner\'s part of the business.</p>' + body +
+      PP.sign(esc(q.partners[0] ? q.partners[0].name : ''), esc(q.partners[1] ? q.partners[1].name : '')) + PP.foot(r, 'Capital statement · ' + esc(pl)), 'Capital statement ' + pl);
   });
 }
 // the page that lists every printable report
 function openPrintHub() {
-  var now = pkDay(new Date()), m0 = now.slice(0, 7), prevM = (function () { var y = Number(m0.slice(0, 4)), m = Number(m0.slice(5, 7)) - 1; if (!m) { y--; m = 12; } return y + '-' + ('0' + m).slice(-2); })();
+  var now = pkDay(new Date()), m0 = now.slice(0, 7), prevM = ppMonthsBack(1)[0], ty = ppTaxYear(now);
   var item = function (id, icon, t, s, show) { return show ? '<button type="button" class="bk-row tap" id="' + id + '"><span class="bk-ic"><i class="ti ti-' + icon + '"></i></span><span class="bk-m"><b>' + t + '</b><small>' + s + '</small></span><i class="ti ti-chevron-right bk-ch"></i></button>' : ''; };
   var fin = can('finance.view'), cash = can('cash.view'), inv = can('inventory.view') || can('inventory.count') || can('inventory.edit'), sup = can('inventory.edit');
   el('panel').innerHTML = '<h3>Print &amp; PDF reports</h3><p>Every report in one place · A4 paper · Print or Save as PDF</p>' +
     (fin ? '<div class="bk-sec">Money</div><div class="bk-list">' +
       item('prMonth', 'file-text', 'Month-end report', 'P&amp;L, sold, bought, ads, couriers, bank, partners, balance sheet', true) +
-      item('prBs', 'scale', 'Balance sheet', 'assets, liabilities, equity · today', true) +
-      item('prCap', 'users', 'Partners\' capital statement', 'every partner, line by line', true) +
-      item('prTax', 'receipt-tax', 'Tax summary', 'WHT and sales tax the couriers withheld, by month', true) + '</div>' : '') +
+      item('prBs', 'scale', 'Balance sheet', 'today or the end of a closed month', true) +
+      item('prCap', 'users', 'Partners\' capital statement', 'opening, every line, closing', true) +
+      item('prTax', 'receipt-tax', 'Tax summary', 'WHT and sales tax withheld · tax year July – June', true) + '</div>' : '') +
     (cash || sup || inv ? '<div class="bk-sec">Statements</div><div class="bk-list">' +
       item('prCour', 'truck-delivery', 'Courier statement', 'payments and parcels still to be paid', cash) +
-      item('prSup', 'building-store', 'Supplier statement', 'purchases, payments, left to pay', sup) +
-      item('prParty', 'arrows-exchange', 'Lend &amp; borrow statement', 'goods and cash with one party', inv) + '</div>' : '') +
+      item('prSup', 'building-store', 'Supplier statement', 'opening, bills, payments, closing', sup) +
+      item('prParty', 'arrows-exchange', 'Lend &amp; borrow statement', 'opening, entries, closing with one party', inv) + '</div>' : '') +
     (inv ? '<div class="bk-sec">Stock</div><div class="bk-list">' +
-      item('prStock', 'packages', 'Stock report', 'every product on the shelf' + (cash ? ' with value' : ''), true) +
+      item('prStock', 'packages', 'Stock report', 'today or the end of a past day' + (cash ? ' · with value' : ''), true) +
       item('prCount', 'list-numbers', 'Blank count sheet', 'for the warehouse to count by hand', true) + '</div>' : '') +
     '<div class="btns" style="margin-top:12px"><button class="btn" id="prX" type="button">Close</button></div>';
   openPanel(true);
@@ -7462,28 +7481,34 @@ function openPrintHub() {
   var ask = function (title, html, go) {
     // showPick wires its own click handler on a .sheet-list (without one it stopped and Open report did nothing — user 2026-11-19)
     showPick(title, '', '<div class="sheet-list pp-ask">' + html + '<div class="btns" style="margin-top:12px"><button class="btn pri" id="ppGo" type="button" style="width:100%"><i class="ti ti-printer"></i>Open report</button></div></div>', function () {});
+    ppPeriodWire();
     if (el('ppGo')) el('ppGo').onclick = function (e) { e.stopPropagation(); var v = go(); if (v === false) return; closePick(); };
   };
   on('prMonth', function () { ask('Month-end report', '<div class="fld"><label>Month</label><input id="ppM" type="month" value="' + prevM + '"></div>', function () { var m = el('ppM').value; if (!m) return false; openMonthReport(m); }); });
-  on('prBs', printBalanceSheet);
-  on('prCap', printCapital);
-  on('prTax', function () { ask('Tax summary', '<div class="fld"><label>Year</label><input id="ppY" type="number" value="' + now.slice(0, 4) + '"></div>', function () { printTaxSummary(el('ppY').value); }); });
+  on('prBs', function () { ask('Balance sheet', '<div class="fld"><label>As on</label><select id="ppAs"><option value="">Today</option>' + ppMonthsBack(12).map(function (m) { return '<option value="' + m + '">End of ' + esc(fnMonthName(m)) + ' (closed month)</option>'; }).join('') + '</select></div>', function () { printBalanceSheet(el('ppAs').value); }); });
+  on('prCap', function () { ask('Partners\' capital statement', ppPeriodField('all'), function () { printCapital(ppPeriodVal()); }); });
+  on('prTax', function () { ask('Tax summary', ppPeriodField('tax:' + ty), function () { printTaxSummary(ppPeriodVal()); }); });
   on('prCour', function () {
-    ask('Courier statement', '<div class="fld"><label>Courier</label><select id="ppC"><option value="all">All couriers</option>' + CLIST.map(function (c) { return '<option value="' + esc(c.key) + '">' + esc(c.name) + '</option>'; }).join('') + '</select></div>' +
-      '<div class="fld"><label>Month (empty = all time)</label><input id="ppCm" type="month" value="' + m0 + '"></div>', function () { printCourierStatement(el('ppC').value, el('ppCm').value || 'all'); });
+    ask('Courier statement', '<div class="fld"><label>Courier</label><select id="ppC"><option value="all">All couriers</option>' + CLIST.map(function (c) { return '<option value="' + esc(c.key) + '">' + esc(c.name) + '</option>'; }).join('') + '</select></div>' + ppPeriodField(m0),
+      function () { printCourierStatement(el('ppC').value, ppPeriodVal()); });
   });
   on('prSup', function () {
     var go = function () { var l = ((PUR.data && PUR.data.suppliers) || []).map(function (s) { return s.name; });
-      ask('Supplier statement', '<div class="fld"><label>Supplier</label><select id="ppS">' + l.map(function (n) { return '<option>' + esc(n) + '</option>'; }).join('') + '</select></div>', function () { if (!el('ppS').value) return false; printSupplierStatement(el('ppS').value); }); };
+      ask('Supplier statement', '<div class="fld"><label>Supplier</label><select id="ppS">' + l.map(function (n) { return '<option>' + esc(n) + '</option>'; }).join('') + '</select></div>' + ppPeriodField('all'), function () { if (!el('ppS').value) return false; printSupplierStatement(el('ppS').value, ppPeriodVal()); }); };
     if (PUR.data) go(); else purReload(go);
   });
   on('prParty', function () {
     var go = function () { var l = (PSD && PSD.stores) || [];
       if (!l.length) { toast('No lend & borrow party yet'); return; }
-      ask('Lend & borrow statement', '<div class="fld"><label>Party</label><select id="ppP">' + l.map(function (n) { return '<option>' + esc(n) + '</option>'; }).join('') + '</select></div>', function () { printPartyStatement(el('ppP').value); }); };
+      ask('Lend & borrow statement', '<div class="fld"><label>Party</label><select id="ppP">' + l.map(function (n) { return '<option>' + esc(n) + '</option>'; }).join('') + '</select></div>' + ppPeriodField('all'), function () { printPartyStatement(el('ppP').value, ppPeriodVal()); }); };
     if (PSD) go(); else api('getAppPartners', [TOKEN], function (d) { PSD = d; go(); }, function () { toast('Could not load'); });
   });
-  on('prStock', printStockReport);
+  on('prStock', function () {
+    var lastEnd = (function () { var d = new Date(); d = new Date(d.getFullYear(), d.getMonth(), 0); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); })();
+    ask('Stock report', '<div class="fld"><label>As on</label><select id="ppSa"><option value="">Today (live)</option><option value="' + lastEnd + '">End of last month · ' + esc(niceDay(lastEnd)) + '</option><option value="own">Choose a day…</option></select></div><div class="fld" id="ppSdW" hidden><label>Day</label><input id="ppSd" type="date" value="' + lastEnd + '"></div>',
+      function () { var v = el('ppSa').value; printStockReport(v === 'own' ? el('ppSd').value : v); });
+    var sa = el('ppSa'); if (sa) sa.onchange = function () { el('ppSdW').hidden = sa.value !== 'own'; };
+  });
   on('prCount', printCountSheet);
 }
 function openCloseMonth(month) {
