@@ -1129,7 +1129,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 (function () {
   if (window.google && google.script) return;
   window.EH_PWA = true; // installed app: notifications are possible
-  window.EH_BUILD = '2026-11-19'; // shown at the bottom of the menu
+  window.EH_BUILD = '2026-11-20'; // shown at the bottom of the menu
   var API = "https://script.google.com/macros/s/AKfycbyqtyrClenCG1_iqTSDK5KhtFItfX6rUsYdIexwQ3qPFbSv9d1n8jy06ItjvWXXtB-I/exec", RELAY = "", relayOff = 0;
   // through the relay when there is one; if it fails, straight to Google and skip the relay for 10 min. A save goes
   // straight only when the relay could not be reached at all (never sent twice).
@@ -1457,7 +1457,7 @@ el('upd').onclick = function () { if (TOKEN) openSyncStatus(); };
 var PERMS = null; try { PERMS = JSON.parse(store('eh_perms') || 'null'); } catch (e) {}
 var ROLE = store('eh_role') || '';
 var TAB_PERM = { home: 'home.view', parcels: 'parcels.view', ndr: 'ndr.view', returns: 'returns.view', cash: 'cash.view' };
-var KIND_PERM = { ndr: 'ndr.view', courier: 'ndr.work', back: 'returns.view', late: 'parcels.view', nocn: 'parcels.view', brief: 'home.view', cash: 'cash.view',
+var KIND_PERM = { ndr: 'ndr.view', courier: 'ndr.work', back: 'returns.view', late: 'parcels.view', nocn: 'parcels.view', nsa: 'parcels.view', brief: 'home.view', cash: 'cash.view',
   money: 'finance.approve', mine: 'finance.add', stock: 'inventory.view', buy: 'inventory.edit', link: 'inventory.edit', goods: 'inventory.count', approve: 'users.manage', match: 'orders.book', ads: 'reports.view', adcharge: 'users.manage', security: 'users.manage', sync: 'users.manage' };
 function can(p) { return !PERMS || PERMS.indexOf(p) !== -1; } // not known yet (old login): show all until the server answers
 function canTab(t) { return can(TAB_PERM[t]); }
@@ -1809,6 +1809,7 @@ function openParcel(key, given) {
     (can('orders.tag') && p.ref ? '<div class="pp-tags">' + (tagList(p.tags).map(function (t) { return '<span class="flag">' + esc(t) + '</span>'; }).join('') || '<small>No tags</small>') +
       '<button class="btn mini" type="button" data-tagref="' + esc(p.ref) + '"><i class="ti ti-tag"></i>Change tags</button></div>'
     : (p.flags || []).length ? '<div style="margin:-2px 0 10px">' + p.flags.map(function (f) { return '<span class="flag">' + esc(f) + '</span>'; }).join('') + '</div>' : '') +
+    (p.nsa ? '<div class="oc-warn" style="margin:0 0 10px"><i class="ti ti-map-pin-off"></i><span>' + esc(nsaText(p)) + '<br><small style="font-weight:500">' + p.nsa.n + ' parcel' + (p.nsa.n === 1 ? '' : 's') + ' came back "Non-Service Area" from ' + esc(p.nsa.no.join(' / ')) + ' to this city</small></span></div>' : '') +
     histBlock(p) +
     (ndr ? card('Delivery problem', row('NDR case', esc(ndr.type)) + (ndr.outcome && ndr.outcome !== 'Not called yet' ? row('Call result', esc(ndr.outcome)) : '') + (ndr.says ? row('Customer says', esc(String(ndr.says).replace(/\s*Please reattempt again\.?\s*$/i, ''))) : '') +
       (p.attempts ? row('Delivery attempts', p.attempts) : '')) : '') +
@@ -3259,12 +3260,15 @@ function openOrderTags(ref) {
     };
   }, function (e) { closePanel(); toast((e && e.message) || 'Could not load the tags'); });
 }
+// a courier that does not go to this city (user 2026-11-19): learned from its "Non-Service Area" returns
+function nsaText(p) { var x = p.nsa, no = x.no.join(' / '); return x.booked ? 'Booked with ' + x.booked + ' · ' + x.booked + ' does not go to ' + (p.city || 'this city') + (x.use.length ? ' · cancel, book with ' + x.use.join(' / ') : '') : no + ' does not go to ' + (p.city || 'this city') + (x.use.length ? ' · book with ' + x.use.join(' / ') : ''); }
 function parcelRow(p) {
   var s = STAGE[p.stage] || ['', 'var(--line)'];
   var issue = p.stage === 'ndr' ? niceReason(p.reason || p.lastRaw) + (p.attempts ? ' · ' + p.attempts + (p.attempts > 1 ? ' attempts' : ' attempt') : '') + (p.failedAt ? ' · failed ' + p.failedAt : '')
     : p.stage === 'booked' && !p.cn ? 'Missing tracking number'
     : isLate(p) ? 'Late · usually ' + (p.eta.transit < 36 ? p.eta.transit + ' h' : Math.round(p.eta.transit / 2.4) / 10 + ' days') + ' to ' + (p.city || 'this city') + ', now ' + Math.round((Date.now() - p.ms) / 8640000) / 10 + ' days'
     : p.stage === 'rtoback' ? 'Handed back by courier · scan it in Returns'
+    : p.nsa ? nsaText(p)
     : (p.flags || []).join(' · ');
   var call = (p.stage === 'ndr' || p.stage === 'pending') && p.phone ? '<a class="prow-call" href="' + telHref(p.phone) + '" aria-label="Call"><i class="ti ti-phone"></i></a>' : '';
   if ((p.stage === 'pending' || p.stage === 'confirmed') && can('orders.tag') && p.ref) call = '<span class="prow-acts"><button class="prow-call" type="button" data-tagref="' + esc(p.ref) + '" aria-label="Change tags"><i class="ti ti-tag"></i></button>' + call + '</span>';
@@ -8363,7 +8367,7 @@ function openBriefList(day, k) {
 }
 
 // ---------- 🔔 notification list (everything W1 sent; the dot = new since you last opened it) ----------
-var ALERT_ICON = { match: ['link', 'var(--amber)'], goods: ['package', 'var(--brand)'], approve: ['package-import', 'var(--amber)'], link: ['link', 'var(--amber)'], adcharge: ['credit-card', 'var(--brand)'], courier: ['message-reply', 'var(--blue)'], money: ['receipt', 'var(--amber)'], mine: ['circle-check', 'var(--green)'], buy: ['truck-delivery', 'var(--amber)'],
+var ALERT_ICON = { nsa: ['map-pin-off', 'var(--amber)'], match: ['link', 'var(--amber)'], goods: ['package', 'var(--brand)'], approve: ['package-import', 'var(--amber)'], link: ['link', 'var(--amber)'], adcharge: ['credit-card', 'var(--brand)'], courier: ['message-reply', 'var(--blue)'], money: ['receipt', 'var(--amber)'], mine: ['circle-check', 'var(--green)'], buy: ['truck-delivery', 'var(--amber)'],
   ads: ['speakerphone', 'var(--brand)'], security: ['lock', 'var(--red)'], stock: ['packages', 'var(--amber)'], cash: ['cash-banknote', 'var(--green)'], sync: ['alert-circle', 'var(--text)'], ndr: ['headset', 'var(--red)'], back: ['arrow-back-up', 'var(--amber)'], late: ['clock-exclamation', 'var(--amber)'], nocn: ['barcode-off', 'var(--amber)'], brief: ['sun', 'var(--brand)'], test: ['bell', 'var(--muted)'] };
 var alertsData = null;
 function loadAlerts(open) {
@@ -8483,7 +8487,7 @@ var PUSH_KINDS = [['ndr', 'NDR cases', 'Failed delivery, refused, stuck with cou
   ['money', 'Approvals', 'Expenses waiting for your approval · monthly bank check'], ['mine', 'My entries', 'Your expense was approved or rejected'],
   ['stock', 'Low stock', 'A product is low or out of stock'], ['buy', 'Purchases', 'A purchase is late from the supplier'],
   ['goods', 'Warehouse', 'Bilti expected, today\'s packing, weekly count, your reports'], ['approve', 'To approve', 'A bilti or damaged goods wait for your decision'],
-  ['link', 'Order lines to link', 'A hand-made order line: which product is it?'], ['match', 'Courier parcels to match', 'Booked in a courier portal, not in ORDI (reship / replacement)'], ['ads', 'Ads', 'Daily: ad sets to scale or to stop'], ['adcharge', 'Meta charges', 'Meta charged the card · check the dollar rate'], ['security', 'Security', 'A login was locked after wrong PINs'],
+  ['link', 'Order lines to link', 'A hand-made order line: which product is it?'], ['nsa', 'Courier does not go there', 'An order to a city a courier sent back as Non-Service Area: book with the other courier'], ['match', 'Courier parcels to match', 'Booked in a courier portal, not in ORDI (reship / replacement)'], ['ads', 'Ads', 'Daily: ad sets to scale or to stop'], ['adcharge', 'Meta charges', 'Meta charged the card · check the dollar rate'], ['security', 'Security', 'A login was locked after wrong PINs'],
   ['sync', 'System alerts', 'A sync stopped or failed · and when it is back']];
 function openPushPrefs() {
   var kinds = PUSH_KINDS.filter(function (k) { return can(KIND_PERM[k[0]]); }); // only what this role gets
@@ -9174,7 +9178,7 @@ function openMatch() {
     function (e) { if (!CBD) { el('panel').innerHTML = '<h3>Courier parcels to match</h3><div class="card empty">' + esc((e && e.message) || 'Could not load') + '</div><div class="btns"><button class="btn" id="cbX">Close</button></div>'; el('cbX').onclick = closePanel; } });
 }
 function cbStateLine(b) {
-  if (b.state === 'Queued' || /^Try /.test(b.state)) return '<span style="color:var(--amber)"><i class="ti ti-clock"></i> ' + esc(b.decision) + (b.order ? ' · ' + esc(b.order.ref) : '') + ' · being made in Shopify · within 5 minutes' + (/^Try /.test(b.state) ? ' · ' + esc(b.state.replace(/^Try \d · /, 'retrying: ')) : '') + '</span>';
+  if (b.state === 'Queued' || /^Try /.test(b.state)) return '<span style="color:var(--amber)"><i class="ti ti-clock"></i> ' + esc(b.decision) + (b.order ? ' · ' + esc(b.order.ref) : '') + (b.decision === 'Link' ? ' · linking in ORDI · within 5 minutes' : ' · being made in Shopify · within 5 minutes') + (/^Try /.test(b.state) ? ' · ' + esc(b.state.replace(/^Try \d · /, 'retrying: ')) : '') + '</span>';
   if (/^Failed:/.test(b.state)) return '<span style="color:var(--red)"><i class="ti ti-alert-triangle"></i> ' + esc(b.decision) + ' not made · ' + esc(b.state.replace(/^Failed:\s*/, '')) + '</span>';
   if (b.state === 'Done') return '<span style="color:var(--green)"><i class="ti ti-circle-check"></i> ' + (b.decision === 'Link' ? 'Linked to ' + esc(b.newOrder) : b.newOrder && /^#|^[A-Z]{1,4}\d/.test(b.newOrder) ? esc(b.decision) + ' order ' + esc(b.newOrder) + ' made · ORDI tracks it' : esc(b.note || b.newOrder || 'Done')) + (b.by ? ' · ' + esc(b.by) : '') + '</span>';
   if (b.state === 'Ignored') return '<span class="muted"><i class="ti ti-eye-off"></i> Ignored · ' + esc(b.note) + (b.by ? ' · ' + esc(b.by) : '') + '</span>';
