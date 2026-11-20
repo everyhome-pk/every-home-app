@@ -9350,7 +9350,7 @@ function openReplaceForm(p) {
           '<p class="mnote">Booked as a Trax <b>Replacement</b>: the rider gives the new item and must bring these back.</p>'
         : '<p class="mnote">Booked as a <b>normal order</b> (any courier). Nothing comes back.</p>') + '</div>' +
       '<div class="card"><div class="h"><b>New item</b></div>' + (f.out.length ? f.out.map(function (l, i) {
-        return '<div class="sp-dr"><span>' + esc(l.title) + (l.custom ? '<br><small style="color:var(--amber)">Custom' + (l.stock === false ? ' · stock does not change' : '') + '</small>' : '') + '</span><span class="num cb-q"><button class="btn mini" type="button" data-rom="' + i + '" aria-label="Less">−</button><b>' + l.qty + '</b><button class="btn mini" type="button" data-rop="' + i + '" aria-label="More">+</button></span></div>';
+        return '<div class="sp-dr"><span>' + esc(l.title) + (l.custom ? '<br><small style="color:var(--amber)">Custom' + (l.stock === false ? ' · link it to a product in Stock' : '') + '</small>' : '') + '</span><span class="num cb-q"><button class="btn mini" type="button" data-rom="' + i + '" aria-label="Less">−</button><b>' + l.qty + '</b><button class="btn mini" type="button" data-rop="' + i + '" aria-label="More">+</button></span></div>';
       }).join('') : '<p class="mnote">Nothing yet</p>') +
       '<div class="fld"><label>Add a product</label><select id="rfAdd"><option value="">Choose a product</option>' + RPD.products.map(function (x, i) { return '<option value="' + i + '"' + (x.price ? ' data-sub="' + esc(rs(x.price)) + '"' : '') + '>' + esc(x.title) + '</option>'; }).join('') + '</select></div>' +
       '<button type="button" class="btn" id="rfCustom" style="width:100%"><i class="ti ti-ruler-measure"></i>Custom item (e.g. a 100 ft clothes line)</button></div>' +
@@ -9399,7 +9399,7 @@ function rpCustom(done, back) {
         (sug ? '<p class="mnote">Suggested from our usual Rs ' + per + ' per ft</p>' : '') +
         (ft ? '<p class="mnote">From stock per line: ' + (ft + 0.5) + ' ft wire · 2 hooks · 2 U clamps</p>' : '')
       : '<div class="fld"><label for="rcName">What is it</label><input id="rcName" type="text" value="' + esc(c.name) + '"></div><div class="fld"><label for="rcPr">Price (Rs)</label><input id="rcPr" type="text" inputmode="decimal" value="' + esc(c.price) + '"></div>' +
-        '<p class="mnote">Stock does not change for an item that is not a product. For a product, use Add a product.</p>') +
+        '<p class="mnote">After booking it shows in Stock → order lines without a product: Link it there once and its stock is taken. A product that is on the list: use Add a product.</p>') +
       '<div class="btns"><button class="btn" id="rcX" type="button">Cancel</button><button class="btn pri" id="rcGo" type="button"><i class="ti ti-plus"></i>Add</button></div>';
     var keep = function () { if (el('rcFt')) c.ft = el('rcFt').value; if (el('rcN')) c.n = el('rcN').value; if (el('rcPr')) c.price = el('rcPr').value; if (el('rcName')) c.name = el('rcName').value; };
     el('rcBack').onclick = el('rcX').onclick = function () { back(); };
