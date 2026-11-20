@@ -9197,7 +9197,7 @@ function drawMatch() {
       '<div class="cb-2">' + esc([b.text ? '"' + b.text + '"' : '', b.city, b.amount ? rs(b.amount) : 'Rs 0', b.booked ? 'booked ' + b.booked : ''].filter(Boolean).join(' · ')) + '</div>' +
       '<div class="cb-2">' + esc([b.name, b.service && b.service !== 'Regular' ? b.service : '', b.status].filter(Boolean).join(' · ')) + '</div>' +
       (b.state === 'New' ? (g ? '<div class="cb-g">Looks like <b>' + esc(g.ref) + '</b> · ' + esc([g.name, g.city, g.cn ? 'first sent ' + g.cn : 'no tracking yet'].filter(Boolean).join(' · ')) + '</div>' : '<div class="cb-g muted">No order of ours found by its order id or phone</div>') +
-        '<div class="btns" style="margin-top:8px"><button class="btn" type="button" data-cbi="' + esc(b.cn) + '">Ignore</button><button class="btn pri" type="button" data-cbo="' + esc(b.cn) + '">' + (b.kind === 'Unknown' ? 'Match' : esc(k[0])) + ' ›</button></div>'
+        (b.rp ? '<div class="cb-g" style="color:var(--amber)">Replacement ' + esc(b.rp) + ' of this order is waiting for its tracking number</div><button class="btn pri" type="button" data-cba="' + esc(b.cn) + '" data-rpid="' + esc(b.rp) + '" style="width:100%;margin-top:8px"><i class="ti ti-link"></i>Use for replacement ' + esc(b.rp) + '</button>' : '') + '<div class="btns" style="margin-top:8px"><button class="btn" type="button" data-cbi="' + esc(b.cn) + '">Ignore</button><button class="btn pri" type="button" data-cbo="' + esc(b.cn) + '">' + (b.kind === 'Unknown' ? 'Match' : esc(k[0])) + ' ›</button></div>'
       : '<div class="cb-g">' + cbStateLine(b) + '</div>' + (/^(Queued|Ignored|Failed:|Try )/.test(b.state) ? '<div class="btns" style="margin-top:6px"><button class="btn mini" type="button" data-cbu="' + esc(b.cn) + '">' + (/^Failed:/.test(b.state) ? 'Change' : 'Undo') + '</button></div>' : '')) + '</div>';
   };
   el('panel').innerHTML = '<h3>Courier parcels to match</h3><p>Booked straight in a courier portal, so ORDI does not track them yet. Match each one once.</p>' +
@@ -9210,6 +9210,11 @@ function drawMatch() {
   var find = function (cn) { return d.list.filter(function (b) { return b.cn === cn; })[0]; };
   el('panel').querySelectorAll('[data-cbo]').forEach(function (x) { x.onclick = function () { openMatchForm(find(x.getAttribute('data-cbo')), ''); }; });
   el('panel').querySelectorAll('[data-cbi]').forEach(function (x) { x.onclick = function () { openMatchForm(find(x.getAttribute('data-cbi')), 'Ignore'); }; });
+  el('panel').querySelectorAll('[data-cba]').forEach(function (x) { x.onclick = function () {
+    x.classList.add('wait');
+    api('appCourierBookingDecide', [TOKEN, { cn: x.getAttribute('data-cba'), decision: 'Attach', rp: x.getAttribute('data-rpid') }], function (r) { CBD = r.data; cbCount(); drawMatch(); RPD = null; toast('Replacement booked with this tracking number · the order is made within 5 minutes'); },
+      function (e) { x.classList.remove('wait'); toast((e && e.message) || 'Not saved'); });
+  }; });
   el('panel').querySelectorAll('[data-cbu]').forEach(function (x) { x.onclick = function () {
     x.classList.add('wait');
     api('appCourierBookingDecide', [TOKEN, { cn: x.getAttribute('data-cbu'), decision: 'Undo' }], function (r) { CBD = r.data; cbCount(); drawMatch(); toast('Back to match'); },
@@ -9321,9 +9326,10 @@ function rpDrawRes() {
   var ls = RPS.res || [];
   box.innerHTML = ls.length ? ls.map(function (p, i) {
     var why = !p.delivered ? 'Not delivered yet · a parcel with the courier goes through NDR' : p.replacement ? 'A replacement is already open (' + p.replacement + ')' : p.isReplacement ? 'This order is itself a replacement' : '';
+    var before = p.replacedBefore && !why ? '<p class="mnote" style="margin:6px 0 0;color:var(--amber)">Already ' + esc(p.replacedBefore) + ' once before · check it is not the same request</p>' : '';
     return '<div class="card rp-s"><div class="rp-1"><b>' + esc(p.ref) + ' · ' + esc(p.name) + '</b><span>' + esc(p.date || '') + '</span></div><div class="rp-2">' + esc(p.items) + ' · ' + rs(p.total) + '</div>' +
       '<div class="rp-2">' + esc([p.city, p.courier, p.cn].filter(Boolean).join(' · ')) + '</div>' +
-      (why ? '<p class="mnote" style="margin:6px 0 0">' + esc(why) + '</p>' : '<button type="button" class="btn pri" data-rps="' + i + '" style="width:100%;margin-top:8px"><i class="ti ti-replace"></i>Replace</button>') + '</div>';
+      before + (why ? '<p class="mnote" style="margin:6px 0 0">' + esc(why) + '</p>' : '<button type="button" class="btn pri" data-rps="' + i + '" style="width:100%;margin-top:8px"><i class="ti ti-replace"></i>Replace</button>') + '</div>';
   }).join('') : '<p class="mnote">No order found</p>';
   box.querySelectorAll('[data-rps]').forEach(function (b) { b.onclick = function () { openReplaceForm(ls[+b.getAttribute('data-rps')]); }; });
 }
