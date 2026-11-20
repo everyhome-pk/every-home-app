@@ -442,6 +442,7 @@ body.nb-on #nlist{padding-bottom:84px}
 .cn-prog{display:flex;flex-direction:column;gap:6px;margin:0 0 10px;font-size:13.5px}.cn-bar{display:block;height:6px;border-radius:3px;background:var(--line);overflow:hidden}.cn-bar u{display:block;height:100%;background:var(--brand);border-radius:3px}
 .cn-row{padding:12px 0;border-top:1px solid var(--line)}.cn-row:first-child{border-top:0}.cn-row.done{opacity:.72}.cn-top{display:flex;align-items:flex-start;gap:8px}.cn-name{flex:1;min-width:0}.cn-name b{display:block;font-size:14.5px;font-weight:600}.cn-name small{display:block;font-size:12px;color:var(--muted);margin-top:2px}.cn-ok{color:var(--green);font-size:20px}
 .cn-in{display:flex;align-items:center;gap:6px;margin-top:8px}.cn-in input{width:84px;min-height:44px;text-align:center;font-size:18px;font-weight:600;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--text);padding:0 6px}.cn-step{width:44px;height:44px;border:1px solid var(--line);border-radius:12px;background:var(--card);font-size:20px;color:var(--text);cursor:pointer}.cn-zero{margin-left:auto;white-space:nowrap}
+.rp-c{display:block;width:100%;text-align:left;font:inherit;color:inherit;padding:12px 14px}.rp-s{padding:12px 14px}.rp-1{display:flex;justify-content:space-between;gap:8px;font-size:14px}.rp-1 span{font-size:12px;font-weight:600;white-space:nowrap}.rp-2{font-size:12.5px;color:var(--muted);margin-top:3px}.rp-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:12px 0 4px}.rp-tiles div{background:var(--card);border-radius:12px;padding:10px 8px;display:flex;flex-direction:column;box-shadow:var(--shadow)}.rp-tiles b{font-size:18px}.rp-tiles span{font-size:11.5px;color:var(--muted)}.rp-tiles .bad b{color:var(--red)}.rp-copy{white-space:pre-wrap;background:var(--bg);border-radius:10px;padding:10px;font-size:13px;margin:6px 0 8px}
 .cb-c{padding:12px 14px}.cb-1{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.cb-k{margin-left:auto;font-size:11.5px;font-weight:600}.cb-2{font-size:12.5px;color:var(--muted);margin-top:3px}.cb-g{font-size:13px;margin-top:6px}.cb-q{display:flex;align-items:center;gap:8px}.cb-q .btn{min-width:32px;height:30px;padding:0;justify-content:center;font-size:16px}
 .pk-row{align-items:center}.pk-b{flex:none!important;width:auto!important;min-width:0!important;align-self:center;margin-left:10px;padding:0 12px!important;height:34px}.pk-tag{font-size:11.5px;font-weight:600;color:var(--amber);white-space:nowrap}
 .cn-pk{display:block;color:var(--brand);font-size:12px;margin-top:2px}
@@ -1039,6 +1040,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   </div>
   <button class="dr-i" id="btnStock"><i class="ti ti-packages"></i>Stock</button>
   <button class="dr-i" id="btnPack" hidden><i class="ti ti-package"></i>Packing list</button>
+  <button class="dr-i" id="btnRepl" hidden><i class="ti ti-replace"></i><span>Replacements</span><em class="dr-n" id="drNrepl" hidden></em></button>
   <button class="dr-i" id="btnMatch" hidden><i class="ti ti-link"></i><span>Courier parcels to match</span><em class="dr-n" id="drNmatch" hidden></em></button>
   <button class="dr-i" id="btnWh" hidden><i class="ti ti-package-import"></i><span>Warehouse</span><em class="dr-n" id="drNwh" hidden></em></button>
   <button class="dr-i" id="btnTeam" hidden><i class="ti ti-users-group"></i>Team</button>
@@ -1481,6 +1483,7 @@ function applyPerms() {
   el('btnStock').hidden = !can('inventory.view');
   el('btnPack').hidden = !(can('parcels.view') || can('inventory.count') || can('inventory.edit'));
   el('btnMatch').hidden = !can('orders.book');
+  el('btnRepl').hidden = !(can('orders.tag') || can('orders.book'));
   el('btnWh').hidden = !(can('inventory.count') || can('users.manage'));
   el('btnExp').hidden = !(can('finance.add') || can('finance.view') || can('finance.approve'));
   el('btnPnl').hidden = !can('finance.view');
@@ -8419,6 +8422,7 @@ function drawAlerts() {
       if (q('wh')) { openWarehouse(); return; }
       if (q('pack')) { openPacking(); return; }
       if (q('match')) { openMatch(); return; }
+      if (q('repl')) { openReplace(q('repl')); return; }
       if (q('partner')) { openPartners(); return; }
       if (q('remind')) { closePanel(); showTab('ndr'); openSheetRemind(q('remind')); return; }
       if (q('stock') === 'count') { openStock(''); setTimeout(function () { if (STK.data) openStockCount(true); }, 1200); return; }
@@ -9254,6 +9258,213 @@ function openMatchForm(b, pick) {
   draw();
 }
 el('btnMatch').onclick = fromMenu(openMatch);
+// ---------- Replacements (user 2026-11-20): its own section; find a delivered order → Replace → owner books → ORDI makes the order ----------
+var RPD = null, RPS = { q: '', res: null };
+var RP_STAGE = { tobook: ['To book', 'var(--amber)'], making: ['Making the order', 'var(--amber)'], failed: ['Order not made', 'var(--red)'], onway: ['New item on the way', 'var(--blue)'],
+  notdelivered: ['New item not delivered', 'var(--red)'], coming: ['Old item coming', 'var(--brand)'], notback: ['Old item not back', 'var(--red)'], back: ['Old item back', 'var(--green)'],
+  writtenoff: ['Written off', 'var(--muted)'], done: ['Delivered · done', 'var(--green)'], cancelled: ['Cancelled', 'var(--muted)'] };
+var RP_REASONS = ['Wrong size', 'Damaged', 'Wrong item sent', 'Missing part', 'Customer changed mind'];
+function rpBadge() {
+  if (!(can('orders.tag') || can('orders.book'))) return;
+  api('getAppReplacements', [TOKEN], function (d) { RPD = d; rpCount(); }, function () {});
+}
+function rpCount() {
+  var s = RPD ? RPD.stats : {}, n = RPD && RPD.canBook ? (s.tobook || 0) + (s.failed || 0) + (s.notback || 0) : 0;
+  el('drNrepl').textContent = n || ''; el('drNrepl').hidden = !n;
+}
+function openReplace(openId) {
+  if (!RPD) { el('panel').innerHTML = '<h3>Replacements</h3>' + skList(3); openPanel(true); }
+  else drawReplace();
+  api('getAppReplacements', [TOKEN], function (d) {
+    RPD = d; rpCount(); var h = el('panel').querySelector('h3'); if (h && h.textContent === 'Replacements') drawReplace();
+    if (openId) { var x = d.list.filter(function (r) { return r.id === openId; })[0]; if (x) rpOpen(x); }
+  }, function (e) { if (!RPD) { el('panel').innerHTML = '<h3>Replacements</h3><div class="card empty">' + esc((e && e.message) || 'Could not load') + '</div><div class="btns"><button class="btn" id="rpX">Close</button></div>'; el('rpX').onclick = closePanel; } });
+}
+function rpLines(ls) { return ls.map(function (l) { return l.qty + ' × ' + l.title; }).join(', '); }
+function rpCard(x) {
+  var s = RP_STAGE[x.stage] || ['', 'var(--line)'];
+  var sub = x.stage === 'coming' ? x.days + ' day' + (x.days === 1 ? '' : 's') + ' since the swap · scan it in Returns when it comes'
+    : x.stage === 'notback' ? x.days + ' days since the swap · not scanned back'
+    : x.stage === 'tobook' ? 'Asked by ' + x.by + ' · ' + x.at : x.stage === 'failed' ? x.state.replace(/^Failed:\s*/, '')
+    : x.newOrder ? 'New order ' + x.newOrder + (x.cn ? ' · ' + x.courier + ' ' + x.cn : '') : x.cn ? x.courier + ' ' + x.cn : '';
+  return '<button type="button" class="card rp-c" data-rp="' + esc(x.id) + '" style="border-left:3px solid ' + s[1] + '"><div class="rp-1"><b>' + esc(x.order) + ' · ' + esc(x.customer) + '</b><span style="color:' + s[1] + '">' + s[0] + '</span></div>' +
+    '<div class="rp-2">' + (x.collectBack ? 'Back ' + esc(rpLines(x.back)) + ' → ' : 'Customer keeps the old item · ') + 'Out ' + esc(rpLines(x.out)) + '</div>' +
+    '<div class="rp-2">' + esc([x.city, x.collect ? 'collect ' + rs(x.collect) : 'free', sub].filter(Boolean).join(' · ')) + '</div></button>';
+}
+function drawReplace() {
+  var d = RPD, s = d.stats || {}, by = function (st) { return d.list.filter(function (x) { return st.indexOf(x.stage) !== -1; }); };
+  var sec = function (title, xs, color) { return xs.length ? '<p class="mnote" style="margin-top:12px;font-weight:700;color:' + (color || 'var(--muted)') + '">' + title + ' · ' + xs.length + '</p>' + xs.map(rpCard).join('') : ''; };
+  var done = by(['back', 'done', 'writtenoff']).slice(0, 10);
+  el('panel').innerHTML = '<h3>Replacements</h3><p>Find a delivered order to replace an item. The owner books it with the courier; ORDI makes the order and follows the old item back.</p>' +
+    '<div class="fld"><label for="rpQ">Find the order</label><input id="rpQ" type="search" placeholder="Order #, phone, name or tracking" value="' + esc(RPS.q) + '" autocomplete="off"></div><div id="rpRes"></div>' +
+    '<div class="rp-tiles"><div><b>' + ((s.tobook || 0) + (s.making || 0) + (s.failed || 0)) + '</b><span>To book</span></div><div><b>' + ((s.onway || 0) + (s.coming || 0)) + '</b><span>On the way</span></div>' +
+    '<div' + (s.notback ? ' class="bad"' : '') + '><b>' + (s.notback || 0) + '</b><span>Not back</span></div><div><b>' + ((s.back || 0) + (s.done || 0)) + '</b><span>Done</span></div></div>' +
+    sec(d.canBook ? 'To book · you' : 'Waiting for the owner to book', by(['tobook', 'failed', 'making']), 'var(--amber)') +
+    sec('Old item not back · 14 days+', by(['notback', 'notdelivered']), 'var(--red)') +
+    sec('On the way', by(['onway', 'coming'])) + sec('Done · latest', done) +
+    (d.list.length ? '' : '<div class="card empty"><i class="ti ti-replace"></i>No replacements yet</div>') +
+    '<div class="btns" style="margin-top:12px"><button class="btn" id="rpX" type="button">Close</button></div>';
+  if (!el('overlay').classList.contains('show')) openPanel(true);
+  el('rpX').onclick = closePanel;
+  var t = null;
+  el('rpQ').oninput = function () { RPS.q = el('rpQ').value; clearTimeout(t); t = setTimeout(rpSearch, 450); };
+  if (RPS.res) rpDrawRes();
+  el('panel').querySelectorAll('[data-rp]').forEach(function (b) { b.onclick = function () { rpOpen(d.list.filter(function (x) { return x.id === b.getAttribute('data-rp'); })[0]); }; });
+}
+function rpSearch() {
+  var q = RPS.q.trim(); if (q.length < 3) { RPS.res = null; if (el('rpRes')) el('rpRes').innerHTML = ''; return; }
+  if (el('rpRes')) el('rpRes').innerHTML = skList(1);
+  api('appReplaceSearch', [TOKEN, q], function (r) { if (RPS.q.trim() !== q) return; RPS.res = r.list; rpDrawRes(); }, function (e) { if (el('rpRes')) el('rpRes').innerHTML = '<p class="mnote">' + esc((e && e.message) || 'Could not search') + '</p>'; });
+}
+function rpDrawRes() {
+  var box = el('rpRes'); if (!box) return;
+  var ls = RPS.res || [];
+  box.innerHTML = ls.length ? ls.map(function (p, i) {
+    var why = !p.delivered ? 'Not delivered yet · a parcel with the courier goes through NDR' : p.replacement ? 'A replacement is already open (' + p.replacement + ')' : p.isReplacement ? 'This order is itself a replacement' : '';
+    return '<div class="card rp-s"><div class="rp-1"><b>' + esc(p.ref) + ' · ' + esc(p.name) + '</b><span>' + esc(p.date || '') + '</span></div><div class="rp-2">' + esc(p.items) + ' · ' + rs(p.total) + '</div>' +
+      '<div class="rp-2">' + esc([p.city, p.courier, p.cn].filter(Boolean).join(' · ')) + '</div>' +
+      (why ? '<p class="mnote" style="margin:6px 0 0">' + esc(why) + '</p>' : '<button type="button" class="btn pri" data-rps="' + i + '" style="width:100%;margin-top:8px"><i class="ti ti-replace"></i>Replace</button>') + '</div>';
+  }).join('') : '<p class="mnote">No order found</p>';
+  box.querySelectorAll('[data-rps]').forEach(function (b) { b.onclick = function () { openReplaceForm(ls[+b.getAttribute('data-rps')]); }; });
+}
+function openReplaceForm(p) {
+  var f = { reason: '', collectBack: true, back: p.lines.map(function (l) { return { title: l.title, qty: l.qty, max: l.qty, price: l.price, variant: l.variant, sku: l.sku, on: true }; }),
+    out: p.lines.map(function (l) { return { title: l.title, qty: l.qty, price: l.price, variant: l.variant, sku: l.sku }; }), pay: 'diff', collect: null, note: '' };
+  var tot = function (ls, onOnly) { return ls.reduce(function (a, l) { return a + (onOnly && !l.on ? 0 : (Number(l.price) || 0) * l.qty); }, 0); };
+  var auto = function () { var o = tot(f.out), b = f.collectBack ? tot(f.back, true) : 0; return f.pay === 'free' ? 0 : f.pay === 'full' ? o : Math.max(0, o - b); };
+  var draw = function () {
+    if (el('rfNote')) f.note = el('rfNote').value;
+    var c = f.collect == null ? auto() : f.collect;
+    el('panel').innerHTML = '<button class="btn mini" id="rfBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Replacements</button>' +
+      '<h3>Replace ' + esc(p.ref) + ' · ' + esc(p.name) + '</h3><p>' + esc([p.city, 'delivered', rs(p.total)].join(' · ')) + '</p>' +
+      '<div class="chips">' + RP_REASONS.map(function (r) { return '<button type="button" class="chip' + (f.reason === r ? ' on' : '') + '" data-rr="' + esc(r) + '">' + esc(r) + '</button>'; }).join('') + '</div>' +
+      '<div class="card"><div class="h"><b>Old item</b></div><div class="seg" style="margin-bottom:8px"><button type="button" data-rk="1" class="' + (f.collectBack ? 'on' : '') + '">Collect it back</button><button type="button" data-rk="0" class="' + (!f.collectBack ? 'on' : '') + '">Customer keeps it</button></div>' +
+      (f.collectBack ? f.back.map(function (l, i) { return '<div class="sp-dr"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-rbc="' + i + '"' + (l.on ? ' checked' : '') + '>' + esc(l.title) + '</label><span class="num cb-q">' +
+          (l.max > 1 ? '<button class="btn mini" type="button" data-rbm="' + i + '" aria-label="Less">−</button>' : '') + '<b>' + l.qty + '</b>' + (l.max > 1 ? '<button class="btn mini" type="button" data-rbp="' + i + '" aria-label="More">+</button>' : '') + '</span></div>'; }).join('') +
+          '<p class="mnote">Booked as a Trax <b>Replacement</b>: the rider gives the new item and must bring these back.</p>'
+        : '<p class="mnote">Booked as a <b>normal order</b> (any courier). Nothing comes back.</p>') + '</div>' +
+      '<div class="card"><div class="h"><b>New item</b></div>' + (f.out.length ? f.out.map(function (l, i) {
+        return '<div class="sp-dr"><span>' + esc(l.title) + (l.custom ? '<br><small style="color:var(--amber)">Custom' + (l.stock === false ? ' · stock does not change' : '') + '</small>' : '') + '</span><span class="num cb-q"><button class="btn mini" type="button" data-rom="' + i + '" aria-label="Less">−</button><b>' + l.qty + '</b><button class="btn mini" type="button" data-rop="' + i + '" aria-label="More">+</button></span></div>';
+      }).join('') : '<p class="mnote">Nothing yet</p>') +
+      '<div class="fld"><label>Add a product</label><select id="rfAdd"><option value="">Choose a product</option>' + RPD.products.map(function (x, i) { return '<option value="' + i + '"' + (x.price ? ' data-sub="' + esc(rs(x.price)) + '"' : '') + '>' + esc(x.title) + '</option>'; }).join('') + '</select></div>' +
+      '<button type="button" class="btn" id="rfCustom" style="width:100%"><i class="ti ti-ruler-measure"></i>Custom item (e.g. a 100 ft clothes line)</button></div>' +
+      '<div class="card"><div class="h"><b>Money</b></div><div class="chips">' + [['diff', 'Customer pays the difference'], ['free', 'Free (our mistake)'], ['full', 'Full price']].map(function (x) { return '<button type="button" class="chip' + (f.pay === x[0] ? ' on' : '') + '" data-rpay="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>' +
+      '<div class="fld"><label for="rfAmt">Courier collects (Rs)</label><input id="rfAmt" type="text" inputmode="decimal" value="' + c + '"></div>' +
+      '<p class="mnote">New ' + rs(tot(f.out)) + (f.collectBack ? ' − back ' + rs(tot(f.back, true)) : '') + ' = ' + rs(Math.max(0, tot(f.out) - (f.collectBack ? tot(f.back, true) : 0))) + '</p></div>' +
+      '<div class="fld"><label for="rfNote">Note (optional)</label><input id="rfNote" type="text" value="' + esc(f.note) + '"></div>' +
+      '<p class="mnote">' + (RPD.canBook ? 'Saved, then book it with the courier on the next screen.' : 'Goes to the owner to book with the courier.') + '</p>' +
+      '<div class="btns"><button class="btn" id="rfX" type="button">Cancel</button><button class="btn pri" id="rfGo" type="button"><i class="ti ti-check"></i>Save replacement</button></div>';
+    el('rfBack').onclick = el('rfX').onclick = function () { drawReplace(); };
+    var q = function (sel, fn) { el('panel').querySelectorAll(sel).forEach(function (b) { b.onclick = function () { fn(b); draw(); }; }); };
+    q('[data-rr]', function (b) { f.reason = b.getAttribute('data-rr'); });
+    q('[data-rk]', function (b) { f.collectBack = b.getAttribute('data-rk') === '1'; f.collect = null; });
+    q('[data-rpay]', function (b) { f.pay = b.getAttribute('data-rpay'); f.collect = null; });
+    q('[data-rbm]', function (b) { var l = f.back[+b.getAttribute('data-rbm')]; if (l.qty > 1) l.qty--; f.collect = null; });
+    q('[data-rbp]', function (b) { var l = f.back[+b.getAttribute('data-rbp')]; if (l.qty < l.max) l.qty++; f.collect = null; });
+    el('panel').querySelectorAll('[data-rbc]').forEach(function (b) { b.onchange = function () { f.back[+b.getAttribute('data-rbc')].on = b.checked; f.collect = null; draw(); }; });
+    q('[data-rom]', function (b) { var i = +b.getAttribute('data-rom'); f.out[i].qty--; if (f.out[i].qty <= 0) f.out.splice(i, 1); f.collect = null; });
+    q('[data-rop]', function (b) { f.out[+b.getAttribute('data-rop')].qty++; f.collect = null; });
+    pickerize(el('rfAdd'), { title: 'Product' });
+    el('rfAdd').onchange = function () { var x = RPD.products[+el('rfAdd').value]; if (x) { f.out.push({ title: x.title, qty: 1, price: x.price, variant: x.variant, sku: x.sku }); f.collect = null; draw(); } };
+    el('rfAmt').oninput = function () { var v = Number(String(el('rfAmt').value).replace(/[^0-9.]/g, '')); f.collect = isFinite(v) ? v : 0; };
+    el('rfCustom').onclick = function () { rpCustom(function (l) { f.out.push(l); f.collect = null; draw(); }, draw); };
+    el('rfGo').onclick = function () {
+      f.note = el('rfNote').value;
+      var back = f.back.filter(function (l) { return l.on; }).map(function (l) { return { title: l.title, qty: l.qty, price: l.price, variant: l.variant, sku: l.sku }; });
+      if (!f.out.length) { toast('Add what goes out'); return; }
+      if (f.collectBack && !back.length) { toast('Tick what the rider must pick up'); return; }
+      api('appReplaceSave', [TOKEN, { order: p.ref, reason: f.reason, collectBack: f.collectBack, back: back, out: f.out, pay: f.pay, collect: f.collect == null ? auto() : f.collect, note: f.note }],
+        function (r) { RPD = r.data; RPS.res = null; RPS.q = ''; rpCount(); var x = r.data.list[0]; if (RPD.canBook && x) rpBook(x); else drawReplace(); toast(RPD.canBook ? 'Saved · now book it with the courier' : 'Saved · sent to the owner to book'); },
+        function (e) { toast((e && e.message) || 'Not saved'); });
+    };
+  };
+  draw();
+}
+function rpCustom(done, back) {
+  var c = { kind: 'line', ft: '', n: 1, price: '', name: '' };
+  var draw = function () {
+    var per = RPD.perFt || 0, ft = Number(c.ft) || 0, sug = per && ft ? Math.round(per * ft / 50) * 50 : 0;
+    el('panel').innerHTML = '<button class="btn mini" id="rcBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Replacement</button><h3>Custom item</h3>' +
+      '<div class="seg"><button type="button" data-ck="line" class="' + (c.kind === 'line' ? 'on' : '') + '">Clothes line</button><button type="button" data-ck="other" class="' + (c.kind === 'other' ? 'on' : '') + '">Other</button></div>' +
+      (c.kind === 'line' ? '<div class="fld"><label for="rcFt">Length (ft)</label><input id="rcFt" type="text" inputmode="decimal" value="' + esc(c.ft) + '" placeholder="e.g. 100"></div>' +
+        '<div class="chips">' + [60, 75, 100, 150].map(function (x) { return '<button type="button" class="chip' + (ft === x ? ' on' : '') + '" data-cft="' + x + '">' + x + ' ft</button>'; }).join('') + '</div>' +
+        '<div class="fld"><label for="rcN">Lines</label><input id="rcN" type="text" inputmode="numeric" value="' + esc(c.n) + '"></div>' +
+        '<div class="fld"><label for="rcPr">Price of one line (Rs)</label><input id="rcPr" type="text" inputmode="decimal" value="' + esc(c.price || sug || '') + '"></div>' +
+        (sug ? '<p class="mnote">Suggested from our usual Rs ' + per + ' per ft</p>' : '') +
+        (ft ? '<p class="mnote">From stock per line: ' + (ft + 0.5) + ' ft wire · 2 hooks · 2 U clamps</p>' : '')
+      : '<div class="fld"><label for="rcName">What is it</label><input id="rcName" type="text" value="' + esc(c.name) + '"></div><div class="fld"><label for="rcPr">Price (Rs)</label><input id="rcPr" type="text" inputmode="decimal" value="' + esc(c.price) + '"></div>' +
+        '<p class="mnote">Stock does not change for an item that is not a product. For a product, use Add a product.</p>') +
+      '<div class="btns"><button class="btn" id="rcX" type="button">Cancel</button><button class="btn pri" id="rcGo" type="button"><i class="ti ti-plus"></i>Add</button></div>';
+    var keep = function () { if (el('rcFt')) c.ft = el('rcFt').value; if (el('rcN')) c.n = el('rcN').value; if (el('rcPr')) c.price = el('rcPr').value; if (el('rcName')) c.name = el('rcName').value; };
+    el('rcBack').onclick = el('rcX').onclick = function () { back(); };
+    el('panel').querySelectorAll('[data-ck]').forEach(function (b) { b.onclick = function () { keep(); c.kind = b.getAttribute('data-ck'); draw(); }; });
+    el('panel').querySelectorAll('[data-cft]').forEach(function (b) { b.onclick = function () { keep(); c.ft = b.getAttribute('data-cft'); c.price = ''; draw(); }; });
+    if (el('rcFt')) el('rcFt').onchange = function () { keep(); c.price = ''; draw(); };
+    el('rcGo').onclick = function () {
+      keep(); var pr = Number(String(c.price || (c.kind === 'line' ? sug : '')).replace(/[^0-9.]/g, '')) || 0;
+      if (c.kind === 'line') {
+        var f2 = Number(String(c.ft).replace(/[^0-9.]/g, '')), n = Math.round(Number(c.n) || 0);
+        if (!(f2 >= 1 && f2 <= 500)) { toast('Write the length in feet'); return; }
+        if (!(n >= 1 && n <= 20)) { toast('Write how many lines'); return; }
+        done({ title: 'PVC Coated Clothesline Wire Rope · ' + f2 + ' ft (custom)', qty: n, price: pr, custom: true });
+      } else {
+        if (String(c.name).trim().length < 2) { toast('Write what it is'); return; }
+        done({ title: String(c.name).trim() + ' (custom)', qty: 1, price: pr, custom: true, stock: false });
+      }
+    };
+  };
+  draw();
+}
+function rpOpen(x) {
+  if ((x.stage === 'tobook' || x.stage === 'failed') && RPD.canBook) { rpBook(x); return; }
+  var s = RP_STAGE[x.stage] || ['', ''];
+  el('panel').innerHTML = '<button class="btn mini" id="roBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Replacements</button>' +
+    '<h3>Replacement ' + esc(x.order) + ' · ' + esc(x.customer) + '</h3><p style="color:' + s[1] + ';font-weight:600">' + s[0] + '</p>' +
+    '<div class="card"><div class="sp-dr"><span>Reason</span><span>' + esc(x.reason || '–') + '</span></div>' +
+    '<div class="sp-dr"><span>Old item</span><span>' + (x.collectBack ? esc(rpLines(x.back)) + ' · comes back' : 'Customer keeps it') + '</span></div>' +
+    '<div class="sp-dr"><span>New item</span><span>' + esc(rpLines(x.out)) + '</span></div><div class="sp-dr"><span>Courier collects</span><span>' + (x.collect ? rs(x.collect) : 'Free') + '</span></div>' +
+    (x.cn ? '<div class="sp-dr"><span>Booked</span><span>' + esc(x.courier + ' ' + x.cn) + '</span></div>' : '') + (x.newOrder ? '<div class="sp-dr"><span>New order</span><span>' + esc(x.newOrder) + '</span></div>' : '') +
+    '<div class="sp-dr"><span>Made by</span><span>' + esc(x.by + ' · ' + x.at) + '</span></div>' + (x.bookedBy ? '<div class="sp-dr"><span>Booked by</span><span>' + esc(x.bookedBy + ' · ' + x.bookedAt) + '</span></div>' : '') +
+    (x.oldItem ? '<div class="sp-dr"><span>Old item</span><span>' + esc(x.oldItem) + '</span></div>' : '') + (x.note ? '<div class="sp-dr"><span>Note</span><span>' + esc(x.note) + '</span></div>' : '') + '</div>' +
+    (x.stage === 'coming' || x.stage === 'notback' ? '<p class="mnote">When it arrives, scan its tracking number in Returns: it is counted back against ' + esc(x.order) + '.</p>' : '') +
+    '<div class="btns">' + (x.stage === 'tobook' ? '<button class="btn" id="roCancel" type="button">Cancel replacement</button>' : '') +
+    (x.stage === 'notback' && RPD.canBook ? '<button class="btn" id="roOff" type="button">Write off</button>' : '') + (x.cn ? '<button class="btn" id="roP" type="button">Open parcel</button>' : '') +
+    '<button class="btn" id="roX" type="button">Close</button></div>';
+  el('roBack').onclick = el('roX').onclick = function () { drawReplace(); };
+  var act = function (a, note, msg) { api('appReplaceAction', [TOKEN, x.id, a, note || ''], function (r) { RPD = r.data; rpCount(); drawReplace(); toast(msg); }, function (e) { toast((e && e.message) || 'Not saved'); }); };
+  if (el('roCancel')) el('roCancel').onclick = function () { act('cancel', '', 'Cancelled'); };
+  if (el('roOff')) el('roOff').onclick = function () { if (el('roOff').dataset.sure) act('writeoff', '', 'Written off · old item will not come back'); else { el('roOff').dataset.sure = '1'; el('roOff').textContent = 'Sure? Write off'; } };
+  if (el('roP')) el('roP').onclick = function () { openParcel(x.cn); };
+}
+function rpBook(x) {
+  var courier = x.courier || (x.collectBack ? 'Trax' : (RPD.couriers[0] || 'Trax'));
+  var copy = x.order.replace(/^#/, '') + ' Replacement' + (x.collectBack ? '\n' + x.back.map(function (l) { return l.qty + ' ' + l.title; }).join(', ') + ' check kar k collect karni hai' : '');
+  var draw = function () {
+    var cn = el('rbCn') ? el('rbCn').value : '';
+    el('panel').innerHTML = '<button class="btn mini" id="rbBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Replacements</button>' +
+      '<h3>Book replacement · ' + esc(x.order) + '</h3><p>' + esc(x.customer + ' · ' + x.city + (x.reason ? ' · ' + x.reason : '') + ' · asked by ' + x.by) + '</p>' +
+      (x.stage === 'failed' ? '<p class="mnote" style="color:var(--red)">' + esc(x.state.replace(/^Failed:\s*/, 'Order not made: ')) + '</p>' : '') +
+      '<div class="card"><div class="sp-dr"><span>Back</span><span>' + (x.collectBack ? esc(rpLines(x.back)) : 'Customer keeps it') + '</span></div><div class="sp-dr"><span>Out</span><span>' + esc(rpLines(x.out)) + '</span></div>' +
+      '<div class="sp-dr"><span>Collect</span><span>' + (x.collect ? rs(x.collect) : 'Free') + '</span></div></div>' +
+      '<div class="card"><div class="h"><b>1 · Book in the courier portal</b></div><p class="mnote">' + (x.collectBack ? 'Trax · service <b>Replacement</b>: the rider gives the new item and must bring the old one back.' : 'A <b>normal booking</b> (any courier), like a new order. Nothing comes back.') + ' Order ID / instructions:</p>' +
+      '<pre class="rp-copy">' + esc(copy) + '</pre><button type="button" class="btn" id="rbCopy" style="width:100%"><i class="ti ti-copy"></i>Copy</button></div>' +
+      '<div class="card"><div class="h"><b>2 · Tracking number</b></div><div class="seg">' + RPD.couriers.map(function (c) { return '<button type="button" data-rbk="' + esc(c) + '" class="' + (courier === c ? 'on' : '') + '">' + esc(c) + '</button>'; }).join('') + '</div>' +
+      (x.collectBack && !/trax/i.test(courier) ? '<p class="mnote" style="color:var(--amber)">The old item comes back: book it with Trax Replacement unless ' + esc(courier) + ' also collects.</p>' : '') +
+      '<div class="fld"><label for="rbCn">Tracking number (CN)</label><input id="rbCn" type="text" autocomplete="off" value="' + esc(cn) + '"></div></div>' +
+      '<p class="mnote">ORDI makes the Shopify order (' + (x.collect ? rs(x.collect) : 'Rs 0') + ') within 5 minutes. The new items leave stock when it is booked; the warehouse packs it from the Packing list.</p>' +
+      '<div class="btns"><button class="btn" id="rbCancel" type="button">Cancel replacement</button><button class="btn pri" id="rbGo" type="button"><i class="ti ti-check"></i>Save · make the order</button></div>';
+    el('rbBack').onclick = function () { drawReplace(); };
+    el('rbCopy').onclick = function () { try { navigator.clipboard.writeText(copy); toast('Copied'); } catch (e) {} };
+    el('panel').querySelectorAll('[data-rbk]').forEach(function (b) { b.onclick = function () { courier = b.getAttribute('data-rbk'); draw(); }; });
+    el('rbCancel').onclick = function () { api('appReplaceAction', [TOKEN, x.id, 'cancel', ''], function (r) { RPD = r.data; rpCount(); drawReplace(); toast('Cancelled'); }, function (e) { toast((e && e.message) || 'Not saved'); }); };
+    el('rbGo').onclick = function () {
+      var v = el('rbCn').value.replace(/\s+/g, ''); if (v.length < 8) { toast('Write the tracking number'); return; }
+      api('appReplaceBook', [TOKEN, x.id, courier, v], function (r) { RPD = r.data; rpCount(); drawReplace(); toast('Booked · the order is made within 5 minutes'); }, function (e) { toast((e && e.message) || 'Not saved'); });
+    };
+  };
+  draw();
+}
+el('btnRepl').onclick = fromMenu(function () { openReplace(); });
 // ---------- Partner stores (user 2026-11-19): a friend's store shares our warehouse; goods lent both ways at OUR cost ----------
 // Settled product to product (goods back, any product, by value) or product to cash (received / paid later). The warehouse
 // records, an owner approves before stock changes. Never a sale or a loss in the P&L.
@@ -9590,9 +9801,10 @@ function start() {
   if (qpay) { PAY_OPEN = qpay; setTimeout(function () { showTab('cash'); openPayIfReady(); }, 700); }
   if (qs.get('ask')) { ASK_OPEN = qs.get('ask'); setTimeout(function () { showTab('cash'); }, 700); }
   if (qsy) setTimeout(openSyncStatus, 600);
-  var qwh = qs.get('wh'), qpk = qs.get('pack') || qs.get('partner') || qs.get('match');
+  var qwh = qs.get('wh'), qpk = qs.get('pack') || qs.get('partner') || qs.get('match') || qs.get('repl');
   if (qwh && (can('inventory.count') || can('users.manage'))) setTimeout(openWarehouse, 600);
   if (qs.get('match') && can('orders.book')) setTimeout(openMatch, 900);
+  if (qs.get('repl') && (can('orders.tag') || can('orders.book'))) setTimeout(function () { openReplace(qs.get('repl')); }, 900);
   if (qs.get('pack') && (can('parcels.view') || can('inventory.count') || can('inventory.edit'))) setTimeout(openPacking, 900);
   if (qs.get('partner') && (can('inventory.count') || can('inventory.edit'))) setTimeout(openPartners, 900);
   applyPerms();
@@ -9604,6 +9816,7 @@ function start() {
   loadAllowed();
   setTimeout(fnBadge, 2500); // approvers: expenses waiting
   setTimeout(cbBadge, 3500); // courier parcels to match
+  setTimeout(rpBadge, 4500); // replacements to book
   google.script.run.withSuccessHandler(setPerms).withFailureHandler(function (e) { authFail(e); }).appGetProfile(TOKEN);
   loadSync(); drawBioBtn(); setTimeout(bioOffer, 1500);
   if (!started) { started = true; setInterval(function () { if (TOKEN) { if (can('ndr.view')) loadNdr(false); loadAlerts(false); loadSync(); } }, 120000); }
