@@ -6545,7 +6545,9 @@ function openPnl(period) {
       (p.adDollar && p.adDollar.usd ? line('&nbsp;&nbsp;of which dollar extra', rs(p.adDollar.extra), '', '$' + p.adDollar.usd.toLocaleString('en-US') + ' used · market avg Rs ' + p.adDollar.avg + ' · paid Rs ' + (Math.round((p.adDollar.avg + p.adDollar.extra / p.adDollar.usd) * 100) / 100) + ' per $') : '') +
       cmLine('CM3 · After ads', p.cm3, 'what is left to pay the business costs') +
       exp.map(function (k) { return line(esc(k), minus(p.expenses[k]), '', '', pct(p.expenses[k])); }).join('') +
-      line('Net profit', signed(p.net), p.net < 0 ? 'neg' : 'b', '', pct(p.net)) + '</div>' +
+      line('Net profit', signed(p.net), p.net < 0 ? 'neg' : 'b', '', pct(p.net)) +
+      (p.replace ? '<div class="tk" id="pnlRpl" data-per="' + esc(FN.pnl) + '" style="margin:10px 0 0;cursor:pointer"><i class="ti ti-replace"></i> Replacements · ' + p.replace.n + ' · net cost ' + rs(p.replace.net) +
+        '<small style="display:block;color:var(--muted)">already inside the lines above (goods ' + rs(p.replace.goods) + ' + courier ' + rs(p.replace.fees) + ' − collected ' + rs(p.replace.collected) + (p.replace.back ? ' − back in stock ' + rs(p.replace.back) : '') + ') · tap for the report</small></div>' : '') + '</div>' +
       ((p.trend || []).length > 1 ? '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>Month by month</b><span>tap a month</span></div>' + p.trend.slice().reverse().map(function (x) {
         var w = Math.round(Math.abs(x.net) / maxNet * 100);
         return '<div class="prow" data-pm="' + x.month + '"><div class="prow-m"><div class="prow-1"><b>' + fnMonthName(x.month) + (x.stage ? ' <small class="pm-st ' + x.stage + '">' + esc(acStage(x)) + '</small>' : x.open ? ' <small style="color:var(--amber)">· ' + x.open + ' open</small>' : '') + '</b><b class="num"' + (x.net < 0 ? ' style="color:var(--red)"' : '') + '>' + signed(x.net) + '</b></div>' +
@@ -9392,14 +9394,54 @@ function drawReplace() {
     sec('Old item not back · 14 days+', by(['notback', 'notdelivered']), 'var(--red)') +
     sec('On the way', by(['onway', 'coming'])) + sec('Done · latest', done) +
     (d.list.length ? '' : '<div class="card empty"><i class="ti ti-replace"></i>No replacements yet</div>') +
+    (d.list.length && (can('orders.book') || can('finance.view')) ? '<button class="btn" id="rpRep" type="button" style="width:100%;margin-top:12px"><i class="ti ti-report-money"></i>Replacement report · what they cost</button>' : '') +
     '<div class="btns" style="margin-top:12px"><button class="btn" id="rpX" type="button">Close</button></div>';
   if (!el('overlay').classList.contains('show')) openPanel(true);
   el('rpX').onclick = closePanel;
+  if (el('rpRep')) el('rpRep').onclick = function () { openReplaceReport(); };
   var t = null;
   el('rpQ').oninput = function () { RPS.q = el('rpQ').value; clearTimeout(t); t = setTimeout(rpSearch, 450); };
   if (RPS.res) rpDrawRes();
   el('panel').querySelectorAll('[data-rp]').forEach(function (b) { b.onclick = function () { rpOpen(d.list.filter(function (x) { return x.id === b.getAttribute('data-rp'); })[0]); }; });
 }
+// Replacement report (user 2026-11-23): what replacements cost in a period, why they happened, what came back
+var RPR = { per: '' };
+function openReplaceReport(per) {
+  RPR.per = per || RPR.per || pkDay(new Date()).slice(0, 7);
+  el('panel').innerHTML = '<button class="btn mini" id="rrBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Replacements</button><h3>Replacement report</h3>' + skList(4);
+  if (!el('overlay').classList.contains('show')) openPanel(true);
+  el('rrBack').onclick = function () { openReplace(); };
+  apiMem('rplrep_' + RPR.per, 'getAppReplaceReport', [TOKEN, RPR.per], drawReplaceReport, function (e) { toast((e && e.message) || 'Could not load'); }, '');
+}
+function drawReplaceReport(d) {
+  var t = d.total, o = d.old, per100 = d.delivered ? Math.round(d.n / d.delivered * 1000) / 10 : null;
+  var row = function (a, b, sub, cls) { return '<div class="sp-dr"><span>' + a + (sub ? '<small style="display:block;color:var(--muted)">' + sub + '</small>' : '') + '</span><span class="num"' + (cls ? ' style="color:' + cls + '"' : '') + '>' + b + '</span></div>'; };
+  el('panel').innerHTML = '<button class="btn mini" id="rrBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Replacements</button><h3>Replacement report</h3>' +
+    perBar(RPR.per) +
+    (d.n ? '<div class="rp-tiles"><div><b>' + d.n + '</b><span>Replacements</span></div><div' + (t.net > 0 ? ' class="bad"' : '') + '><b>' + rs(t.net) + '</b><span>Net cost</span></div>' +
+      '<div><b>' + (d.n ? rs(Math.round(t.net / d.n)) : '–') + '</b><span>Per replacement</span></div><div><b>' + (per100 != null ? per100 + '%' : '–') + '</b><span>of delivered orders</span></div></div>' +
+      '<div class="card"><div class="h"><b>What they cost</b><span>by dispatch day</span></div>' +
+        row('Goods sent', rs(t.goods), 'at average cost') + row('Courier fees and taxes', rs(t.fees), d.pending ? d.pending + ' parcel' + (d.pending > 1 ? 's' : '') + ' not in the courier\'s figures yet' : '') +
+        row('Collected from customers', '− ' + rs(t.collected), '', 'var(--green)') + row('Old items back in stock', '− ' + rs(t.back), 'scanned Good in Returns', 'var(--green)') +
+        row('<b>Net cost</b>', '<b>' + rs(t.net) + '</b>', 'already inside the profit &amp; loss lines · shown apart here', t.net > 0 ? 'var(--red)' : '') + '</div>' +
+      '<div class="card"><div class="h"><b>Why</b><span>net cost</span></div>' + d.byReason.map(function (r) { return row(esc(r.reason) + ' · ' + r.n, rs(r.net)); }).join('') + '</div>' +
+      '<div class="card"><div class="h"><b>Old items</b></div>' + row('Back in stock', o.back) + row('Still coming', o.coming) + row('Not back · 14 days+', o.notback, '', o.notback ? 'var(--red)' : '') +
+        row('Written off', o.writtenoff) + row('Customer kept it', o.kept) + '</div>' +
+      '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>Each replacement</b><span>' + d.n + '</span></div>' + d.list.map(function (x) {
+        return '<div class="prow" data-rr="' + esc(x.id) + '"><div class="prow-m"><div class="prow-1"><b>' + esc(x.order || '—') + (x.newOrder ? ' → ' + esc(x.newOrder) : '') + '</b><b class="num"' + (x.net > 0 ? ' style="color:var(--red)"' : '') + '>' + rs(x.net) + '</b></div>' +
+          '<div class="prow-2"><span>' + esc([fnDay(x.day), x.reason, x.customer, x.city].filter(Boolean).join(' · ')) + '</span></div>' +
+          '<div class="prow-2"><span>goods ' + rs(x.goods) + ' · fees ' + rs(x.fees) + ' · collected ' + rs(x.collected) + (x.back ? ' · back ' + rs(x.back) : '') + (x.cn && !x.ledger ? ' · fees not in yet' : '') + '</span></div></div></div>';
+      }).join('') + '</div>'
+    : '<div class="card empty"><i class="ti ti-replace"></i>No replacements in this period</div>') +
+    '<div class="btns" style="margin-top:10px"><button class="btn" id="rrClose">Close</button></div>';
+  el('rrBack').onclick = function () { openReplace(); };
+  el('rrClose').onclick = closePanel;
+  perWire(RPR.per, function (v) { openReplaceReport(v); });
+  el('panel').querySelectorAll('[data-rr]').forEach(function (b) { b.onclick = function () {
+    var x = RPD && RPD.list.filter(function (r) { return r.id === b.getAttribute('data-rr'); })[0]; if (x) rpOpen(x);
+  }; });
+}
+document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('#pnlRpl'); if (b) openReplaceReport(b.getAttribute('data-per')); });
 function rpSearch() {
   var q = RPS.q.trim(); if (q.length < 3) { RPS.res = null; if (el('rpRes')) el('rpRes').innerHTML = ''; return; }
   if (el('rpRes')) el('rpRes').innerHTML = skList(1);
