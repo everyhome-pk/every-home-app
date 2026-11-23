@@ -923,6 +923,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 .bk-lnk{margin-left:auto;border:0;background:none;color:var(--brand);font:600 12.5px Inter,sans-serif;display:inline-flex;align-items:center;gap:2px;cursor:pointer;padding:0;text-transform:none;letter-spacing:0}.ma-row{align-items:center}.ma-ed{flex:none;width:36px;height:36px;border:0;border-radius:50%;background:transparent;color:var(--muted);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;margin-left:6px}.ma-ed:hover{background:var(--chip,rgba(0,0,0,.05));color:var(--ink)}.ma-who{display:flex;align-items:center;gap:10px;margin:14px 2px 8px}.ma-who b{font-size:14.5px;font-weight:600}.ma-av{width:28px;height:28px;border-radius:50%;background:color-mix(in srgb,var(--brand) 14%,var(--card,#fff));color:var(--brand);font:700 11.5px Inter,sans-serif;display:inline-flex;align-items:center;justify-content:center}
 .pp-ask{padding:4px 2px}.pp-ask .inrow2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .mr-t.cnt td{padding:9px 8px}.mr-box{display:inline-block;width:70px;height:22px;border:1px solid #9AA8A5;border-radius:4px;vertical-align:middle}.mr-box.w{width:140px}
+.cl-cond{margin:6px 0 2px;font-size:14px}.cl-ph{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.cl-img{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:120px;height:120px;border-radius:12px;border:1px solid var(--line);background:var(--bg2,#f3f4f6);color:var(--muted);font:inherit;font-size:12px;text-decoration:none;overflow:hidden;position:relative;cursor:pointer;padding:0}.cl-img img{width:100%;height:100%;object-fit:cover}.cl-img img+span{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);color:#fff;padding:2px 0;text-align:center}.cl-img.none{cursor:default}.cl-img .ti{font-size:22px}.cl-st{margin-top:10px;font-size:13px}
 </style>
 <link rel="manifest" href="ordi.webmanifest">
 <link rel="icon" href="ordi-192.png">
@@ -1041,6 +1042,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
   <button class="dr-i" id="btnStock"><i class="ti ti-packages"></i>Stock</button>
   <button class="dr-i" id="btnPack" hidden><i class="ti ti-package"></i>Packing list</button>
   <button class="dr-i" id="btnRepl" hidden><i class="ti ti-replace"></i><span>Replacements</span><em class="dr-n" id="drNrepl" hidden></em></button>
+  <button class="dr-i" id="btnClaim" hidden><i class="ti ti-file-alert"></i><span>Return claims</span><em class="dr-n" id="drNclaim" hidden></em></button>
   <button class="dr-i" id="btnMatch" hidden><i class="ti ti-link"></i><span>Courier parcels to match</span><em class="dr-n" id="drNmatch" hidden></em></button>
   <button class="dr-i" id="btnWh" hidden><i class="ti ti-package-import"></i><span>Warehouse</span><em class="dr-n" id="drNwh" hidden></em></button>
   <button class="dr-i" id="btnTeam" hidden><i class="ti ti-users-group"></i>Team</button>
@@ -1460,7 +1462,7 @@ var PERMS = null; try { PERMS = JSON.parse(store('eh_perms') || 'null'); } catch
 var ROLE = store('eh_role') || '';
 var TAB_PERM = { home: 'home.view', parcels: 'parcels.view', ndr: 'ndr.view', returns: 'returns.view', cash: 'cash.view' };
 var KIND_PERM = { ndr: 'ndr.view', courier: 'ndr.work', back: 'returns.view', late: 'parcels.view', nocn: 'parcels.view', nsa: 'parcels.view', brief: 'home.view', cash: 'cash.view',
-  money: 'finance.approve', mine: 'finance.add', stock: 'inventory.view', buy: 'inventory.edit', link: 'inventory.edit', goods: 'inventory.count', approve: 'users.manage', match: 'orders.book', ads: 'reports.view', adcharge: 'users.manage', security: 'users.manage', sync: 'users.manage' };
+  money: 'finance.approve', mine: 'finance.add', stock: 'inventory.view', buy: 'inventory.edit', link: 'inventory.edit', goods: 'inventory.count', approve: 'users.manage', match: 'orders.book', claim: 'claims.decide', ads: 'reports.view', adcharge: 'users.manage', security: 'users.manage', sync: 'users.manage' };
 function can(p) { return !PERMS || PERMS.indexOf(p) !== -1; } // not known yet (old login): show all until the server answers
 function canTab(t) { return can(TAB_PERM[t]); }
 function firstTab() { return ['home', 'parcels', 'ndr', 'returns', 'cash'].filter(canTab)[0] || ''; }
@@ -1483,6 +1485,7 @@ function applyPerms() {
   el('btnStock').hidden = !can('inventory.view');
   el('btnPack').hidden = !(can('parcels.view') || can('inventory.count') || can('inventory.edit'));
   el('btnMatch').hidden = !can('orders.book');
+  el('btnClaim').hidden = !can('claims.decide');
   el('btnRepl').hidden = !(can('orders.tag') || can('orders.book'));
   el('btnWh').hidden = !(can('inventory.count') || can('users.manage'));
   el('btnExp').hidden = !(can('finance.add') || can('finance.view') || can('finance.approve'));
@@ -1926,15 +1929,19 @@ function openReturnCondition(d, key) {
     '<p>' + esc(d.order) + ' · ' + esc(d.cn) + ' · now <b>' + esc(cur || 'not set') + '</b></p>' +
     '<div class="fld"><label>Condition found</label><div class="chips wrapc" id="rcC">' + (d.conditions || []).filter(function (c) { return c !== cur; }).map(function (c) { return '<button class="chip" type="button" data-v="' + esc(c) + '">' + esc(c) + '</button>'; }).join('') + '</div></div>' +
     '<div class="fld"><label for="rcWhy">What you found</label><input id="rcWhy" placeholder="e.g. opened later · glass broken"></div>' +
+    '<div id="rcPhW" hidden>' + photoField('rcPh', 'Take a photo of the item (needed)') + '</div>' +
     '<small class="mnote" style="display:block;margin:-4px 0 10px">Stock and profit &amp; loss change by themselves within 15 minutes · the change is kept with your name</small>' +
     '<div class="err" id="rcErr"></div><button class="btn pri" id="rcGo" style="width:100%;padding:12px">Save</button>';
   openPanel(true);
   el('rcBack').onclick = function () { openReturnHistory(key); };
-  el('rcC').onclick = function (e) { var b = e.target.closest('[data-v]'); if (!b) return; st.c = b.getAttribute('data-v'); el('rcC').querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x === b); }); };
+  var curGood = /^Good/.test(cur), rcPh = '';
+  photoWire('rcPh', function (x) { rcPh = x; });
+  el('rcC').onclick = function (e) { var b = e.target.closest('[data-v]'); if (!b) return; st.c = b.getAttribute('data-v'); el('rcC').querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x === b); }); el('rcPhW').hidden = !(curGood && !/^Good/.test(st.c)); };
   el('rcGo').onclick = function () {
     if (!st.c) { el('rcErr').textContent = 'Pick the condition'; return; }
     if (!el('rcWhy').value.trim()) { el('rcErr').textContent = 'Write what you found'; return; }
-    api('appChangeReturnCondition', [TOKEN, { cn: d.cn, condition: st.c, note: el('rcWhy').value.trim() }], function () {
+    if (curGood && !/^Good/.test(st.c) && !rcPh) { el('rcErr').textContent = 'Take a photo of the item'; return; }
+    api('appChangeReturnCondition', [TOKEN, { cn: d.cn, condition: st.c, note: el('rcWhy').value.trim(), photo: rcPh }], function () { CLD = null;
       toast('✅ Changed to ' + st.c + ' · stock follows within 15 min'); loadReturns(true); openReturnHistory(key);
     }, function (e) { el('rcErr').textContent = (e && e.message) || 'Not saved'; });
   };
@@ -5326,20 +5333,23 @@ function renderFound() {
     else if (!p.isReturn) h += '<div class="tk">Note: courier status does not indicate a return (' + esc(p.status) + ')</div>';
     h += '<div class="fld" style="margin-top:10px"><label>Condition</label><div class="opts" id="rcond">' +
       conds.map(function (c, i) { return '<div class="opt' + (i === 0 ? ' on' : '') + '" data-v="' + esc(c) + '">' + esc(c) + '</div>'; }).join('') + '</div></div>' +
-      '<div class="fld"><input id="rnotes" placeholder="Note (anything missing or damaged)"></div><div class="err" id="rErr"></div>' +
+      '<div class="fld"><input id="rnotes" placeholder="Note (anything missing or damaged)"></div>' +
+      '<div id="rphW" hidden>' + photoField('rph', 'Take a photo of the item (needed)') + '<small class="mnote">The owner decides the courier claim from this photo</small></div><div class="err" id="rErr"></div>' +
       '<div class="btns"><button class="btn" id="rclear">Cancel</button><button class="btn pri" id="rsave"><i class="ti ti-check"></i>Received</button></div>';
   }
   el('rfound').innerHTML = h + '</div>';
   if (p.already) return;
-  var cond = conds[0];
-  el('rcond').onclick = function (e) { var t = e.target.closest('.opt'); if (!t) return; cond = t.getAttribute('data-v'); el('rcond').querySelectorAll('.opt').forEach(function (x) { x.classList.toggle('on', x === t); }); };
+  var cond = conds[0], rph = '';
+  photoWire('rph', function (d) { rph = d; });
+  el('rcond').onclick = function (e) { var t = e.target.closest('.opt'); if (!t) return; cond = t.getAttribute('data-v'); el('rcond').querySelectorAll('.opt').forEach(function (x) { x.classList.toggle('on', x === t); }); el('rphW').hidden = /^Good/.test(cond); };
   el('rclear').onclick = function () { el('rfound').innerHTML = ''; el('rcode').value = ''; scanFocus(); };
   if (el('rswapc')) el('rswapc').onclick = function (e) { var c = e.target.closest('[data-o]'); if (!c) return; el('rswap').value = c.getAttribute('data-o'); el('rswapc').querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x === c); }); };
   el('rsave').onclick = function () {
     el('rsave').disabled = true;
     if (p.swap && !el('rswap').value.trim()) { el('rsave').disabled = false; el('rErr').textContent = 'Which order did this old item come from?'; return; }
-    api('saveAppReturnScan', [{ token: TOKEN, cn: p.cn, condition: cond, notes: el('rnotes').value, swapOf: p.swap ? el('rswap').value.trim() : '' }], function () {
-      toast('✅ Return received'); try { navigator.vibrate && navigator.vibrate(80); } catch (x) {}
+    if (!/^Good/.test(cond) && !rph) { el('rsave').disabled = false; el('rErr').textContent = 'Take a photo of the ' + cond.toLowerCase() + ' item'; return; }
+    api('saveAppReturnScan', [{ token: TOKEN, cn: p.cn, condition: cond, notes: el('rnotes').value, swapOf: p.swap ? el('rswap').value.trim() : '', photo: /^Good/.test(cond) ? '' : rph }], function (r) {
+      toast(r && r.claim ? '✅ Return received · the owner decides the claim' : '✅ Return received'); CLD = null; try { navigator.vibrate && navigator.vibrate(80); } catch (x) {}
       el('rfound').innerHTML = ''; el('rcode').value = ''; scanFocus(); loadReturns(true);
     }, function (e) { el('rsave').disabled = false; el('rErr').textContent = (e && e.message) || 'Not saved'; });
   };
@@ -8370,7 +8380,7 @@ function openBriefList(day, k) {
 }
 
 // ---------- 🔔 notification list (everything W1 sent; the dot = new since you last opened it) ----------
-var ALERT_ICON = { nsa: ['map-pin-off', 'var(--amber)'], match: ['link', 'var(--amber)'], goods: ['package', 'var(--brand)'], approve: ['package-import', 'var(--amber)'], link: ['link', 'var(--amber)'], adcharge: ['credit-card', 'var(--brand)'], courier: ['message-reply', 'var(--blue)'], money: ['receipt', 'var(--amber)'], mine: ['circle-check', 'var(--green)'], buy: ['truck-delivery', 'var(--amber)'],
+var ALERT_ICON = { claim: ['file-alert', 'var(--red)'], nsa: ['map-pin-off', 'var(--amber)'], match: ['link', 'var(--amber)'], goods: ['package', 'var(--brand)'], approve: ['package-import', 'var(--amber)'], link: ['link', 'var(--amber)'], adcharge: ['credit-card', 'var(--brand)'], courier: ['message-reply', 'var(--blue)'], money: ['receipt', 'var(--amber)'], mine: ['circle-check', 'var(--green)'], buy: ['truck-delivery', 'var(--amber)'],
   ads: ['speakerphone', 'var(--brand)'], security: ['lock', 'var(--red)'], stock: ['packages', 'var(--amber)'], cash: ['cash-banknote', 'var(--green)'], sync: ['alert-circle', 'var(--text)'], ndr: ['headset', 'var(--red)'], back: ['arrow-back-up', 'var(--amber)'], late: ['clock-exclamation', 'var(--amber)'], nocn: ['barcode-off', 'var(--amber)'], brief: ['sun', 'var(--brand)'], test: ['bell', 'var(--muted)'] };
 var alertsData = null;
 function loadAlerts(open) {
@@ -8422,6 +8432,7 @@ function drawAlerts() {
       if (q('wh')) { openWarehouse(); return; }
       if (q('pack')) { openPacking(); return; }
       if (q('match')) { openMatch(); return; }
+      if (q('claim')) { openClaims(q('claim')); return; }
       if (q('repl')) { openReplace(q('repl')); return; }
       if (q('partner')) { openPartners(); return; }
       if (q('remind')) { closePanel(); showTab('ndr'); openSheetRemind(q('remind')); return; }
@@ -8491,7 +8502,7 @@ var PUSH_KINDS = [['ndr', 'NDR cases', 'Failed delivery, refused, stuck with cou
   ['money', 'Approvals', 'Expenses waiting for your approval · monthly bank check'], ['mine', 'My entries', 'Your expense was approved or rejected'],
   ['stock', 'Low stock', 'A product is low or out of stock'], ['buy', 'Purchases', 'A purchase is late from the supplier'],
   ['goods', 'Warehouse', 'Bilti expected, today\'s packing, weekly count, your reports'], ['approve', 'To approve', 'A bilti or damaged goods wait for your decision'],
-  ['link', 'Order lines to link', 'A hand-made order line: which product is it?'], ['nsa', 'Courier does not go there', 'An order to a city a courier sent back as Non-Service Area: book with the other courier'], ['match', 'Courier parcels to match', 'Booked in a courier portal, not in ORDI (reship / replacement)'], ['ads', 'Ads', 'Daily: ad sets to scale or to stop'], ['adcharge', 'Meta charges', 'Meta charged the card · check the dollar rate'], ['security', 'Security', 'A login was locked after wrong PINs'],
+  ['link', 'Order lines to link', 'A hand-made order line: which product is it?'], ['nsa', 'Courier does not go there', 'An order to a city a courier sent back as Non-Service Area: book with the other courier'], ['match', 'Courier parcels to match', 'Booked in a courier portal, not in ORDI (reship / replacement)'], ['claim', 'Return claims', 'A return came back damaged / missing / wrong: claim from the courier or not'], ['ads', 'Ads', 'Daily: ad sets to scale or to stop'], ['adcharge', 'Meta charges', 'Meta charged the card · check the dollar rate'], ['security', 'Security', 'A login was locked after wrong PINs'],
   ['sync', 'System alerts', 'A sync stopped or failed · and when it is back']];
 function openPushPrefs() {
   var kinds = PUSH_KINDS.filter(function (k) { return can(KIND_PERM[k[0]]); }); // only what this role gets
@@ -9253,6 +9264,89 @@ function openMatchForm(b, pick) {
   draw();
 }
 el('btnMatch').onclick = fromMenu(openMatch);
+// Return claims (user 2026-11-15): the owner decides each bad return. Photo first, then Send claim / Not claiming.
+var CLD = null;
+function clBadge() {
+  if (!can('claims.decide')) return;
+  api('getAppClaims', [TOKEN], function (d) { CLD = d; clCount(); }, function () {});
+}
+function clCount() {
+  var n = CLD ? CLD.waiting.length : 0;
+  el('drNclaim').textContent = n || ''; el('drNclaim').hidden = !n;
+}
+function openClaims(focus) {
+  if (!CLD) { el('panel').innerHTML = '<h3>Return claims</h3>' + skList(3); openPanel(true); }
+  else drawClaims(focus);
+  api('getAppClaims', [TOKEN], function (d) { CLD = d; clCount(); var h = el('panel').querySelector('h3'); if (h && /Return claims/.test(h.textContent)) drawClaims(focus); },
+    function (e) { if (!CLD) { el('panel').innerHTML = '<h3>Return claims</h3><div class="card empty">' + esc((e && e.message) || 'Could not load') + '</div><div class="btns"><button class="btn" id="clX">Close</button></div>'; el('clX').onclick = closePanel; } });
+}
+function clStatus(c) {
+  if (c.state === 'Send') {
+    if (c.reply) return ['<i class="ti ti-message-reply"></i> ' + esc(c.courier) + ' replied: ' + esc(c.reply), 'var(--blue)'];
+    if (c.closed) return ['<i class="ti ti-circle-check"></i> ' + esc(c.result || 'Closed'), 'var(--muted)'];
+    if (c.sentAt) return ['<i class="ti ti-send"></i> Sent to ' + esc(c.courier) + ' · ' + esc(c.sentAt) + ' · waiting for their answer', 'var(--brand)'];
+    return ['<i class="ti ti-clock"></i> Going to ' + esc(c.courier) + ' within 5 minutes', 'var(--amber)'];
+  }
+  if (c.state === 'Not claiming') return ['<i class="ti ti-ban"></i> Not claiming · ' + esc(c.reason) + (c.decidedBy ? ' · ' + esc(c.decidedBy) : ''), 'var(--muted)'];
+  if (c.state === 'Withdrawn') return ['<i class="ti ti-arrow-back-up"></i> Withdrawn' + (c.decidedBy ? ' · ' + esc(c.decidedBy) : ''), 'var(--muted)'];
+  if (c.state === 'Expired') return ['<i class="ti ti-hourglass-off"></i> Not decided in ' + CLD.days + ' days · the courier will not accept it now', 'var(--red)'];
+  return ['', ''];
+}
+function clCard(c) {
+  var st = clStatus(c), wait = c.state === 'Waiting';
+  return '<div class="card cl-c" id="cl_' + esc(c.cn) + '" style="border-left:3px solid ' + (wait ? (c.daysLeft <= 1 ? 'var(--red)' : 'var(--amber)') : st[1]) + '">' +
+    '<div class="cb-1"><b>' + esc(c.order) + '</b> · ' + esc(c.courier) + ' <span class="mono">' + esc(c.cn) + '</span>' +
+    '<button class="cn-copy" type="button" data-copy="' + esc(c.cn) + '" aria-label="Copy tracking ID"><i class="ti ti-copy"></i></button>' +
+    (wait ? '<span class="cb-k" style="color:' + (c.daysLeft <= 1 ? 'var(--red)' : 'var(--amber)') + '">' + (c.daysLeft <= 1 ? 'Last day' : c.daysLeft + ' days left') + '</span>' : '') + '</div>' +
+    '<div class="cl-cond"><b style="color:var(--red)">' + esc(c.condition) + '</b>' + (c.note ? ' · ' + esc(c.note) : '') + '</div>' +
+    '<small class="mnote">' + esc([c.items, c.cod ? rs(c.cod) : '', c.city].filter(Boolean).join(' · ')) + '<br>Scanned ' + esc(c.scanned) + (c.by ? ' · ' + esc(c.by) : '') + '</small>' +
+    '<div class="cl-ph">' + (c.photo ? '<button class="cl-img" type="button" data-clp="' + esc(c.cn) + '"><i class="ti ti-photo"></i><span>Our photo</span></button>' : '<span class="cl-img none"><i class="ti ti-photo-off"></i><span>No photo</span></span>') +
+      (c.product ? '<a class="cl-img" href="' + esc(c.product) + '" target="_blank" rel="noopener"><img alt="Product" src="' + esc(c.product) + '"><span>Product</span></a>' : '') + '</div>' +
+    (wait ? '<div class="btns" style="margin-top:10px"><button class="btn" data-cls="' + esc(c.cn) + '"><i class="ti ti-ban"></i>Not claiming</button><button class="btn pri" data-clg="' + esc(c.cn) + '"><i class="ti ti-send"></i>Send claim</button></div>'
+      : '<div class="cl-st" style="color:' + st[1] + '">' + st[0] + '</div>' +
+        (c.state === 'Not claiming' && c.open ? '<button class="btn mini" data-clg="' + esc(c.cn) + '" style="margin-top:8px"><i class="ti ti-send"></i>Send claim after all · ' + c.daysLeft + ' days left</button>' : '') +
+        (c.canWithdraw ? '<button class="btn mini" data-clw="' + esc(c.cn) + '" style="margin-top:8px"><i class="ti ti-arrow-back-up"></i>Withdraw claim</button>' : '')) +
+    '</div>';
+}
+function drawClaims(focus) {
+  var d = CLD;
+  el('panel').innerHTML = '<h3>Return claims</h3><p>Bad returns with a photo · you decide which go to the courier. The courier accepts a claim up to ' + d.days + ' days after the return reached us.</p>' +
+    (d.waiting.length ? '<div class="sl-h" style="margin:12px 0 6px">To decide · ' + d.waiting.length + '</div>' + d.waiting.map(clCard).join('') : '<div class="card empty"><i class="ti ti-circle-check"></i>No claims to decide</div>') +
+    (d.sent.length ? '<div class="sl-h" style="margin:16px 0 6px">Sent · ' + d.sent.length + '</div>' + d.sent.map(clCard).join('') : '') +
+    (d.done.length ? '<div class="sl-h" style="margin:16px 0 6px">Decided · last 30 days</div>' + d.done.map(clCard).join('') : '') +
+    '<div class="btns" style="margin-top:10px"><button class="btn" id="clClose">Close</button></div>';
+  if (!el('overlay').classList.contains('show')) openPanel(true);
+  el('clClose').onclick = closePanel;
+  var find = function (cn) { return d.waiting.concat(d.sent, d.done).filter(function (c) { return c.cn === cn; })[0]; };
+  var P = el('panel');
+  P.querySelectorAll('[data-copy]').forEach(function (b) { b.onclick = function () { try { navigator.clipboard.writeText(b.getAttribute('data-copy')); toast('Tracking ID copied'); } catch (e) {} }; });
+  P.querySelectorAll('[data-clp]').forEach(function (b) { b.onclick = function () {
+    b.innerHTML = '<i class="ti ti-loader-2"></i><span>Loading</span>';
+    api('getAppClaimPhoto', [TOKEN, b.getAttribute('data-clp')], function (r) { b.outerHTML = '<a class="cl-img" href="data:' + r.type + ';base64,' + r.data + '" target="_blank"><img alt="Our photo" src="data:' + r.type + ';base64,' + r.data + '"><span>Our photo</span></a>'; },
+      function () { b.innerHTML = '<i class="ti ti-photo-off"></i><span>Not found</span>'; });
+  }; });
+  P.querySelectorAll('[data-cls]').forEach(function (b) { b.onclick = function () { clSkip(find(b.getAttribute('data-cls'))); }; });
+  P.querySelectorAll('[data-clg]').forEach(function (b) { b.onclick = function () { clDo(b, find(b.getAttribute('data-clg')), 'send', '', 'Claim sent · goes to ' + find(b.getAttribute('data-clg')).courier + ' within 5 minutes'); }; });
+  P.querySelectorAll('[data-clw]').forEach(function (b) { b.onclick = function () {
+    if (b.getAttribute('data-sure')) return clDo(b, find(b.getAttribute('data-clw')), 'withdraw', '', 'Claim withdrawn');
+    b.setAttribute('data-sure', '1'); b.innerHTML = '<i class="ti ti-arrow-back-up"></i>Tap again to withdraw'; setTimeout(function () { b.removeAttribute('data-sure'); }, 4000);
+  }; });
+  P.querySelectorAll('.cl-c .cb-1 b').forEach(function (b) { b.style.cursor = 'pointer'; b.onclick = function () { var cn = b.closest('.cl-c').id.slice(3); openParcel(cn); }; });
+  // the first photo of each waiting claim opens by itself (decide from the photo)
+  d.waiting.slice(0, 4).forEach(function (c) { var b = P.querySelector('[data-clp="' + c.cn + '"]'); if (b) b.click(); });
+  if (focus) { var f = el('cl_' + focus); if (f) { f.scrollIntoView({ block: 'center' }); f.classList.add('flash'); } }
+}
+function clDo(btn, c, action, reason, ok) {
+  api('appClaimDecide', [TOKEN, c.cn, action, reason || '', ''], function (d) { CLD = d; clCount(); if (PICK_MODE === 'menu') closeMenu(); PICK_MODE = ''; drawClaims(c.cn); toast(ok); }, // the page redraws itself (a sheet pick sat in the same panel)
+    function (e) { toast((e && e.message) || 'Not saved'); });
+}
+function clSkip(c) {
+  showPick('Not claiming · ' + c.order, 'Why? It stays on the list for ' + c.daysLeft + ' more days in case you change your mind', '<div class="sheet-list">' + CLD.reasons.map(function (r) {
+    return '<div class="sl" data-r="' + esc(r) + '"><span>' + esc(r) + '</span></div>';
+  }).join('') + '</div>', function (ev) { var b = ev.target.closest('.sl'); if (!b) return; clDo(null, c, 'skip', b.getAttribute('data-r'), 'Not claiming · ' + b.getAttribute('data-r')); });
+}
+el('btnClaim').onclick = fromMenu(function () { openClaims(); });
+
 // ---------- Replacements (user 2026-11-20): its own section; find a delivered order → Replace → owner books → ORDI makes the order ----------
 var RPD = null, RPS = { q: '', res: null };
 var RP_STAGE = { tobook: ['To book', 'var(--amber)'], making: ['Making the order', 'var(--amber)'], failed: ['Order not made', 'var(--red)'], onway: ['New item on the way', 'var(--blue)'],
@@ -9797,9 +9891,10 @@ function start() {
   if (qpay) { PAY_OPEN = qpay; setTimeout(function () { showTab('cash'); openPayIfReady(); }, 700); }
   if (qs.get('ask')) { ASK_OPEN = qs.get('ask'); setTimeout(function () { showTab('cash'); }, 700); }
   if (qsy) setTimeout(openSyncStatus, 600);
-  var qwh = qs.get('wh'), qpk = qs.get('pack') || qs.get('partner') || qs.get('match') || qs.get('repl');
+  var qwh = qs.get('wh'), qpk = qs.get('pack') || qs.get('partner') || qs.get('match') || qs.get('repl') || qs.get('claim');
   if (qwh && (can('inventory.count') || can('users.manage'))) setTimeout(openWarehouse, 600);
   if (qs.get('match') && can('orders.book')) setTimeout(openMatch, 900);
+  if (qs.get('claim') && can('claims.decide')) setTimeout(function () { openClaims(qs.get('claim')); }, 900);
   if (qs.get('repl') && (can('orders.tag') || can('orders.book'))) setTimeout(function () { openReplace(qs.get('repl')); }, 900);
   if (qs.get('pack') && (can('parcels.view') || can('inventory.count') || can('inventory.edit'))) setTimeout(openPacking, 900);
   if (qs.get('partner') && (can('inventory.count') || can('inventory.edit'))) setTimeout(openPartners, 900);
@@ -9812,6 +9907,7 @@ function start() {
   loadAllowed();
   setTimeout(fnBadge, 2500); // approvers: expenses waiting
   setTimeout(cbBadge, 3500); // courier parcels to match
+  setTimeout(clBadge, 5000); // return claims to decide
   setTimeout(rpBadge, 4500); // replacements to book
   google.script.run.withSuccessHandler(setPerms).withFailureHandler(function (e) { authFail(e); }).appGetProfile(TOKEN);
   loadSync(); drawBioBtn(); setTimeout(bioOffer, 1500);
