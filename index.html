@@ -1131,7 +1131,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 (function () {
   if (window.google && google.script) return;
   window.EH_PWA = true; // installed app: notifications are possible
-  window.EH_BUILD = '2026-11-20'; // shown at the bottom of the menu
+  window.EH_BUILD = '2026-11-23'; // shown at the bottom of the menu
   var API = "https://script.google.com/macros/s/AKfycbyqtyrClenCG1_iqTSDK5KhtFItfX6rUsYdIexwQ3qPFbSv9d1n8jy06ItjvWXXtB-I/exec", RELAY = "", relayOff = 0;
   // through the relay when there is one; if it fails, straight to Google and skip the relay for 10 min. A save goes
   // straight only when the relay could not be reached at all (never sent twice).
@@ -5834,7 +5834,7 @@ function openStockItem(sku) {
   el('panel').innerHTML = '<button class="btn mini" id="siBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Stock</button>' +
     '<h3>' + esc(i.name) + '</h3><p>' + esc(i.sku) + (can('inventory.edit') && !stkIsAlias(i.sku) ? ' · <button class="lnkb" id="siName" type="button"><i class="ti ti-pencil"></i> Edit name</button>' : '') + (st[0] ? ' · <span class="st" style="--c:' + st[1] + '">' + st[0] + '</span>' : '') + '</p>' +
     '<div class="card" style="padding:0">' + row('Available', stkQty(i.available, i.unit)) +
-    (i.kind === 'Item' ? row('On the shelf', stkQty(i.shelf != null ? i.shelf : i.onHand, i.unit)) + (i.unpacked ? row('&nbsp;&nbsp;of which booked, not packed yet', stkQty(i.unpacked, i.unit)) : '') + (i.packed ? row('Packed · waiting for the courier', stkQty(i.packed, i.unit)) : '') +
+    (i.kind === 'Item' ? row('On the shelf', stkQty(i.shelf != null ? i.shelf : i.onHand, i.unit)) + (i.unpacked ? row('&nbsp;&nbsp;of which booked, not picked up yet', stkQty(i.unpacked, i.unit)) : '') +
       row('Reserved for confirmed orders', stkQty(i.committed, i.unit)) + (i.pending ? row('In pending orders (not reserved)', stkQty(i.pending, i.unit)) : '') +
       (i.incoming ? row('On the way (ordered)', stkQty(i.incoming, i.unit)) : '') +
       (i.perDay ? row('Sells per day (30 days)', stkQty(i.perDay, i.unit)) + row('Lasts about', Math.floor(Math.max(0, i.available + (i.incoming || 0)) / i.perDay) + ' days') : '') +
@@ -5938,7 +5938,7 @@ function stkSave(list, back) {
   }, function (e) { toast('❌ Not saved: ' + ((e && e.message) || 'try again')); });
 }
 // Goods received from a supplier: quantity, rejected, unit price + extra cost per unit (freight, packing) → average cost
-function stkShelf(i) { return i.shelf != null ? i.shelf : i.onHand; } // what is on the shelf (packed parcels are not)
+function stkShelf(i) { return i.shelf != null ? i.shelf : i.onHand; } // what is in the warehouse (booked parcels not picked up included)
 function stkNeg(i) { return i.kind === 'Item' && i.onHand != null && i.onHand < 0; }
 // pre = { qty, note, back } (from a below-zero product or a count that found the reason)
 function openStockIn(sku, pre) {
@@ -6008,7 +6008,7 @@ function openStockCount(dueOnly) {
   var line = function (i) {
     var v = CNT.v[i.sku], has = v != null && String(v).trim() !== '', n = num(v), dif = has && sys && stkShelf(i) != null ? Math.round((n - stkShelf(i)) * 100) / 100 : null;
     return '<div class="cn-row' + (has ? ' done' : '') + '" data-row="' + esc(i.sku) + '"><div class="cn-top"><span class="cn-name"><b>' + esc(i.name) + '</b>' +
-      '<small>' + esc([sys && stkNeg(i) ? 'below zero' : i.countDue ? 'due' : '', i.lastCount ? 'counted ' + i.lastCount : 'not counted yet', sys && stkShelf(i) != null ? 'system shelf ' + stkQty(stkShelf(i), i.unit) : ''].filter(Boolean).join(' · ')) + '</small>' + (i.unpacked ? '<small class="cn-pk"><i class="ti ti-package"></i> Count everything on the shelf · ' + stkQty(i.unpacked, i.unit) + ' in booked parcels not packed yet are taken off by themselves</small>' : '') + '</span>' +
+      '<small>' + esc([sys && stkNeg(i) ? 'below zero' : i.countDue ? 'due' : '', i.lastCount ? 'counted ' + i.lastCount : 'not counted yet', sys && stkShelf(i) != null ? 'system shelf ' + stkQty(stkShelf(i), i.unit) : ''].filter(Boolean).join(' · ')) + '</small>' + (i.unpacked ? '<small class="cn-pk"><i class="ti ti-package"></i> Count everything in the warehouse · ' + stkQty(i.unpacked, i.unit) + ' in booked parcels not picked up yet (packed or not) are taken off by themselves</small>' : '') + '</span>' +
       (has ? '<i class="ti ti-circle-check-filled cn-ok"></i>' : '') + '</div>' +
       '<div class="cn-in"><button type="button" class="cn-step" data-st="-1" aria-label="One less">−</button><input type="text" inputmode="decimal" data-cs="' + esc(i.sku) + '" value="' + (has ? esc(v) : '') + '" placeholder="' + (i.unit === 'ft' ? 'ft' : 'pcs') + '" aria-label="' + esc(i.name) + ' counted">' +
       '<button type="button" class="cn-step" data-st="1" aria-label="One more">+</button><button type="button" class="chip cn-zero" data-z="1">0 · shelf empty</button></div>' +
@@ -6024,7 +6024,7 @@ function openStockCount(dueOnly) {
     el('cnGo').disabled = !n; el('cnGo').textContent = n ? 'Review · ' + n + ' counted' : 'Count at least one product';
   };
   el('panel').innerHTML = '<button class="btn mini" id="scBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Stock</button><h3>Count stock</h3>' +
-    '<p>What is on the shelf now · not booked / packed parcels</p>' +
+    '<p>Everything in the warehouse now · booked parcels not picked up too</p>' +
     '<div class="cn-prog" id="cnProg"></div>' +
     '<div class="search"><i class="ti ti-search"></i><input id="cnQ" placeholder="Find a product" value="' + esc(CNT.q) + '"></div>' +
     (due.length ? '<button class="btn mini" id="scAll" type="button" style="margin:0 0 10px">' + (CNT.all ? 'Only the ' + due.length + ' due' : 'Show all ' + all.length + ' products') + '</button>' : '') +
@@ -7360,7 +7360,7 @@ function printCountSheet() {
   ppLoad('Count sheet', 'count', '', '', function (r) {
     var it = r.data.items || [];
     ppOpen('Count sheet', '', PP.head(r, 'Stock count sheet', 'Date ____________ · Counted by ____________________') +
-      '<p class="mr-n">Count everything on the shelf, booked parcels not packed yet too. Do not count packed parcels. Write ft for wire, pieces for the rest.</p>' +
+      '<p class="mr-n">Count everything in the warehouse, booked parcels not picked up by the courier too (packed or not): ORDI takes them off. Write ft for wire, pieces for the rest.</p>' +
       PP.sec('', 'Products', PP.tbl(['#', 'Product', 'Unit', 'Counted', 'Note'], it.map(function (x, i) { return '<tr class="mr-cnt"><td>' + (i + 1) + '</td><td>' + esc(x.name) + '<small>' + esc(x.sku) + '</small></td><td class="r">' + (x.unit === 'ft' ? 'ft' : 'pcs') + '</td><td class="r"><span class="mr-box"></span></td><td class="r"><span class="mr-box w"></span></td></tr>'; }), '', 'cnt')) +
       PP.sign('Counted by', 'Checked by') + PP.foot(r, 'Count sheet'), 'Count sheet');
   });
@@ -7398,7 +7398,7 @@ function printStockReport(asOf) {
     ppOpen('Stock report', '', PP.head(r, 'Stock report', esc(past ? 'End of ' + r.asOf : 'As on ' + r.made.replace(/,.*$/, '')), [past ? 'Past day' : 'Live', 'fin']) +
       PP.kpi([['Products', it.length, 'stocked items']].concat(past ? [] : [['Low / out', low, 'below the alert level']]).concat(money ? [['Stock value', PP.n(val), 'at average cost']] : [])) +
       PP.sec(1, 'Stock by product', PP.tbl(head, rows, money ? PP.tr(['<b>Total</b>'].concat(new Array(blanks + 1).join('x').split('').map(function () { return ''; })).concat(['<b>' + PP.n(val) + '</b>'])) : ''),
-        past ? 'On hand at the end of that day = today\'s stock less every stock move after it. Value at today\'s average cost.' : 'On the shelf counts booked parcels not packed yet (still on the shelf). Reserved = confirmed orders not booked. Kits are made from these parts.') +
+        past ? 'On hand at the end of that day = today\'s stock less every stock move after it. Value at today\'s average cost.' : 'On the shelf counts booked parcels the courier has not picked up yet (still in the warehouse). Reserved = confirmed orders not booked. Kits are made from these parts.') +
       PP.sign('Prepared by · ' + esc(r.by), 'Checked by') + PP.foot(r, 'Stock report'), 'Stock report ' + (asOf || r.made.replace(/,.*$/, '')));
   });
 }
@@ -9121,45 +9121,35 @@ el('btnFind').onclick = openFind;
 
 // ---------- packing list (user 2026-11-09): confirmed orders not booked yet, what to take off the shelf, then order by order ----------
 var PK = { f: 'today' };
-// Packing list (user 2026-11-19; the store's order: confirm → book → pack → courier): booked parcels the courier has not picked
-// up. The warehouse taps Packed when the parcel leaves the shelf, so a shelf count stays right (booked, not packed = on the shelf).
+// (user 2026-11-20: back to confirmed orders — booked parcels are on the courier's load sheet in the packer's hand)
 var PKD = null;
 function openPacking() {
   if (!PKD) { el('panel').innerHTML = '<h3>Packing list</h3>' + skList(5); openPanel(true); }
   else drawPacking();
-  api('getAppPacking', [TOKEN], function (d) { PKD = d; if (el('panel').querySelector('#pkClose') || !el('panel').querySelector('h3') || /Packing list/.test(el('panel').querySelector('h3').textContent)) drawPacking(); },
-    function (e) { if (!PKD) el('panel').innerHTML = '<h3>Packing list</h3><div class="card empty">' + esc((e && e.message) || 'Could not load') + '</div><div class="btns"><button class="btn" id="pkClose">Close</button></div>'; if (el('pkClose')) el('pkClose').onclick = closePanel; });
+  api('getAppPacking', [TOKEN], function (d) { PKD = d; var h = el('panel').querySelector('h3'); if (h && /Packing list/.test(h.textContent)) drawPacking(); },
+    function (e) { if (!PKD) { el('panel').innerHTML = '<h3>Packing list</h3><div class="card empty">' + esc((e && e.message) || 'Could not load') + '</div><div class="btns"><button class="btn" id="pkClose">Close</button></div>'; el('pkClose').onclick = closePanel; } });
 }
 function drawPacking() {
-  var all = PKD.orders || [], todo = all.filter(function (o) { return !o.packed; }), done = all.filter(function (o) { return o.packed; });
-  if (PK.f !== 'packed') PK.f = 'todo';
-  var list = PK.f === 'packed' ? done.slice().reverse() : todo;
-  var per = {}, pcs = 0;
-  todo.forEach(function (o) { o.items.forEach(function (x) { per[x.name] = (per[x.name] || 0) + x.qty; pcs += x.qty; }); });
-  var names = Object.keys(per).sort(function (a, b) { return per[b] - per[a]; }), open = can('parcels.view');
-  var day = function (ms) { return ms ? 'booked ' + new Date(ms).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Karachi' }) : ''; };
-  el('panel').innerHTML = '<h3>Packing list</h3><p>' + todo.length + ' to pack · ' + pcs + ' piece' + (pcs === 1 ? '' : 's') + ' · ' + done.length + ' packed, waiting for the courier</p><p class="mnote">Booked parcels the courier has not picked up yet. Tap Packed when the parcel leaves the shelf.</p>' +
-    '<div class="chips"><button class="chip' + (PK.f === 'todo' ? ' on' : '') + '" data-pk="todo" type="button">To pack · ' + todo.length + '</button><button class="chip' + (PK.f === 'packed' ? ' on' : '') + '" data-pk="packed" type="button">Packed · ' + done.length + '</button></div>' +
-    (PK.f === 'todo' && names.length ? '<div class="card"><div class="h"><b>Products to pack</b><span>' + names.length + '</span></div>' + names.map(function (n) { return '<div class="sp-dr"><span>' + esc(n) + '</span><span class="num">× ' + per[n] + '</span></div>'; }).join('') + '</div>' : '') +
-    (list.length ? '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>' + (PK.f === 'packed' ? 'Packed · waiting for the courier' : 'To pack') + '</b><span>' + list.length + '</span></div>' + list.map(function (o) {
-      var items = o.items.map(function (x) { return x.qty + 'x ' + x.name; }).join(', ');
-      return '<div class="prow pk-row"' + (open ? ' data-p="' + esc(o.cn || o.ref) + '"' : '') + ' style="--c:' + (o.packed ? 'var(--green)' : 'var(--brand)') + '"><span class="prow-d"></span><div class="prow-m">' +
-        '<div class="prow-1"><b>' + esc(o.ref) + ' · ' + esc(o.name) + '</b></div>' +
-        '<div class="prow-2"><span class="mono">' + esc(o.cn) + (o.courier ? ' · ' + esc(o.courier) : '') + '</span></div>' +
-        '<div class="prow-2"><span>' + esc(items) + '</span></div><div class="prow-2"><span>' + esc([o.city, day(o.ms)].filter(Boolean).join(' · ')) + (o.packed ? ' · packed ' + esc(o.packed.at) + (o.packed.by ? ' by ' + esc(o.packed.by) : '') : '') + '</span></div></div>' +
-        (o.packed ? '<button class="btn mini pk-b" type="button" data-pu="' + esc(o.id) + '">Undo</button>' : '<button class="btn mini pri pk-b" type="button" data-pp="' + esc(o.id) + '"><i class="ti ti-check"></i>Packed</button>') + '</div>';
-    }).join('') + '</div>' : '<div class="card empty"><i class="ti ti-circle-check"></i>' + (PK.f === 'packed' ? 'No packed parcels waiting for the courier' : 'Nothing to pack · every booked parcel is packed') + '</div>') +
+  var all = PKD.orders || [], mine = all.filter(function (o) { return o.today; });
+  if (PK.f !== 'all') PK.f = 'today';
+  var list = PK.f === 'all' ? all : mine, per = {}, pcs = 0, open = can('parcels.view');
+  list.forEach(function (o) { o.items.forEach(function (x) { per[x.name] = (per[x.name] || 0) + x.qty; pcs += x.qty; }); });
+  var names = Object.keys(per).sort(function (a, b) { return per[b] - per[a]; });
+  el('panel').innerHTML = '<h3>Packing list</h3><p>' + list.length + ' order' + (list.length === 1 ? '' : 's') + ' · ' + pcs + ' piece' + (pcs === 1 ? '' : 's') + '</p>' +
+    '<p class="mnote">Confirmed orders not booked yet: get these ready. Booked parcels are on the courier\'s load sheet.</p>' +
+    '<div class="chips"><button class="chip' + (PK.f === 'today' ? ' on' : '') + '" data-pk="today" type="button">Today · ' + mine.length + '</button><button class="chip' + (PK.f === 'all' ? ' on' : '') + '" data-pk="all" type="button">All confirmed · ' + all.length + '</button></div>' +
+    (list.length ? '<div class="card"><div class="h"><b>Products to pack</b><span>' + names.length + '</span></div>' + names.map(function (n) { return '<div class="sp-dr"><span>' + esc(n) + '</span><span class="num">× ' + per[n] + '</span></div>'; }).join('') + '</div>' +
+      '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>Orders</b><span>' + list.length + '</span></div>' + list.map(function (o) {
+        return '<div class="prow"' + (open ? ' data-p="' + esc(o.ref) + '"' : '') + ' style="--c:var(--brand)"><span class="prow-d"></span><div class="prow-m">' +
+          '<div class="prow-1"><b>' + esc(o.ref) + ' · ' + esc(o.name) + '</b>' + (o.total ? '<span class="num">' + rs(o.total) + '</span>' : '') + '</div>' +
+          '<div class="prow-2"><span>' + esc(o.items.map(function (x) { return x.qty + 'x ' + x.name; }).join(', ')) + '</span></div>' +
+          '<div class="prow-2"><span>' + esc([o.city, o.date].filter(Boolean).join(' · ')) + '</span></div></div></div>';
+      }).join('') + '</div>'
+    : '<div class="card empty"><i class="ti ti-circle-check"></i>' + (PK.f === 'today' && all.length ? 'Nothing confirmed today · ' + all.length + ' older waiting' : 'No confirmed orders to pack') + '</div>') +
     '<div class="btns" style="margin-top:10px"><button class="btn" id="pkClose">Close</button></div>';
   if (!el('overlay').classList.contains('show')) openPanel(true);
   el('pkClose').onclick = closePanel;
   el('panel').querySelectorAll('[data-pk]').forEach(function (b) { b.onclick = function () { PK.f = b.getAttribute('data-pk'); drawPacking(); }; });
-  var set = function (id, packed, b) {
-    b.classList.add('wait');
-    api('appSetPacked', [TOKEN, [id], packed], function (r) { PKD = r.data; drawPacking(); toast(packed ? 'Packed · off the shelf' : 'Back to To pack'); },
-      function (e) { b.classList.remove('wait'); toast((e && e.message) || 'Not saved'); });
-  };
-  el('panel').querySelectorAll('[data-pp]').forEach(function (b) { b.onclick = function (ev) { ev.stopPropagation(); set(b.getAttribute('data-pp'), true, b); }; });
-  el('panel').querySelectorAll('[data-pu]').forEach(function (b) { b.onclick = function (ev) { ev.stopPropagation(); set(b.getAttribute('data-pu'), false, b); }; });
 }
 el('btnPack').onclick = fromMenu(openPacking);
 // ---------- Courier parcels not in ORDI (user 2026-11-19): booked straight in a courier portal → match them ----------
@@ -9586,7 +9576,7 @@ function openPartnerCash(store, dir) {
 // ---------- long screens fold (user 2026-11-09; Shopify Polaris, EU / design-system accordion guidance) ----------
 // A card of 200 px or more opens and closes by its heading, starts closed, several can be open, each person's choice stays on the
 // phone. Never folded: what needs action now, forms, a screen with only one big card. Home keeps its layout, Parcels and NDR have their own.
-var FOLD_MIN = 200, FOLD_NEVER = /^(To approve|To verify|Waiting for approval|Needs attention|To pack|Packed · waiting|Products to pack)/i, FOLD_OPEN = /^Settlement summary/i;
+var FOLD_MIN = 200, FOLD_NEVER = /^(To approve|To verify|Waiting for approval|Needs attention|To pack|Products to pack)/i, FOLD_OPEN = /^Settlement summary/i;
 function foldStore() { try { return JSON.parse(store('eh_fold') || '{}'); } catch (e) { return {}; } }
 function foldSet(n, closed) {
   n.classList.toggle('fold-closed', closed);
