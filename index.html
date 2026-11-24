@@ -9755,8 +9755,8 @@ function sugPick(o, mode) {
   }
   return { kind: 'best', pick: x, other: y, avoid: avoid };
 }
-function sugLine(c) {
-  return c.name + ': ' + (c.n ? c.rate + '% delivered' + (c.days != null ? ' · ' + c.days + ' days' : '') + (c.perDel != null ? ' · Rs ' + c.perDel.toLocaleString() + ' a delivered parcel' : '') + ' (' + c.n + (c.n === 1 ? ' parcel)' : ' parcels)') : 'no parcels here yet');
+function sugLine(c, mode) {
+  return c.name + ': ' + (c.n ? c.rate + '% delivered' + (mode === 'money' && c.lag != null ? ' · money in ~' + c.lag + ' days' : c.days != null ? ' · ' + c.days + ' days' : '') + (c.perDel != null ? ' · Rs ' + c.perDel.toLocaleString() + ' a delivered parcel' : '') + ' (' + c.n + (c.n === 1 ? ' parcel)' : ' parcels)') : 'no parcels here yet');
 }
 function sugBox(o, mode) {
   var p = sugPick(o, mode); if (!p) return '';
@@ -9766,10 +9766,15 @@ function sugBox(o, mode) {
   var h = '';
   if (warn) h += box('var(--sg-warn-bg)', 'var(--sg-warn)', 'Do not use ' + esc(warn) + ' here', '<span>' + esc(warn) + ' sent parcels back from ' + esc(o.city) + ' as Non-Service Area.</span>');
   if (p.kind === 'none') h += '';
-  else if (p.kind === 'try') h += box('var(--sg-grey-bg)', 'inherit', 'New city · try both', '<span>Not enough parcels yet (' + o.sug.min + ' of each needed). This one: <b>' + esc(p.pick.name) + '</b>, so both get a record.</span>');
-  else if (p.kind === 'either') h += box('var(--sg-grey-bg)', 'inherit', 'Either is fine · this one: ' + esc(p.pick.name), '<span>' + esc(sugLine(p.pick)) + '<br>' + esc(sugLine(p.other)) + '</span>' +
+  else if (p.kind === 'try') {
+    var have = o.sug.couriers.filter(function (c) { return !c.nsa && c.n; });
+    h += box('var(--sg-grey-bg)', 'inherit', have.length ? 'Not enough record yet · try both' : 'New city · try both',
+      '<span>' + (have.length ? esc(have.map(function (c) { return c.name + ' ' + c.n + (c.n === 1 ? ' parcel' : ' parcels') + ' (' + c.rate + '% delivered)'; }).join(' · ')) + '. ' : '') +
+      o.sug.min + ' of each are needed. This one: <b>' + esc(p.pick.name) + '</b>, so both get a record.</span>' + (have.length ? why : ''));
+  }
+  else if (p.kind === 'either') h += box('var(--sg-grey-bg)', 'inherit', 'Either is fine · this one: ' + esc(p.pick.name), '<span>' + esc(sugLine(p.pick, mode)) + '<br>' + esc(sugLine(p.other, mode)) + '</span>' +
     (p.explore ? '<span class="sg-n">1 in 5 such orders goes to the other courier, so its record stays fresh.</span>' : '') + why);
-  else h += box('var(--sg-ok-bg)', 'var(--sg-ok)', 'Book with ' + esc(p.pick.name), '<span>' + esc(sugLine(p.pick)) + (p.other ? '<br>' + esc(sugLine(p.other)) : '') + '</span>' +
+  else h += box('var(--sg-ok-bg)', 'var(--sg-ok)', 'Book with ' + esc(p.pick.name), '<span>' + esc(sugLine(p.pick, mode)) + (p.other ? '<br>' + esc(sugLine(p.other, mode)) : '') + '</span>' +
     ((p.thin || []).length ? '<span class="sg-n">' + esc(p.thin.map(function (c) { return c.name; }).join(', ')) + ': not enough parcels here yet</span>' : '') + why);
   if (cust && cust.ret) h += '<div class="sg-r">Customer: ' + cust.ret + ' of ' + cust.n + ' past orders came back · confirm on call or take an advance</div>';
   else if (cust && cust.del) h += '<div class="sg-n" style="margin-top:6px">Customer: ' + cust.n + ' order' + (cust.n === 1 ? '' : 's') + ' before, all delivered · last by ' + esc(cust.last) + '</div>';
@@ -9842,7 +9847,7 @@ function openCourierCity(city) {
       (cost ? '<div class="card"><div class="h"><b>What a delivered parcel costs us here</b></div><p class="mnote" style="margin:0">' + cost + ' (fee and tax, with the returned parcels spread over the delivered ones)</p></div>' : '') +
       (d.why.length ? '<div class="card"><div class="h"><b>Why parcels came back</b></div>' + d.why.map(function (w) { return '<div class="sp-dr"><span>' + esc(w.r) + '</span><span class="num">' + w.n + '</span></div>'; }).join('') + '</div>' : '') +
       (d.latest.length ? '<div class="card"><div class="h"><b>Latest parcels to ' + esc(d.city) + '</b></div>' + d.latest.map(function (x) {
-        var c = x.state === 'Delivered' ? 'var(--green)' : x.state === 'Returned' ? 'var(--red)' : 'var(--muted)';
+        var c = x.state === 'Delivered' ? 'var(--green)' : x.state === 'Returned' ? 'var(--red)' : x.state === 'Returning' ? 'var(--amber)' : 'var(--muted)';
         return '<div class="sp-dr" data-ccp="' + esc(x.cn) + '" style="cursor:pointer"><span>' + esc(x.ref + ' · ' + x.courier + ' · ' + x.days + ' days') + '</span><span style="color:' + c + ';font-weight:600">' + x.state + '</span></div>';
       }).join('') + '</div>' : '') +
       '<p class="mnote">Suggested by "' + SUG_BY[mode] + '". A courier with Non-Service Area here is never suggested. Needs ' + d.min + ' finished parcels of a courier here; the last 30 days count twice.</p>';
