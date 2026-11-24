@@ -1133,7 +1133,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 (function () {
   if (window.google && google.script) return;
   window.EH_PWA = true; // installed app: notifications are possible
-  window.EH_BUILD = '2026-11-23'; // shown at the bottom of the menu
+  window.EH_BUILD = '2026-11-24'; // shown at the bottom of the menu
   var API = "https://script.google.com/macros/s/AKfycbyqtyrClenCG1_iqTSDK5KhtFItfX6rUsYdIexwQ3qPFbSv9d1n8jy06ItjvWXXtB-I/exec", RELAY = "", relayOff = 0;
   // through the relay when there is one; if it fails, straight to Google and skip the relay for 10 min. A save goes
   // straight only when the relay could not be reached at all (never sent twice).
@@ -5324,11 +5324,13 @@ function renderFound() {
   var p = R.found, conds = (R.data && R.data.conditions) || ['Good – back to stock', 'Damaged', 'Item missing', 'Wrong parcel'];
   var h = '<div class="card found fade"><div class="pd-top"><div><h3>' + esc(p.name || p.order) + ' · ' + esc(p.order) + '</h3><p>' + esc(p.courier) + ' · ' + esc(p.cn) + ' · ' + esc(p.city) + '</p></div>' +
     '<span class="st" style="--c:' + (p.isReturn ? 'var(--red)' : 'var(--blue)') + '">' + esc({ RTO_DELIVERED: 'Returned by courier', RTO_INITIATED: 'On the way back', DELIVERED: 'Delivered', IN_TRANSIT: 'In transit', OUT_FOR_DELIVERY: 'Out for delivery', DELIVERY_ATTEMPTED: 'Delivery failed' }[p.status] || p.status) + '</span></div>' +
-    '<div class="found-items"><i class="ti ti-package"></i><span>' + esc(p.items) + '</span><b class="num">' + rs(p.cod) + '</b></div>';
+    (p.oldOrder ? '<div class="found-items"><i class="ti ti-arrow-back-up"></i><span><b>Old item of ' + esc(p.oldOrder) + ':</b> ' + esc(p.oldItems || 'see that order') + '</span></div>' +
+      '<small class="mnote" style="display:block;margin:2px 0 6px">Sent in its place: ' + esc(p.items) + ' (' + esc(p.order) + ')</small>'
+      : '<div class="found-items"><i class="ti ti-package"></i><span>' + esc(p.items) + '</span><b class="num">' + rs(p.cod) + '</b></div>');
   if (p.already) h += '<div class="tk ok">Already scanned: ' + esc(p.already.when) + ' · ' + esc(p.already.by) + ' · ' + esc(p.already.condition) + '</div>';
   else {
     if (p.swap) h += '<div class="tk">Trax replacement · the new parcel was delivered; this is the OLD item coming back. It goes back to stock as the goods of the order it came from.</div>' +
-      '<div class="fld" style="margin-top:10px"><label for="rswap">Old item from order</label><input id="rswap" placeholder="#EH…" autocomplete="off">' +
+      '<div class="fld" style="margin-top:10px"><label for="rswap">Old item from order</label><input id="rswap" placeholder="#EH…" autocomplete="off" value="' + esc(p.oldOrder || '') + '">' +
       ((p.prev || []).length ? '<div class="chips wrapc" id="rswapc" style="margin-top:6px">' + p.prev.map(function (o) { return '<button class="chip" type="button" data-o="' + esc(o.ref) + '" title="' + esc(o.items) + '">' + esc(o.ref) + '</button>'; }).join('') + '</div><small class="mnote">This customer\'s earlier delivered orders</small>' : '') + '</div>';
     else if (!p.isReturn) h += '<div class="tk">Note: courier status does not indicate a return (' + esc(p.status) + ')</div>';
     h += '<div class="fld" style="margin-top:10px"><label>Condition</label><div class="opts" id="rcond">' +
