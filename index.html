@@ -3998,7 +3998,7 @@ function waCompose(cn, preset) {
       (sub ? '<div class="wa-cr">' + sub + '</div>' : '') +
       '<div class="wa-bar"><input id="waMsg" class="wa-in3" placeholder="' + esc(a === 'later' ? 'e.g. office mein hai, 5 baje ke baad' : a === 'noans' ? 'e.g. bell ja rahi hai' : a === 'refuse' ? 'Why (optional)' : 'Message to ' + cour) + '" autocomplete="off">' +
         '<button type="button" class="wa-rb" id="waSend" aria-label="Send"' + (a ? '' : ' disabled') + '><i class="ti ti-' + (a === 'later' || a === 'noans' ? 'clock' : a === 'refuse' ? 'arrow-back-up' : 'send') + '"></i></button></div>' +
-      '<div class="wa-links"><button type="button" id="waNote">Note · only us</button>' + (c.wa ? '<a target="_blank" href="' + waLink(c.wa, '') + '">WhatsApp the customer</a>' : '') + '<button type="button" id="waClose" aria-label="Close"><i class="ti ti-x"></i></button></div></div>';
+      '<div class="wa-links">' + (c.wa ? '<a target="_blank" href="' + waLink(c.wa, '') + '">WhatsApp the customer</a>' : '') + '<button type="button" id="waClose" aria-label="Close"><i class="ti ti-x"></i></button></div></div>';
     var m = el('waMsg'); m.value = st.words || ''; m.oninput = function () { st.words = m.value; prev(); };
     el('pgBar').querySelectorAll('[data-wans]').forEach(function (b) { b.onclick = function () {
       var v = b.getAttribute('data-wans');
@@ -4013,7 +4013,6 @@ function waCompose(cn, preset) {
     el('pgBar').querySelectorAll('[data-wwr]').forEach(function (b) { b.onclick = function () { st.reason = st.reason === b.getAttribute('data-wwr') ? '' : b.getAttribute('data-wwr'); draw(); }; });
     el('waSend').onclick = function () { send(); };
     m.onkeydown = function (e) { if (e.key === 'Enter' && st.ans) send(); };
-    el('waNote').onclick = function () { saveNote(); };
     el('waClose').onclick = function () { openChat(cn); };
     prev();
   };
@@ -4065,16 +4064,24 @@ function waCompose(cn, preset) {
       openChat(cn); loadNdr(true);
     }, function (e) { Object.assign(c, JSON.parse(keep)); toast('Not saved: ' + ((e && e.message) || 'try again')); draw(); });
   };
-  var saveNote = function () {
-    var t = String((el('waMsg') && el('waMsg').value) || '').trim();
-    if (!t) { toast('Write the note in the box first'); return el('waMsg').focus(); }
-    var notes = (c.notes ? c.notes + '\n' : '') + niceDay(today) + ': ' + t, keep = c.notes;
-    c.notes = notes;
+  draw();
+}
+// an internal note on the case: never sent to the courier; shows in the chat as "Note · only us"
+function ndrAddNote(cn) {
+  var c = (N.data.cases || []).filter(function (x) { return x.cn === cn; })[0]; if (!c) return;
+  el('panel').innerHTML = '<h3>Note · only us</h3><p>Saved on the case for the team. ' + esc(c.courier || 'The courier') + ' never sees it.</p>' +
+    '<textarea id="nnTxt" rows="3" placeholder="e.g. Customer said talk to his brother after 6 PM" style="width:100%;box-sizing:border-box"></textarea>' +
+    '<div class="btns" style="margin-top:10px"><button class="btn" id="nnCancel" type="button">Cancel</button><button class="btn pri" id="nnSave" type="button"><i class="ti ti-device-floppy"></i>Save note</button></div>';
+  openPanel(); setTimeout(function () { if (el('nnTxt')) el('nnTxt').focus(); }, 200);
+  el('nnCancel').onclick = closePanel;
+  el('nnSave').onclick = function () {
+    var t = String(el('nnTxt').value || '').trim(); if (!t) { el('nnTxt').focus(); return; }
+    var notes = (c.notes ? c.notes + '\n' : '') + niceDay(pkDay(new Date())) + ': ' + t, keep = c.notes;
+    c.notes = notes; closePanel(); toast('Saving note…');
     api('saveAppNdrOutcome', [{ token: TOKEN, cn: cn, outcome: c.outcome || 'Not called yet', next: '', updated: '', reattempt: '', sent: c.sent || 'Not sent', notes: notes, says: c.says || '', call: false, callBack: c.callBack || 0 }],
-      function () { toast('Note saved · only us'); snap('ndr', N.data); openChat(cn); },
+      function () { toast('Note saved · only us'); snap('ndr', N.data); if (!el('page').hidden && el('chBox')) openChat(cn); },
       function (e) { c.notes = keep; toast('Not saved: ' + ((e && e.message) || 'try again')); });
   };
-  draw();
 }
 function waMenu(cn) {
   var c = (N.data.cases || []).filter(function (x) { return x.cn === cn; })[0]; if (!c) return;
@@ -4713,7 +4720,7 @@ function openChat(cn) {
   var bar = '<div class="wa-bar">' + (can('ndr.work') ? '<button type="button" class="wa-in2" data-wacomp="' + esc(cn) + '">What did the customer say?</button>' : '<span class="wa-in2 off">' + esc(c.courier) + ' · ' + esc(c.cn) + '</span>') +
     (can('ndr.work') && t && t.channel ? '<button type="button" class="wa-rb2" data-wr="' + esc(t.id) + '" data-wc="' + esc(c.courier) + '" aria-label="Note the courier reply"><i class="ti ti-message-reply"></i></button>' : '') +
     (phone ? '<a class="wa-rb" data-call="' + esc(cn) + '" href="' + telHref(phone) + '" aria-label="Call ' + esc(c.name) + '"><i class="ti ti-phone"></i></a>' : '') + '</div>';
-  var tag = '<button type="button" class="wa-hb" data-p3="' + esc(cn) + '" aria-label="Parcel details"><i class="ti ti-dots-vertical"></i></button>';
+  var tag = '<button type="button" class="wa-hb" data-p3="' + esc(cn) + '" aria-label="More options"><i class="ti ti-dots-vertical"></i></button>';
   var acts = waActions(c).filter(function (x) { return x[0] !== 'rec'; });
   var actBar = acts.length ? '<div class="wa-acts">' + acts.map(function (x) { return '<button type="button" class="btn mini" data-waa="' + x[0] + '" data-wav="' + esc(x[1]) + '" data-wacn2="' + esc(cn) + '"><i class="ti ti-' + x[2] + '"></i>' + esc(x[3]) + '</button>'; }).join('') + '</div>' : '';
   var subD = [c.ref, shortCity(c.city), c.attempts ? (left <= 0 ? 'no tries left' : left === 1 ? 'last try' : left + ' tries left') : ''].filter(Boolean).join(' · ');
@@ -4722,7 +4729,15 @@ function openChat(cn) {
   var sw = c.scan ? scanWords(c.scan) : '', bad = c.scan && /DELIVERY_ATTEMPTED|RTO_INITIATED/.test(c.scan.norm);
   el('pgSub').innerHTML = '<span class="ws-now' + (bad ? ' bad' : '') + '">' + esc(c.courier) + ': ' + esc(sw ? sw + ' · ' + scanWhen(c.scan.ms) : (niceReason(c.courierStatus) || c.courierStatus || 'no scan yet')) + '</span><span class="ws-d">' + esc(subD) + '</span>';
   var pgt = el('pgTitle').parentNode; pgt.classList.add('tap'); pgt.setAttribute('title', 'Tracking'); pgt.onclick = el('pgAv').onclick = function () { openTrack(cn); };
-  var dp = el('pgTag').querySelector('[data-p3]'); if (dp) dp.onclick = function () { openParcel(cn); PAGE_RETURN = function () { openChat(cn); }; };
+  // ⋮ = the rarely used things (user 2026-11-24: the note moved here from the answer box; nobody had written one yet)
+  var dp = el('pgTag').querySelector('[data-p3]'); if (dp) dp.onclick = function () {
+    showPick(cleanName(c.name) || c.ref, '', '<div class="sheet-list"><div class="sl" data-cm="parcel"><span><i class="ti ti-package"></i> Parcel details</span></div>' +
+      (can('ndr.work') ? '<div class="sl" data-cm="note"><span><i class="ti ti-note"></i> Add a note · only us</span></div>' : '') + '</div>', function (ev) {
+      var x = ev.target.closest('[data-cm]'); if (!x) return; closePick();
+      if (x.getAttribute('data-cm') === 'parcel') { openParcel(cn); PAGE_RETURN = function () { openChat(cn); }; }
+      else ndrAddNote(cn);
+    });
+  };
   var shown = '';
   var draw = function (r, fromKept) {
     var box = el('chBox'); if (!box || el('pgTitle').textContent !== (cleanName(c.name) || c.ref)) return;
