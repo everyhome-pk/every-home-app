@@ -9245,7 +9245,10 @@ function openMatchForm(b, pick) {
         (mk ? '<div class="card"><div class="h"><b>Products in this parcel</b></div>' + (lines.length ? lines.map(function (l, i) {
           return '<div class="sp-dr"><span>' + esc(l.title) + '</span><span class="num cb-q"><button class="btn mini" type="button" data-cbm="' + i + '" aria-label="Less">−</button><b>' + l.qty + '</b><button class="btn mini" type="button" data-cbp="' + i + '" aria-label="More">+</button></span></div>';
         }).join('') : '<div class="muted" style="padding:6px 0">No products yet · add what is in the parcel</div>') + '</div>' +
-          '<div class="fld"><label>Add a product</label><select id="cbAdd"><option value="">Choose a product</option>' + CBD.products.map(function (p, i) { return '<option value="' + i + '">' + esc(p.title) + '</option>'; }).join('') + '</select></div>' +
+          '<div class="fld"><label>Add a product</label><select id="cbAdd"><option value="">Choose a product</option>' + CBD.products.map(function (p, i) { return '<option value="' + i + '"' + (p.off ? ' data-sub="not active in ORDI · test / old product"' : '') + '>' + esc(p.title) + '</option>'; }).join('') + '<option value="__other">+ Other item (not in ORDI)</option></select></div>' +
+          '<div id="cbOth" class="card" hidden><div class="fld"><label for="cbOthN">Item name (as on the website)</label><input id="cbOthN" type="text" placeholder="e.g. Fridge Lock"></div>' +
+          '<div class="btns"><div class="fld" style="flex:1;margin:0"><label for="cbOthQ">Qty</label><input id="cbOthQ" type="text" inputmode="numeric" value="1"></div><button class="btn pri" id="cbOthGo" type="button" style="flex:1;align-self:flex-end">Add item</button></div>' +
+          '<small class="mnote">Goes on the Shopify order by its name. Stock: ORDI asks which product it is (Stock → order lines to link).</small></div>' +
           '<div class="fld"><label>Amount the courier collects (Rs)</label><input id="cbAmt" type="text" inputmode="decimal" value="' + collect + '"></div>' +
           '<p class="mnote">' + (b.amount ? esc(b.courier) + ' booked it for ' + rs(b.amount) + '. ' : '') + 'A new Shopify order is made for the same customer, tagged ' + esc(dec) + ', already fulfilled with this tracking number (no stock booked twice in Shopify). ' + esc(ord || 'The original order') + ' gets the tag ' + (dec === 'Reship' ? 'Reshipped' : 'Replacement sent') + '.</p>' : '') +
         '<div class="fld"><label>Note (optional)</label><input id="cbNote" type="text" placeholder="e.g. Trax NSA, sent by Leopards"></div>') +
@@ -9256,7 +9259,14 @@ function openMatchForm(b, pick) {
     if (el('cbOrd')) el('cbOrd').onchange = function () { var v = el('cbOrd').value.trim(); if (v !== ord) { ord = v; lines = linesOf(); draw(); } };
     el('panel').querySelectorAll('[data-cbm]').forEach(function (x) { x.onclick = function () { var i = +x.getAttribute('data-cbm'); lines[i].qty--; if (lines[i].qty <= 0) lines.splice(i, 1); draw(); }; });
     el('panel').querySelectorAll('[data-cbp]').forEach(function (x) { x.onclick = function () { lines[+x.getAttribute('data-cbp')].qty++; draw(); }; });
-    if (el('cbAdd')) { pickerize(el('cbAdd'), { title: 'Product' }); el('cbAdd').onchange = function () { var p = CBD.products[+el('cbAdd').value]; if (p) { lines.push({ title: p.title, qty: 1, variant: p.variant, price: p.price }); draw(); } }; }
+    if (el('cbAdd')) { pickerize(el('cbAdd'), { title: 'Product' }); el('cbAdd').onchange = function () {
+      if (el('cbAdd').value === '__other') { el('cbOth').hidden = false; el('cbOthN').focus(); return; }
+      var p = CBD.products[+el('cbAdd').value]; if (p) { lines.push({ title: p.title, qty: 1, variant: p.variant, price: p.price }); draw(); } }; }
+    if (el('cbOthGo')) el('cbOthGo').onclick = function () {
+      var n = el('cbOthN').value.trim(), q = Math.round(Number(el('cbOthQ').value) || 0);
+      if (!n) { toast('Write the item name'); return; } if (q < 1) { toast('Qty at least 1'); return; }
+      lines.push({ title: n, qty: q, variant: '', price: 0 }); draw();
+    };
     el('cbGo').onclick = function () {
       var f = { cn: b.cn, decision: dec, note: el('cbNote') ? el('cbNote').value : '' };
       if (dec !== 'Ignore') { f.order = el('cbOrd').value.trim().replace(/^([A-Za-z])/, '#$1').replace(/^##/, '#'); }
