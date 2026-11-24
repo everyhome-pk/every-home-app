@@ -349,6 +349,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   :root:not([data-theme=light]) .mdl .mh{background:#202C33!important}:root:not([data-theme=light]) .mdl .hc.kind{background:#00A884;color:#0B141A}:root:not([data-theme=light]) .cpin{border-color:#2A3942}:root:not([data-theme=light]) .cpin b{color:#00A884}}
 :root[data-theme=dark] .mdl{--wa:#00A884;--wa-d:#06CF9C;--wa-bar:#202C33;--wa-ink:#E9EDEF;--wa-mut:#8696A0}
 :root[data-theme=dark] .mdl .mh{background:#202C33!important}:root[data-theme=dark] .mdl .hc.kind{background:#00A884;color:#0B141A}:root[data-theme=dark] .cpin{border-color:#2A3942}:root[data-theme=dark] .cpin b{color:#00A884}
+.ccomp.busy .cic{opacity:.35;pointer-events:none;animation:pfb 1s ease-in-out infinite}@keyframes pfb{50%{opacity:.8}}
 </style>
 </head>
 <body>
@@ -882,17 +883,26 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     if (!it) return;
     e.preventDefault(); sendPhoto(it.getAsFile(), SEL);
   });
+  var PBUSY = false;
   function sendPhoto(f, id) {
     if (!f || !id) return;
     if (!/^image\//.test(f.type || '')) { toast('This file is not a photo'); return; }
+    // one upload at a time, and the drop box says what is happening (user 2026-11-24: one screenshot was sent 6 times)
+    if (PBUSY) { toast('Still uploading the last photo…'); return; }
+    PBUSY = true; var dzb = $('drop'); if (dzb) dzb.classList.add('busy');
+    var done = function () { PBUSY = false; var d2 = $('drop'); if (d2) d2.classList.remove('busy'); };
     toast('Uploading photo…');
     var url = URL.createObjectURL(f), img = new Image();
     img.onload = function () {
       var k = Math.min(1, 1600 / Math.max(img.width, img.height)), c = document.createElement('canvas');
       c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
-      post('appCpPhoto', [C, V, S, id, c.toDataURL('image/jpeg', 0.8), ls(NK)], function () { var x = find(id); if (x) x.photos++; toast('Photo uploaded'); render(); }, toast);
+      post('appCpPhoto', [C, V, S, id, c.toDataURL('image/jpeg', 0.8), ls(NK)], function (r) {
+        done(); var x = find(id);
+        if (r && r.same) { toast('This photo is already attached'); return; }
+        if (x) x.photos++; toast('Photo attached ✓'); render();
+      }, function (e) { done(); toast(e); });
     };
-    img.onerror = function () { toast('This file is not a photo'); };
+    img.onerror = function () { done(); toast('This file is not a photo'); };
     img.src = url;
   };
   // fresh data every 2 minutes while the page is open and nobody is typing
