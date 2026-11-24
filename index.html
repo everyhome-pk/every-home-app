@@ -247,7 +247,7 @@ body{overscroll-behavior-y:contain}
 .chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -16px 10px;padding:0 16px}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:none;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:500;cursor:pointer;font-family:inherit}
-.chip.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+.chip.on{background:#00857A;color:#fff;border-color:#00857A}:root[data-mode="dark"] .chip.on{background:#00A884;color:#0B141A;border-color:#00A884}
 .rc{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:12px;padding:10px 12px;margin-top:8px;cursor:pointer;font-family:inherit}
 .rc .dot{flex:none;width:18px;height:18px;border-radius:50%;border:2px solid var(--muted);margin-top:1px;box-sizing:border-box}
 .rc.on{border-color:var(--brand);box-shadow:inset 0 0 0 1px var(--brand)}.rc.on .dot{border:5px solid var(--brand)}
@@ -990,7 +990,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
     <h1 class="title">Returns</h1>
     <div class="scan">
       <i class="ti ti-barcode"></i>
-      <input id="rcode" placeholder="CN or order #" autocomplete="off" autocapitalize="characters" spellcheck="false">
+      <input id="rcode" placeholder="Scan or type to receive a return" autocomplete="off" autocapitalize="characters" spellcheck="false">
       <button class="scan-cam" id="rcamBtn" type="button" aria-label="Scan with camera"><i class="ti ti-camera"></i></button>
       <button class="btn pri" id="rgo" type="button">Find</button>
     </div>
@@ -1003,7 +1003,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
       <button class="scan-photo" id="scanPhoto" type="button"><i class="ti ti-photo"></i>Take a photo instead</button>
     </div>
     <div id="rfound"></div>
-    <div class="search"><i class="ti ti-search"></i><input id="rq" type="search" placeholder="Name, order # or tracking ID" autocomplete="off"></div>
+    <div class="search"><i class="ti ti-search"></i><input id="rq" type="search" placeholder="Search the lists below" autocomplete="off"></div>
     <div id="rview"><div class="sk" style="height:120px;margin-bottom:12px"></div><div class="sk" style="height:220px"></div></div>
   </section>
 </div>
@@ -1234,7 +1234,7 @@ var VIEW_MEM = {};
 function viewKeep(key, d) { VIEW_MEM[key] = d; try { store('ehv_' + key, JSON.stringify(d)); } catch (e) {} }
 function viewClear() { VIEW_MEM = {}; CHATS_AT = 0; try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf('ehv_') === 0) localStorage.removeItem(k); }); } catch (e) {} }
 // everything this app keeps on the phone for the user (views, tabs, stock, purchases): gone on Log out / a refused login
-function phoneClear() { viewClear(); try { Object.keys(localStorage).forEach(function (k) { if (/^(eh_s4_|eh_stk|eh_pur|eh_sh)/.test(k)) localStorage.removeItem(k); }); sessionStorage.removeItem('eh_view'); } catch (e) {} }
+function phoneClear() { viewClear(); try { Object.keys(localStorage).forEach(function (k) { if (/^(eh_s4_|eh_stk|eh_pur|eh_sh|eh_hdnet)/.test(k)) localStorage.removeItem(k); }); sessionStorage.removeItem('eh_view'); } catch (e) {} }
 function apiMem(key, fn, args, show, fail, skel) {
   var hit = VIEW_MEM[key];
   if (!hit) { try { hit = JSON.parse(store('ehv_' + key) || 'null'); if (hit) VIEW_MEM[key] = hit; } catch (e) { hit = null; } }
@@ -1579,7 +1579,7 @@ function openTrack(cn) {
   api('getAppParcelTimeline', [cn, TOKEN], function (ev) {
     if (!el('tlbox')) return;
     el('tlbox').innerHTML = '<div class="tl">' + (ev.length ? ev.map(function (x) {
-      return '<div class="tl-i"><div class="tl-d"></div><div><b>' + esc(x.status) + '</b><small>' + esc(x.when) + (x.place ? ' · ' + esc(x.place) : '') + (x.note ? ' · ' + esc(x.note) : '') + '</small>' + tlProof(x.proof) + '</div></div>';
+      return '<div class="tl-i"><div class="tl-d"></div><div><b>' + esc(String(x.status || '').replace(/^(Shipment|Replacement) - /i, '')) + '</b><small>' + esc(x.when) + (x.place ? ' · ' + esc(x.place) : '') + (x.note ? ' · ' + esc(x.note) : '') + '</small>' + tlProof(x.proof) + '</div></div>';
     }).join('') : '<small style="color:var(--muted)">No courier scans yet</small>') + '</div>';
   });
 }
@@ -1845,7 +1845,7 @@ function openParcel(key, given) {
       cash ? '<button class="pp-more" style="width:auto;padding:0" data-ppr="' + esc(p.cn) + '">Receipt ›</button>' : '') +
     (!p.done && can('cash.edit') && (p.due == null || p.due > 0) ? '<button class="btn" id="pdAdv" style="width:100%;padding:12px;margin-bottom:12px"><i class="ti ti-cash"></i>Record advance payment</button>' : '') +
     // any parcel to the courier's page (user 2026-11-14), also when it is not an NDR case
-    (p.cn && !p.done && p.stage !== 'cancelled' && can('ndr.work') ? '<button class="btn" id="pdAsk" style="width:100%;padding:12px;margin-bottom:12px"><i class="ti ti-send"></i>Ask ' + esc(p.courier || 'courier') + ' on their page</button>' : '') +
+    (p.cn && !p.done && p.stage !== 'cancelled' && can('ndr.work') && !ndr ? '<button class="btn" id="pdAsk" style="width:100%;padding:12px;margin-bottom:12px"><i class="ti ti-send"></i>Ask ' + esc(p.courier || 'courier') + ' on their page</button>' : '') +
     (p.rcv ? '<button class="btn" data-rh="' + esc(p.cn) + '" style="width:100%;padding:12px;margin-bottom:12px"><i class="ti ti-history"></i>Return history</button>' : '') +
     // the chat lives on its own page (user 2026-11-24: the parcel page showed the same chat again): an open case gets one line
     // that opens it, none when we came from it; a closed case (no chat page) keeps its history here
@@ -2368,7 +2368,7 @@ function renderHome(d) {
   var picture = k.booked ? '<div class="jr-stack">' + seg(dlv, 'var(--green)') + seg(onWay, 'var(--blue)') + seg(comingBack, 'var(--amber)') + seg(back, 'var(--red)') + '</div>' +
     '<div class="jr-tiles">' +
     '<div data-go="parcels:delivered"><b class="num" style="color:var(--green)">' + dlv + '</b><small>Delivered</small></div>' +
-    '<div data-go="parcels:moving"><b class="num" style="color:var(--blue)">' + onWay + '</b><small>In transit' + (lateAll ? ' · <i class="late-t">' + lateAll + ' late</i>' : '') + '</small></div>' +
+    '<div data-go="parcels:moving"><b class="num" style="color:var(--blue)">' + onWay + '</b><small>In transit' + (lateAll ? '<i class="late-t" style="display:block">' + lateAll + ' late</i>' : '') + '</small></div>' +
     '<div data-go="parcels:comingback"><b class="num" style="color:var(--amber)">' + comingBack + '</b><small>Returning</small></div>' +
     '<div data-go="parcels:returned"><b class="num" style="color:var(--red)">' + back + '</b><small>Returned</small></div></div>' : '';
   var group = function (title, keys) {
@@ -2457,9 +2457,10 @@ function homeCodLine(c) {
 function homeCards(d) {
   var k = d.kpis, p = d.prev, c = d.cash || {};
   var dlt = function (cur, prev) { if (prev == null || !prev) return ''; var x = Math.round((cur - prev) / prev * 100); return '<em class="' + (x >= 0 ? 'up' : 'down') + '">' + (x >= 0 ? '▲ ' : '▼ ') + Math.abs(x) + '% vs ' + esc(d.prevLabel || 'before') + '</em>'; };
-  var cod = '<div><small>COD to receive</small><b class="num">' + rs(c.pending || 0) + '</b><span>' + esc(homeCodLine(c)) + '</span></div>';
+  var cod = '<div><small>COD to receive' + (d.month && d.month !== 'all' ? ' · ' + esc(d.monthLabel || 'this period') : d.range ? ' · this period' : '') + '</small><b class="num">' + rs(c.pending || 0) + '</b><span>' + esc(homeCodLine(c)) + '</span></div>';
   var tall;
-  if (can('finance.view')) tall = '<div><small id="hdNetL">Net profit</small><b class="num" id="hdNet">' + (HD.net != null && HD.netFor === homePnlPeriod(d) ? (HD.net < 0 ? '− ' : '') + rs(Math.abs(HD.net)) : '…') + '</b><span id="hdExp" hidden></span></div>' + cod;
+  if (can('finance.view')) tall = '<div><small id="hdNetL">Net profit</small><b class="num" id="hdNet">' + (function () { if (HD.net == null) { try { var k = JSON.parse(localStorage.getItem('eh_hdnet') || 'null'); if (k && k.p === homePnlPeriod(d)) { HD.net = k.v; HD.netFor = k.p; } } catch (e) {} }
+      return HD.net != null && HD.netFor === homePnlPeriod(d) ? (HD.net < 0 ? '− ' : '') + rs(Math.abs(HD.net)) : '…'; })() + '</b><span id="hdExp" hidden></span></div>' + cod;
   else if (can('cash.view')) tall = '<div><small>Net payout</small><b class="num">' + rs(c.net || 0) + '</b></div>' + cod;
   else tall = '<div><small>Shipped</small><b class="num">' + k.booked + '</b></div><div><small>On the way</small><b class="num">' + k.onTheWay + '</b><span>' + k.notBooked + ' not booked yet</span></div>';
   var tallGo = can('finance.view') ? 'pnl' : can('cash.view') ? 'cash' : 'parcels:moving';
@@ -2669,7 +2670,8 @@ function homeTrend(d) {
     else dl = '<span class="hd-dl ' + tone + '">' + (ch === 0 ? '' : up ? '▲ ' : '▼ ') + Math.abs(ch) + (cur.pc ? ' pts' : '%') + '</span><span class="hd-vs">vs ' + esc(hdWindowName(cur, pts, d)) + '</span>';
   }
   var sub = one ? hdLabel(one) : cur.pc ? 'delivered of finished' : 'total · ' + HD_BY_NAME[hdBy(hdWin(rg, d))] + ' chart';
-  var head = '<div class="hd-tv"><b class="num">' + fmtV(one ? (pts.filter(function (x) { return x.m === one; })[0] || {}).v : tot) + '</b><span>' + esc(sub) + '</span></div>' + (dl && !one ? '<div class="hd-cmp">' + dl + '</div>' : '');
+  var dupCard = cur.k === 'profit' && rg === 'period' && !one && can('finance.view'); // the card above already says it
+  var head = dupCard ? (dl ? '<div class="hd-cmp">' + dl + '</div>' : '') : '<div class="hd-tv"><b class="num">' + fmtV(one ? (pts.filter(function (x) { return x.m === one; })[0] || {}).v : tot) + '</b><span>' + esc(sub) + '</span></div>' + (dl && !one ? '<div class="hd-cmp">' + dl + '</div>' : '');
   var vals = pts.concat(prev || []).map(function (x) { return x.v; }).filter(function (v) { return v != null; });
   var segBar = '<div class="hd-seg">' + all.map(function (x) { return '<button type="button" class="' + (x.k === cur.k ? 'on' : '') + '" data-ht="' + x.k + '">' + x.l + '</button>'; }).join('') + '</div>';
   if (!vals.some(function (v) { return v; })) return '<div class="hd-trend">' + top + segBar + head + '<div class="empty" style="padding:26px 0">No ' + esc(cur.l.toLowerCase()) + ' in this window yet</div></div>';
@@ -2792,7 +2794,7 @@ function homeDashWire(d) {
   HD.redraw = function () { if (el('hdTrend') && el('hdSvg') && Math.abs(Number(el('hdSvg').getAttribute('data-w')) - (el('hdTrend').clientWidth - 28)) > 8) { el('hdTrend').innerHTML = homeTrend(d); wireTrend(); } };
   setTimeout(HD.redraw, 0);
   homePnl(d, function (p) {
-    HD.net = p.net; HD.netFor = homePnlPeriod(d); HD.pnlSeries = p.series || []; HD.pnl90 = p.days90 || []; HD.pnlMonths = (p.trend || []).map(function (x) { return { k: x.month, net: x.net, ads: x.ads, sales: x.sales }; });
+    HD.net = p.net; HD.netFor = homePnlPeriod(d); try { localStorage.setItem('eh_hdnet', JSON.stringify({ p: HD.netFor, v: HD.net })); } catch (e) {} HD.pnlSeries = p.series || []; HD.pnl90 = p.days90 || []; HD.pnlMonths = (p.trend || []).map(function (x) { return { k: x.month, net: x.net, ads: x.ads, sales: x.sales }; });
     if (el('hdNet')) el('hdNet').textContent = (p.net < 0 ? '− ' : '') + rs(Math.abs(p.net));
     homeNetLines(p);
     if (el('hdTrend')) { el('hdTrend').innerHTML = homeTrend(d); wireTrend(); }
@@ -3178,7 +3180,8 @@ function renderParcels() {
   var groups = {};
   shown.forEach(function (p) { var k = p.ms ? pkDay(new Date(p.ms)) : ''; if (!groups[k]) { groups[k] = []; order.push(k); } groups[k].push(p); });
   var dayLabel = function (k) { if (!k) return 'NO DATE'; var t = niceDay(k).toUpperCase(); return k === today ? 'TODAY · ' + t : k === yday ? 'YESTERDAY · ' + t : t; };
-  el('plist').innerHTML = '<div class="psum"><span><b class="num">' + list.length + '</b> parcels</span><span><b class="num">' + rs(cod) + '</b> COD</span></div>' +
+  var hidC = P.filter === 'all' ? found.filter(function (p) { return p.stage === 'cancelled'; }).length : 0;
+  el('plist').innerHTML = '<div class="psum"><span><b class="num">' + list.length + '</b> parcels' + (hidC ? ' <small style="color:var(--muted)">· ' + hidC + ' cancelled not shown</small>' : '') + '</span><span><b class="num">' + rs(cod) + '</b> COD</span></div>' +
     order.map(function (k) {
       return '<div class="pday"><span>' + dayLabel(k) + '</span><span class="num">' + days[k] + '</span></div><div class="plist-box">' + groups[k].map(parcelRow).join('') + '</div>';
     }).join('') + moreBtn('pmore', shown.length, list.length);
@@ -3310,7 +3313,7 @@ function parcelRow(p) {
   var call = (p.stage === 'ndr' || p.stage === 'pending') && p.phone ? '<a class="prow-call" href="' + telHref(p.phone) + '" aria-label="Call"><i class="ti ti-phone"></i></a>' : '';
   if ((p.stage === 'pending' || p.stage === 'confirmed') && can('orders.tag') && p.ref) call = '<span class="prow-acts"><button class="prow-call" type="button" data-tagref="' + esc(p.ref) + '" aria-label="Change tags"><i class="ti ti-tag"></i></button>' + call + '</span>';
   return '<div class="prow" data-p="' + esc(p.cn || p.ref) + '" style="--c:' + s[1] + '"><span class="prow-d"></span><div class="prow-m">' +
-    '<div class="prow-1"><b>' + esc(p.name || p.ref) + '</b><span class="num">' + rs(p.total) + '</span></div>' +
+    '<div class="prow-1"><b>' + esc(cleanName(p.name) || p.ref) + '</b><span class="num">' + rs(p.total) + '</span></div>' +
     '<div class="prow-2"><span>' + [esc(p.ref) + (/^Draft/.test(p.src || '') ? ' · WhatsApp' : '') + (p.cn ? '<i class="pcn"> · ' + esc(p.cn) + '</i>' : ''), esc(p.city), esc(p.courier)].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + s[1] + '">' + (STAGE_SHORT[p.stage] || s[0]) + '</span></div>' +
     (issue ? '<div class="prow-3"><i class="ti ti-alert-circle"></i>' + esc(issue) + '</div>' : '') +
     // customer record while the parcel is still open (before it is delivered / returned / cancelled)
@@ -3941,7 +3944,10 @@ function waRow(c, pinned) {
   var urgent = sl === 'premature' || sl === 'rtostop', stopAsked = t && t.type === 'stop';
   var col = WA_COL[c.courier] || '#54656F', lastMs = Math.max(c.failedMs || 0, c.lastCallMs || 0, (t && t.sentMs) || 0, urgent && c.scan ? c.scan.ms || 0 : 0);
   var prev;
+  // the courier asks us what to do (Trax "Shipper Advise Requested", user 2026-11-24): our answer is needed
+  var advice = c.scan && /shipper advi[sc]e/i.test(c.scan.raw || '') && !(t && t.sentMs && t.sentMs > c.scan.ms);
   if (call) prev = '<i class="wa-call">' + esc(call.by.split(' ')[0]) + ' is calling…</i>';
+  else if (advice) prev = '<b class="wa-red">' + esc(c.courier) + ' asks you</b> · deliver again or return it?';
   else if (urgent && !stopAsked) prev = '<b class="wa-red">Urgent</b> · ' + esc(sl === 'premature' ? c.courier + ' is returning it early · stop it'
     : c.courier + ' started the return' + (/receive|reattempt|address/i.test(c.outcome || '') ? ' · customer wants it' : ' · it can still be stopped'));
   else if (t && (t.status || t.reply) && !noActTicket(t)) prev = '<b>' + esc(c.courier) + ':</b> ' + esc([t.status, t.reply].filter(Boolean).join(' – '));
@@ -5432,7 +5438,7 @@ function recvCard(r) {
   var cs = r.couriers.filter(function (c) { return c.n; });
   if (!cs.length) return '';
   var tot = cs.reduce(function (a, c) { return a + c.total; }, 0), edit = can('cash.edit');
-  return '<div class="card rc"><div class="h"><b>Courier receivables</b><span>' + rs(tot) + '</span></div><small class="mnote" style="display:block;margin:-6px 0 6px">All delivered parcels not paid yet · any period</small>' +
+  return '<div class="card rc"><div class="h"><b>Courier receivables</b></div><small class="mnote" style="display:block;margin:-6px 0 6px">All delivered parcels not paid yet · any period</small>' +
     cs.map(function (c) {
       var col = c.late ? 'var(--red)' : 'var(--amber)', ageT = c.age.reduce(function (a, x) { return a + x; }, 0) || 1;
       return '<div class="rc-c"><div class="prow in" data-owe="' + esc(c.courier) + '" style="--c:' + col + '"><span class="prow-d"></span><div class="prow-m">' +
@@ -5781,7 +5787,7 @@ function renderReturns() {
     var st = w.swap ? (w.back ? ['Replacement · old item back', 'var(--red)'] : w.atOrigin ? ['Replacement · old item at local office', 'var(--amber)'] : w.late ? ['Replacement · no update ' + w.days + 'd', 'var(--red)'] : ['Replacement · old item coming', 'var(--blue)'])
       : w.back ? ['Returned by courier', 'var(--red)'] : w.atOrigin ? ['At local office', 'var(--amber)'] : w.late ? ['No update ' + w.days + 'd', 'var(--red)'] : ['On the way back', 'var(--blue)'];
     return '<div class="prow' + (act ? '' : ' dim') + '" data-p="' + esc(w.cn || w.order) + '" style="--c:' + st[1] + '"><span class="prow-d"></span><div class="prow-m">' +
-      '<div class="prow-1"><b>' + esc(w.name || w.order) + '</b>' + (w.days != null ? '<span class="num" style="color:var(--muted);font-weight:500">' + w.days + 'd</span>' : '') + '</div>' +
+      '<div class="prow-1"><b>' + esc(cleanName(w.name) || w.order) + '</b>' + (w.days != null ? '<span class="num" style="color:var(--muted);font-weight:500">' + w.days + 'd</span>' : '') + '</div>' +
       '<div class="prow-2"><span>' + [esc(w.order), esc(w.courier), esc(w.items)].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + st[1] + '">' + st[0] + '</span></div>' + (w.late && w.ask ? '<div class="prow-3" style="color:var(--muted)">' + esc(rAskLine(w)) + '</div>' : '') + '</div>' +
       (act ? '<button class="btn prow-btn" data-pick="' + esc(w.cn) + '"><i class="ti ti-scan"></i>Receive</button>' : '') +
       (w.late && rAskWays(w, R.data).length ? '<button class="btn prow-btn" data-rask="' + esc(w.cn) + '"><i class="ti ti-send"></i>Ask courier</button>' : '') + '</div>';
@@ -5804,7 +5810,7 @@ function renderReturns() {
     (recent.length ? '<div class="plist-box">' + recent.slice(0, rlim).map(function (r) {
       var c = r.good ? 'var(--green)' : 'var(--red)';
       return '<div class="prow" data-rh="' + esc(r.cn || r.order) + '" style="--c:' + c + '"><span class="prow-d"></span><div class="prow-m">' +
-        '<div class="prow-1"><b>' + esc(r.name || r.order) + '</b></div>' +
+        '<div class="prow-1"><b>' + esc(cleanName(r.name) || r.order) + '</b></div>' +
         '<div class="prow-2"><span>' + [esc(r.order), esc(r.when), esc(r.by)].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + c + '">' + esc(r.condition.split(' –')[0]) + '</span></div></div></div>';
     }).join('') + '</div>' + (recent.length > rlim ? '<button class="btn more" id="rmore">See more scans</button>' : '') : '<div class="card empty">' + (rq ? 'Nothing matches' : 'No scans yet') + '</div>');
   el('rview').innerHTML = h;
