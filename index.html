@@ -925,6 +925,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 .mr-t.cnt td{padding:9px 8px}.mr-box{display:inline-block;width:70px;height:22px;border:1px solid #9AA8A5;border-radius:4px;vertical-align:middle}.mr-box.w{width:140px}
 .cl-cond{margin:6px 0 2px;font-size:14px}.cl-ph{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.cl-img{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:120px;height:120px;border-radius:12px;border:1px solid var(--line);background:var(--bg2,#f3f4f6);color:var(--muted);font:inherit;font-size:12px;text-decoration:none;overflow:hidden;position:relative;cursor:pointer;padding:0}.cl-img img{width:100%;height:100%;object-fit:cover}.cl-img img+span{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);color:#fff;padding:2px 0;text-align:center}.cl-img.none{cursor:default}.cl-img .ti{font-size:22px}.cl-st{margin-top:10px;font-size:13px}
 .cpu-sent{display:block;font-size:11.5px;color:var(--green);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:root{--sg-ok:#00665E;--sg-ok-bg:#E6F4F2;--sg-warn:#8A4A00;--sg-warn-bg:#FDF1E3;--sg-grey-bg:#EEF1F1}:root[data-mode="dark"]{--sg-ok:#5FD6C3;--sg-ok-bg:#12302C;--sg-warn:#F5B46A;--sg-warn-bg:#33240F;--sg-grey-bg:#1E2828}.pk-o{border-bottom:1px solid var(--line)}.pk-o:last-child{border-bottom:0}.sg{padding:0 14px 12px 30px}.sg-b{border-radius:12px;padding:9px 11px;display:flex;flex-direction:column;gap:4px;font-size:12.5px;line-height:1.45;margin-top:6px}.sg-b b{font-size:13.5px}.sg-why{align-self:flex-start;background:none;border:0;padding:2px 0;color:var(--brand);font:inherit;font-weight:600;cursor:pointer}.sg-n{display:block;font-size:12px;color:var(--muted)}.sg-r{margin-top:6px;font-size:12.5px;color:var(--red)}.sg-mode{display:flex;flex-direction:column;gap:6px;margin:10px 0}.sg-mode>span{font-size:12px;font-weight:600;color:var(--muted)}.sg-seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;background:var(--line);border-radius:22px;padding:4px}.sg-seg button{height:34px;border:0;border-radius:18px;background:transparent;color:inherit;font:inherit;font-size:12.5px;cursor:pointer}.sg-seg button.on{background:var(--brand);color:#fff;font-weight:600}.sg-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px}.sg-t{background:var(--card,#fff);border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:4px}.sg-t.on{border:2px solid var(--brand)}.sg-t small{font-size:11.5px;font-weight:700;color:var(--sg-ok)}.sg-t b{font-size:15px}.sg-t em{font-style:normal;font-size:24px;font-weight:700}.sg-t span{font-size:12.5px;color:var(--muted);line-height:1.5}
 </style>
 <link rel="manifest" href="ordi.webmanifest">
 <link rel="icon" href="ordi-192.png">
@@ -9185,7 +9186,7 @@ function openFind() {
 el('btnFind').onclick = openFind;
 
 // ---------- packing list (user 2026-11-09): confirmed orders not booked yet, what to take off the shelf, then order by order ----------
-var PK = { f: 'today' };
+var PK = { f: 'today', v: '' };
 // (user 2026-11-20: back to confirmed orders — booked parcels are on the courier's load sheet in the packer's hand)
 var PKD = null;
 function openPacking() {
@@ -9194,27 +9195,122 @@ function openPacking() {
   api('getAppPacking', [TOKEN], function (d) { PKD = d; var h = el('panel').querySelector('h3'); if (h && /Packing list/.test(h.textContent)) drawPacking(); },
     function (e) { if (!PKD) { el('panel').innerHTML = '<h3>Packing list</h3><div class="card empty">' + esc((e && e.message) || 'Could not load') + '</div><div class="btns"><button class="btn" id="pkClose">Close</button></div>'; el('pkClose').onclick = closePanel; } });
 }
+// Courier suggestion per confirmed order (user 2026-11-24; study: Shiprocket CORE, ClickPost allocation). The server gives
+// each city's record (AppSuggest.js); the phone picks by the store's choice: most delivered / cheapest / fastest money.
+var SUG_BY = { delivered: 'Most delivered', cheap: 'Cheapest', money: 'Fastest money' };
+function sugPick(o, mode) {
+  var s = o.sug; if (!s) return null;
+  var ok = s.couriers.filter(function (c) { return !c.nsa; }), avoid = s.couriers.filter(function (c) { return c.nsa; });
+  var ready = ok.filter(function (c) { return c.n >= s.min; });
+  var score = function (c) { return mode === 'cheap' ? (c.perDel == null ? 1e9 : c.perDel) : mode === 'money' ? (c.lag == null ? 99 : c.lag) : -c.rate; };
+  var cmp = function (x, y) { return score(x) - score(y) || (x.days || 99) - (y.days || 99) || y.rate - x.rate; };
+  if (!ok.length) return { kind: 'none', avoid: avoid };
+  if (!ready.length) return { kind: 'try', pick: ok.slice().sort(function (x, y) { return x.n - y.n || x.last - y.last; })[0], avoid: avoid };
+  ready.sort(cmp);
+  if (ready.length === 1) return { kind: 'best', pick: ready[0], thin: ok.filter(function (c) { return c !== ready[0]; }), avoid: avoid };
+  var x = ready[0], y = ready[1];
+  var close = mode === 'cheap' ? (x.perDel != null && y.perDel != null && Math.abs(x.perDel - y.perDel) <= 0.05 * Math.max(x.perDel, y.perDel))
+    : mode === 'money' ? Math.abs((x.lag || 0) - (y.lag || 0)) < 1 : Math.abs(x.rate - y.rate) < 3;
+  if (close) {
+    var h = 0; String(o.id).split('').forEach(function (ch) { h = (h * 31 + ch.charCodeAt(0)) % 997; });
+    return { kind: 'either', pick: h % 5 === 0 ? y : x, other: h % 5 === 0 ? x : y, explore: h % 5 === 0, avoid: avoid };
+  }
+  return { kind: 'best', pick: x, other: y, avoid: avoid };
+}
+function sugLine(c) {
+  return c.name + ': ' + (c.n ? c.rate + '% delivered' + (c.days != null ? ' · ' + c.days + ' days' : '') + (c.perDel != null ? ' · Rs ' + c.perDel.toLocaleString() + ' a delivered parcel' : '') + ' (' + c.n + (c.n === 1 ? ' parcel)' : ' parcels)') : 'no parcels here yet');
+}
+function sugBox(o, mode) {
+  var p = sugPick(o, mode); if (!p) return '';
+  var cust = o.sug.cust, warn = (p.avoid || []).map(function (c) { return c.name; }).join(', ');
+  var box = function (bg, ink, head, body) { return '<div class="sg-b" style="background:' + bg + '"><b style="color:' + ink + '">' + head + '</b>' + body + '</div>'; };
+  var why = '<button type="button" class="sg-why" data-pkcity="' + esc(o.city) + '">Why? See ' + esc(o.city) + ' ›</button>';
+  var h = '';
+  if (warn) h += box('var(--sg-warn-bg)', 'var(--sg-warn)', 'Do not use ' + esc(warn) + ' here', '<span>' + esc(warn) + ' sent parcels back from ' + esc(o.city) + ' as Non-Service Area.</span>');
+  if (p.kind === 'none') h += '';
+  else if (p.kind === 'try') h += box('var(--sg-grey-bg)', 'inherit', 'New city · try both', '<span>Not enough parcels yet (' + o.sug.min + ' of each needed). This one: <b>' + esc(p.pick.name) + '</b>, so both get a record.</span>');
+  else if (p.kind === 'either') h += box('var(--sg-grey-bg)', 'inherit', 'Either is fine · this one: ' + esc(p.pick.name), '<span>' + esc(sugLine(p.pick)) + '<br>' + esc(sugLine(p.other)) + '</span>' +
+    (p.explore ? '<span class="sg-n">1 in 5 such orders goes to the other courier, so its record stays fresh.</span>' : '') + why);
+  else h += box('var(--sg-ok-bg)', 'var(--sg-ok)', 'Book with ' + esc(p.pick.name), '<span>' + esc(sugLine(p.pick)) + (p.other ? '<br>' + esc(sugLine(p.other)) : '') + '</span>' +
+    ((p.thin || []).length ? '<span class="sg-n">' + esc(p.thin.map(function (c) { return c.name; }).join(', ')) + ': not enough parcels here yet</span>' : '') + why);
+  if (cust && cust.ret) h += '<div class="sg-r">Customer: ' + cust.ret + ' of ' + cust.n + ' past orders came back · confirm on call or take an advance</div>';
+  else if (cust && cust.del) h += '<div class="sg-n" style="margin-top:6px">Customer: ' + cust.n + ' order' + (cust.n === 1 ? '' : 's') + ' before, all delivered · last by ' + esc(cust.last) + '</div>';
+  return h;
+}
 function drawPacking() {
   var all = PKD.orders || [], mine = all.filter(function (o) { return o.today; });
   if (PK.f !== 'all') PK.f = 'today';
-  var list = PK.f === 'all' ? all : mine, per = {}, pcs = 0, open = can('parcels.view');
+  var list = PK.f === 'all' ? all : mine, per = {}, pcs = 0, open = can('parcels.view'), mode = PKD.sugBy || 'delivered';
+  var hasSug = all.some(function (o) { return o.sug; });
   list.forEach(function (o) { o.items.forEach(function (x) { per[x.name] = (per[x.name] || 0) + x.qty; pcs += x.qty; }); });
   var names = Object.keys(per).sort(function (a, b) { return per[b] - per[a]; });
+  var card = function (o) {
+    return '<div class="pk-o"><div class="prow"' + (open ? ' data-p="' + esc(o.ref) + '"' : '') + ' style="--c:var(--brand)"><span class="prow-d"></span><div class="prow-m">' +
+      '<div class="prow-1"><b>' + esc(o.ref) + ' · ' + esc(o.name) + '</b>' + (o.total ? '<span class="num">' + rs(o.total) + '</span>' : '') + '</div>' +
+      '<div class="prow-2"><span>' + esc(o.items.map(function (x) { return x.qty + 'x ' + x.name; }).join(', ')) + '</span></div>' +
+      '<div class="prow-2"><span>' + esc([o.city, o.date].filter(Boolean).join(' · ')) + '</span></div></div></div>' +
+      (o.sug ? '<div class="sg">' + sugBox(o, mode) + '</div>' : '') + '</div>';
+  };
+  // By courier: today's (or all) orders grouped by the suggested courier
+  var groups = function () {
+    var g = {}, order = [];
+    list.forEach(function (o) {
+      var p = sugPick(o, mode), k = !p || p.kind === 'none' || p.kind === 'try' ? 'Check first' : p.kind === 'either' ? 'Either is fine' : 'Book with ' + p.pick.name;
+      if (!g[k]) { g[k] = []; order.push(k); } g[k].push(o);
+    });
+    order.sort(function (a, b) { return (/^Book/.test(b) ? 2 : /^Either/.test(b) ? 1 : 0) - (/^Book/.test(a) ? 2 : /^Either/.test(a) ? 1 : 0) || g[b].length - g[a].length; });
+    return order.map(function (k) {
+      return '<div class="card"><div class="h"><b' + (/^Book/.test(k) ? ' style="color:var(--sg-ok)"' : /^Check/.test(k) ? ' style="color:var(--sg-warn)"' : '') + '>' + esc(k) + '</b><span>' + g[k].length + ' order' + (g[k].length === 1 ? '' : 's') + '</span></div>' +
+        '<p class="mnote" style="margin:0">' + g[k].map(function (o) { var p = sugPick(o, mode); return esc(o.ref + ' ' + o.city + (p && p.kind === 'try' ? ' (new city · try ' + p.pick.name + ')' : '')); }).join(' · ') + '</p></div>';
+    }).join('') + '<p class="mnote">Book each group in that courier\'s portal. ORDI does not book by itself.</p>';
+  };
+  var modeBar = hasSug ? (can('users.manage')
+    ? '<div class="sg-mode"><span>Suggest by</span><div class="sg-seg">' + Object.keys(SUG_BY).map(function (k) { return '<button type="button" class="' + (k === mode ? 'on' : '') + '" data-sgby="' + k + '">' + SUG_BY[k] + '</button>'; }).join('') + '</div></div>'
+    : '<p class="mnote">Courier suggestion: ' + SUG_BY[mode] + ' · from our own parcels of the last 90 days</p>') : '';
   el('panel').innerHTML = '<h3>Packing list</h3><p>' + list.length + ' order' + (list.length === 1 ? '' : 's') + ' · ' + pcs + ' piece' + (pcs === 1 ? '' : 's') + '</p>' +
     '<p class="mnote">Confirmed orders not booked yet: get these ready. Booked parcels are on the courier\'s load sheet.</p>' +
-    '<div class="chips"><button class="chip' + (PK.f === 'today' ? ' on' : '') + '" data-pk="today" type="button">Today · ' + mine.length + '</button><button class="chip' + (PK.f === 'all' ? ' on' : '') + '" data-pk="all" type="button">All confirmed · ' + all.length + '</button></div>' +
-    (list.length ? '<div class="card"><div class="h"><b>Products to pack</b><span>' + names.length + '</span></div>' + names.map(function (n) { return '<div class="sp-dr"><span>' + esc(n) + '</span><span class="num">× ' + per[n] + '</span></div>'; }).join('') + '</div>' +
-      '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>Orders</b><span>' + list.length + '</span></div>' + list.map(function (o) {
-        return '<div class="prow"' + (open ? ' data-p="' + esc(o.ref) + '"' : '') + ' style="--c:var(--brand)"><span class="prow-d"></span><div class="prow-m">' +
-          '<div class="prow-1"><b>' + esc(o.ref) + ' · ' + esc(o.name) + '</b>' + (o.total ? '<span class="num">' + rs(o.total) + '</span>' : '') + '</div>' +
-          '<div class="prow-2"><span>' + esc(o.items.map(function (x) { return x.qty + 'x ' + x.name; }).join(', ')) + '</span></div>' +
-          '<div class="prow-2"><span>' + esc([o.city, o.date].filter(Boolean).join(' · ')) + '</span></div></div></div>';
-      }).join('') + '</div>'
+    '<div class="chips"><button class="chip' + (PK.f === 'today' ? ' on' : '') + '" data-pk="today" type="button">Today · ' + mine.length + '</button><button class="chip' + (PK.f === 'all' ? ' on' : '') + '" data-pk="all" type="button">All confirmed · ' + all.length + '</button>' +
+    (hasSug ? '<button class="chip' + (PK.v === 'courier' ? ' on' : '') + '" data-pkv="1" type="button"><i class="ti ti-truck-delivery"></i> By courier</button>' : '') + '</div>' + modeBar +
+    (list.length ? (PK.v === 'courier' && hasSug ? groups() :
+      '<div class="card"><div class="h"><b>Products to pack</b><span>' + names.length + '</span></div>' + names.map(function (n) { return '<div class="sp-dr"><span>' + esc(n) + '</span><span class="num">× ' + per[n] + '</span></div>'; }).join('') + '</div>' +
+      '<div class="card" style="padding:0"><div class="h" style="padding:12px 14px 0"><b>Orders</b><span>' + list.length + '</span></div>' + list.map(card).join('') + '</div>')
     : '<div class="card empty"><i class="ti ti-circle-check"></i>' + (PK.f === 'today' && all.length ? 'Nothing confirmed today · ' + all.length + ' older waiting' : 'No confirmed orders to pack') + '</div>') +
     '<div class="btns" style="margin-top:10px"><button class="btn" id="pkClose">Close</button></div>';
   if (!el('overlay').classList.contains('show')) openPanel(true);
   el('pkClose').onclick = closePanel;
   el('panel').querySelectorAll('[data-pk]').forEach(function (b) { b.onclick = function () { PK.f = b.getAttribute('data-pk'); drawPacking(); }; });
+  el('panel').querySelectorAll('[data-pkv]').forEach(function (b) { b.onclick = function () { PK.v = PK.v === 'courier' ? '' : 'courier'; drawPacking(); }; });
+  el('panel').querySelectorAll('[data-pkcity]').forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); openCourierCity(b.getAttribute('data-pkcity')); }; });
+  el('panel').querySelectorAll('[data-sgby]').forEach(function (b) { b.onclick = function () {
+    var m = b.getAttribute('data-sgby'); if (m === mode) return; PKD.sugBy = m; drawPacking();
+    api('appSetSuggestBy', [TOKEN, m], function () { toast('Suggesting by ' + SUG_BY[m]); }, function (e) { toast((e && e.message) || 'Not saved'); });
+  }; });
+}
+// "Why?": the city's record per courier, why parcels came back, the latest parcels
+function openCourierCity(city) {
+  var head = '<button class="btn mini" id="ccBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Packing list</button><h3>' + esc(city) + '</h3>';
+  el('panel').innerHTML = head + skList(4);
+  openPanel(true);
+  el('ccBack').onclick = drawPacking;
+  api('getAppCourierCity', [TOKEN, city], function (d) {
+    var mode = (PKD && PKD.sugBy) || 'delivered', p = sugPick({ id: city, sug: { couriers: d.couriers, min: d.min } }, mode), best = p && p.pick && p.kind !== 'try' ? p.pick.name : '';
+    var tile = function (c) {
+      return '<div class="sg-t' + (c.name === best ? ' on' : '') + '"><small>' + (c.nsa ? 'NOT HERE · NSA' : c.name === best ? 'SUGGESTED' : '&#160;') + '</small><b>' + esc(c.name) + '</b>' +
+        '<em>' + (c.n ? c.rate + '%' : '–') + '</em><span>' + (c.n ? 'delivered · ' + c.n + (c.n === 1 ? ' parcel' : ' parcels') : 'no parcels here yet') +
+        (c.days != null ? '<br>usually ' + c.days + ' days' : '') + (c.n ? '<br>returned ' + c.ret : '') + (c.fee != null ? '<br>fee Rs ' + c.fee + ' a parcel' : '') + (c.lag != null ? '<br>money in ~' + c.lag + ' days' : '') + '</span></div>';
+    };
+    var cost = d.couriers.filter(function (c) { return c.perDel != null; }).map(function (c) { return esc(c.name) + ': Rs ' + c.perDel.toLocaleString(); }).join(' · ');
+    el('panel').innerHTML = head + '<p>Our parcels · last ' + d.days + ' days</p><div class="sg-tiles">' + d.couriers.map(tile).join('') + '</div>' +
+      (cost ? '<div class="card"><div class="h"><b>What a delivered parcel costs us here</b></div><p class="mnote" style="margin:0">' + cost + ' (fee and tax, with the returned parcels spread over the delivered ones)</p></div>' : '') +
+      (d.why.length ? '<div class="card"><div class="h"><b>Why parcels came back</b></div>' + d.why.map(function (w) { return '<div class="sp-dr"><span>' + esc(w.r) + '</span><span class="num">' + w.n + '</span></div>'; }).join('') + '</div>' : '') +
+      (d.latest.length ? '<div class="card"><div class="h"><b>Latest parcels to ' + esc(d.city) + '</b></div>' + d.latest.map(function (x) {
+        var c = x.state === 'Delivered' ? 'var(--green)' : x.state === 'Returned' ? 'var(--red)' : 'var(--muted)';
+        return '<div class="sp-dr" data-ccp="' + esc(x.cn) + '" style="cursor:pointer"><span>' + esc(x.ref + ' · ' + x.courier + ' · ' + x.days + ' days') + '</span><span style="color:' + c + ';font-weight:600">' + x.state + '</span></div>';
+      }).join('') + '</div>' : '') +
+      '<p class="mnote">Suggested by "' + SUG_BY[mode] + '". A courier with Non-Service Area here is never suggested. Needs ' + d.min + ' finished parcels of a courier here; the last 30 days count twice.</p>';
+    el('ccBack').onclick = drawPacking;
+    el('panel').querySelectorAll('[data-ccp]').forEach(function (b) { b.onclick = function () { openParcel(b.getAttribute('data-ccp')); }; });
+  }, function (e) { toast((e && e.message) || 'Could not load'); drawPacking(); });
 }
 el('btnPack').onclick = fromMenu(openPacking);
 // ---------- Courier parcels not in ORDI (user 2026-11-19): booked straight in a courier portal → match them ----------
