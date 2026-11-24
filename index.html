@@ -4457,7 +4457,8 @@ function sheetReminderText(name) { return sheetMessage(name, true); }
 // just the link (user 2026-11-24: a new rep, or after a New link, while nothing waits so Remind is not shown)
 function pageLinkText(name) {
   var w = shW(name), link = w === 'page' ? courierSheetLink(name, 'reattempt').replace(/#.*$/, '') : courierSheetLink(name, 'deliver');
-  return '*' + STORE + ' → ' + name + '*\n' + (w === 'page' ? 'Hamari queries ka page' : 'Hamari queries ki sheet') + ' · har parcel ka jawab yahan dein:\n' + link + '\n\nShukriya 🙏';
+  // the title and the link only (user 2026-11-24: no explaining line, no thanks; WhatsApp's link card already says "Shipment Queries")
+  return '*' + STORE + ' → ' + name + '*\n' + link;
 }
 // from the 11 AM / 4 PM notification (./?remind=<courier>): the reminder ready, one tap to WhatsApp
 function openSheetRemind(name) {
