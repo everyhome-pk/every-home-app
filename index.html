@@ -924,6 +924,7 @@ button,a,.chip,.tile,.act,.li,.opt,[data-go]{touch-action:manipulation}
 .pp-ask{padding:4px 2px}.pp-ask .inrow2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .mr-t.cnt td{padding:9px 8px}.mr-box{display:inline-block;width:70px;height:22px;border:1px solid #9AA8A5;border-radius:4px;vertical-align:middle}.mr-box.w{width:140px}
 .cl-cond{margin:6px 0 2px;font-size:14px}.cl-ph{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.cl-img{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:120px;height:120px;border-radius:12px;border:1px solid var(--line);background:var(--bg2,#f3f4f6);color:var(--muted);font:inherit;font-size:12px;text-decoration:none;overflow:hidden;position:relative;cursor:pointer;padding:0}.cl-img img{width:100%;height:100%;object-fit:cover}.cl-img img+span{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);color:#fff;padding:2px 0;text-align:center}.cl-img.none{cursor:default}.cl-img .ti{font-size:22px}.cl-st{margin-top:10px;font-size:13px}
+.cpu-sent{display:block;font-size:11.5px;color:var(--green);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 </style>
 <link rel="manifest" href="ordi.webmanifest">
 <link rel="icon" href="ordi-192.png">
@@ -3666,7 +3667,8 @@ function courierPulse() {
     // tidied in place (user 2026-11-18): name + ↗ (it opens their page), "n awaiting reply", a red chip for over 24 h,
     // and a labelled Remind button (the bare underlined WhatsApp icon read like a link)
     var info = '<span class="cpu-n">' + esc(name) + (s.link ? ' <i class="ti ti-external-link"></i>' : '') + '</span><span class="cpu-s">' +
-      (wait ? '<span><b>' + wait + '</b> waiting</span>' + (old ? '<em class="cpu-late">' + old + ' late</em>' : '') : '<span class="cpu-ok">✓ All answered</span>') + '</span>';
+      (wait ? '<span><b>' + wait + '</b> waiting</span>' + (old ? '<em class="cpu-late">' + old + ' late</em>' : '') : '<span class="cpu-ok">✓ All answered</span>') + '</span>' +
+      (s.shared ? '<span class="cpu-sent"><i class="ti ti-checks"></i> Sent in group · ' + esc(s.shared.at) + (s.shared.by ? ' · ' + esc(s.shared.by.split(' ')[0]) : '') + '</span>' : '');
     var line = s.link ? '<a class="cpu-l" target="_blank" title="Open the ' + esc(name) + ' ' + shW(name) + '" href="' + esc(ownLink(courierSheetLink(name, 'reattempt'))) + '">' + info + '</a>'
       : '<button class="cpu-l" data-cour="' + esc(name) + '">' + info + '</button>';
     return '<div class="cpu-r">' + line +
@@ -4078,15 +4080,16 @@ var PAGE_SHORT = { stop: 'Stop return', reattempt: 'Reattempt', late: 'Late', ch
 // carries only the title, the 24 h warning when there is one, the link on its own line and thanks; no relay → the counts
 // stay in the text
 function pageMessage(name, reminder, extra) {
-  var c = sheetCounts(name, reminder, extra), co = (N.data.couriers || {})[name] || {}, card = co.card || '';
-  var link = card ? card + '&t=' + Date.now().toString(36) : courierSheetLink(name, 'reattempt').replace(/#.*$/, '');
+  // the plain page link, no link card (user 2026-11-24: the card with the big logo looked odd in the group; only the counts)
+  var c = sheetCounts(name, reminder, extra), card = '';
+  var link = courierSheetLink(name, 'reattempt').replace(/#.*$/, '');
   var total = Object.keys(c).reduce(function (a, k) { return a + c[k].length; }, 0);
   var old = Object.keys(c).reduce(function (a, k) { return a + c[k].filter(function (ms) { return Date.now() - ms >= 86400000; }).length; }, 0);
-  var parts = PAGE_KINDS.filter(function (t) { return c[t[0]].length; }).map(function (t) { return PAGE_SHORT[t[0]] + ' ' + c[t[0]].length; }).join(' · ');
+  var parts = PAGE_KINDS.filter(function (t) { return c[t[0]].length; }).map(function (t, i) { return (i + 1) + ') ' + PAGE_SHORT[t[0]] + ': ' + c[t[0]].length; }).join('\n');
   var head = '*' + STORE + ' → ' + name + (reminder ? ' · Reminder*' : ' · New queries*');
   if (!total) return head + '\nSab queries ka jawab aa gaya. Shukriya!\n\n' + link;
   var lines = [head];
-  if (!card) lines.push(total + (total === 1 ? ' query' : ' queries') + (reminder ? ' pending' : '') + ' · ' + parts);
+  if (!card) lines.push(total + (total === 1 ? ' query' : ' queries') + (reminder ? ' pending' : '') + '\n' + parts);
   if (old) lines.push('⚠️ ' + old + (old === 1 ? ' query is' : ' queries are') + ' over 24 hours · please prioritise');
   return lines.join('\n') + '\n\n' + link + '\n\nShukriya 🙏';
 }
@@ -4124,6 +4127,8 @@ function openSheetRemind(name) {
 document.addEventListener('click', function (e) {
   var a = e.target.closest && e.target.closest('[data-shsh]'); if (!a) return;
   var c = a.getAttribute('data-shsh'); setTimeout(function () { api('appSheetShared', [TOKEN, c], function () {}, function () {}); }, 0);
+  // shown at once on the courier strip ("Sent in group · just now")
+  try { var cs = N.data && N.data.couriers; if (cs && cs[c]) { cs[c].shared = { ms: Date.now(), by: (typeof USER === 'string' && USER) || '', at: 'just now' }; setTimeout(function () { if (curTab === 'ndr') renderNdr(); }, 400); } } catch (x) {}
 });
 function sheetSent(name, kind, n) {
   var link = courierSheetLink(name, kind);
@@ -5271,6 +5276,8 @@ function renderReturns() {
     (late.length ? '<div class="pday"><span>LATE · NO UPDATE</span><span class="num">' + late.length + '</span></div><div class="plist-box">' + late.map(function (w) { return row(w, false); }).join('') + '</div>' : '') +
     (onway.length ? '<div class="pday"><span>ON THE WAY BACK</span><span class="num">' + onway.length + '</span></div><div class="plist-box">' + onway.slice(0, olim).map(function (w) { return row(w, false); }).join('') + '</div>' +
       (onway.length > olim ? '<button class="btn more" id="omore">Show all ' + onway.length + '</button>' : '') : '') +
+    (!rq && (d.scanDays || []).length ? '<div class="pday"><span>SCANS BY DAY</span><span class="num">' + d.scanDays.length + (d.scanDays.length === 1 ? ' day' : ' days') + '</span></div><div class="plist-box">' + d.scanDays.slice(0, 5).map(rDayRow).join('') + '</div>' +
+      (d.scanDays.length > 5 ? '<button class="btn more" id="rdays">All days</button>' : '') : '') +
     '<div class="pday"><span>RECENTLY SCANNED</span><span class="num">' + recent.length + '</span></div>' +
     (recent.length ? '<div class="plist-box">' + recent.slice(0, rlim).map(function (r) {
       var c = r.good ? 'var(--green)' : 'var(--red)';
@@ -5279,6 +5286,8 @@ function renderReturns() {
         '<div class="prow-2"><span>' + [esc(r.order), esc(r.when), esc(r.by)].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + c + '">' + esc(r.condition.split(' –')[0]) + '</span></div></div></div>';
     }).join('') + '</div>' + (recent.length > rlim ? '<button class="btn more" id="rmore">See more scans</button>' : '') : '<div class="card empty">' + (rq ? 'Nothing matches' : 'No scans yet') + '</div>');
   el('rview').innerHTML = h;
+  el('rview').querySelectorAll('[data-rday]').forEach(function (b) { b.onclick = function () { openReturnDay(b.getAttribute('data-rday')); }; });
+  if (el('rdays')) el('rdays').onclick = openReturnDays;
   if (el('wmore')) { el('wmore').onclick = function () { R.wlim = lim + PAGE; renderReturns(); }; autoMore('wmore', lim); }
   if (el('omore')) el('omore').onclick = function () { R.olim = 1000; renderReturns(); };
   if (el('rcopy')) el('rcopy').onclick = function () {
@@ -5290,6 +5299,37 @@ function renderReturns() {
   if (R.scrollTo) { R.scrollTo = false; scrollToCard('rwait'); }
 }
 // Late return, "Ask courier": which ways are left (the store's channels; the sheet only once and only for couriers that have one; WhatsApp can always remind)
+// Scans by day (user 2026-11-24): one line per day, tap → that day's returns
+function rDayLabel(day) { var t = pkDay(new Date()); return day === t ? 'Today' : day === addDays(t, -1) ? 'Yesterday' : new Date(day + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }); }
+function rDayRow(x) {
+  return '<button type="button" class="prow" data-rday="' + x.day + '" style="--c:var(--brand);width:100%;text-align:left"><span class="prow-d"></span><div class="prow-m"><div class="prow-1"><b>' + esc(rDayLabel(x.day)) + '</b><b class="num">' + x.n + ' scanned</b></div>' +
+    '<div class="prow-2"><span>' + (x.n - x.bad) + ' good' + (x.bad ? ' · <span style="color:var(--red)">' + x.bad + ' damaged / missing / wrong</span>' : '') + '</span><i class="ti ti-chevron-right" style="color:var(--muted)"></i></div></div></button>';
+}
+function openReturnDays() {
+  el('panel').innerHTML = '<h3>Scans by day</h3><p>Returns scanned in the warehouse, last 60 days</p><div class="plist-box">' + (R.data.scanDays || []).map(rDayRow).join('') + '</div>';
+  openPanel(true);
+  el('panel').querySelectorAll('[data-rday]').forEach(function (b) { b.onclick = function () { openReturnDay(b.getAttribute('data-rday'), true); }; });
+}
+function openReturnDay(day, fromAll) {
+  var head = (fromAll ? '<button class="btn mini" id="rdBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Scans by day</button>' : '') + '<h3>Returns scanned · ' + esc(rDayLabel(day)) + '</h3>';
+  el('panel').innerHTML = head + skList(4);
+  openPanel(true);
+  if (el('rdBack')) el('rdBack').onclick = openReturnDays;
+  api('getAppReturnDay', [TOKEN, day], function (d) {
+    var bad = d.list.filter(function (x) { return !x.good; }).length, by = {};
+    d.list.forEach(function (x) { by[x.by] = (by[x.by] || 0) + 1; });
+    el('panel').innerHTML = head + '<p>' + d.list.length + ' scanned · ' + (d.list.length - bad) + ' good' + (bad ? ' · ' + bad + ' not good' : '') + ' · ' + Object.keys(by).map(function (k) { return esc(k) + ' ' + by[k]; }).join(', ') + '</p>' +
+      '<div class="plist-box">' + d.list.map(function (r) {
+        var c = r.good ? 'var(--green)' : 'var(--red)';
+        return '<div class="prow" data-rp2="' + esc(r.cn || r.order) + '" style="--c:' + c + '"><span class="prow-d"></span><div class="prow-m">' +
+          '<div class="prow-1"><b>' + esc(r.name || r.order) + '</b><span class="num" style="color:var(--muted);font-weight:500">' + esc(r.time) + '</span></div>' +
+          '<div class="prow-2"><span>' + esc([r.order, r.courier, r.city].filter(Boolean).join(' · ')) + '</span><span class="st" style="--c:' + c + '">' + esc(r.condition.split(' –')[0]) + '</span></div>' +
+          '<div class="prow-2"><span>' + esc(r.items) + (r.swap ? ' · replacement old item' : '') + (r.by ? ' · ' + esc(r.by) : '') + '</span></div></div></div>';
+      }).join('') + '</div>';
+    if (el('rdBack')) el('rdBack').onclick = openReturnDays;
+    el('panel').querySelectorAll('[data-rp2]').forEach(function (b) { b.onclick = function () { openParcel(b.getAttribute('data-rp2')); }; });
+  }, function (e) { toast((e && e.message) || 'Could not load'); });
+}
 function rAskWays(w, d) {
   var on = w.ask && w.ask.open && /Sheet/.test(w.ask.channel);
   var have = d.channels || ['WhatsApp', 'Sheet'];
@@ -9373,7 +9413,7 @@ el('btnClaim').onclick = fromMenu(function () { openClaims(); });
 
 // ---------- Replacements (user 2026-11-20): its own section; find a delivered order → Replace → owner books → ORDI makes the order ----------
 var RPD = null, RPS = { q: '', res: null };
-var RP_STAGE = { tobook: ['To book', 'var(--amber)'], making: ['Making the order', 'var(--amber)'], failed: ['Order not made', 'var(--red)'], onway: ['New item on the way', 'var(--blue)'],
+var RP_STAGE = { tomatch: ['Match it first', 'var(--amber)'], tobook: ['To book', 'var(--amber)'], making: ['Making the order', 'var(--amber)'], failed: ['Order not made', 'var(--red)'], onway: ['New item on the way', 'var(--blue)'],
   notdelivered: ['New item not delivered', 'var(--red)'], coming: ['Old item coming', 'var(--brand)'], notback: ['Old item not back', 'var(--red)'], back: ['Old item back', 'var(--green)'],
   writtenoff: ['Written off', 'var(--muted)'], done: ['Delivered · done', 'var(--green)'], cancelled: ['Cancelled', 'var(--muted)'] };
 var RP_REASONS = ['Wrong size', 'Damaged', 'Wrong item sent', 'Missing part', 'Customer changed mind'];
@@ -9398,23 +9438,29 @@ function rpCard(x) {
   var s = RP_STAGE[x.stage] || ['', 'var(--line)'];
   var sub = x.stage === 'coming' ? x.days + ' day' + (x.days === 1 ? '' : 's') + ' since the swap · scan it in Returns when it comes'
     : x.stage === 'notback' ? x.days + ' days since the swap · not scanned back'
+    : x.stage === 'tomatch' ? 'Booked in the ' + x.courier + ' portal · ☰ Courier parcels to match → Replacement'
     : x.stage === 'tobook' ? 'Asked by ' + x.by + ' · ' + x.at : x.stage === 'failed' ? x.state.replace(/^Failed:\s*/, '')
     : x.newOrder ? 'New order ' + x.newOrder + (x.cn ? ' · ' + x.courier + ' ' + x.cn : '') : x.cn ? x.courier + ' ' + x.cn : '';
   return '<button type="button" class="card rp-c" data-rp="' + esc(x.id) + '" style="border-left:3px solid ' + s[1] + '"><div class="rp-1"><b>' + esc(x.order) + ' · ' + esc(x.customer) + '</b><span style="color:' + s[1] + '">' + s[0] + '</span></div>' +
-    '<div class="rp-2">' + (x.collectBack ? 'Back ' + esc(rpLines(x.back)) + ' → ' : 'Customer keeps the old item · ') + 'Out ' + esc(rpLines(x.out)) + '</div>' +
+    '<div class="rp-2">' + (x.src ? esc([x.reason, x.out.length ? 'Out ' + rpLines(x.out) : '', x.back.length ? 'Back ' + x.back.map(function (l) { return l.title; }).join(', ') : ''].filter(Boolean).join(' · ')) : (x.collectBack ? 'Back ' + esc(rpLines(x.back)) + ' → ' : 'Customer keeps the old item · ') + 'Out ' + esc(rpLines(x.out))) + '</div>' +
     '<div class="rp-2">' + esc([x.city, x.collect ? 'collect ' + rs(x.collect) : 'free', sub].filter(Boolean).join(' · ')) + '</div></button>';
 }
 function drawReplace() {
   var d = RPD, s = d.stats || {}, by = function (st) { return d.list.filter(function (x) { return st.indexOf(x.stage) !== -1; }); };
   var sec = function (title, xs, color) { return xs.length ? '<p class="mnote" style="margin-top:12px;font-weight:700;color:' + (color || 'var(--muted)') + '">' + title + ' · ' + xs.length + '</p>' + xs.map(rpCard).join('') : ''; };
-  var done = by(['back', 'done', 'writtenoff']).slice(0, 10);
+  // month by month (user 2026-11-24): the finished ones of the chosen month; work to do is always shown
+  var mNow = pkDay(new Date()).slice(0, 7), mLast = fnMonth(mNow, -1), mSel = RPS.m || mNow;
+  var inM = function (x) { return mSel === 'all' || String(x.day || '').slice(0, 7) === mSel; };
+  var done = by(['back', 'done', 'writtenoff']).filter(inM);
   el('panel').innerHTML = '<h3>Replacements</h3><p>Find a delivered order to replace an item. The owner books it with the courier; ORDI makes the order and follows the old item back.</p>' +
     '<div class="fld"><label for="rpQ">Find the order</label><input id="rpQ" type="search" placeholder="Order #, phone, name or tracking" value="' + esc(RPS.q) + '" autocomplete="off"></div><div id="rpRes"></div>' +
     '<div class="rp-tiles"><div><b>' + ((s.tobook || 0) + (s.making || 0) + (s.failed || 0)) + '</b><span>To book</span></div><div><b>' + ((s.onway || 0) + (s.coming || 0)) + '</b><span>On the way</span></div>' +
     '<div' + (s.notback ? ' class="bad"' : '') + '><b>' + (s.notback || 0) + '</b><span>Not back</span></div><div><b>' + ((s.back || 0) + (s.done || 0)) + '</b><span>Done</span></div></div>' +
-    sec(d.canBook ? 'To book · you' : 'Waiting for the owner to book', by(['tobook', 'failed', 'making']), 'var(--amber)') +
+    sec(d.canBook ? 'To book · you' : 'Waiting for the owner to book', by(['tomatch', 'tobook', 'failed', 'making']), 'var(--amber)') +
     sec('Old item not back · 14 days+', by(['notback', 'notdelivered']), 'var(--red)') +
-    sec('On the way', by(['onway', 'coming'])) + sec('Done · latest', done) +
+    sec('On the way', by(['onway', 'coming'])) +
+    (d.list.length ? '<div class="chips" style="margin-top:14px">' + [[mNow, 'This month'], [mLast, 'Last month'], ['all', 'All']].map(function (c) { return '<button type="button" class="chip' + (mSel === c[0] ? ' on' : '') + '" data-rpm="' + c[0] + '">' + c[1] + '</button>'; }).join('') + '</div>' +
+    (done.length ? sec('Done · ' + (mSel === 'all' ? 'all' : fnMonthName(mSel)), done) : '<p class="mnote">No finished replacements in ' + (mSel === 'all' ? 'any month' : fnMonthName(mSel)) + '</p>') : '') +
     (d.list.length ? '' : '<div class="card empty"><i class="ti ti-replace"></i>No replacements yet</div>') +
     (d.list.length && (can('orders.book') || can('finance.view')) ? '<button class="btn" id="rpRep" type="button" style="width:100%;margin-top:12px"><i class="ti ti-report-money"></i>Replacement report · what they cost</button>' : '') +
     '<div class="btns" style="margin-top:12px"><button class="btn" id="rpX" type="button">Close</button></div>';
@@ -9424,7 +9470,12 @@ function drawReplace() {
   var t = null;
   el('rpQ').oninput = function () { RPS.q = el('rpQ').value; clearTimeout(t); t = setTimeout(rpSearch, 450); };
   if (RPS.res) rpDrawRes();
-  el('panel').querySelectorAll('[data-rp]').forEach(function (b) { b.onclick = function () { rpOpen(d.list.filter(function (x) { return x.id === b.getAttribute('data-rp'); })[0]); }; });
+  el('panel').querySelectorAll('[data-rpm]').forEach(function (b) { b.onclick = function () { RPS.m = b.getAttribute('data-rpm'); drawReplace(); }; });
+  el('panel').querySelectorAll('[data-rp]').forEach(function (b) { b.onclick = function () {
+    var x = d.list.filter(function (r) { return r.id === b.getAttribute('data-rp'); })[0]; if (!x) return;
+    if (x.src) { if (x.stage === 'tomatch') { closePanel(); openMatch(); } else openParcel(x.cn); return; } // made outside this section: its parcel
+    rpOpen(x);
+  }; });
 }
 // Replacement report (user 2026-11-23): what replacements cost in a period, why they happened, what came back
 var RPR = { per: '' };
@@ -9464,9 +9515,23 @@ function drawReplaceReport(d) {
   }; });
 }
 document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('#pnlRpl'); if (b) openReplaceReport(b.getAttribute('data-per')); });
+// the phone's own parcels (same match as the server): results at once; Replace waits for the server's lines
+function rpLocal(q) {
+  if (!P.data || !P.data.parcels) return [];
+  var w = q.toLowerCase().replace(/^#/, ''), dg = q.replace(/\D/g, ''), ph = dg.length >= 7 ? dg.slice(-10) : '';
+  var open = {}; ((RPD && RPD.list) || []).forEach(function (x) { if (x.state !== 'Cancelled' && !x.src) open[x.order] = x.id; });
+  return P.data.parcels.filter(function (p) {
+    var pp = String(p.phone || '').replace(/\D/g, '').slice(-10);
+    return String(p.ref || '').toLowerCase().indexOf(w) !== -1 || String(p.name || '').toLowerCase().indexOf(w) !== -1 || (p.cn && String(p.cn).toLowerCase().indexOf(w) !== -1) || (ph && pp && pp.indexOf(ph) !== -1);
+  }).slice(0, 12).map(function (p) {
+    return { id: p.id, ref: p.ref, name: p.name, phone: p.phone, city: p.city, total: p.total, cn: p.cn, courier: p.courier, stage: p.stage, date: p.date, items: p.items,
+      delivered: p.stage === 'delivered', lines: null, replacement: open[p.ref] || '', isReplacement: /(^|,)\s*replacement\s*(,|$)/i.test(String(p.tags || '')), replacedBefore: '' };
+  });
+}
 function rpSearch() {
   var q = RPS.q.trim(); if (q.length < 3) { RPS.res = null; if (el('rpRes')) el('rpRes').innerHTML = ''; return; }
-  if (el('rpRes')) el('rpRes').innerHTML = skList(1);
+  var loc = rpLocal(q);
+  if (loc.length) { RPS.res = loc; rpDrawRes(); } else if (el('rpRes')) el('rpRes').innerHTML = skList(1);
   api('appReplaceSearch', [TOKEN, q], function (r) { if (RPS.q.trim() !== q) return; RPS.res = r.list; rpDrawRes(); }, function (e) { if (el('rpRes')) el('rpRes').innerHTML = '<p class="mnote">' + esc((e && e.message) || 'Could not search') + '</p>'; });
 }
 function rpDrawRes() {
@@ -9477,7 +9542,8 @@ function rpDrawRes() {
     var before = p.replacedBefore && !why ? '<p class="mnote" style="margin:6px 0 0;color:var(--amber)">Already ' + esc(p.replacedBefore) + ' once before · check it is not the same request</p>' : '';
     return '<div class="card rp-s"><div class="rp-1"><b>' + esc(p.ref) + ' · ' + esc(p.name) + '</b><span>' + esc(p.date || '') + '</span></div><div class="rp-2">' + esc(p.items) + ' · ' + rs(p.total) + '</div>' +
       '<div class="rp-2">' + esc([p.city, p.courier, p.cn].filter(Boolean).join(' · ')) + '</div>' +
-      before + (why ? '<p class="mnote" style="margin:6px 0 0">' + esc(why) + '</p>' : '<button type="button" class="btn pri" data-rps="' + i + '" style="width:100%;margin-top:8px"><i class="ti ti-replace"></i>Replace</button>') + '</div>';
+      before + (why ? '<p class="mnote" style="margin:6px 0 0">' + esc(why) + '</p>' : p.lines ? '<button type="button" class="btn pri" data-rps="' + i + '" style="width:100%;margin-top:8px"><i class="ti ti-replace"></i>Replace</button>'
+        : '<button type="button" class="btn" disabled style="width:100%;margin-top:8px"><i class="ti ti-loader-2"></i>Getting the order lines…</button>') + '</div>';
   }).join('') : '<p class="mnote">No order found</p>';
   box.querySelectorAll('[data-rps]').forEach(function (b) { b.onclick = function () { openReplaceForm(ls[+b.getAttribute('data-rps')]); }; });
 }
@@ -9687,19 +9753,27 @@ function openPartnerMove(store, kind) {
     el('panel').innerHTML = '<button class="btn mini" id="pmBack" data-back style="margin:0 0 8px"><i class="ti ti-chevron-left"></i>Partner stores</button>' +
       '<h3>' + (kind === 'Given' ? 'Give goods' : 'Take goods') + (store ? (kind === 'Given' ? ' to ' : ' from ') + esc(store) : '') + '</h3><p>' + (kind === 'Given' ? 'Our goods leave the shelf. They owe us these goods (or their cost).' : 'Their goods come to our shelf. We owe them these goods (or their cost).') + '</p>' +
       (store ? '' : '<div class="fld"><label>' + (kind === 'Given' ? 'Given to' : 'Taken from') + ' (store, shop or person)</label><input id="pmWho" type="text" list="pmWhoL" placeholder="e.g. Ali Store" value="' + esc(who) + '"><datalist id="pmWhoL">' + d.stores.map(function (x) { return '<option value="' + esc(x) + '">'; }).join('') + '</datalist></div>') +
-      (lines.length ? '<div class="card">' + lines.map(function (l, i) { return '<div class="sp-dr"><span>' + esc(l.name) + '</span><span class="num">' + l.qty + ' <button class="btn mini" data-rm="' + i + '" type="button" aria-label="Remove"><i class="ti ti-x"></i></button></span></div>'; }).join('') + '</div>' : '') +
-      '<div class="fld"><label>Product</label><select id="pmSku"><option value="">Choose a product</option>' + d.items.map(function (i) { return '<option value="' + esc(i.sku) + '">' + esc(i.name) + '</option>'; }).join('') + '</select></div>' +
+      (lines.length ? '<div class="card">' + lines.map(function (l, i) { return '<div class="sp-dr"><span>' + esc(l.name) + (l.isNew ? ' <small class="muted">· new</small>' : '') + '</span><span class="num">' + l.qty + ' <button class="btn mini" data-rm="' + i + '" type="button" aria-label="Remove"><i class="ti ti-x"></i></button></span></div>'; }).join('') + '</div>' : '') +
+      '<div class="fld"><label>Product</label><select id="pmSku"><option value="">Choose a product</option>' + d.items.map(function (i) { return '<option value="' + esc(i.sku) + '">' + esc(i.name) + '</option>'; }).join('') + '<option value="__new">+ New product (not in the list)</option></select></div>' +
+      '<div id="pmNewW" hidden><div class="fld"><label for="pmNewN">New product name</label><input id="pmNewN" type="text" placeholder="e.g. Steel soap stand"></div>' +
+      '<div class="fld"><label for="pmNewC">Cost per piece (Rs, optional)</label><input id="pmNewC" type="text" inputmode="decimal" placeholder="what it costs us"></div>' +
+      '<small class="mnote">Made as a new product in Stock (pcs). It links to the website by name if it is sold there.</small></div>' +
       '<div class="fld"><label>Quantity</label><input id="pmQty" type="text" inputmode="decimal" placeholder="pcs / ft"></div>' +
       '<button class="btn" id="pmAdd" type="button" style="width:100%"><i class="ti ti-plus"></i>Add to the list</button>' +
       '<div class="fld" style="margin-top:12px"><label>Note (optional)</label><input id="pmNote" type="text" placeholder="e.g. for their order #1234"></div>' +
       '<p class="mnote">' + (can('inventory.edit') ? 'Saved at once · stock changes within minutes.' : 'Goes to the owner to approve · stock changes after that.') + '</p>' +
       '<div class="btns"><button class="btn" id="pmX" type="button">Cancel</button><button class="btn pri" id="pmGo" type="button"><i class="ti ti-check"></i>Save</button></div>';
     pickerize(el('pmSku'), { title: 'Product' });
+    el('pmSku').addEventListener('change', function () { el('pmNewW').hidden = el('pmSku').value !== '__new'; if (!el('pmNewW').hidden) el('pmNewN').focus(); });
     el('pmBack').onclick = el('pmX').onclick = function () { drawPartners(); };
     el('panel').querySelectorAll('[data-rm]').forEach(function (b) { b.onclick = function () { lines.splice(Number(b.getAttribute('data-rm')), 1); draw(); }; });
     var addLine = function () {
       var sku = el('pmSku').value, q = Number(String(el('pmQty').value).replace(/[^0-9.]/g, ''));
       if (!sku) return false; if (!(q > 0)) { toast('Write the quantity'); return null; }
+      if (sku === '__new') {
+        var nn = el('pmNewN').value.replace(/\s+/g, ' ').trim(); if (nn.length < 3) { toast('Write the new product name'); return null; }
+        lines.push({ sku: '', name: nn, qty: q, cost: Number(String(el('pmNewC').value).replace(/[^0-9.]/g, '')) || 0, isNew: true }); return true;
+      }
       var it = d.items.filter(function (i) { return i.sku === sku; })[0]; lines.push({ sku: sku, qty: q, name: it ? it.name : sku }); return true;
     };
     el('pmAdd').onclick = function () { if (addLine() === false) toast('Choose a product'); else draw(); };
@@ -9708,7 +9782,7 @@ function openPartnerMove(store, kind) {
       if (!lines.length) { toast('Add a product'); return; }
       var party = store || (el('pmWho') ? el('pmWho').value.trim() : '');
       if (party.length < 2) { toast('Write who it is for'); if (r) lines.pop(); return; }
-      api('appPartnerMove', [TOKEN, { store: party, kind: kind, lines: lines.map(function (l) { return { sku: l.sku, qty: l.qty }; }), note: el('pmNote').value }],
+      api('appPartnerMove', [TOKEN, { store: party, kind: kind, lines: lines.map(function (l) { return l.isNew ? { name: l.name, qty: l.qty, cost: l.cost } : { sku: l.sku, qty: l.qty }; }), note: el('pmNote').value }],
         function (x) { PSD = x.data; drawPartners(); toast(x.waiting ? 'Sent to the owner to approve' : 'Saved · stock changes within minutes'); },
         function (e) { if (r) lines.pop(); toast((e && e.message) || 'Not saved'); });
     };
