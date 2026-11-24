@@ -3624,7 +3624,7 @@ function ndrCard(c, seen, inGroup) {
   else if (t && t.channel) { main = '<button class="btn ton grow" data-wr="' + esc(t.id) + '" data-wc="' + esc(c.courier) + '"><i class="ti ti-message-reply"></i>Note courier reply</button>'; side = [B.callSq, B.wa]; }
   else { main = '<button class="btn grow" data-rec="' + esc(c.cn) + '"><i class="ti ti-pencil"></i>Update case</button>'; side = [B.callSq, B.wa]; }
   return '<div class="nc" data-p="' + esc(c.cn) + '">' +
-    '<div class="nc-h"><b>' + (isNewCase(c) ? '<span class="new-pill">NEW</span>' : '') + esc(c.ref) + ' · ' + esc(c.name) + '</b>' + (tagT ? '<span class="nc-tag t-' + ((slot === 'again' && tagT !== tag[0]) || retK ? 'red' : tag[1]) + '">' + esc(tagT) + '</span>' : '') + '</div>' +
+    '<div class="nc-h"><b>' + (isNewCase(c) ? '<span class="new-pill">NEW</span>' : '') + esc(c.ref) + ' · ' + esc(cleanName(c.name)) + '</b>' + (tagT ? '<span class="nc-tag t-' + ((slot === 'again' && tagT !== tag[0]) || retK ? 'red' : tag[1]) + '">' + esc(tagT) + '</span>' : '') + '</div>' +
     '<div class="nc-cn"><span class="num">' + esc(c.cn) + '</span><button type="button" class="cn-copy" data-copy="' + esc(c.cn) + '" aria-label="Copy tracking ID"><i class="ti ti-copy"></i></button></div>' +
     '<div class="nc-m">' + [esc(c.city), esc(c.courier), rs(c.cod), p && /^Draft/.test(p.src || '') ? 'WhatsApp order' : '', c.hours ? (c.hours < 48 ? c.hours + ' h' : Math.floor(c.hours / 24) + ' d') + ' in NDR' : 'new'].filter(Boolean).join(' · ') + '</div>' +
     (items ? '<div class="nc-it">' + esc(items) + '</div>' : '') +
@@ -3989,7 +3989,7 @@ function waCompose(cn, preset) {
       ['Morning', 'Afternoon', 'Evening'].map(function (t) { return chip('data-wtime', t, t, st.time === t); }).join('');
     else if (a === 'address') sub = '<div class="wa-addr"><textarea id="waAddr" rows="2" placeholder="New address (house no, street, area)">' + esc(st.addr) + '</textarea>' +
       '<input id="waPhone" type="tel" placeholder="New phone (optional)" value="' + esc(st.phone) + '"></div>';
-    else if (a === 'later' || a === 'noans') sub = (a === 'noans' ? ['No answer', 'Phone off', 'Wrong number'].map(function (w) { return chip('data-wwhy', w, w, st.why === w); }).join('') : '') +
+    else if (a === 'later' || a === 'noans') sub = (a === 'noans' ? [['No answer', 'Rings, no pick up'], ['Phone off', 'Phone off'], ['Wrong number', 'Wrong number']].map(function (w) { return chip('data-wwhy', w[0], w[1], st.why === w[0]); }).join('') : '') +
       cbList.map(function (x) { return chip('data-wcb', x[1], (a === 'noans' ? 'Try ' : '') + x[0], String(st.cb) === String(x[1])); }).join('');
     else if (a === 'refuse') sub = NDR_REASONS.slice(0, 5).map(function (x) { return chip('data-wwr', x, x, st.reason === x); }).join('');
     el('pgBar').innerHTML = '<div class="wa-comp">' +
@@ -4037,7 +4037,7 @@ function waCompose(cn, preset) {
     if (!st.ans) return;
     var goes = st.ans === 'deliver' || st.ans === 'other' || st.ans === 'refuse' || st.ans === 'check' || st.ans === 'address';
     var txt = st.ans === 'refuse' ? 'Mark for return · ' + c.cn : (message() || '…') + (st.ans === 'address' && updated() ? '\n' + updated() : '');
-    if (st.ans === 'deliver' || st.ans === 'other') txt = (st.day ? dayLong(st.day) + ' · ' : '') + txt;
+    if ((st.ans === 'deliver' && String(st.words || '').trim()) || st.ans === 'other') txt = (st.day ? dayLong(st.day) + (st.time ? ', ' + st.time.toLowerCase() : '') + ' · ' : '') + txt;
     var wrap = box.querySelector('.ch-wrap') || box;
     wrap.insertAdjacentHTML('beforeend', '<div class="cm u wa-prev"><div class="cb"><span class="cb-w">' + (goes ? 'Goes to ' + esc(cour) + ' when you send' : 'Saved on the case · nothing goes to ' + esc(cour)) + '</span>' + esc(txt) + '</div></div>');
     requestAnimationFrame(function () { el('pgBody').scrollTop = el('pgBody').scrollHeight; });
@@ -4086,7 +4086,7 @@ function ndrAddNote(cn) {
 function waMenu(cn) {
   var c = (N.data.cases || []).filter(function (x) { return x.cn === cn; })[0]; if (!c) return;
   var p = findParcel(cn), phone = c.phone || (p && p.phone);
-  var rows = (phone ? '<a class="sl" data-call="' + esc(cn) + '" href="' + telHref(phone) + '"><span><i class="ti ti-phone"></i> Call ' + esc(c.name) + '</span></a>' : '') +
+  var rows = (phone ? '<a class="sl" data-call="' + esc(cn) + '" href="' + telHref(phone) + '"><span><i class="ti ti-phone"></i> Call ' + esc(cleanName(c.name)) + '</span></a>' : '') +
     (c.wa ? '<a class="sl" target="_blank" href="https://wa.me/' + esc(c.wa) + '"><span><i class="ti ti-brand-whatsapp"></i> WhatsApp the customer</span></a>' : '') +
     waActions(c).map(function (x) { return '<div class="sl" data-waa="' + x[0] + '" data-wav="' + esc(x[1]) + '"><span><i class="ti ti-' + x[2] + '"></i> ' + esc(x[3]) + '</span></div>'; }).join('') +
     '<div class="sl" data-waa="parcel" data-wav="' + esc(cn) + '"><span><i class="ti ti-package"></i> Parcel details</span></div>';
@@ -4143,7 +4143,7 @@ function waDo(act, v, cn) {
     var g = e.target.closest('[data-wag]'); if (!g) return;
     var name = g.getAttribute('data-wag'), s = (N.data.couriers || {})[name] || {};
     var rows = (s.link ? '<a class="sl" target="_blank" href="' + esc(ownLink(courierSheetLink(name, 'reattempt'))) + '"><span><i class="ti ti-external-link"></i> Open the ' + esc(name) + ' ' + shW(name) + '</span></a>' : '') +
-      (s.link && can('ndr.work') ? '<a class="sl" data-shsh="' + esc(name) + '" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(sheetReminderText(name)) + '"><span><i class="ti ti-brand-whatsapp"></i> Remind the ' + esc(name) + ' group</span></a>' : '') +
+      (s.link && can('ndr.work') && sheetPending(name).untouched ? '<a class="sl" data-shsh="' + esc(name) + '" target="_blank" href="https://wa.me/?text=' + encodeURIComponent(sheetReminderText(name)) + '"><span><i class="ti ti-brand-whatsapp"></i> Remind the ' + esc(name) + ' group</span></a>' : '') +
       '<div class="sl" data-wae="1"><span><i class="ti ti-list-details"></i> Requests and answers</span></div>';
     showPick(name, s.shared ? 'Sent in group · ' + s.shared.at : '', '<div class="sheet-list">' + rows + '</div>', function (ev) {
       if (ev.target.closest('[data-wae]')) { closePick(); return openEscalations(name); }
@@ -4719,7 +4719,7 @@ function openChat(cn) {
   var left = triesLeft(c);
   var bar = '<div class="wa-bar">' + (can('ndr.work') ? '<button type="button" class="wa-in2" data-wacomp="' + esc(cn) + '">What did the customer say?</button>' : '<span class="wa-in2 off">' + esc(c.courier) + ' · ' + esc(c.cn) + '</span>') +
     (can('ndr.work') && t && t.channel ? '<button type="button" class="wa-rb2" data-wr="' + esc(t.id) + '" data-wc="' + esc(c.courier) + '" aria-label="Note the courier reply"><i class="ti ti-message-reply"></i></button>' : '') +
-    (phone ? '<a class="wa-rb" data-call="' + esc(cn) + '" href="' + telHref(phone) + '" aria-label="Call ' + esc(c.name) + '"><i class="ti ti-phone"></i></a>' : '') + '</div>';
+    (phone ? '<a class="wa-rb" data-call="' + esc(cn) + '" href="' + telHref(phone) + '" aria-label="Call ' + esc(cleanName(c.name)) + '"><i class="ti ti-phone"></i></a>' : '') + '</div>';
   var tag = '<button type="button" class="wa-hb" data-p3="' + esc(cn) + '" aria-label="More options"><i class="ti ti-dots-vertical"></i></button>';
   var acts = waActions(c).filter(function (x) { return x[0] !== 'rec'; });
   var actBar = acts.length ? '<div class="wa-acts">' + acts.map(function (x) { return '<button type="button" class="btn mini" data-waa="' + x[0] + '" data-wav="' + esc(x[1]) + '" data-wacn2="' + esc(cn) + '"><i class="ti ti-' + x[2] + '"></i>' + esc(x[3]) + '</button>'; }).join('') + '</div>' : '';
@@ -4782,7 +4782,7 @@ function escRow(name, cn) {
   return '<div class="wa-r" data-escopen="' + esc(cn) + '"><div class="wa-in"><span class="wa-av">' + (c.name ? esc(waInit(c.name)) : '<i class="ti ti-package"></i>') + '<em style="background:' + col + '">' + esc(name[0]) + '</em></span>' +
     '<span class="wa-m"><span class="wa-1"><b>' + esc(who) + (c.ref ? ' · ' + esc(c.ref) : '') + '</b><small>' + esc(waTime(t.sentMs)) + '</small></span>' +
     '<span class="wa-2"><span class="wa-p">' + said + '</span></span>' +
-    '<span class="wa-3">' + esc([c.name ? cn : '', shortCity(c.city), REQ_KIND[t.type] || ''].filter(Boolean).join(' · ')) + (hrs >= 24 && !(t.status || t.reply) ? ' · <span class="wa-red">waiting ' + hrsText(Date.now() - t.sentMs) + '</span>' : '') + '</span></span></div></div>';
+    '<span class="wa-3">' + esc([c.name ? cn : '', shortCity(c.city), t.status || t.reply ? REQ_KIND[t.type] || '' : ''].filter(Boolean).join(' · ')) + (hrs >= 24 && !(t.status || t.reply) ? ' · <span class="wa-red">waiting ' + hrsText(Date.now() - t.sentMs) + '</span>' : '') + '</span></span></div></div>';
 }
 function openEscalations(only) {
   if (!N.data) { toast('Loading NDR…'); return; }
@@ -4995,7 +4995,7 @@ function openNdrForm(cn) {
   var grid = function (id, list, n) { return '<div class="ac-row" style="grid-template-columns:repeat(' + n + ',minmax(0,1fr))" id="' + id + '">' + list.map(function (x) { var v = Array.isArray(x) ? x : [x, x]; return '<button class="chip" type="button" data-v="' + esc(v[1]) + '">' + v[0] + '</button>'; }).join('') + '</div>'; };
   var cbList = callBackOpts().map(function (x) { return [x[0].replace('In 1 hour', '1 hour').replace('Tomorrow 11 AM', 'Tomorrow'), x[1]]; });
   var fact = function (ic, col, b, t, extra) { return '<div class="ac-f"><i class="ti ti-' + ic + '" style="color:' + col + '"></i><span>' + (b ? '<b>' + b + '</b> ' : '') + t + '</span>' + (extra || '') + '</div>'; };
-  el('panel').innerHTML = '<h3>' + esc(c.ref) + ' · ' + esc(c.name) + '</h3><p>' + [esc(c.city), esc(cour), rs(c.cod) + ' COD'].join(' · ') + '</p>' +
+  el('panel').innerHTML = '<h3>' + esc(c.ref) + ' · ' + esc(cleanName(c.name)) + '</h3><p>' + [esc(c.city), esc(cour), rs(c.cod) + ' COD'].join(' · ') + '</p>' +
     (afterCall ? '<div class="ac-just"><i class="ti ti-phone-check"></i>You just called ' + esc(first) + ' · what happened?</div>' : '') +
     ndrReqBanner(c) +
     '<div class="ac-facts">' +
@@ -5202,7 +5202,7 @@ function drawNextBar() {
   if (!c || !(g === 'new' || g === 'again') || curTab !== 'ndr' || !c.phone) { bar.hidden = true; if (c === undefined || (c && !(g === 'new' || g === 'again'))) NEXT_CN = ''; return; }
   var left = triesLeft(c);
   // tap the text: the whole parcel (order, items, address, dates, tracking) opens; Back returns here
-  bar.innerHTML = '<div class="nb-t" data-p="' + esc(c.cn) + '" role="button" title="Open the parcel"><small>Next call · <u>details ›</u></small><b>' + esc(c.ref) + ' · ' + esc(c.name) + '</b><span>' + [esc(c.city), esc(c.courier), c.attempts ? (left <= 0 ? 'no tries left' : left === 1 ? 'last try' : left + ' tries left') : ''].filter(Boolean).join(' · ') + '</span></div>' +
+  bar.innerHTML = '<div class="nb-t" data-p="' + esc(c.cn) + '" role="button" title="Open the parcel"><small>Next call · <u>details ›</u></small><b>' + esc(c.ref) + ' · ' + esc(cleanName(c.name)) + '</b><span>' + [esc(c.city), esc(c.courier), c.attempts ? (left <= 0 ? 'no tries left' : left === 1 ? 'last try' : left + ' tries left') : ''].filter(Boolean).join(' · ') + '</span></div>' +
     '<a class="btn pri" data-call="' + esc(c.cn) + '" href="' + telHref(c.phone) + '" id="nbCall"><i class="ti ti-phone"></i>Call</a><button class="nb-x" id="nbX" type="button" aria-label="Not now"><i class="ti ti-x"></i></button>';
   bar.hidden = false;
   el('nbCall').onclick = function () { NEXT_CN = ''; setTimeout(function () { bar.hidden = true; }, 0); };
@@ -5211,7 +5211,7 @@ function drawNextBar() {
 function openNextCall(c) {
   if (!c || !N.data.cases.some(function (x) { return x.cn === c.cn; })) return;
   var left = triesLeft(c), pp = findParcel(c.cn) || {}, item = String(c.items || pp.items || '').split(/\n|;/).filter(Boolean)[0] || '';
-  el('panel').innerHTML = '<h3>Next call</h3><p>' + esc(c.ref) + ' · ' + esc(c.name) + ' · ' + [esc(c.city), esc(c.courier), rs(c.cod)].join(' · ') + '</p>' +
+  el('panel').innerHTML = '<h3>Next call</h3><p>' + esc(c.ref) + ' · ' + esc(cleanName(c.name)) + ' · ' + [esc(c.city), esc(c.courier), rs(c.cod)].join(' · ') + '</p>' +
     '<div class="nc-box" style="margin:0"><b>' + esc(c.courier) + ':</b> ' + esc(niceReason(c.reason || c.courierStatus) || 'Delivery failed') + (c.attempts ? ' · attempt ' + c.attempts : '') + '</div>' +
     (c.attempts ? '<div class="nc-ln" style="color:' + (left <= 1 ? 'var(--red)' : 'var(--muted)') + '"><i class="ti ti-hourglass"></i>' + (left <= 0 ? 'No tries left' : left === 1 ? 'Last try left' : left + ' tries left') + '</div>' : '') +
     (item ? '<div class="nc-ln"><i class="ti ti-package"></i>' + esc(item) + '</div>' : '') +
