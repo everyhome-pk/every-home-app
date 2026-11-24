@@ -1953,7 +1953,7 @@ function openReturnCondition(d, key) {
 // History (2026-10-27, user: Back closed the app from a purchase): every step deeper into a full page adds its history
 // entry when the user taps forward (Chrome skips entries added without a tap, which made the 2nd Back leave the app);
 // Back / ‹ / ✕ all go through history.back(), and closing a sheet any other way takes its entries away again.
-var PANEL_DEPTH = 0, HIST_SKIP = false, HIST_BACKING = false;
+var PANEL_DEPTH = 0, HIST_SKIP = false, HIST_BACKING = false, PICKER_OPEN = null;
 function panelStep() { try { google.script.history.push({ tab: curTab, panel: 1 }, null, curTab); PANEL_DEPTH++; } catch (e) {} }
 function openPanel(full) {
   var p = el('panel'), was = el('overlay').classList.contains('show'), h0 = p.getAttribute('data-title') || '';
@@ -2090,6 +2090,7 @@ try {
   google.script.history.replace({ tab: 'home' }, null, 'home');
   google.script.history.setChangeHandler(function (e) {
     if (HIST_SKIP) { HIST_SKIP = false; return; } // entries of a sheet that was closed another way
+    if (PICKER_OPEN) { PICKER_OPEN._back(); return; } // Back with a picker list open: close only the list
     if (!el('menuBd').hidden) { closeMenu(); return; } // Back with a dropdown open: close it
     if (el('overlay').classList.contains('show')) {
       PANEL_DEPTH = Math.max(0, PANEL_DEPTH - 1);
@@ -6349,6 +6350,10 @@ function openPicker(sel, title) {
     (rows.length > 6 ? '<div class="pk-s"><i class="ti ti-search"></i><input type="search" placeholder="Search" aria-label="Search"></div>' : '') +
     '<div class="pk-list"></div>' + (extra.length ? '<div class="pk-new">' + extra.map(function (r) { return '<button type="button" data-v="' + esc(r.v) + '"><i class="ti ti-plus"></i>' + esc(r.t.replace(/^\+\s*/, '')) + '</button>'; }).join('') + '</div>' : '') + '</div>';
   document.body.appendChild(ov);
+  // phone Back closes the picker first (user 2026-11-24: Back worked on the screen behind while the list stayed open)
+  var pushed = false;
+  try { google.script.history.push({ tab: curTab, picker: 1 }, null, curTab); pushed = true; } catch (e) {}
+  PICKER_OPEN = ov;
   var list = ov.querySelector('.pk-list'), q = ov.querySelector('.pk-s input');
   var draw = function () {
     var w = q ? q.value.trim().toLowerCase() : '', g = null, h = '';
@@ -6359,7 +6364,12 @@ function openPicker(sel, title) {
     list.innerHTML = h || '<div class="pk-none">Nothing found</div>';
   };
   draw();
-  var close = function () { ov.classList.remove('show'); setTimeout(function () { ov.remove(); }, 180); document.removeEventListener('keydown', key); };
+  var close = function (fromBack) {
+    if (PICKER_OPEN === ov) PICKER_OPEN = null;
+    ov.classList.remove('show'); setTimeout(function () { ov.remove(); }, 180); document.removeEventListener('keydown', key);
+    if (pushed && fromBack !== true) { pushed = false; HIST_SKIP = true; try { history.go(-1); } catch (e) { HIST_SKIP = false; } } // closed another way: its Back step goes too
+  };
+  ov._back = function () { pushed = false; close(true); };
   var key = function (e) { if (e.key === 'Escape') close(); };
   document.addEventListener('keydown', key);
   ov.onclick = function (e) {
