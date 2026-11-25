@@ -631,7 +631,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
         : '<div class="c-rem" title="' + esc([x.note, x.says].filter(Boolean).join(' · ')) + '">' + (x.note ? '<b>' + esc(x.note) + '</b>' + (x.says ? ' · ' : '') : '') + esc(x.says) + '</div>') +
       '<div class="c-now" title="' + (nw ? esc(nw[0] + ' · ' + nw[1]) + (nw[2] ? ' · no update since our request' : '') : '') + '">' + (nw ? esc(attTxt(x, nw[3])) + ' <small>· ' + esc(nw[1]) + '</small>' : x.note || x.says ? esc([x.note, x.says].filter(Boolean).join(' · ')) : '<small>—</small>') + '</div>') +
       '<div class="c-pend"><span class="pend' + (answered(x) ? ' dn' : x.hours < 1 ? ' nw' : pendCls(x.hours, x.kind)) + '">' + pendTxt(x.hours) + '</span></div>' +
-      '<div class="c-ans">' + (ret ? markCell(x) : an ? '<span class="rp ed" data-reply="' + esc(x.id) + '">Edit</span>' : '<span class="rp" data-reply="' + esc(x.id) + '">Respond</span>') + '</div></div>';
+      '<div class="c-ans">' + (ret ? markCell(x) : an ? '<span class="rp ed" data-reply="' + esc(x.id) + '">Reply</span>' : '<span class="rp" data-reply="' + esc(x.id) + '">Respond</span>') + '</div></div>';
   }
   function timeline(h) {
     if (!h || !h.length) return '';
@@ -651,9 +651,9 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     var yest = (function () { var t = new Date(D.today + 'T12:00:00'); t.setDate(t.getDate() - 1); return t.toISOString().slice(0, 10); })();
     var tm = function (e) { return String(e.when || '').replace(/^.*,\s*/, ''); };
     var list = (x.history || []).slice(), lastYou = -1, lastUs = -1;
-    list.forEach(function (e, i) { if (e.k === 'you') lastYou = i; if (e.k === 'us') lastUs = i; });
+    list.forEach(function (e, i) { if (e.k === 'you') lastYou = i; if (e.k === 'us' && !e.m) lastUs = i; });
     // the answer saved on this page just now (the history comes with the next refresh)
-    if ((x.status || x.reply) && lastYou < lastUs) list.push({ k: 'you', who: (x.by || D.courier) + ':', what: [x.status, x.reply].filter(Boolean).join(' · '),
+    if ((x.status || x.reply) && lastYou < lastUs && !list.some(function (e) { return e.k === 'you'; })) list.push({ k: 'you', who: (x.by || D.courier) + ':', what: [x.status, x.reply].filter(Boolean).join(' · '),
       ms: isOpen ? Date.now() : 0, when: String(x.at || '') });
     if (!list.length) return '<div class="cev">No history yet</div>';
     list.forEach(function (e, i) {
@@ -665,7 +665,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
         var txt = String(e.what || '').replace(/"/g, '');
         // 2. the store's line says what was asked, not "Sent to the courier page · Reattempt" (user 2026-11-18); the latest
         // one carries the request in full with the customer's words
-        if (e.k === 'us') {
+        if (e.k === 'us' && !e.m) {
           var isLast = i === lastUs, kindW = txt.replace(/^Sent( to the courier page| to the sheet| on WhatsApp)?\s*·?\s*/, '');
           if (/^Sent( to the courier page| to the sheet| on WhatsApp)?(\s*·|$)/.test(txt)) txt = isLast && x.ask ? x.ask : (kindW || 'Request') + ' request';
           // "Reattempt Delivery · Dobara deliver karein" said the same thing twice (user 2026-11-25): the kind is on the
@@ -684,7 +684,8 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
         prev = '';
       }
     });
-    if (isOpen && x.reopen) h += '<div class="cwait a">Revised by ' + esc(D.store) + ' after your answer · please answer again</div>';
+    var lastMsg = list.filter(function (e) { return e.k === 'us'; }).slice(-1)[0];
+    if (isOpen && x.reopen) h += '<div class="cwait a">' + (lastMsg && lastMsg.m ? 'New message from ' + esc(D.store) + ' · please reply' : 'Revised by ' + esc(D.store) + ' after your answer · please answer again') + '</div>';
     else if (isOpen && !answered(x)) h += '<div class="cwait' + pendCls(x.hours, x.kind) + '">' + (x.hours < 1 ? 'New · waiting for your response' : 'Waiting for your response · ' + esc(pendTxt(x.hours))) + '</div>';
     return h;
   }
@@ -692,7 +693,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   function popup(editable) {
     var x = SEL && find(SEL);
     if (!x) return '';
-    var k = kindOf(x.kind), pick = PICK[x.id] != null ? PICK[x.id] : x.status, isOpen = editable && D.open.indexOf(x) !== -1, i = ORDER.indexOf(x.id);
+    var k = kindOf(x.kind), pick = PICK[x.id] != null ? PICK[x.id] : '', isOpen = editable && D.open.indexOf(x) !== -1, i = ORDER.indexOf(x.id);
     // header in two rows (user 2026-11-15: one row held ten things): 1) which parcel and where — tracking ID, copy, city in
     // bold — with the position and close on the right; 2) its status as chips of one style: kind, attempts, request no., waiting
     var maxA = D.maxAttempts || 3, wait = isOpen ? pendCls(x.hours, x.kind).trim() : '';
@@ -720,7 +721,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       (x.product ? '<a class="cph-i" href="' + esc(x.product) + '" target="_blank" rel="noopener"><img alt="Product" src="' + esc(x.product) + '"><b>What we sent</b></a>' : '') + '</div>';
     h += '<div class="cht" id="cht">' + chatBody(x, isOpen) + '</div>';
     if (isOpen) {
-      var w0 = PICK['w' + x.id] != null ? PICK['w' + x.id] : (answered(x) ? x.reply : '') || '', me = ls(NK);
+      var w0 = PICK['w' + x.id] != null ? PICK['w' + x.id] : '', me = ls(NK);
       h += '<div class="ccomp" id="drop">' +
         '<div class="cqr">' + k.answers.map(function (a) { return '<button class="' + (a === pick ? 'on' : '') + '" data-ans="' + esc(a) + '">' + esc(a) + '</button>'; }).join('') + '</div>' +
         '<div class="crow"><button class="cic" id="photo" aria-label="Add a proof photo" title="Proof photo (or Ctrl+V / drop a screenshot)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 11.1l-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg></button>' +
@@ -779,13 +780,16 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   }
   function save() {
     var x = find(SEL); if (!x) return;
-    var st = PICK[x.id] != null ? PICK[x.id] : x.status, w = ($('words').value || '').trim(), who = ($('who') ? $('who').value : ls(NK) || '').trim();
+    var st = PICK[x.id] || '', w = ($('words').value || '').trim(), wasWaiting = !answered(x), who = ($('who') ? $('who').value : ls(NK) || '').trim();
     if (!st && !w) { toast('Tap an answer or write one'); return; }
     ls(NK, who);
     var b = $('save'); b.disabled = true; b.classList.add('busy'); NAMEED = false;
     post('appCpReply', [C, V, S, x.id, st || '', w, who], function (r) {
-      x.status = st || ''; x.reply = w; x.by = who || D.courier; x.at = r.at; x.reopen = false; delete PICK[x.id]; delete PICK['w' + x.id];
-      toast('Saved · ' + D.store + ' can see it now'); SEL = nextOpen(x.id); render();
+      if (st) x.status = st; x.reply = w; x.by = who || D.courier; x.at = r.at; x.reopen = false; delete PICK[x.id]; delete PICK['w' + x.id];
+      // the message joins the chat at once (the history comes with the next refresh)
+      (x.history = x.history || []).push({ k: 'you', who: (who || D.courier) + ':', what: [st, w].filter(Boolean).join(' · '), ms: Date.now(), when: r.at });
+      // the first answer moves on to the next query; a later message stays in the chat (user 2026-11-25)
+      toast('Sent · ' + D.store + ' can see it now'); SEL = wasWaiting ? nextOpen(x.id) : x.id; render();
     }, function (m) { b.disabled = false; b.classList.remove('busy'); toast(m); });
   }
   function sendMark(id) {

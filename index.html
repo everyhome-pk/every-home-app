@@ -4104,13 +4104,14 @@ function waCompose(cn, preset, start) {
         return '<label class="wa-c wa-dt' + (own ? ' on' : '') + '"><i class="ti ti-calendar-time"></i>' + (own ? esc(niceDay(pkDay(new Date(Number(st.cb)))) + ', ' + pkTime(Number(st.cb))) : 'Pick a time') +
           '<input type="datetime-local" id="waCbT" style="position:absolute;opacity:0;width:1px;height:1px" aria-label="Pick a call back time"></label>'; })();
     else if (a === 'refuse') sub = NDR_REASONS.slice(0, 5).map(function (x) { return chip('data-wwr', x, x, st.reason === x); }).join('');
+    var tkPage = !a && tk && /Sheet/.test(tk.channel || '') && pageOnly(); // an open query on their page: a plain message can go (user 2026-11-25)
     el('pgBar').innerHTML = '<div class="wa-comp">' +
       (afterCall ? '<div class="wa-just"><i class="ti ti-phone-check"></i>You just called · what happened?</div>' : '') +
       '<div class="wa-cr">' + WA_ANS.map(function (x) { return chip('data-wans', x[0], x[1], a === x[0]); }).join('') + '</div>' +
       (sub ? '<div class="wa-cr">' + sub + '</div>' : '') +
-      '<div class="wa-bar"><input id="waMsg" class="wa-in3" placeholder="' + esc(!a ? 'Pick what the customer said ↑' : a === 'later' ? 'e.g. office mein hai, 5 baje ke baad' : a === 'noans' ? 'e.g. bell ja rahi hai' : a === 'refuse' ? 'Why (optional)' : 'Message to ' + cour) + '" autocomplete="off">' +
+      '<div class="wa-bar"><input id="waMsg" class="wa-in3" placeholder="' + esc(!a ? (tkPage ? 'Message ' + cour + '… or pick an answer ↑' : 'Pick what the customer said ↑') : a === 'later' ? 'e.g. office mein hai, 5 baje ke baad' : a === 'noans' ? 'e.g. bell ja rahi hai' : a === 'refuse' ? 'Why (optional)' : 'Message to ' + cour) + '" autocomplete="off">' +
         (a ? '<button type="button" class="wa-rb" id="waSend" aria-label="Send"><i class="ti ti-' + (a === 'later' || a === 'noans' ? 'clock' : a === 'refuse' ? 'arrow-back-up' : 'send') + '"></i></button>'
-          : (tk && tk.channel ? '<button type="button" class="wa-rb2" data-wr="' + esc(tk.id) + '" data-wc="' + esc(c.courier) + '" aria-label="Note the courier reply"><i class="ti ti-message-reply"></i></button>' : '') +
+          : (tkPage ? '<button type="button" class="wa-rb" id="waTell" aria-label="Send to ' + esc(cour) + '"><i class="ti ti-send"></i></button>' : '') + (tk && tk.channel ? '<button type="button" class="wa-rb2" data-wr="' + esc(tk.id) + '" data-wc="' + esc(c.courier) + '" aria-label="Note the courier reply"><i class="ti ti-message-reply"></i></button>' : '') +
             (phone ? '<a class="wa-rb" data-call="' + esc(cn) + '" href="' + telHref(phone) + '" aria-label="Call ' + esc(cleanName(c.name)) + '"><i class="ti ti-phone"></i></a>' : '')) + '</div>' +
       '<div class="wa-links">' + (c.wa ? '<a target="_blank" href="' + waLink(c.wa, '') + '">WhatsApp the customer</a>' : '') + (a ? '<button type="button" id="waClose" aria-label="Clear the answer"><i class="ti ti-x"></i></button>' : '') + '</div></div>';
     var m = el('waMsg'); m.value = st.words || ''; m.oninput = function () { st.words = m.value; prev(); };
@@ -4132,7 +4133,8 @@ function waCompose(cn, preset, start) {
     el('pgBar').querySelectorAll('[data-wwhy]').forEach(function (b) { b.onclick = function () { st.why = st.why === b.getAttribute('data-wwhy') ? '' : b.getAttribute('data-wwhy'); draw(); }; });
     el('pgBar').querySelectorAll('[data-wwr]').forEach(function (b) { b.onclick = function () { st.reason = st.reason === b.getAttribute('data-wwr') ? '' : b.getAttribute('data-wwr'); draw(); }; });
     if (el('waSend')) el('waSend').onclick = function () { send(); };
-    m.onkeydown = function (e) { if (e.key === 'Enter' && st.ans) send(); };
+    m.onkeydown = function (e) { if (e.key === 'Enter' && st.ans) send(); else if (e.key === 'Enter' && tkPage) tell(); };
+    if (el('waTell')) el('waTell').onclick = tell;
     if (el('waClose')) el('waClose').onclick = function () { openChat(cn); };
     prev();
   };
@@ -4164,6 +4166,12 @@ function waCompose(cn, preset, start) {
     var wrap = box.querySelector('.ch-wrap') || box;
     wrap.insertAdjacentHTML('beforeend', '<div class="cm u wa-prev"><div class="cb"><span class="cb-w">' + (goes ? 'Goes to ' + esc(cour) + ' when you send' : 'Saved on the case · nothing goes to ' + esc(cour)) + '</span>' + esc(txt) + '</div></div>');
     requestAnimationFrame(function () { el('pgBody').scrollTop = el('pgBody').scrollHeight; });
+  };
+  // a plain message on the open query (no new request): it shows in the chat on both sides
+  var tell = function () {
+    var t = String(el('waMsg').value || '').trim(); if (!t) { toast('Write a message for ' + cour); return el('waMsg').focus(); }
+    el('pgBar').innerHTML = '<div class="wa-bar"><span class="wa-in2 off"><i class="ti ti-loader-2"></i> Sending…</span></div>';
+    api('appCpMessage', [TOKEN, cn, t], function () { toast('Sent to ' + cour); openChat(cn); }, function (e) { toast('Not sent: ' + ((e && e.message) || 'try again')); draw(); el('waMsg').value = t; });
   };
   var send = function () {
     var a = st.ans; if (!a) return;
