@@ -370,6 +370,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
 .qfold .ki{width:28px;height:28px;border-radius:8px}.qf-t{min-width:0}.qf-t b{display:block;font-size:13px;font-weight:600}.qf-t small{display:block;font-size:11.5px;color:var(--muted)}
 .qfold .qh{margin-left:auto;font-size:11.5px;color:var(--muted);white-space:nowrap}.qchev{transform:rotate(-90deg);color:var(--faint)}.qfold:hover{border-color:var(--ka,var(--brand))}
 .pend{display:inline-flex!important;align-items:center;justify-content:center;min-width:52px!important;height:22px;padding:0 9px!important;border-radius:99px;background:var(--chip);color:var(--ink2)!important;font:600 11.5px Inter,sans-serif!important}
+.pend{white-space:nowrap}.qs .tr.ans .c-now{display:none!important}.qs .tr.ans .c-rem.resp{display:block!important}
 .pend.nw{background:var(--soft);color:var(--brand-d)!important}.pend.a{background:var(--amberbg);color:var(--amber)!important}.pend.r{background:var(--redbg);color:var(--red)!important}.pend.dn{background:transparent;color:var(--muted)!important;font-weight:500!important}
 .qs .tr .c-now{font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.qs .tr .c-now small{color:var(--muted)}
 .mempty{background:var(--wa-bar)!important}.me-in{margin:auto;max-width:320px;padding:24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--muted);font-size:13px;line-height:1.45}
@@ -381,7 +382,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
 }
 @media (max-width:900px){
   .kc{flex:1 1 calc(50% - 4px)!important;padding:8px 10px!important}.ki{width:28px;height:28px}.kc .l{white-space:normal!important}.kc .s{display:none}
-  .qfold .qh{display:none}.mempty{display:none}
+  .qfold .qh{display:none}.qchev{margin-left:auto}.mdl .mpos{display:none!important}.qs .tr:not(.ans) .c-now{display:block!important;grid-column:1/-1;grid-row:3;padding:2px 12px 0;white-space:normal;font-size:12px;color:var(--muted)}.mempty{display:none}
 }
 </style>
 </head>
@@ -551,6 +552,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       if (k.key === 'reattempt') body += ultaBlock();
     });
     if (folds) body += '<div class="qolab">Other requests</div>' + folds;
+    if (!list.length) body = '<section class="qs"><div class="empty">Nothing matches the search.</div></section>';
     // one bar that starts the work (user 2026-11-18); on a computer it lives in the empty chat panel instead (never twice)
     var waitIds = ORDER.filter(function (id) { var x = find(id); return x && !answered(x); });
     var start = waitIds.length && !desk() ? '<div class="start"><div><b>' + waitIds.length + ' ' + (waitIds.length === 1 ? 'query needs' : 'queries need') + ' your response</b><br><span>Oldest first · after you send, the next one opens</span></div><button class="btn pri" data-open="' + esc(waitIds[0]) + '" data-reply="1">Start responding</button></div>' : '';
@@ -569,8 +571,9 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   function emptyPanel(waitIds) {
     if (!desk()) return '';
     return '<div class="mdl mempty" aria-label="No query selected"><div class="me-in"><div class="me-ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1 1 21 12z"/><path d="M8.5 10.5h7M8.5 13.5h4.5"/></svg></div>' +
+      (!waitIds ? '<b>Select a resolved query</b><span>Click a line on the left to see its whole conversation and how it ended. Read only.</span></div></div>' :
       '<b>Select a query</b><span>Click a line on the left. Its conversation opens here: ' + esc(D.store) + '\'s request, the parcel history and your reply.</span>' +
-      (waitIds.length ? '<button class="btn pri" data-open="' + esc(waitIds[0]) + '" data-reply="1">Start with the oldest · ' + waitIds.length + ' waiting</button><small>After you send, the next one opens by itself · ↑ ↓ keys move</small>' : '<small>Nothing waits for your response right now</small>') + '</div></div>';
+      (waitIds.length ? '<button class="btn pri" data-open="' + esc(waitIds[0]) + '" data-reply="1">Start with the oldest · ' + waitIds.length + ' waiting</button><small>After you send, the next one opens by itself · ↑ ↓ keys move</small>' : '<small>Nothing waits for your response right now</small>') + '</div></div>');
   }
   // "Returned instead of delivering": the last 7 days' reattempts the office returned, with what we asked, what their team
   // said and what the office did — so the courier's seniors see it at once (read only; tap = the parcel's whole story)
@@ -623,7 +626,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       (ret ? '' : (an ? '<div class="c-rem resp" title="' + esc([x.status, x.reply].filter(Boolean).join(' – ')) + '"><b>✓ ' + esc(x.status || 'Responded') + '</b>' + (x.reply ? ' – ' + esc(x.reply) : '') +
           ' <small>' + esc([x.by, String(x.at || '').replace(/^.*,\s*/, '')].filter(Boolean).join(' · ')) + '</small></div>'
         : '<div class="c-rem" title="' + esc([x.note, x.says].filter(Boolean).join(' · ')) + '">' + (x.note ? '<b>' + esc(x.note) + '</b>' + (x.says ? ' · ' : '') : '') + esc(x.says) + '</div>') +
-      '<div class="c-now" title="' + (nw ? esc(nw[0] + ' · ' + nw[1]) + (nw[2] ? ' · no update since our request' : '') : '') + '">' + (nw ? esc(attTxt(x, nw[3])) + ' <small>· ' + esc(nw[1]) + '</small>' : x.note ? esc(x.note) : '<small>—</small>') + '</div>') +
+      '<div class="c-now" title="' + (nw ? esc(nw[0] + ' · ' + nw[1]) + (nw[2] ? ' · no update since our request' : '') : '') + '">' + (nw ? esc(attTxt(x, nw[3])) + ' <small>· ' + esc(nw[1]) + '</small>' : x.note || x.says ? esc([x.note, x.says].filter(Boolean).join(' · ')) : '<small>—</small>') + '</div>') +
       '<div class="c-pend"><span class="pend' + (answered(x) ? ' dn' : x.hours < 1 ? ' nw' : pendCls(x.hours, x.kind)) + '">' + pendTxt(x.hours) + '</span></div>' +
       '<div class="c-ans">' + (ret ? markCell(x) : an ? '<span class="rp ed" data-reply="' + esc(x.id) + '">Edit</span>' : '<span class="rp" data-reply="' + esc(x.id) + '">Respond</span>') + '</div></div>';
   }
@@ -662,6 +665,9 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
         if (e.k === 'us') {
           var isLast = i === lastUs, kindW = txt.replace(/^Sent( to the courier page| to the sheet| on WhatsApp)?\s*·?\s*/, '');
           if (/^Sent( to the courier page| to the sheet| on WhatsApp)?(\s*·|$)/.test(txt)) txt = isLast && x.ask ? x.ask : (kindW || 'Request') + ' request';
+          // "Reattempt Delivery · Dobara deliver karein" said the same thing twice (user 2026-11-25): the kind is on the
+          // header chip, so the bubble keeps only the request
+          D.kinds.forEach(function (kd) { if (txt.indexOf(kd.label + ' · ') === 0) txt = txt.slice(kd.label.length + 3); });
           if (isLast && x.says && x.kind !== 'return' && String(txt).indexOf(x.says) === -1) txt += '\n' + x.says;
         }
         h += '<div class="cb2 ' + side + (g ? ' g' : '') + '">' + (g ? '' : '<span class="cw">' + esc(e.k === 'you' ? (who === D.courier ? D.courier + ' Team' : D.courier + ' · ' + who) : D.store) + '</span>') +
@@ -834,8 +840,8 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       '<div class="fl">' + cats.filter(function (c) { return c[0] === 'all' || cnt(c[0]) || FCAT === c[0]; }).map(function (c) { return '<button class="' + (FCAT === c[0] ? 'on' : '') + '" data-fcat="' + c[0] + '">' + c[1] + '<i>' + cnt(c[0]) + '</i></button>'; }).join('') + '</div>' +
       (FDAY ? '<div class="fl"><button class="on" data-fday="">' + esc(dayName(FDAY)) + ' ✕</button></div>' : '') + '<span class="hint">Last 14 days</span></div>' + fsum +
       '<div class="th fth"><div>Tracking ID</div><div>City</div><div>Request Type</div><div>Response</div><div>Outcome</div><div>Closed On</div></div>' +
-      (body || '<div class="empty">No resolved queries yet.</div>') + '</div>' + popup(false);
-    document.body.classList.toggle('mdl-on', !!(SEL && find(SEL)));
+      (body || '<div class="empty">No resolved queries yet.</div>') + '</div>' + (SEL && find(SEL) ? popup(false) : emptyPanel(null));
+    document.body.classList.toggle('mdl-on', !!(SEL && find(SEL)) || desk());
     var fq = $('fq'); fq.oninput = function () { FQ = fq.value; renderF(); var n = $('fq'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); };
     $('fcity').onchange = function () { FCITY = this.value; renderF(); };
   }
