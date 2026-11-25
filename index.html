@@ -226,6 +226,11 @@ body{overscroll-behavior-y:contain}
 .jr-funnel{font-size:13px;color:var(--muted);margin:-4px 0 2px;line-height:1.5}.jr-funnel b{color:var(--text);font-size:15px}.jr-funnel b.up{color:var(--green)}.jr-funnel b.down{color:var(--red)}.jr-funnel i.ti{font-size:13px;vertical-align:-1px}
 .jr-late{display:flex;align-items:center;gap:10px;margin:2px 0 12px;padding:10px 12px;border-radius:12px;background:var(--red-bg);color:var(--red);cursor:pointer}
 .jr-late>i:first-child{font-size:20px;flex:none}.jr-late span{flex:1;min-width:0}.jr-late b{display:block;font-size:14px;font-weight:600}.jr-late small{display:block;font-size:12px;color:var(--text);opacity:.75}.jr-late>i:last-child{flex:none;opacity:.7}
+.emo-box{max-height:200px;overflow-y:auto;padding:6px 8px 8px;margin-bottom:6px;background:var(--emo-bg,#fff);border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+.emo-h{font:600 11px Inter,sans-serif;color:#667781;margin:6px 2px 2px}.emo-g{display:flex;flex-wrap:wrap}
+.emo-g button{width:38px;height:38px;border:0;background:none;font-size:23px;line-height:1;border-radius:8px;cursor:pointer;padding:0}.emo-g button:hover{background:rgba(0,0,0,.06)}
+.wa-emo{flex:none;width:38px;height:38px;border:0;background:none;color:var(--muted);font-size:22px;border-radius:50%;cursor:pointer}[data-mode=dark] .emo-box{--emo-bg:#233138}
+#chBox .ch-wrap,#pdch .ch-wrap{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'160'%20height%3D'160'%20fill%3D'none'%20stroke%3D'rgba(84%2C101%2C111%2C0.11)'%20stroke-width%3D'1.3'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Cpath%20d%3D'M14%2022l12-6%2012%206v13l-12%206-12-6z%20M14%2022l12%206%2012-6%20M26%2028v13'%2F%3E%3Cpath%20d%3D'M96%2018h18v12H96z%20M114%2022h7l4%205v3h-11%20M100%2033a2%202%200%201%200%200.1%200%20M120%2033a2%202%200%201%200%200.1%200'%2F%3E%3Cpath%20d%3D'M60%2092c0-6%204-10%209-10s9%204%209%2010c0%207-9%2015-9%2015s-9-8-9-15z%20M69%2092a2%202%200%201%200%200.1%200'%2F%3E%3Cpath%20d%3D'M120%20100h22a4%204%200%200%201%204%204v10a4%204%200%200%201-4%204h-14l-6%205v-5h-2a4%204%200%200%201-4-4v-10a4%204%200%200%201%204-4z'%2F%3E%3Cpath%20d%3D'M22%20120l4%204%208-8%20M40%2070a3%203%200%201%200%200.1%200%20M140%2060a3%203%200%201%200%200.1%200%20M90%20140a3%203%200%201%200%200.1%200'%2F%3E%3C%2Fsvg%3E");background-size:160px 160px}[data-mode=dark] #chBox .ch-wrap,[data-mode=dark] #pdch .ch-wrap{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'160'%20height%3D'160'%20fill%3D'none'%20stroke%3D'rgba(233%2C237%2C239%2C0.05)'%20stroke-width%3D'1.3'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Cpath%20d%3D'M14%2022l12-6%2012%206v13l-12%206-12-6z%20M14%2022l12%206%2012-6%20M26%2028v13'%2F%3E%3Cpath%20d%3D'M96%2018h18v12H96z%20M114%2022h7l4%205v3h-11%20M100%2033a2%202%200%201%200%200.1%200%20M120%2033a2%202%200%201%200%200.1%200'%2F%3E%3Cpath%20d%3D'M60%2092c0-6%204-10%209-10s9%204%209%2010c0%207-9%2015-9%2015s-9-8-9-15z%20M69%2092a2%202%200%201%200%200.1%200'%2F%3E%3Cpath%20d%3D'M120%20100h22a4%204%200%200%201%204%204v10a4%204%200%200%201-4%204h-14l-6%205v-5h-2a4%204%200%200%201-4-4v-10a4%204%200%200%201%204-4z'%2F%3E%3Cpath%20d%3D'M22%20120l4%204%208-8%20M40%2070a3%203%200%201%200%200.1%200%20M140%2060a3%203%200%201%200%200.1%200%20M90%20140a3%203%200%201%200%200.1%200'%2F%3E%3C%2Fsvg%3E")}
 .late-b,.late-t{font-style:normal;color:var(--red);font-weight:600}.late-b{font-size:10.5px;background:var(--red-bg);padding:1px 6px;border-radius:99px;margin-left:4px;vertical-align:1px}
 .jr-now{display:flex;align-items:center;gap:8px;margin-top:8px;padding:9px 10px;border-radius:12px;border:1px dashed var(--line);font-size:12.5px;color:var(--muted);cursor:pointer}.jr-now span{flex:1}.jr-now b{color:var(--text)}.jr-now i{font-size:16px}
 .jr-sum{font-size:12.5px;color:var(--muted);margin:-4px 0 8px}.jr-sum b{color:var(--text);font-size:15px}
@@ -4078,6 +4083,27 @@ var WA_ANS = [['deliver', 'Will receive'], ['later', 'Busy · call later'], ['no
 document.addEventListener('click', function (e) { var b = e.target.closest('[data-wacomp]'); if (b) waCompose(b.getAttribute('data-wacomp')); });
 // start = drawn with the chat (user 2026-11-24: the answers must be in sight at once, not behind a tap); its Back step
 // comes with the first answer picked
+
+  var EMO = [['Smileys', '😀 😃 😄 😁 😆 😅 😂 🤣 😊 🙂 😉 😍 😘 😎 🤗 🤔 😐 😑 🙄 😏 😬 😢 😭 😡 😤 😱 😴 🤒 😷 🤐 🥲 🙏'],
+    ['Hands', '👍 👎 👌 ✌️ 🤞 👏 🙌 🤝 👋 ✋ 👊 💪 ☝️ 👉 👈 👆 👇 🫡'],
+    ['Things', '📦 🚚 🛵 🏍️ 🏠 🏢 📍 🗺️ 📞 📱 💬 📷 🧾 💰 💵 🕐 ⏰ 📅 🔑 🎁'],
+    ['Symbols', '✅ ☑️ ✔️ ❌ ⚠️ ❗ ❓ ⭐ 🔴 🟢 🟡 🔵 ➡️ ⬅️ 🔁 ↩️ 💯 🆗 🆕 ❤️']];
+  function emoOpen(btn, input, key) {
+    var old = document.getElementById('emoBox'); if (old) { old.remove(); if (old.dataset.for === input.id) return; }
+    var rec = []; try { rec = JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) {}
+    var groups = (rec.length ? [['Recent', rec.join(' ')]] : []).concat(EMO);
+    var box = document.createElement('div'); box.id = 'emoBox'; box.className = 'emo-box'; box.dataset.for = input.id;
+    box.innerHTML = groups.map(function (g) { return '<div class="emo-h">' + g[0] + '</div><div class="emo-g">' + g[1].split(' ').map(function (e) { return '<button type="button" data-emo="' + e + '">' + e + '</button>'; }).join('') + '</div>'; }).join('');
+    btn.parentNode.parentNode.insertBefore(box, btn.parentNode);
+    box.onmousedown = function (ev) { ev.preventDefault(); }; // keep the cursor in the box
+    box.onclick = function (ev) {
+      var b = ev.target.closest('[data-emo]'); if (!b) return;
+      var e = b.getAttribute('data-emo'), s0 = input.selectionStart == null ? input.value.length : input.selectionStart, s1 = input.selectionEnd == null ? s0 : input.selectionEnd;
+      input.value = input.value.slice(0, s0) + e + input.value.slice(s1); input.selectionStart = input.selectionEnd = s0 + e.length;
+      input.dispatchEvent(new Event('input', { bubbles: true })); input.focus();
+      rec = [e].concat(rec.filter(function (x) { return x !== e; })).slice(0, 16); try { localStorage.setItem(key, JSON.stringify(rec)); } catch (er) {}
+    };
+  }
 function waCompose(cn, preset, start) {
   var c = (N.data.cases || []).filter(function (x) { return x.cn === cn; })[0]; if (!c) return;
   var step = function () { if (!COMPOSE_OPEN) { try { history.pushState({ compose: 1 }, ''); } catch (e) {} } COMPOSE_OPEN = cn; };
@@ -4109,9 +4135,9 @@ function waCompose(cn, preset, start) {
       (afterCall ? '<div class="wa-just"><i class="ti ti-phone-check"></i>You just called · what happened?</div>' : '') +
       '<div class="wa-cr">' + WA_ANS.map(function (x) { return chip('data-wans', x[0], x[1], a === x[0]); }).join('') + '</div>' +
       (sub ? '<div class="wa-cr">' + sub + '</div>' : '') +
-      '<div class="wa-bar"><input id="waMsg" class="wa-in3" placeholder="' + esc(!a ? (tkPage ? 'Message ' + cour + '… or pick an answer ↑' : 'Pick what the customer said ↑') : a === 'later' ? 'e.g. office mein hai, 5 baje ke baad' : a === 'noans' ? 'e.g. bell ja rahi hai' : a === 'refuse' ? 'Why (optional)' : 'Message to ' + cour) + '" autocomplete="off">' +
+      '<div class="wa-bar"><button type="button" class="wa-emo" id="waEmo" aria-label="Emoji"><i class="ti ti-mood-smile"></i></button><input id="waMsg" class="wa-in3" placeholder="' + esc(!a ? (tkPage ? 'Message ' + cour + '… or pick an answer ↑' : 'Pick what the customer said ↑') : a === 'later' ? 'e.g. office mein hai, 5 baje ke baad' : a === 'noans' ? 'e.g. bell ja rahi hai' : a === 'refuse' ? 'Why (optional)' : 'Message to ' + cour) + '" autocomplete="off">' +
         (a ? '<button type="button" class="wa-rb" id="waSend" aria-label="Send"><i class="ti ti-' + (a === 'later' || a === 'noans' ? 'clock' : a === 'refuse' ? 'arrow-back-up' : 'send') + '"></i></button>'
-          : (tkPage ? '<button type="button" class="wa-rb" id="waTell" aria-label="Send to ' + esc(cour) + '"><i class="ti ti-send"></i></button>' : '') + (tk && tk.channel ? '<button type="button" class="wa-rb2" data-wr="' + esc(tk.id) + '" data-wc="' + esc(c.courier) + '" aria-label="Note the courier reply"><i class="ti ti-message-reply"></i></button>' : '') +
+          : (tkPage ? '<label class="wa-emo" aria-label="Send a photo" style="display:flex;align-items:center;justify-content:center"><i class="ti ti-camera"></i><input type="file" accept="image/*" id="waPic" hidden></label>' : '') + (tkPage ? '<button type="button" class="wa-rb" id="waTell" aria-label="Send to ' + esc(cour) + '"><i class="ti ti-send"></i></button>' : '') + (tk && tk.channel ? '<button type="button" class="wa-rb2" data-wr="' + esc(tk.id) + '" data-wc="' + esc(c.courier) + '" aria-label="Note the courier reply"><i class="ti ti-message-reply"></i></button>' : '') +
             (phone ? '<a class="wa-rb" data-call="' + esc(cn) + '" href="' + telHref(phone) + '" aria-label="Call ' + esc(cleanName(c.name)) + '"><i class="ti ti-phone"></i></a>' : '')) + '</div>' +
       '<div class="wa-links">' + (c.wa ? '<a target="_blank" href="' + waLink(c.wa, '') + '">WhatsApp the customer</a>' : '') + (a ? '<button type="button" id="waClose" aria-label="Clear the answer"><i class="ti ti-x"></i></button>' : '') + '</div></div>';
     var m = el('waMsg'); m.value = st.words || ''; m.oninput = function () { st.words = m.value; prev(); };
@@ -4135,6 +4161,20 @@ function waCompose(cn, preset, start) {
     if (el('waSend')) el('waSend').onclick = function () { send(); };
     m.onkeydown = function (e) { if (e.key === 'Enter' && st.ans) send(); else if (e.key === 'Enter' && tkPage) tell(); };
     if (el('waTell')) el('waTell').onclick = tell;
+    if (el('waPic')) el('waPic').onchange = function () {
+      var f = this.files && this.files[0]; if (!f) return;
+      var u = URL.createObjectURL(f), img = new Image();
+      img.onload = function () {
+        var k = Math.min(1, 1600 / Math.max(img.width, img.height)), cv = document.createElement('canvas');
+        cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k); cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height); URL.revokeObjectURL(u);
+        var t = String(el('waMsg').value || '').trim();
+        el('pgBar').innerHTML = '<div class="wa-bar"><span class="wa-in2 off"><i class="ti ti-loader-2"></i> Sending the photo…</span></div>';
+        api('appCpMessage', [TOKEN, cn, t, cv.toDataURL('image/jpeg', 0.8)], function () { toast('Photo sent to ' + cour); openChat(cn); }, function (e) { toast('Not sent: ' + ((e && e.message) || 'try again')); draw(); });
+      };
+      img.onerror = function () { toast('This file is not a photo'); };
+      img.src = u;
+    };
+    if (el('waEmo')) el('waEmo').onclick = function () { emoOpen(el('waEmo'), el('waMsg'), 'eh_emo'); };
     if (el('waClose')) el('waClose').onclick = function () { openChat(cn); };
     prev();
   };
@@ -4776,7 +4816,7 @@ function chatHtml(ev, o) {
       var who = side === 'u' ? 'You' + (ch.kind ? ' · ' + String(ch.kind).toLowerCase() + ' request' : '') : (ch.who || cour);
       var g = prev && prev.side === side && prev.who === who && e.ms - prev.ms < 20 * 60000;
       var via = ch.via === 'Sheet' && shW(cour) === 'page' ? 'page' : ch.via;
-      var meta = esc(e.at) + (side === 'u' ? (via ? ' · ' + esc(via) : '') + ' <i class="ti ti-checks' + (i < lastC ? ' rd' : '') + '" aria-label="' + (i < lastC ? 'Answered' : 'Sent') + '"></i>'
+      var meta = esc(e.at) + (side === 'u' ? (via ? ' · ' + esc(via) : '') + ' <i class="ti ti-checks' + (i < lastC || (o.cSeen && e.ms <= o.cSeen) ? ' rd' : '') + '" aria-label="' + (i < lastC ? 'Answered' : o.cSeen && e.ms <= o.cSeen ? 'Seen' : 'Sent') + '"></i>'
         : ch.via ? ' · ' + esc(ch.via) + (ch.noted ? ' · noted by ' + esc(ch.noted) : '') : '');
       var txt = ch.txt != null && ch.txt !== '' ? ch.txt : side === 'u' ? (e.t || '') : '';
       var extra = (ch.sub && side === 'u' && String(txt).indexOf(ch.sub) === -1 ? '<span class="cb-s">Customer: ' + esc(ch.sub) + '</span>' : '') +
@@ -4863,7 +4903,17 @@ function caseHistory(cn) {
   }, function () { if (el('pdch')) el('pdch').innerHTML = '<small style="color:var(--muted)">Could not load the history</small>'; });
 }
 // Full chat page, from the NDR card's line
+var CHAT_POLL = 0;
+// press and hold (or right-click) a chat message: copy its words (user 2026-11-25, like WhatsApp)
+document.addEventListener('contextmenu', function (e) {
+  var b = e.target.closest && e.target.closest('#chBox .cb, #pdch .cb'); if (!b) return;
+  e.preventDefault();
+  var c = b.cloneNode(true); [].forEach.call(c.querySelectorAll('.cb-w,.cb-m,.cb-p,button'), function (n) { n.remove(); });
+  var t = c.innerText.trim(); if (!t) return;
+  try { navigator.clipboard.writeText(t).then(function () { toast('Message copied'); }); } catch (er) {}
+});
 function openChat(cn) {
+  clearInterval(CHAT_POLL);
   composeDone(); // a chat drawn again (✕, after a save) closes the answer box and its Back step
   var c = N.data && (N.data.cases || []).filter(function (x) { return x.cn === cn; })[0]; if (!c) { openParcel(cn); return; }
   var t = ticketOf(c), seen = (chatSeenAll()[cn] || {}).ms || 0, p = findParcel(cn), phone = c.phone || (p && p.phone);
@@ -4896,13 +4946,25 @@ function openChat(cn) {
     var sig = JSON.stringify(r.events || []); if (sig === shown) return;
     var atEnd = !shown || el('pgBody').scrollHeight - el('pgBody').scrollTop - el('pgBody').clientHeight < 80;
     shown = sig;
-    var o = { courier: r.courier || c.courier, t: t, seenMs: seen, scan: c.scan };
+    var o = { courier: r.courier || c.courier, t: t, seenMs: seen, scan: c.scan, cSeen: r.courierSeen || 0 };
     box.innerHTML = chatHtml(r.events || [], o); chatWire(box, r.events || [], o);
     if (atEnd) requestAnimationFrame(function () { el('pgBody').scrollTop = el('pgBody').scrollHeight; });
     if (!fromKept) chatPut(cn, r);
   };
   if (CHATS && CHATS[cn]) draw(CHATS[cn], true);
+  // while this chat is open and the app is in front: new messages every 30 s (user 2026-11-25)
+  CHAT_POLL = setInterval(function () {
+    if (!el('chBox') || el('pgTitle').textContent !== (cleanName(c.name) || c.ref)) { clearInterval(CHAT_POLL); return; }
+    if (document.visibilityState !== 'visible') return;
+    api('getAppCaseHistory', [TOKEN, cn], function (r) {
+      if (!el('chBox')) return; draw(r, false);
+      var lc = (r.events || []).filter(function (e) { return e.chat && e.chat.side === 'c'; }).reduce(function (m, e) { return Math.max(m, e.ms || 0); }, 0);
+      if (lc && lc > Number(store('eh_cseen_' + cn) || 0)) { store('eh_cseen_' + cn, String(lc)); api('appChatSeen', [TOKEN, cn], function () {}, function () {}); }
+    }, function () {});
+  }, 30000);
   api('getAppCaseHistory', [TOKEN, cn], function (r) {
+    var lastC = (r.events || []).filter(function (e) { return e.chat && e.chat.side === 'c'; }).reduce(function (m, e) { return Math.max(m, e.ms || 0); }, 0);
+    if (lastC && lastC > Number(store('eh_cseen_' + cn) || 0)) { store('eh_cseen_' + cn, String(lastC)); api('appChatSeen', [TOKEN, cn], function () {}, function () {}); }
     if (!el('chBox')) return;
     draw(r, false);
     chatMarkSeen(cn, t);
