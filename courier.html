@@ -84,6 +84,7 @@ body.mdl-on{overflow:hidden}.mdl-bg{position:fixed;inset:0;background:rgba(15,23
 .kc .n{flex-direction:column;align-items:flex-end;gap:0!important;line-height:1.1}.kc .n span{font-size:10.5px!important}
 .kc .l::before{content:'';display:inline-block;width:8px;height:8px;border-radius:99px;background:var(--ka,var(--faint));margin-right:7px;vertical-align:1px}
 .k-stop{--kb:#FDE2E2;--kh:#FEF1F1;--ka:#B91C1C}.k-reattempt{--kb:#E3F2EF;--kh:#F1F8F6;--ka:#0F766E}.k-ulta{--kb:#FCE8E8;--kh:#FDF3F3;--ka:#B91C1C}.k-late{--kb:#FBF0D9;--kh:#FDF7EB;--ka:#A1520A}
+.k-proof{--kb:#FDE2E2;--kh:#FEF1F1;--ka:#9F1239}
 .k-check{--kb:#E5EEFA;--kh:#F2F6FC;--ka:#1D4ED8}.k-return{--kb:#EEE8F8;--kh:#F6F3FB;--ka:#6D28D9}.k-claim{--kb:#F8E6EE;--kh:#FCF2F6;--ka:#BE185D}.k-retlate{--kb:#E8ECF1;--kh:#F3F5F8;--ka:#475569}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]) .k-stop{--kb:#3A1414;--kh:#251012;--ka:#F87171}:root:not([data-theme=light]) .k-reattempt{--kb:#10302C;--kh:#0F1F22;--ka:#3FD0B4}:root:not([data-theme=light]) .k-ulta{--kb:#3A1818;--kh:#24141A;--ka:#F87171}:root:not([data-theme=light]) .k-late{--kb:#33270F;--kh:#211C14;--ka:#FBBF24}
 :root:not([data-theme=light]) .k-check{--kb:#14264A;--kh:#111B30;--ka:#60A5FA}:root:not([data-theme=light]) .k-return{--kb:#2A1E48;--kh:#1A1630;--ka:#A78BFA}:root:not([data-theme=light]) .k-claim{--kb:#3A1528;--kh:#24131D;--ka:#F472B6}:root:not([data-theme=light]) .k-retlate{--kb:#1E2633;--kh:#151C28;--ka:#94A3B8}}
@@ -494,7 +495,8 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     check: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
     return: '<path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/>',
     claim: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M9 14h6M9 17h4"/>',
-    retlate: '<path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>'
+    retlate: '<path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',
+    proof: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>'
   };
   function kIcon(k) { return '<span class="ki"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (KICON[k] || KICON.check) + '</svg></span>'; }
   function desk() { return window.matchMedia('(min-width:901px)').matches; }
@@ -669,10 +671,11 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
           // "Reattempt Delivery · Dobara deliver karein" said the same thing twice (user 2026-11-25): the kind is on the
           // header chip, so the bubble keeps only the request
           D.kinds.forEach(function (kd) { if (txt.indexOf(kd.label + ' · ') === 0) txt = txt.slice(kd.label.length + 3); });
-          if (isLast && x.says && x.kind !== 'return' && String(txt).indexOf(x.says) === -1) txt += '\n' + x.says;
+          if (isLast && x.kind === 'proof' && x.says) txt = x.says; // the whole message, line by line (user 2026-11-25)
+          else if (isLast && x.says && x.kind !== 'return' && String(txt).indexOf(x.says) === -1) txt += '\n' + x.says;
         }
         h += '<div class="cb2 ' + side + (g ? ' g' : '') + '">' + (g ? '' : '<span class="cw">' + esc(e.k === 'you' ? (who === D.courier ? D.courier + ' Team' : D.courier + ' · ' + who) : D.store) + '</span>') +
-          esc(txt).replace(/\n/g, '<span class="cbs">') + (/\n/.test(txt) ? '</span>' : '') + '<span class="ct">' + esc(tm(e)) + (e.k === 'you' ? ' ✓' : '') + '</span></div>';
+          esc(txt).split('\n').map(function (l, li) { return li ? '<span class="cbs">' + (l || '&#160;') + '</span>' : l; }).join('') + '<span class="ct">' + esc(tm(e)) + (e.k === 'you' ? ' ✓' : '') + '</span></div>';
         prev = side + who;
       } else {
         var bad = e.k === 'noact' || e.k === 'ret', warn = e.k === 'bad';
@@ -709,7 +712,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     // message box, photo and Send at the bottom. Send opens the next query (the queue keeps moving).
     // pinned: the store's request in its own voice (user 2026-11-19: no "Customer:" line — the customer did not write it);
     // the customer's words are joined in when the request does not already hold them; up to 3 lines, never a hover jump
-    var pinTxt = [x.ask, x.says && x.kind !== 'return' && (!x.ask || String(x.ask).indexOf(x.says) === -1) ? x.says : '', x.kind === 'return' && x.says ? 'Reason: ' + x.says : ''].filter(Boolean).join(' · ');
+    var pinTxt = x.kind === 'proof' ? x.ask : [x.ask, x.says && x.kind !== 'return' && (!x.ask || String(x.ask).indexOf(x.says) === -1) ? x.says : '', x.kind === 'return' && x.says ? 'Reason: ' + x.says : ''].filter(Boolean).join(' · ');
     if (pinTxt) h += '<div class="cpin"><span class="cpin-i" aria-hidden="true"></span><div><b>' + esc(D.store) + (x.kind === 'claim' ? ' · Claim' : ' · Request') + '</b><span>' + esc(pinTxt) + '</span></div></div>';
     // a claim: the store's photo of the returned parcel and the product's own photo (user 2026-11-15)
     if (x.kind === 'claim' && (x.ourPhoto || x.product)) h += '<div class="cph">' +
@@ -817,7 +820,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   // ---------- Finished ----------
   function resCls(cat) { return cat === 'ulta' ? 'bad' : cat === 'failed' || cat === 'noaction' ? 'warn' : cat === 'delivered' ? 'ok' : 'mute'; }
   // the request kind in one word for the Resolved list (user 2026-11-18: it broke over two lines)
-  function kindShort(k) { return { stop: 'Stop return', reattempt: 'Reattempt', late: 'Delayed', check: 'Status', return: 'Return', claim: 'Claim', retlate: 'Delayed return' }[k] || (kindOf(k) || {}).label || k; }
+  function kindShort(k) { return { proof: 'Proof', stop: 'Stop return', reattempt: 'Reattempt', late: 'Delayed', check: 'Status', return: 'Return', claim: 'Claim', retlate: 'Delayed return' }[k] || (kindOf(k) || {}).label || k; }
   function renderF() {
     var cats = [['all', 'All'], ['delivered', 'Delivered'], ['ulta', 'Returned instead'], ['failed', 'Attempt failed'], ['noaction', 'No action']];
     var base = D.done.filter(function (x) { return match(x, FQ, FCITY) && (!FDAY || x.day === FDAY); }), cnt = function (c) { return c === 'all' ? base.length : base.filter(function (x) { return x.cat === c; }).length; };

@@ -1850,6 +1850,8 @@ function openParcel(key, given) {
     (!p.done && can('cash.edit') && (p.due == null || p.due > 0) ? '<button class="btn" id="pdAdv" style="width:100%;padding:12px;margin-bottom:12px"><i class="ti ti-cash"></i>Record advance payment</button>' : '') +
     // any parcel to the courier's page (user 2026-11-14), also when it is not an NDR case
     (p.cn && !p.done && p.stage !== 'cancelled' && can('ndr.work') && !ndr ? '<button class="btn" id="pdAsk" style="width:100%;padding:12px;margin-bottom:12px"><i class="ti ti-send"></i>Ask ' + esc(p.courier || 'courier') + ' on their page</button>' : '') +
+    // the result went the other way after we asked (user 2026-11-25): ask the courier to explain it, with proof
+    (p.cn && can('ndr.work') && ['ndr', 'returning', 'rtoback', 'returned'].indexOf(p.stage) !== -1 ? '<button class="btn" id="pdProof" style="width:100%;padding:12px;margin-bottom:12px"><i class="ti ti-shield-check"></i>Ask ' + esc(p.courier || 'courier') + ' to explain · proof</button>' : '') +
     (p.rcv ? '<button class="btn" data-rh="' + esc(p.cn) + '" style="width:100%;padding:12px;margin-bottom:12px"><i class="ti ti-history"></i>Return history</button>' : '') +
     // the chat lives on its own page (user 2026-11-24: the parcel page showed the same chat again): an open case gets one line
     // that opens it, none when we came from it; a closed case (no chat page) keeps its history here
@@ -1869,6 +1871,7 @@ function openParcel(key, given) {
   if (el('pdch')) caseHistory(p.cn);
   if (el('pdAdv')) el('pdAdv').onclick = function () { openAdvance(p); };
   if (el('pdAsk')) el('pdAsk').onclick = function () { openPageAsk(p); };
+  if (el('pdProof')) el('pdProof').onclick = function () { openProofAsk(p); };
   el('pgBody').querySelectorAll('[data-ppr]').forEach(function (b) { b.onclick = function () { openCashReceipt(b.getAttribute('data-ppr')); }; });
   // Tracking: the saved events first (instant), then the courier's own live list replaces them; long lists start short.
   var live = false;
@@ -1892,6 +1895,32 @@ function openParcel(key, given) {
       else if (el('pdtl')) { var s = el('pdtl').querySelector('.tl-src'); if (s) s.innerHTML = '<i class="ti ti-clock"></i>Saved tracking (updates every 15 min)'; }
     }, function () { if (el('pdtl')) { var s = el('pdtl').querySelector('.tl-src'); if (s) s.innerHTML = '<i class="ti ti-clock"></i>Saved tracking (updates every 15 min)'; } });
   }
+}
+// "Explain & proof" (user 2026-11-25; study: proof of a genuine attempt is asked within a few days): what we asked, what
+// their team said, what happened after — written by the server, checked here, sent to the courier page (no senior step:
+// the sales person handles it)
+function openProofAsk(p) {
+  el('panel').innerHTML = '<h3>Ask ' + esc(p.courier || 'courier') + ' to explain</h3>' + skList(2); openPanel();
+  api('getAppProofDraft', [TOKEN, p.cn], function (d) {
+    if (d.open) {
+      el('panel').innerHTML = '<h3>Already asked</h3><p>' + esc(d.open.courier) + ' was asked on ' + esc(d.open.at) + ' · waiting ' + (d.open.hours < 48 ? d.open.hours + ' h' : Math.round(d.open.hours / 24) + ' days') + '</p>' +
+        '<p class="mnote">The answer shows in the courier chat of this parcel, and you get a notification.</p><div class="btns"><button class="btn" id="pfX">Close</button></div>';
+      el('pfX').onclick = closePanel; return;
+    }
+    var w = d.window || {};
+    el('panel').innerHTML = '<h3>Ask ' + esc(d.courier) + ' to explain</h3>' +
+      '<p>' + esc(p.cn) + ' · ' + esc(p.city || '') + ' · goes on the ' + esc(d.courier) + ' page as Explain & Proof</p>' +
+      (w.days != null ? '<p class="mnote" style="color:' + (w.left ? 'var(--muted)' : 'var(--red)') + '">' + (w.left ? 'Best within 3 days of the result · ' + w.left + (w.left === 1 ? ' day' : ' days') + ' left' : 'More than 3 days since the result · they may say it is too late') + '</p>' : '') +
+      '<div class="fld"><label>What we send (change it if needed)</label><textarea id="pfW" rows="7">' + esc(d.text) + '</textarea></div>' +
+      '<p class="mnote">' + esc(d.courier) + ' is asked for: rider\'s name, attempt photo and location, the call record to the customer, and why it was returned / failed.</p>' +
+      '<div class="btns" style="margin-top:10px"><button class="btn" id="pfX">Cancel</button><button class="btn pri" id="pfGo"><i class="ti ti-send"></i>Send to ' + esc(d.courier) + ' page</button></div>';
+    el('pfX').onclick = closePanel;
+    el('pfGo').onclick = function () {
+      var t = el('pfW').value.trim(); if (!t) { toast('Write what happened'); return; }
+      api('appCpAsk', [TOKEN, p.cn, 'proof', t], function () { closePanel(); toast('Sent · on the ' + d.courier + ' page within 5 minutes'); },
+        function (e) { toast((e && e.message) || 'Not sent'); });
+    };
+  }, function (e) { el('panel').innerHTML = '<h3>Ask to explain</h3><div class="card empty">' + esc((e && e.message) || 'Could not load') + '</div><div class="btns"><button class="btn" id="pfX">Close</button></div>'; el('pfX').onclick = closePanel; });
 }
 // Ask the courier about any parcel on their page: what to ask + our words (the courier reads Roman Urdu)
 function openPageAsk(p, first) {
@@ -3916,7 +3945,7 @@ var TICKET_WORDS = [[/Claim roka gaya/, 'Claim stopped · the owner decides'], [
   [/DOBARA – (\d+h), amal nahi/, 'Follow-up · no action in $1'], [/Case band/, 'Case closed'], [/Outbox/, 'Not sent yet'],
   [/Done \(marked in sheet\)/, 'Done (marked in sheet)'], [/Done \(WhatsApp\)/, 'Done (WhatsApp)'], [/↪️ Nayi request: (\w+)/, 'Replaced by a new $1 request']];
 function ticketResult(s) { s = String(s || ''); TICKET_WORDS.forEach(function (w) { s = s.replace(w[0], w[1]); }); return s; }
-var REQ_KIND = { stop: 'Stop return', reattempt: 'Reattempt', return: 'Return', claim: 'Claim', check: 'Status check', late: 'Late delivery', retlate: 'Late return' };
+var REQ_KIND = { proof: 'Explain & proof', stop: 'Stop return', reattempt: 'Reattempt', return: 'Return', claim: 'Claim', check: 'Status check', late: 'Late delivery', retlate: 'Late return' };
 var SENT_NOW = {}; // type|cn → { channel, at } sent from this phone, until W1 records it
 function inOutbox(c) {
   var b = (N.data.outbox || {})[c.courier] || {}, k = Object.keys(b).filter(function (x) { return (b[x] || []).some(function (it) { return it.cn === c.cn; }); })[0];
@@ -4467,7 +4496,7 @@ var SHEET_TABS = [['deliver', 'Reattempt'], ['return', 'Mark for Return'], ['cla
 function sheetTabOf(type) { return type === 'return' ? 'return' : type === 'claim' || type === 'retlate' ? 'claim' : 'deliver'; }
 // the courier page counts each kind on its own (user 2026-11-14: the Trax message said 9 reattempts for 4: late and status
 // checks were counted with them, as on the old sheet's Reattempt tab)
-var PAGE_KINDS = [['stop', 'Stop Return & Redeliver'], ['reattempt', 'Reattempt Delivery'], ['late', 'Delayed Delivery'], ['check', 'Status Inquiry'], ['return', 'Mark for Return'], ['claim', 'Return Claim'], ['retlate', 'Delayed Return']];
+var PAGE_KINDS = [['stop', 'Stop Return & Redeliver'], ['reattempt', 'Reattempt Delivery'], ['late', 'Delayed Delivery'], ['check', 'Status Inquiry'], ['return', 'Mark for Return'], ['claim', 'Return Claim'], ['retlate', 'Delayed Return'], ['proof', 'Explain & Proof']];
 function msgTabs(name) { return shW(name) === 'page' ? PAGE_KINDS : SHEET_TABS; }
 function msgKey(name, type) { return shW(name) !== 'page' ? sheetTabOf(type) : PAGE_KINDS.some(function (k) { return k[0] === type; }) ? type : 'reattempt'; }
 function sheetCounts(name, reminder, extra) {
@@ -4487,7 +4516,7 @@ function sheetCounts(name, reminder, extra) {
 }
 // The courier page message: 3 short lines (user 2026-11-14: short and simple): who, how many and what kinds, the link.
 // Reminder = only queries without an answer, with how many wait over 24 h.
-var PAGE_SHORT = { stop: 'Stop return', reattempt: 'Reattempt', late: 'Late', check: 'Status check', return: 'Return', claim: 'Claim', retlate: 'Late return' };
+var PAGE_SHORT = { proof: 'Proof', stop: 'Stop return', reattempt: 'Reattempt', late: 'Late', check: 'Status check', return: 'Return', claim: 'Claim', retlate: 'Late return' };
 // short and premium (user 2026-11-18): the link card (relay) says how many queries are open and which kinds, so the text
 // carries only the title, the 24 h warning when there is one, the link on its own line and thanks; no relay → the counts
 // stay in the text
