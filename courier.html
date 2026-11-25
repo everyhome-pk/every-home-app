@@ -674,7 +674,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
           if (isLast && x.kind === 'proof' && x.says) txt = x.says; // the whole message, line by line (user 2026-11-25)
           else if (isLast && x.says && x.kind !== 'return' && String(txt).indexOf(x.says) === -1) txt += '\n' + x.says;
         }
-        h += '<div class="cb2 ' + side + (g ? ' g' : '') + '">' + (g ? '' : '<span class="cw">' + esc(e.k === 'you' ? (who === D.courier ? D.courier + ' Team' : D.courier + ' · ' + who) : D.store) + '</span>') +
+        h += '<div class="cb2 ' + side + (g ? ' g' : '') + '">' + (g ? '' : '<span class="cw">' + esc(e.k === 'you' ? (who === D.courier ? D.courier + ' Team' : D.courier + ' · ' + who) : (who || D.store)) + '</span>') +
           esc(txt).split('\n').map(function (l, li) { return li ? '<span class="cbs">' + (l || '&#160;') + '</span>' : l; }).join('') + '<span class="ct">' + esc(tm(e)) + (e.k === 'you' ? ' ✓' : '') + '</span></div>';
         prev = side + who;
       } else {
@@ -714,7 +714,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     // pinned: the store's request in its own voice (user 2026-11-19: no "Customer:" line — the customer did not write it);
     // the customer's words are joined in when the request does not already hold them; up to 3 lines, never a hover jump
     var pinTxt = x.kind === 'proof' ? x.ask : [x.ask, x.says && x.kind !== 'return' && (!x.ask || String(x.ask).indexOf(x.says) === -1) ? x.says : '', x.kind === 'return' && x.says ? 'Reason: ' + x.says : ''].filter(Boolean).join(' · ');
-    if (pinTxt) h += '<div class="cpin"><span class="cpin-i" aria-hidden="true"></span><div><b>' + esc(D.store) + (x.kind === 'claim' ? ' · Claim' : ' · Request') + '</b><span>' + esc(pinTxt) + '</span></div></div>';
+    if (pinTxt) h += '<div class="cpin"><span class="cpin-i" aria-hidden="true"></span><div><b>' + esc(D.store) + (x.kind === 'claim' ? ' · Claim' : ' · Request') + (x.from ? ' by ' + esc(x.from) : '') + '</b><span>' + esc(pinTxt) + '</span></div></div>';
     // a claim: the store's photo of the returned parcel and the product's own photo (user 2026-11-15)
     if (x.kind === 'claim' && (x.ourPhoto || x.product)) h += '<div class="cph">' +
       (x.ourPhoto ? '<a class="cph-i" id="cpOur" data-id="' + esc(x.id) + '" target="_blank" rel="noopener"><span class="cph-l">Loading…</span><b>As it came back</b></a>' : '') +
