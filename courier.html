@@ -370,7 +370,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
 .qfold .ki{width:28px;height:28px;border-radius:8px}.qf-t{min-width:0}.qf-t b{display:block;font-size:13px;font-weight:600}.qf-t small{display:block;font-size:11.5px;color:var(--muted)}
 .qfold .qh{margin-left:auto;font-size:11.5px;color:var(--muted);white-space:nowrap}.qchev{transform:rotate(-90deg);color:var(--faint)}.qfold:hover{border-color:var(--ka,var(--brand))}
 .pend{display:inline-flex!important;align-items:center;justify-content:center;min-width:52px!important;height:22px;padding:0 9px!important;border-radius:99px;background:var(--chip);color:var(--ink2)!important;font:600 11.5px Inter,sans-serif!important}
-.pend{white-space:nowrap}.qs .tr.ans .c-now{display:none!important}.qs .tr.ans .c-rem.resp{display:block!important}
+.pend{white-space:nowrap}.pc b.tx2{font-size:17px;line-height:1.3;margin-top:8px}@media (min-width:901px){body.mdl-on .fth,body.mdl-on .ftr{grid-template-columns:172px 100px minmax(0,1fr) 172px}}@media (max-width:900px){.pcol small.x{visibility:hidden}}.qs .tr.ans .c-now{display:none!important}.qs .tr.ans .c-rem.resp{display:block!important}
 .pend.nw{background:var(--soft);color:var(--brand-d)!important}.pend.a{background:var(--amberbg);color:var(--amber)!important}.pend.r{background:var(--redbg);color:var(--red)!important}.pend.dn{background:transparent;color:var(--muted)!important;font-weight:500!important}
 .qs .tr .c-now{font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.qs .tr .c-now small{color:var(--muted)}
 .mempty{background:var(--wa-bar)!important}.me-in{margin:auto;max-width:320px;padding:24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--muted);font-size:13px;line-height:1.45}
@@ -725,7 +725,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
         '<div class="cmeta">' + (x.photos ? '<b>✓ ' + x.photos + ' proof photo' + (x.photos > 1 ? 's' : '') + '</b> · ' : '') +
           (me && !NAMEED ? 'Sending as <b>' + esc(me) + '</b> · <button class="lnk" id="nmEd">change</button>' : '<label for="who">Your name</label> <input id="who" maxlength="40" placeholder="optional" value="' + esc(me) + '">') +
           (navigator.clipboard && navigator.clipboard.read ? ' · <button class="lnk" id="pastePf">paste screenshot</button>' : '') + '</div></div>';
-    } else h += '<div class="cdone"><span class="hc ' + resCls(x.cat) + '">' + esc(x.result) + '</span> Resolved · read only. If ' + esc(D.store) + ' sends it again, it comes back to Open with this chat.</div>';
+    } else h += '<div class="cdone">Resolved · read only. If ' + esc(D.store) + ' sends it again, it comes back to Open with this chat.</div>';
     h += '</div></div>';
     return h;
   }
@@ -872,7 +872,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       var up = v > p, good = lowGood ? !up : up, dd = Math.abs(v - p);
       return '<span class="cmp ' + (good ? 'g' : 'r') + '">' + (up ? '▲ ' : '▼ ') + (unit === 'h' ? medTxt(dd) : dd + unit) + ' vs previous</span>';
     };
-    var card = function (l, v, s, t, c) { return '<div class="pc ' + (t ? 't-' + t : '') + '"><div class="l">' + l + '</div><b>' + v + '</b><small>' + s + '</small>' + (c || '') + '</div>'; };
+    var card = function (l, v, s, t, c) { return '<div class="pc ' + (t ? 't-' + t : '') + '"><div class="l">' + l + '</div><b' + (/^\d/.test(String(v)) ? '' : ' class="tx2"') + '>' + v + '</b><small>' + s + '</small>' + (c || '') + '</div>'; };
     var cards = card('Reattempt Success Rate', M.succ == null ? 'No result yet' : M.succ + '%', M.succ == null ? 'no reattempt finished in this period' : M.reDel + ' of ' + M.reFin + ' reattempts delivered', tone(M.succ, 60, 40), chg(M.succ, Pm.succ, ' pts')) +
       card('Returned (RTO)', M.ulta, M.ulta ? 'reattempt requested, shipment returned' : 'no reattempt was returned', M.ulta ? 'r' : (M.reFin ? 'g' : ''), chg(M.ulta, Pm.ulta, '', true)) +
       card('24-Hour Action Rate', M.act == null ? 'No requests yet' : M.act + '%', 'a scan or a response within 24 h of the request', tone(M.act, 80, 50), chg(M.act, Pm.act, ' pts')) +
@@ -883,10 +883,10 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     for (var cd = from, guard = 0; cd <= to && guard < 62; cd = dAdd(cd, 1), guard++) cdays.push(byD[cd] || { day: cd, sent: 0, delivered: 0, ulta: 0, failed: 0 });
     var maxN = Math.max.apply(null, days.map(function (d) { return d.sent; }).concat([1]));
     var chart = days.length ? '<div class="box pchart"><div class="pch-h"><b>Requests by day</b><span><i class="g"></i>Delivered<i class="r"></i>Returned<i class="a"></i>Failed<i></i>Open / other</span></div><div class="pch">' +
-      cdays.map(function (d) {
+      cdays.map(function (d, ci) {
         var rest = Math.max(0, d.sent - d.delivered - d.ulta - d.failed), hp = function (n) { return (n / maxN * 100).toFixed(1) + '%'; };
         return '<div class="pcol" data-pday="' + d.day + '" title="' + esc(dayName(d.day)) + ': ' + d.sent + ' requests · ' + d.delivered + ' delivered · ' + d.ulta + ' returned · ' + d.failed + ' failed"><div class="pst">' +
-          '<i style="height:' + hp(rest) + '"></i><i class="a" style="height:' + hp(d.failed) + '"></i><i class="r" style="height:' + hp(d.ulta) + '"></i><i class="g" style="height:' + hp(d.delivered) + '"></i></div><small>' + esc(d.day.slice(8)) + '</small></div>';
+          '<i style="height:' + hp(rest) + '"></i><i class="a" style="height:' + hp(d.failed) + '"></i><i class="r" style="height:' + hp(d.ulta) + '"></i><i class="g" style="height:' + hp(d.delivered) + '"></i></div><small' + (cdays.length > 10 && ci % 5 && ci !== cdays.length - 1 ? ' class="x"' : '') + '>' + esc(d.day.slice(8)) + '</small></div>';
       }).join('') + '</div></div>' : '';
     var z = function (n, cls) { return '<div class="dx ' + (n ? cls : 'z') + '">' + (n || '–') + '</div>'; };
     var rows = days.map(function (d) {
@@ -894,7 +894,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       return '<div class="dtr" data-pday="' + d.day + '"><div class="dday" title="' + esc(dayName(d.day)) + '">' + esc(dayName(d.day)) + '</div><div class="dx">' + d.sent + '</div><div class="dx">' + (d.delivered || '–') + '</div>' +
         z(d.ulta, 'bad') + z(d.failed, 'warn') + z(d.noaction, 'warn') + '<div class="dx mute">' + (d.open || '–') + '</div>' +
         '<div class="dx drate">' + (p == null ? '<span class="mute">—</span>' : '<span class="rb"><i class="' + (p >= 60 ? 'g' : p >= 40 ? 'a' : 'r') + '" style="width:' + p + '%"></i></span>' + p + '%') + '</div><div class="dx" style="color:var(--faint)">›</div>' +
-        '<div class="dm">' + d.sent + ' queries · ' + d.delivered + ' delivered' + (d.ulta ? ' · <b>' + d.ulta + ' returned (RTO)</b>' : '') + (d.noaction ? ' · ' + d.noaction + ' no action' : '') + '</div></div>';
+        '<div class="dm">' + d.sent + (d.sent === 1 ? ' query · ' : ' queries · ') + d.delivered + ' delivered' + (d.ulta ? ' · <b>' + d.ulta + ' returned (RTO)</b>' : '') + (d.noaction ? ' · ' + d.noaction + ' no action' : '') + '</div></div>';
     }).join('');
     var per = [[7, 'Last 7 days'], [30, 'Last 30 days'], ['m', 'This month']];
     $('wrap').innerHTML = '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><div class="seg">' + per.map(function (p) { return '<button data-per="' + p[0] + '" class="' + (String(PER) === String(p[0]) ? 'on' : '') + '">' + p[1] + '</button>'; }).join('') + '</div>' +

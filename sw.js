@@ -1,4 +1,4 @@
-const CACHE = 'eh-mwvnfbmg';
+const CACHE = 'eh-mwvnm9a3';
 const SHELL = ['./', 'index.html', 'ordi.webmanifest', 'ordi-192.png', 'ordi-512.png', 'ordi-maskable-512.png', 'ordi-apple-180.png', 'ordi-badge-96.png'];
 // 'reload': a new version always takes the files from the server, never from the browser's own (older) copy.
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting())); });
@@ -30,7 +30,8 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET' || /script\.google(usercontent)?\.com/.test(req.url)) return;
   // App name and icons: network first, so the phone always gets the current ones (Chrome reads them to update the app).
-  if (/\.(webmanifest|png)(\?|$)/.test(req.url)) {
+  // The courier and proof pages too (user 2026-11-25: a phone that had the app open kept showing the old courier page).
+  if (/\.(webmanifest|png)(\?|$)|\/(courier|proof)\.html/.test(req.url)) {
     e.respondWith(fetch(req, { cache: 'no-cache' }).then(r => {
       if (r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }
       return r;
