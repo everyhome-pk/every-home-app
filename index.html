@@ -4903,7 +4903,19 @@ function caseHistory(cn) {
   }, function () { if (el('pdch')) el('pdch').innerHTML = '<small style="color:var(--muted)">Could not load the history</small>'; });
 }
 // Full chat page, from the NDR card's line
-var CHAT_POLL = 0;
+var CHAT_POLL = 0, LIVE = { on: false, id: '', fn: null };
+// live (user 2026-11-25): the store's ping in Firestore; when it moves, the open chat (and the chat list) refresh at once
+function liveStore(id) {
+  if (!id || LIVE.on) return; LIVE.on = true; LIVE.id = id;
+  var add = function (src, next) { if (window.firebase && /firestore/.test(src) && firebase.firestore) return next(); if (window.firebase && /app-compat/.test(src)) return next(); var s = document.createElement('script'); s.src = src; s.onload = next; s.onerror = function () { LIVE.on = false; }; document.head.appendChild(s); };
+  add(PUSH.sdk + 'firebase-app-compat.js', function () { add(PUSH.sdk + 'firebase-firestore-compat.js', function () {
+    try {
+      if (!firebase.apps.length) firebase.initializeApp(PUSH.config);
+      var first = true;
+      firebase.firestore().doc('ping/' + id).onSnapshot(function () { if (first) { first = false; return; } if (LIVE.fn) LIVE.fn(); loadChats(true); }, function () {});
+    } catch (e) { LIVE.on = false; }
+  }); });
+}
 // press and hold (or right-click) a chat message: copy its words (user 2026-11-25, like WhatsApp)
 document.addEventListener('contextmenu', function (e) {
   var b = e.target.closest && e.target.closest('#chBox .cb, #pdch .cb'); if (!b) return;
@@ -4952,17 +4964,19 @@ function openChat(cn) {
     if (!fromKept) chatPut(cn, r);
   };
   if (CHATS && CHATS[cn]) draw(CHATS[cn], true);
-  // while this chat is open and the app is in front: new messages every 30 s (user 2026-11-25)
-  CHAT_POLL = setInterval(function () {
-    if (!el('chBox') || el('pgTitle').textContent !== (cleanName(c.name) || c.ref)) { clearInterval(CHAT_POLL); return; }
+  // while this chat is open and the app is in front: new messages every 30 s (user 2026-11-25), or at once when the live ping moves
+  var refresh = function () {
+    if (!el('chBox') || el('pgTitle').textContent !== (cleanName(c.name) || c.ref)) { clearInterval(CHAT_POLL); LIVE.fn = null; return; }
     if (document.visibilityState !== 'visible') return;
     api('getAppCaseHistory', [TOKEN, cn], function (r) {
       if (!el('chBox')) return; draw(r, false);
       var lc = (r.events || []).filter(function (e) { return e.chat && e.chat.side === 'c'; }).reduce(function (m, e) { return Math.max(m, e.ms || 0); }, 0);
       if (lc && lc > Number(store('eh_cseen_' + cn) || 0)) { store('eh_cseen_' + cn, String(lc)); api('appChatSeen', [TOKEN, cn], function () {}, function () {}); }
     }, function () {});
-  }, 30000);
+  };
+  CHAT_POLL = setInterval(refresh, 30000); LIVE.fn = refresh;
   api('getAppCaseHistory', [TOKEN, cn], function (r) {
+    if (r.live) liveStore(r.live);
     var lastC = (r.events || []).filter(function (e) { return e.chat && e.chat.side === 'c'; }).reduce(function (m, e) { return Math.max(m, e.ms || 0); }, 0);
     if (lastC && lastC > Number(store('eh_cseen_' + cn) || 0)) { store('eh_cseen_' + cn, String(lastC)); api('appChatSeen', [TOKEN, cn], function () {}, function () {}); }
     if (!el('chBox')) return;

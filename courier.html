@@ -472,6 +472,18 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       var n = new Notification(who + ' · ' + x.cn, { body: txt, tag: 'cp-' + x.id, icon: 'ordi-192.png' }); n.onclick = function () { window.focus(); SEL = x.id; VIEW = 'q'; render(); n.close(); };
     } } catch (e) {}
   }
+  // live (user 2026-11-25): Firestore tells this page the moment something changes; it then fetches as usual
+  function liveListen(L) {
+    if (liveListen.on || !L || !L.id || !L.cfg) return; liveListen.on = true;
+    var add = function (src, next) { var s = document.createElement('script'); s.src = src; s.onload = next; s.onerror = function () { liveListen.on = false; }; document.head.appendChild(s); };
+    var sdk = 'https://www.gstatic.com/firebasejs/10.12.2/';
+    add(sdk + 'firebase-app-compat.js', function () { add(sdk + 'firebase-firestore-compat.js', function () {
+      try {
+        var app = firebase.apps.length ? firebase.app() : firebase.initializeApp(L.cfg), first = true;
+        app.firestore().doc('ping/' + L.id).onSnapshot(function () { if (first) { first = false; return; } if (!busy) { LAST_LOAD = Date.now(); load(true); } }, function () {});
+      } catch (e) {}
+    }); });
+  }
   function load(quiet) {
     if (busy) return; busy = true; $('rf').classList.add('spin');
     post('appCpData', [C, V, S], function (d) {
@@ -480,7 +492,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       if (!SEEN) { SEEN = {}; D.open.forEach(function (x) { SEEN[x.id] = lastUs(x); }); ls('cp_seen_' + C, JSON.stringify(SEEN)); } // first visit: nothing is "new"
       if (SEL && !find(SEL)) SEL = '';
       if (SEL) markSeen(SEL);
-      head(); render(); alertNew(before);
+      head(); render(); alertNew(before); if (d.live) liveListen(d.live);
     }, function (m) { busy = false; $('rf').classList.remove('spin'); if (!D) $('wrap').innerHTML = '<div class="err">' + esc(m) + '</div>'; else if (!quiet) toast(m); });
   }
   function find(id) { return D.open.filter(function (x) { return x.id === id; })[0] || D.done.filter(function (x) { return x.id === id; })[0]; }
