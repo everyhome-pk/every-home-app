@@ -500,6 +500,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   function desk() { return window.matchMedia('(min-width:901px)').matches; }
   // which kind is open: the chosen query's kind, else the card tapped, else the first kind with work waiting
   function showKind(list) {
+    if (KIND === '*') return '*'; // every kind open (a chosen card tapped again, user 2026-11-25)
     var s0 = SEL && find(SEL); if (s0 && D.open.indexOf(s0) !== -1) return s0.kind;
     if (KIND) return KIND;
     var first = function (f) { var k = D.kinds.filter(function (k) { return list.some(function (x) { return x.kind === k.key && f(x); }); })[0]; return k ? k.key : ''; };
@@ -531,14 +532,14 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       var all = list.filter(function (x) { return x.kind === k.key; });
       var todo = all.filter(function (x) { return !answered(x); }), did = all.filter(answered);
       var nDid = did.length + (k.key === 'return' ? ' marked' : ' responded');
-      if (k.key !== SK) {
+      if (SK !== '*' && k.key !== SK) {
         if (!all.length) return;
         folds += '<button class="qfold k-' + k.key + '" data-jump="' + k.key + '">' + kIcon(k.key) + '<span class="qf-t"><b>' + esc(k.label) + '</b><small>' +
           (todo.length ? todo.length + ' pending' + (did.length ? ' · ' + nDid : '') : 'All ' + nDid + ' ✓') + '</small></span>' +
           '<span class="qh">' + (quick(k.key) ? 'Mark directly · no conversation' : 'Opens in conversation') + '</span>' + CHEV.replace('<svg', '<svg class="qchev"') + '</button>';
         return;
       }
-      if (!all.length) { body += '<section class="qs k-' + k.key + '"><div class="empty">No open ' + esc(k.label) + ' requests' + (Q || CITY ? ' for this search' : '') + '.</div></section>'; return; }
+      if (!all.length) { if (SK === '*') return; body += '<section class="qs k-' + k.key + '"><div class="empty">No open ' + esc(k.label) + ' requests' + (Q || CITY ? ' for this search' : '') + '.</div></section>'; return; }
       var cap = MORE[k.key] ? did.length : 5, shown = ALL ? todo.concat(did.slice(0, cap)) : todo;
       if (!shown.length) { body += '<section class="qs k-' + k.key + '" id="sec_' + k.key + '"><div class="sh"><b>' + esc(k.label) + '</b><small>All ' + nDid + ' ✓</small></div></section>'; return; }
       var bulk = k.key === 'return' && todo.filter(function (x) { return !PEND[x.id]; }).length > 1;
@@ -909,7 +910,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     if (QOPEN && !e.target.closest('.qm')) { QOPEN = ''; renderQ(); }
     var t = e.target.closest('button,[data-open],[data-pday]'); if (!t || !D) return;
     if (t.dataset.view) { VIEW = t.dataset.view; SEL = ''; render(); window.scrollTo(0, 0); }
-    else if (t.dataset.jump) { KIND = t.dataset.jump; FLASH = true; SEL = ''; renderQ(); }
+    else if (t.dataset.jump) { KIND = t.classList.contains('kc') && t.classList.contains('on') ? '*' : t.dataset.jump; FLASH = KIND !== '*'; SEL = ''; renderQ(); }
     else if (t.dataset.ulta) { ls('cp_ulta', ls('cp_ulta') === '1' ? '0' : '1'); renderQ(); }
     else if (t.dataset.all) { ALL = t.dataset.all === '1'; ls('cp_all', ALL ? '1' : '0'); renderQ(); }
     else if (t.dataset.bulkgo) bulkGo(t);

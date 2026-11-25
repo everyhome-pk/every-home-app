@@ -224,6 +224,8 @@ body{overscroll-behavior-y:contain}
 .jr-dot2{width:8px;height:8px;border-radius:50%;background:var(--c);flex:none}
 .jr-gn{flex:1;min-width:0;font-size:13px;font-weight:500}.jr-gn small{display:block;font-weight:400;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .jr-funnel{font-size:13px;color:var(--muted);margin:-4px 0 2px;line-height:1.5}.jr-funnel b{color:var(--text);font-size:15px}.jr-funnel b.up{color:var(--green)}.jr-funnel b.down{color:var(--red)}.jr-funnel i.ti{font-size:13px;vertical-align:-1px}
+.jr-late{display:flex;align-items:center;gap:10px;margin:2px 0 12px;padding:10px 12px;border-radius:12px;background:var(--red-bg);color:var(--red);cursor:pointer}
+.jr-late>i:first-child{font-size:20px;flex:none}.jr-late span{flex:1;min-width:0}.jr-late b{display:block;font-size:14px;font-weight:600}.jr-late small{display:block;font-size:12px;color:var(--text);opacity:.75}.jr-late>i:last-child{flex:none;opacity:.7}
 .late-b,.late-t{font-style:normal;color:var(--red);font-weight:600}.late-b{font-size:10.5px;background:var(--red-bg);padding:1px 6px;border-radius:99px;margin-left:4px;vertical-align:1px}
 .jr-now{display:flex;align-items:center;gap:8px;margin-top:8px;padding:9px 10px;border-radius:12px;border:1px dashed var(--line);font-size:12.5px;color:var(--muted);cursor:pointer}.jr-now span{flex:1}.jr-now b{color:var(--text)}.jr-now i{font-size:16px}
 .jr-sum{font-size:12.5px;color:var(--muted);margin:-4px 0 8px}.jr-sum b{color:var(--text);font-size:15px}
@@ -458,6 +460,7 @@ body.nb-on #nlist{padding-bottom:84px}
 .sp-more{display:inline-flex;align-items:center;gap:4px;margin-top:6px;padding:0;border:0;background:none;color:var(--brand);font:inherit;font-size:12.5px;font-weight:500;cursor:pointer}.sp-more.open .sp-cv{transform:rotate(180deg)}
 .sp-x{cursor:pointer}.sp-x .prow-2{display:flex;align-items:center;justify-content:space-between}.sp-cv{transition:transform .2s;color:var(--muted)}.sp-x.open .sp-cv{transform:rotate(180deg)}
 .sp-det{margin-top:8px;border-top:1px dashed var(--line);padding-top:6px}.sp-dr{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:3px 0}.sp-dr.sub{padding-left:12px;color:var(--muted);font-size:12.5px}
+.prow-late{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:12px;color:var(--muted)}.prow-late span{flex:1;min-width:0}.prow-late .btn{flex:none;height:28px}
 .prow-3{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--amber);margin-top:4px}.prow-3 i{font-size:14px}
 .cf-r{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:13.5px}.cf-r small{display:block;font-size:11.5px;color:var(--muted);margin-top:1px}.cf-r.tap{cursor:pointer}
 .cflow .cf-r:first-of-type{border-top:0}.cf-pct{display:block;font-size:11px;color:var(--muted);margin-bottom:4px}
@@ -2343,7 +2346,13 @@ function renderHome(d) {
   var cancelLine = cx.total ? '<div class="jr-cancel" data-go="parcels:cancelled"><span><b>' + cx.total + ' cancelled</b> · ' +
     Object.keys(cx.reasons).sort(function (a, b) { return cx.reasons[b] - cx.reasons[a]; }).map(function (r) { return cx.reasons[r] + ' ' + r.toLowerCase(); }).join(' · ') +
     '</span><i class="ti ti-chevron-right" style="color:var(--faint)"></i></div>' : '';
-  var late = d.journeyLate || {};
+  var late = {}; // per-stage late chips replaced by one Late line (user 2026-11-25)
+  // Late right now, any date (like "Right now in transit"), from the parcel list on the phone; the courier filter applies
+  var lateNow = (P.data && P.data.parcels || []).filter(function (p) { return isLate(p) && (H.courier === 'all' || String(p.courier).toLowerCase() === H.courier); });
+  var lateBy = {}; lateNow.forEach(function (p) { var g = LATE_GRP[p.stage]; lateBy[g] = (lateBy[g] || 0) + 1; });
+  var lateLine = lateNow.length ? '<div class="jr-late" data-go="parcels:late:any"><i class="ti ti-clock-exclamation"></i><span><b>Late · ' + lateNow.length + (lateNow.length === 1 ? ' parcel' : ' parcels') + '</b><small>' +
+    ['Not picked up', 'On the way', 'At the city office', 'With the rider'].filter(function (g) { return lateBy[g]; }).map(function (g) { return lateBy[g] + ' ' + g.toLowerCase(); }).join(' · ') +
+    ' · longer than usual</small></span><i class="ti ti-chevron-right"></i></div>' : '';
   var jrow = function (s, hint) {
     var n = jr[s[0]] || 0;
     return '<div class="jr-row' + (n ? '' : ' zero') + '" data-go="parcels:' + s[0] + '" style="--c:' + s[4] + '">' +
@@ -2360,7 +2369,6 @@ function renderHome(d) {
   var jv = d.journeyValue || {};
   var sumOf = function (keys, src) { return keys.reduce(function (a, st) { return a + ((src || jr)[st] || 0); }, 0); };
   var onWay = sumOf(MOVING), comingBack = sumOf(BACK), back = jr.returned || 0, dlv = jr.delivered || 0;
-  var lateAll = Object.keys(late).reduce(function (a, st) { return a + late[st]; }, 0);
   var sumLine = '<div class="jr-head"><b class="num">' + k.booked + '</b> shipped · ' + rs(k.bookedValue) + ' COD</div>' +
     '<div class="jr-sum">' + (k.booked ? cSplit(ds) : 'Nothing shipped in this period') +
     (delta(k.booked, p && p.booked) ? ' · <span class="nw">' + delta(k.booked, p && p.booked) + '</span>' : '') + '</div>';
@@ -2369,7 +2377,7 @@ function renderHome(d) {
   var picture = k.booked ? '<div class="jr-stack">' + seg(dlv, 'var(--green)') + seg(onWay, 'var(--blue)') + seg(comingBack, 'var(--amber)') + seg(back, 'var(--red)') + '</div>' +
     '<div class="jr-tiles">' +
     '<div data-go="parcels:delivered"><b class="num" style="color:var(--green)">' + dlv + '</b><small>Delivered</small></div>' +
-    '<div data-go="parcels:moving"><b class="num" style="color:var(--blue)">' + onWay + '</b><small>In transit' + (lateAll ? '<i class="late-t" style="display:block">' + lateAll + ' late</i>' : '') + '</small></div>' +
+    '<div data-go="parcels:moving"><b class="num" style="color:var(--blue)">' + onWay + '</b><small>In transit</small></div>' +
     '<div data-go="parcels:comingback"><b class="num" style="color:var(--amber)">' + comingBack + '</b><small>Returning</small></div>' +
     '<div data-go="parcels:returned"><b class="num" style="color:var(--red)">' + back + '</b><small>Returned</small></div></div>' : '';
   var group = function (title, keys) {
@@ -2386,7 +2394,7 @@ function renderHome(d) {
   var nowLine = d.movingNow ? '<div class="jr-now" data-go="parcels:moving:open"><i class="ti ti-truck"></i><span>Right now: <b class="num">' + d.movingNow + '</b> parcels in transit (any date)</span><i class="ti ti-chevron-right"></i></div>' : '';
   var stg = function (key) { return JOURNEY.filter(function (s) { return s[0] === key; })[0]; };
   if (d.live !== false) {
-    h += '<div class="card fade hjr"><div class="h"><b>Order journey</b><span>' + esc(d.monthLabel) + '</span></div>' + sumLine + picture +
+    h += '<div class="card fade hjr"><div class="h"><b>Order journey</b><span>' + esc(d.monthLabel) + '</span></div>' + lateLine + sumLine + picture +
       group('Not shipped yet', ['pending', 'confirmed']) + group('Shipped', MOVING) + group('Returning', BACK) +
       cancelLine + nowLine + '</div>';
   } else {
@@ -3068,7 +3076,8 @@ function go(target) {
     var cour = H.courier !== 'all' ? H.courier.charAt(0).toUpperCase() + H.courier.slice(1) : '';
     // To-do lines ("parcels:pending:open") count orders since openFrom, whatever the period.
     var open = H.data && H.data.openFrom && g[2] === 'open';
-    if (open) P.ctx = { mk: '', from: H.data.openFrom, to: '9999-12-31', courier: H.courier, label: ['Since ' + niceDay(H.data.openFrom), cour].filter(Boolean).join(' · ') };
+    if (g[2] === 'any') P.ctx = H.courier !== 'all' ? { mk: '', from: '', to: '', courier: H.courier, label: H.courier.charAt(0).toUpperCase() + H.courier.slice(1) } : null;
+    else if (open) P.ctx = { mk: '', from: H.data.openFrom, to: '9999-12-31', courier: H.courier, label: ['Since ' + niceDay(H.data.openFrom), cour].filter(Boolean).join(' · ') };
     else P.ctx = period || H.courier !== 'all' ? {
       mk: mk, from: H.range ? H.range.from : '', to: H.range ? H.range.to : '', courier: H.courier,
       label: [period ? H.data.monthLabel : '', H.courier !== 'all' ? H.courier.charAt(0).toUpperCase() + H.courier.slice(1) : ''].filter(Boolean).join(' · ')
@@ -3130,9 +3139,24 @@ var PFILTER = {
 };
 var PF_NEED = ['late', 'ndr', 'multi', 'nocn', 'rtoback'], PF_GROUP = ['moving', 'comingback'];
 // late: still on the way (not out for delivery, no attempt) and booked longer ago than that courier's usual time to the city + 1 day
-function isLate(p) {
-  if (['booked', 'picked', 'transit', 'atdest'].indexOf(p.stage) === -1 || p.attempts || !p.eta || !p.eta.transit || !p.ms) return false;
-  return (Date.now() - p.ms) / 3600000 > Math.max(48, p.eta.transit + 24);
+// One rule for every stage (user 2026-11-25): late = longer than usual + a day. Not picked up: booked 36 h ago. On the way /
+// at the city office: the courier's usual time to that city + 24 h (at least 48 h). With the rider: out for delivery for
+// 24 h with no result. Returns { stage group, hours waiting, usual hours or 0 }.
+var LATE_GRP = { booked: 'Not picked up', picked: 'On the way', transit: 'On the way', atdest: 'At the city office', ofd: 'With the rider' };
+function lateInfo(p) {
+  if (!p || !p.cn || p.done || !LATE_GRP[p.stage]) return null;
+  var hrs = function (ms) { return ms ? (Date.now() - ms) / 3600000 : 0; };
+  if (p.stage === 'booked') { var b = hrs(p.ms); return b > 36 ? { h: b, usual: 0 } : null; }
+  if (p.stage === 'ofd') { var r = hrs(p.lms); return r > 24 ? { h: r, usual: 0 } : null; }
+  if (p.attempts || !p.eta || !p.eta.transit || !p.ms) return null;
+  var w = hrs(p.ms);
+  return w > Math.max(48, p.eta.transit + 24) ? { h: w, usual: p.eta.transit } : null;
+}
+function isLate(p) { return !!lateInfo(p); }
+function lateWords(p) {
+  var L = lateInfo(p); if (!L) return '';
+  var t = function (h) { return h < 36 ? Math.round(h) + ' h' : Math.round(h / 2.4) / 10 + ' days'; };
+  return 'Late · ' + LATE_GRP[p.stage].toLowerCase() + ' ' + t(L.h) + (L.usual ? ' · usually ' + t(L.usual) + ' to ' + (p.city || 'this city') : '');
 }
 var pAt = 0;
 function loadParcels(fresh) {
@@ -3141,6 +3165,7 @@ function loadParcels(fresh) {
   api('getAppParcels', [{ fresh: !!fresh, token: TOKEN }], function (d) {
     var had = P.data ? new Set((P.data.parcels || []).map(function (p) { return p.id; })) : null;
     P.data = d; snap('parcels', d);
+    if (curTab === 'home' && H.data) renderHome(H.data);
     if (had) newPill((d.parcels || []).filter(function (p) { return !had.has(p.id); }).length, 'parcel', 'parcels');
     if (curTab === 'parcels') renderParcels();
   });
@@ -3303,11 +3328,29 @@ function openOrderTags(ref) {
 }
 // a courier that does not go to this city (user 2026-11-19): learned from its "Non-Service Area" returns
 function nsaText(p) { var x = p.nsa, no = x.no.join(' / '); return x.booked ? 'Booked with ' + x.booked + ' · ' + x.booked + ' does not go to ' + (p.city || 'this city') + (x.use.length ? ' · cancel, book with ' + x.use.join(' / ') : '') : no + ' does not go to ' + (p.city || 'this city') + (x.use.length ? ' · book with ' + x.use.join(' / ') : ''); }
+// A late parcel says where it stands with the courier and asks them in one tap (user 2026-11-25): in NDR (it has a case:
+// the NDR late request) or still moving (scans keep coming: the courier page Delayed Delivery, like the parcel page)
+function lateAsk(p) {
+  if (!isLate(p) || !p.cn || !can('ndr.work')) return '';
+  var c = N.data && (N.data.cases || []).filter(function (x) { return x.cn === p.cn; })[0];
+  var asked = c && (c.next === 'Chase courier (late)' || /^(Queued|Sent|Courier confirmed)/.test(c.sent || ''));
+  var ago = p.lms ? Math.max(0, Math.round((Date.now() - p.lms) / 3600000)) : null;
+  var txt = c ? (asked ? 'In NDR · ' + esc(p.courier) + ' asked' : 'In NDR') : (ago != null && ago < 24 ? 'Still moving · scanned ' + ago + ' h ago' : 'Not in NDR yet' + (ago != null ? ' · last scan ' + (ago < 48 ? ago + ' h' : Math.round(ago / 24) + ' days') + ' ago' : ''));
+  return '<div class="prow-late"><span>' + txt + '</span>' + (asked ? '' : '<button class="btn mini" type="button" data-lask="' + esc(p.cn) + '"><i class="ti ti-send"></i>Ask ' + esc(p.courier || 'courier') + '</button>') + '</div>';
+}
+document.addEventListener('click', function (e) {
+  var b = e.target.closest('[data-lask]'); if (!b) return;
+  e.preventDefault(); e.stopPropagation();
+  var cn = b.getAttribute('data-lask'), c = N.data && (N.data.cases || []).filter(function (x) { return x.cn === cn; })[0];
+  if (c) { askLate(cn); setTimeout(function () { if (curTab === 'parcels') renderParcels(); }, 50); return; }
+  var pp = (P.data && P.data.parcels || []).filter(function (x) { return x.cn === cn; })[0];
+  if (pp) openPageAsk(pp, 'late');
+}, true);
 function parcelRow(p) {
   var s = STAGE[p.stage] || ['', 'var(--line)'];
   var issue = p.stage === 'ndr' ? niceReason(p.reason || p.lastRaw) + (p.attempts ? ' · ' + p.attempts + (p.attempts > 1 ? ' attempts' : ' attempt') : '') + (p.failedAt ? ' · failed ' + p.failedAt : '')
     : p.stage === 'booked' && !p.cn ? 'Missing tracking number'
-    : isLate(p) ? 'Late · usually ' + (p.eta.transit < 36 ? p.eta.transit + ' h' : Math.round(p.eta.transit / 2.4) / 10 + ' days') + ' to ' + (p.city || 'this city') + ', now ' + Math.round((Date.now() - p.ms) / 8640000) / 10 + ' days'
+    : isLate(p) ? lateWords(p)
     : p.stage === 'rtoback' ? 'Handed back by courier · scan it in Returns'
     : p.nsa ? nsaText(p)
     : (p.flags || []).join(' · ');
@@ -3316,7 +3359,7 @@ function parcelRow(p) {
   return '<div class="prow" data-p="' + esc(p.cn || p.ref) + '" style="--c:' + s[1] + '"><span class="prow-d"></span><div class="prow-m">' +
     '<div class="prow-1"><b>' + esc(cleanName(p.name) || p.ref) + '</b><span class="num">' + rs(p.total) + '</span></div>' +
     '<div class="prow-2"><span>' + [esc(p.ref) + (/^Draft/.test(p.src || '') ? ' · WhatsApp' : '') + (p.cn ? '<i class="pcn"> · ' + esc(p.cn) + '</i>' : ''), esc(p.city), esc(p.courier)].filter(Boolean).join(' · ') + '</span><span class="st" style="--c:' + s[1] + '">' + (STAGE_SHORT[p.stage] || s[0]) + '</span></div>' +
-    (issue ? '<div class="prow-3"><i class="ti ti-alert-circle"></i>' + esc(issue) + '</div>' : '') +
+    (issue ? '<div class="prow-3"><i class="ti ti-alert-circle"></i>' + esc(issue) + '</div>' : '') + lateAsk(p) +
     // customer record while the parcel is still open (before it is delivered / returned / cancelled)
     (['delivered', 'returned', 'cancelled'].indexOf(p.stage) === -1 ? riskLine(p) : '') + '</div>' + call + '</div>';
 }
