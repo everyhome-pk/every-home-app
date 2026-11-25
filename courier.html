@@ -287,7 +287,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   body.mdl-on .wrap{margin-right:min(520px,42vw)}
   body.mdl-on .qs .th .c-rem,body.mdl-on .qs .tr .c-rem,body.mdl-on .qs .th .c-now,body.mdl-on .qs .tr .c-now{display:none}
   body.mdl-on .qs .th,body.mdl-on .qs .tr{grid-template-columns:150px minmax(0,1fr) 64px 92px}
-  body.mdl-on .qgrid{grid-template-columns:1fr}body.mdl-on .cards{flex-wrap:wrap;gap:6px}body.mdl-on .kc{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:99px;grid-template-columns:none}body.mdl-on .kc .s,body.mdl-on .kc .n span{display:none}body.mdl-on .kc .n{grid-row:auto;grid-column:auto;flex-direction:row}body.mdl-on .kc .n b{font-size:13px}body.mdl-on .kc .l{font-size:12px}
+  body.mdl-on .qgrid{grid-template-columns:1fr}
   body.mdl-on .fth>div:nth-child(3),body.mdl-on .ftr>div:nth-child(3),body.mdl-on .fth>div:nth-child(6),body.mdl-on .ftr>div:nth-child(6){display:none}
   body.mdl-on .fth,body.mdl-on .ftr{grid-template-columns:140px 100px minmax(0,1fr) 150px}
 }
@@ -319,7 +319,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
 .cqr.end{-webkit-mask-image:none;mask-image:none}.cqr.drag{cursor:grabbing;user-select:none}
 /* ---- 2026-11-19 (user): short tables, the details live in the chat; the chat in WhatsApp's own colours, a rounded floating
    panel on a computer, a rounded sheet on a tablet, full screen on a phone; pinned request in full, no hover jump ---- */
-.qs .th .c-rem,.qs .tr .c-rem,.qs .th .c-now,.qs .tr .c-now{display:none!important}
+.qs .th .c-rem,.qs .tr .c-rem{display:none!important}
 @media (min-width:901px){.qs .th,.qs .tr{grid-template-columns:176px minmax(0,1fr) 80px 104px}}
 .mdl{--wa:#008069;--wa-d:#005E54;--wa-bar:#F0F2F5;--wa-ink:#111B21;--wa-mut:#54656F}
 .mdl .mh{background:var(--wa)!important;box-shadow:none!important;border-bottom:0;color:#fff}
@@ -351,6 +351,38 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
 :root[data-theme=dark] .mdl .mh{background:#202C33!important}:root[data-theme=dark] .mdl .hc.kind{background:#00A884;color:#0B141A}:root[data-theme=dark] .cpin{border-color:#2A3942}:root[data-theme=dark] .cpin b{color:#00A884}
 .ccomp.busy .cic{opacity:.35;pointer-events:none;animation:pfb 1s ease-in-out infinite}@keyframes pfb{50%{opacity:.8}}
 @media (max-width:900px){.kc .l{white-space:normal;line-height:1.25;overflow:visible}}
+
+/* ---- 2026-11-25 (user, reference picture): list left + chat right, kind cards with icon + count, one kind open ---- */
+.cards{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.kc{display:flex!important;align-items:center;gap:10px;flex:0 1 250px!important;min-width:0;padding:9px 12px!important;border-radius:12px!important;background:var(--card);border:1px solid var(--line);text-align:left;color:var(--ink);transition:border-color .15s,box-shadow .15s}
+.ki{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:var(--kb,var(--chip));color:var(--ka,var(--ink2));flex:none}
+.kc .kt{display:flex;flex-direction:column;min-width:0;flex:1;line-height:1.3}
+.kc .l{font-size:13px!important;font-weight:600;color:var(--ink);white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis}.kc .l::before{display:none}
+.kc .s{font-size:11.5px!important;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kb{min-width:24px;height:24px;padding:0 7px;border-radius:99px;background:var(--red);color:#fff;font:700 12px Inter,sans-serif;display:flex;align-items:center;justify-content:center;flex:none}
+.kb.ok{background:var(--okbg);color:var(--ok)}
+.kc:hover{border-color:var(--ka,var(--brand))}
+.kc.on{background:var(--brand)!important;border-color:var(--brand)!important;box-shadow:0 4px 14px rgba(0,133,122,.28)!important}
+.kc.on .l,.kc.on .s{color:#fff}.kc.on .s{opacity:.85}.kc.on .ki{background:rgba(255,255,255,.18);color:#fff}.kc.on .kb{background:#fff;color:var(--brand-d)}.kc.on .kb.ok{background:rgba(255,255,255,.2);color:#fff}
+.qolab{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:6px 2px 8px}
+.qfold{position:relative;display:flex;align-items:center;gap:10px;width:100%;margin:0 0 8px;padding:9px 14px 9px 16px;background:var(--card);border:1px solid var(--line);border-radius:10px;text-align:left;color:var(--ink);cursor:pointer}
+.qfold::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:10px 0 0 10px;background:var(--ka,var(--line))}
+.qfold .ki{width:28px;height:28px;border-radius:8px}.qf-t{min-width:0}.qf-t b{display:block;font-size:13px;font-weight:600}.qf-t small{display:block;font-size:11.5px;color:var(--muted)}
+.qfold .qh{margin-left:auto;font-size:11.5px;color:var(--muted);white-space:nowrap}.qchev{transform:rotate(-90deg);color:var(--faint)}.qfold:hover{border-color:var(--ka,var(--brand))}
+.pend{display:inline-flex!important;align-items:center;justify-content:center;min-width:52px!important;height:22px;padding:0 9px!important;border-radius:99px;background:var(--chip);color:var(--ink2)!important;font:600 11.5px Inter,sans-serif!important}
+.pend.nw{background:var(--soft);color:var(--brand-d)!important}.pend.a{background:var(--amberbg);color:var(--amber)!important}.pend.r{background:var(--redbg);color:var(--red)!important}.pend.dn{background:transparent;color:var(--muted)!important;font-weight:500!important}
+.qs .tr .c-now{font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.qs .tr .c-now small{color:var(--muted)}
+.mempty{background:var(--wa-bar)!important}.me-in{margin:auto;max-width:320px;padding:24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--muted);font-size:13px;line-height:1.45}
+.me-ic{width:68px;height:68px;border-radius:50%;background:var(--soft);color:var(--brand);display:flex;align-items:center;justify-content:center;margin-bottom:4px}
+.me-in b{font-size:16px;font-weight:600;color:var(--ink)}.me-in .btn{flex:none;height:38px;padding:0 18px;border-radius:99px;margin-top:8px}.me-in small{font-size:11.5px;color:var(--faint)}
+@media (min-width:901px){
+  .qs:not(.k-return):not(.k-retlate) .th,.qs:not(.k-return):not(.k-retlate) .tr{grid-template-columns:168px 120px minmax(0,1fr) 76px 96px!important}
+  .qs .th .c-now,.qs .tr .c-now{display:block!important}
+}
+@media (max-width:900px){
+  .kc{flex:1 1 calc(50% - 4px)!important;padding:8px 10px!important}.ki{width:28px;height:28px}.kc .l{white-space:normal!important}.kc .s{display:none}
+  .qfold .qh{display:none}.mempty{display:none}
+}
 </style>
 </head>
 <body>
@@ -385,7 +417,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
   function kindOf(k) { return D.kinds.filter(function (x) { return x.key === k; })[0]; }
   function answered(x) { return !!(x.status || x.reply) && !x.reopen; } // a request the store changed after the answer needs an answer again
   function pendCls(h, kind) { return kind === 'stop' ? (h >= 4 ? ' r' : h >= 2 ? ' a' : '') : h >= 48 ? ' r' : h >= 24 ? ' a' : ''; }
-  function pendTxt(h) { return h < 1 ? 'new' : h < 48 ? h + ' h' : Math.floor(h / 24) + ' days'; }
+  function pendTxt(h) { return h < 1 ? 'New' : h < 48 ? h + ' h' : Math.floor(h / 24) + ' days'; }
   function dayName(d) {
     if (d === D.today) return 'Today';
     var t = new Date(D.today + 'T00:00:00'), x = new Date(d + 'T00:00:00'), diff = Math.round((t - x) / 86400000);
@@ -450,59 +482,95 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     var p = t.what.split(' · '), what = p[0] + (p[1] ? ' · ' + p[1].replace(/^delivery\s+/i, '').slice(0, 26) : '');
     return [what, t.ms ? ago(t.ms) : t.when.replace(/,.*$/, ''), !!(t.ms && x.sentMs && t.ms < x.sentMs), statusShort(t.what)];
   }
-  var TH = '<div class="th"><div>Tracking ID</div><div>City</div><div>Ageing</div><div></div></div>';
+  var TH = '<div class="th"><div>Tracking ID</div><div>City</div><div class="c-now">Issue / details</div><div>Ageing</div><div></div></div>';
   function shortDay(s) { return String(s || '').replace(/,.*$/, ''); }
+  // the page like a chat inbox (user 2026-11-25, reference picture): kind cards with an icon and a count, the chosen kind
+  // open as a table, the other kinds folded under it; on a computer the list stays left and the chat stays right
+  var KICON = {
+    stop: '<circle cx="12" cy="12" r="9"/><path d="M8.5 8.5l7 7"/>',
+    reattempt: '<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 5v6h-6"/>',
+    late: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    check: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+    return: '<path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/>',
+    claim: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M9 14h6M9 17h4"/>',
+    retlate: '<path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>'
+  };
+  function kIcon(k) { return '<span class="ki"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (KICON[k] || KICON.check) + '</svg></span>'; }
+  function desk() { return window.matchMedia('(min-width:901px)').matches; }
+  // which kind is open: the chosen query's kind, else the card tapped, else the first kind with work waiting
+  function showKind(list) {
+    var s0 = SEL && find(SEL); if (s0 && D.open.indexOf(s0) !== -1) return s0.kind;
+    if (KIND) return KIND;
+    var first = function (f) { var k = D.kinds.filter(function (k) { return list.some(function (x) { return x.kind === k.key && f(x); }); })[0]; return k ? k.key : ''; };
+    return first(function (x) { return !answered(x) && !PEND[x.id]; }) || first(function () { return true; });
+  }
   function renderQ() {
-    var cards = D.kinds.map(function (k) {
-      var all = D.open.filter(function (x) { return x.kind === k.key; }), left = all.filter(function (x) { return !answered(x); }).length, tot = all.length;
-      var st = !tot ? 'none' : !left ? 'ok' : left >= 3 ? 'bad' : 'warn';
-      // only kinds with something open (user 2026-11-15); a kind comes back by itself when a request of it arrives.
-      // Nothing open at all → no cards: the list below already says "All queries resolved"
-      if (!tot && KIND !== k.key) return '';
-      return '<button class="kc k-' + k.key + (st === 'none' ? ' none' : '') + (KIND === k.key ? ' on' : '') + '" data-jump="' + k.key + '" aria-pressed="' + (KIND === k.key) + '"><div class="l" title="' + esc(k.label) + '">' + esc(k.label) + '</div>' +
-        '<div class="n c-' + st + '"><b>' + (st === 'ok' ? '✓' : left) + '</b><span>' + (st === 'ok' ? 'completed' : st === 'none' ? '' : 'pending') + '</span></div>' +
-        '<div class="s">' + (tot ? (tot - left) + ' of ' + tot + ' completed' : 'none open') + '</div></button>';
-    }).join('');
     // sort (user 2026-11-14): oldest first (2nd time first, then the longest waiting) or by city
     var list = D.open.filter(function (x) { return match(x, Q, CITY); }).slice().sort(SORT === 'city'
       ? function (a, b) { return (a.city || 'zz').toLowerCase().localeCompare((b.city || 'zz').toLowerCase()) || b.hours - a.hours; }
-      : function (a, b) { return (b.again ? 1 : 0) - (a.again ? 1 : 0) || b.hours - a.hours; }), body = '';
-    ORDER = []; var QS = [];
-    var nSel = Object.keys(BULK).filter(function (id) { var x = find(id); return x && !answered(x); }).length;
-    // reattempts the office returned anyway (user 2026-11-14), right under the Reattempt section, before the other kinds
-    var ulta = !KIND || KIND === 'reattempt' ? ultaBlock() : '', placed = false;
+      : function (a, b) { return (b.again ? 1 : 0) - (a.again ? 1 : 0) || b.hours - a.hours; });
+    var SK = showKind(list);
+    var cards = D.kinds.map(function (k) {
+      var all = D.open.filter(function (x) { return x.kind === k.key; }), left = all.filter(function (x) { return !answered(x); }).length, tot = all.length;
+      // only kinds with something open (user 2026-11-15); a kind comes back by itself when a request of it arrives
+      if (!tot && SK !== k.key) return '';
+      return '<button class="kc k-' + k.key + (SK === k.key ? ' on' : '') + '" data-jump="' + k.key + '" aria-pressed="' + (SK === k.key) + '">' + kIcon(k.key) +
+        '<span class="kt"><span class="l" title="' + esc(k.label) + '">' + esc(k.label) + '</span><span class="s">' + (!tot ? 'none open' : left ? (tot - left) + ' of ' + tot + ' completed' : 'All ' + tot + ' completed') + '</span></span>' +
+        (left ? '<span class="kb">' + left + '</span>' : tot ? '<span class="kb ok">✓</span>' : '') + '</button>';
+    }).join('');
+    // the order ↑ ↓ and Save & next follow: every kind with a conversation, oldest first inside each kind
+    ORDER = [];
     D.kinds.forEach(function (k) {
-      if (KIND && k.key !== KIND) return;
-      if (k.key !== 'reattempt' && k.key !== 'stop' && !placed) { body += ulta; placed = true; }
+      if (quick(k.key)) return;
       var all = list.filter(function (x) { return x.kind === k.key; });
-      if (!all.length) { if (KIND) body += '<section class="qs k-' + k.key + '"><div class="empty">No open ' + esc(k.label) + ' requests.</div></section>'; return; }
-      var todo = all.filter(function (x) { return !answered(x); }), did = all.filter(answered), cap = MORE[k.key] ? did.length : 5, shown = ALL ? todo.concat(did.slice(0, cap)) : todo;
-      var put = function (h) { if (quick(k.key)) { if (!QS.length) body += '%%QUICK%%'; QS.push(h); } else body += h; };
-      if (!shown.length && !ALL) { put('<section class="qs k-' + k.key + '" id="sec_' + k.key + '"><div class="sh"><b>' + esc(k.label) + '</b><small>All ' + did.length + (k.key === 'return' ? ' marked' : ' responded') + ' ✓</small></div></section>'); return; }
+      all.filter(function (x) { return !answered(x); }).concat(ALL ? all.filter(answered) : []).forEach(function (x) { ORDER.push(x.id); });
+    });
+    var body = '', folds = '';
+    D.kinds.forEach(function (k) {
+      var all = list.filter(function (x) { return x.kind === k.key; });
+      var todo = all.filter(function (x) { return !answered(x); }), did = all.filter(answered);
+      var nDid = did.length + (k.key === 'return' ? ' marked' : ' responded');
+      if (k.key !== SK) {
+        if (!all.length) return;
+        folds += '<button class="qfold k-' + k.key + '" data-jump="' + k.key + '">' + kIcon(k.key) + '<span class="qf-t"><b>' + esc(k.label) + '</b><small>' +
+          (todo.length ? todo.length + ' pending' + (did.length ? ' · ' + nDid : '') : 'All ' + nDid + ' ✓') + '</small></span>' +
+          '<span class="qh">' + (quick(k.key) ? 'Mark directly · no conversation' : 'Opens in conversation') + '</span>' + CHEV.replace('<svg', '<svg class="qchev"') + '</button>';
+        return;
+      }
+      if (!all.length) { body += '<section class="qs k-' + k.key + '"><div class="empty">No open ' + esc(k.label) + ' requests' + (Q || CITY ? ' for this search' : '') + '.</div></section>'; return; }
+      var cap = MORE[k.key] ? did.length : 5, shown = ALL ? todo.concat(did.slice(0, cap)) : todo;
+      if (!shown.length) { body += '<section class="qs k-' + k.key + '" id="sec_' + k.key + '"><div class="sh"><b>' + esc(k.label) + '</b><small>All ' + nDid + ' ✓</small></div></section>'; return; }
       var bulk = k.key === 'return' && todo.filter(function (x) { return !PEND[x.id]; }).length > 1;
       var sec = '<section class="qs k-' + k.key + '" id="sec_' + k.key + '"><div class="sh"><b>' + esc(k.label) + '</b><small>' +
-        (todo.length ? todo.length + ' pending' + (did.length ? ' · ' + did.length + (k.key === 'return' ? ' marked' : ' responded') : '') : 'All ' + (k.key === 'return' ? 'marked' : 'responded') + ' ✓') + '</small>' +
+        (todo.length ? todo.length + ' pending' + (did.length ? ' · ' + nDid : '') : 'All ' + (k.key === 'return' ? 'marked' : 'responded') + ' ✓') + '</small>' +
         (bulk ? '<span class="bulk"><button class="btn pri sm" data-markall="1">' + (SURE ? 'Sure? Mark ' + todo.filter(function (x) { return !PEND[x.id]; }).length : 'Mark all (' + todo.filter(function (x) { return !PEND[x.id]; }).length + ')') + '</button></span>' : '') + '</div>';
-      shown.forEach(function (x) { if (!quick(x.kind)) ORDER.push(x.id); });
       var rows = shown.map(function (x, i) { return (i === todo.length && did.length && ALL ? '<div class="rdiv">Responded · ' + did.length + '</div>' : '') + row(x); }).join('') +
         (ALL && did.length > cap ? '<button class="more-r" data-moreans="' + k.key + '">Show ' + (did.length - cap) + ' more responded</button>' : '');
-      put(sec + (k.key === 'claim' ? TH.replace('Customer Remarks', 'Claim') : quick(k.key) ? '<div class="th"><div>Tracking ID</div><div>City</div><div>Ageing</div><div></div></div>' : TH) + rows + '</section>');
+      body += sec + (quick(k.key) ? '<div class="th"><div>Tracking ID</div><div>City</div><div>Ageing</div><div></div></div>' : TH) + rows + '</section>';
+      // reattempts the office returned anyway (user 2026-11-14), right under the Reattempt table
+      if (k.key === 'reattempt') body += ultaBlock();
     });
-    if (!placed) body += ulta;
-    body = body.replace('%%QUICK%%', QS.length ? '<div class="qgrid">' + QS.join('') + '</div>' : '');
-    // one bar that starts the work (user 2026-11-18: Respond should stand out): n waiting · Start → the first one, then Save & next
+    if (folds) body += '<div class="qolab">Other requests</div>' + folds;
+    // one bar that starts the work (user 2026-11-18); on a computer it lives in the empty chat panel instead (never twice)
     var waitIds = ORDER.filter(function (id) { var x = find(id); return x && !answered(x); });
-    var start = waitIds.length ? '<div class="start"><div><b>' + waitIds.length + ' ' + (waitIds.length === 1 ? 'query needs' : 'queries need') + ' your response</b><br><span>Oldest first · after you send, the next one opens</span></div><button class="btn pri" data-open="' + esc(waitIds[0]) + '" data-reply="1">Start responding</button></div>' : '';
+    var start = waitIds.length && !desk() ? '<div class="start"><div><b>' + waitIds.length + ' ' + (waitIds.length === 1 ? 'query needs' : 'queries need') + ' your response</b><br><span>Oldest first · after you send, the next one opens</span></div><button class="btn pri" data-open="' + esc(waitIds[0]) + '" data-reply="1">Start responding</button></div>' : '';
     // everything answered (user 2026-11-18): one calm green block instead of an empty page; the answered lines stay below
     var leftAll = D.open.filter(function (x) { return !answered(x) && !PEND[x.id]; }).length;
     var done = D.open.length && !leftAll ? '<div class="alldone"><div class="ad-i">✓</div><div><b>All queries answered</b><span>You responded to all ' + D.open.length + ' open quer' + (D.open.length > 1 ? 'ies' : 'y') + ' · new ones appear here by themselves (checked every 2 minutes) · Thank you</span></div></div>' : '';
     var html = done + start + (cards ? '<div class="cards">' + cards + '</div>' : '') + '<div class="box qtools"><div class="tools"><input id="q" type="search" placeholder="Search tracking ID" value="' + esc(Q) + '"><select id="city">' + cityOpts(D.open, CITY) + '</select>' +
       '<select id="sort" aria-label="Sort"><option value="old"' + (SORT === 'old' ? ' selected' : '') + '>Oldest first</option><option value="city"' + (SORT === 'city' ? ' selected' : '') + '>City A–Z</option></select>' +
-      '<div class="fl"><button class="' + (ALL ? '' : 'on') + '" data-all="0">Awaiting Response</button><button class="' + (ALL ? 'on' : '') + '" data-all="1">All</button></div>' +
-      (KIND ? '<button class="kchip" data-jump="' + KIND + '">Filter: ' + esc(kindOf(KIND).label) + ' <span aria-hidden="true">✕</span></button>' : '') + '</div></div>' +
-      (body || (D.open.length ? '<section class="qs"><div class="empty">Nothing matches the search.</div></section>' : '<div class="alldone"><div class="ad-i">✓</div><div><b>No open queries</b><span>Every request from ' + esc(D.store) + ' is resolved · new ones appear here by themselves (checked every 2 minutes) · Thank you</span></div></div>')) + popup(true);
+      '<div class="fl"><button class="' + (ALL ? '' : 'on') + '" data-all="0">Awaiting Response</button><button class="' + (ALL ? 'on' : '') + '" data-all="1">All</button></div></div></div>' +
+      (D.open.length ? body : '<div class="alldone"><div class="ad-i">✓</div><div><b>No open queries</b><span>Every request from ' + esc(D.store) + ' is resolved · new ones appear here by themselves (checked every 2 minutes) · Thank you</span></div></div>') +
+      (SEL && find(SEL) ? popup(true) : emptyPanel(waitIds));
     $('wrap').innerHTML = html; wireQ();
     if (FLASH) { FLASH = false; var box = document.querySelector('.qs'); if (box) { box.scrollIntoView({ behavior: 'smooth', block: 'start' }); var first = box.querySelector('.tr'); if (first) { first.classList.add('flash'); setTimeout(function () { first.classList.remove('flash'); }, 1400); } } }
+  }
+  // the chat side on a computer when no query is chosen: what to do, and the one Start button
+  function emptyPanel(waitIds) {
+    if (!desk()) return '';
+    return '<div class="mdl mempty" aria-label="No query selected"><div class="me-in"><div class="me-ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1 1 21 12z"/><path d="M8.5 10.5h7M8.5 13.5h4.5"/></svg></div>' +
+      '<b>Select a query</b><span>Click a line on the left. Its conversation opens here: ' + esc(D.store) + '\'s request, the parcel history and your reply.</span>' +
+      (waitIds.length ? '<button class="btn pri" data-open="' + esc(waitIds[0]) + '" data-reply="1">Start with the oldest · ' + waitIds.length + ' waiting</button><small>After you send, the next one opens by itself · ↑ ↓ keys move</small>' : '<small>Nothing waits for your response right now</small>') + '</div></div>';
   }
   // "Returned instead of delivering": the last 7 days' reattempts the office returned, with what we asked, what their team
   // said and what the office did — so the courier's seniors see it at once (read only; tap = the parcel's whole story)
@@ -555,8 +623,8 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       (ret ? '' : (an ? '<div class="c-rem resp" title="' + esc([x.status, x.reply].filter(Boolean).join(' – ')) + '"><b>✓ ' + esc(x.status || 'Responded') + '</b>' + (x.reply ? ' – ' + esc(x.reply) : '') +
           ' <small>' + esc([x.by, String(x.at || '').replace(/^.*,\s*/, '')].filter(Boolean).join(' · ')) + '</small></div>'
         : '<div class="c-rem" title="' + esc([x.note, x.says].filter(Boolean).join(' · ')) + '">' + (x.note ? '<b>' + esc(x.note) + '</b>' + (x.says ? ' · ' : '') : '') + esc(x.says) + '</div>') +
-      '<div class="c-now" title="' + (nw ? esc(nw[0] + ' · ' + nw[1]) + (nw[2] ? ' · no update since our request' : '') : '') + '">' + (nw ? esc(attTxt(x, nw[3])) + ' <small>· ' + esc(nw[1]) + '</small>' : '') + '</div>') +
-      '<div class="c-pend"><span class="pend' + (answered(x) ? '' : pendCls(x.hours, x.kind)) + '">' + pendTxt(x.hours) + '</span></div>' +
+      '<div class="c-now" title="' + (nw ? esc(nw[0] + ' · ' + nw[1]) + (nw[2] ? ' · no update since our request' : '') : '') + '">' + (nw ? esc(attTxt(x, nw[3])) + ' <small>· ' + esc(nw[1]) + '</small>' : x.note ? esc(x.note) : '<small>—</small>') + '</div>') +
+      '<div class="c-pend"><span class="pend' + (answered(x) ? ' dn' : x.hours < 1 ? ' nw' : pendCls(x.hours, x.kind)) + '">' + pendTxt(x.hours) + '</span></div>' +
       '<div class="c-ans">' + (ret ? markCell(x) : an ? '<span class="rp ed" data-reply="' + esc(x.id) + '">Edit</span>' : '<span class="rp" data-reply="' + esc(x.id) + '">Respond</span>') + '</div></div>';
   }
   function timeline(h) {
@@ -607,7 +675,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       }
     });
     if (isOpen && x.reopen) h += '<div class="cwait a">Revised by ' + esc(D.store) + ' after your answer · please answer again</div>';
-    else if (isOpen && !answered(x)) h += '<div class="cwait' + pendCls(x.hours, x.kind) + '">Waiting for your response · ' + esc(pendTxt(x.hours)) + '</div>';
+    else if (isOpen && !answered(x)) h += '<div class="cwait' + pendCls(x.hours, x.kind) + '">' + (x.hours < 1 ? 'New · waiting for your response' : 'Waiting for your response · ' + esc(pendTxt(x.hours))) + '</div>';
     return h;
   }
   // the reply pop-up: wide, two sides (the parcel's story | the answer); ↑ ↓ move, Esc closes; on a phone it fills the screen
@@ -626,7 +694,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
       '<div class="mh2"><span class="hc kind">' + esc(k.label) + '</span>' +
       (x.attempts ? '<span class="hc' + (x.attempts >= maxA ? ' r' : '') + '">Attempts ' + x.attempts + ' of ' + maxA + '</span>' : '') +
       (x.again ? '<span class="hc r">' + esc(x.again) + '</span>' : '') +
-      (isOpen ? (answered(x) ? '<span class="hc ok">✓ Responded</span>' : '<span class="hc' + (wait ? ' ' + wait : '') + '">Waiting ' + esc(pendTxt(x.hours)) + '</span>')
+      (isOpen ? (answered(x) ? '<span class="hc ok">✓ Responded</span>' : '<span class="hc' + (wait ? ' ' + wait : '') + '">' + (x.hours < 1 ? 'New · no response yet' : 'Waiting ' + esc(pendTxt(x.hours))) + '</span>')
         : '<span class="hc ' + resCls(x.cat) + '">' + esc(x.result) + '</span>') +
       '</div></div><div class="mb chatm">';
     // WhatsApp-like chat (user 2026-11-18, after the NDR chat): the courier's team on the right (it is their page), the
@@ -692,7 +760,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     var dz = $('drop');
     if (dz) { dz.ondragover = function (e) { e.preventDefault(); dz.classList.add('over'); }; dz.ondragleave = function () { dz.classList.remove('over'); };
       dz.ondrop = function (e) { e.preventDefault(); dz.classList.remove('over'); var f = e.dataTransfer.files && e.dataTransfer.files[0]; if (f) sendPhoto(f, SEL); }; }
-    document.body.classList.toggle('mdl-on', !!(SEL && find(SEL)));
+    document.body.classList.toggle('mdl-on', !!(SEL && find(SEL)) || desk());
   }
   function nextOpen(after) {
     var order = ORDER.filter(function (id) { var x = find(id); return x && !answered(x); });
@@ -774,6 +842,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
 
   // ---------- Performance ----------
   function renderP() {
+    document.body.classList.remove('mdl-on');
     // whole days in UTC: a local midnight turned into UTC fell a day back in Pakistan (+5) and the day loop never ended
     var dAdd = function (d, n) { var t = new Date(d + 'T00:00:00Z'); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };
     var from, to = D.today, pFrom, pTo;
@@ -834,7 +903,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     if (QOPEN && !e.target.closest('.qm')) { QOPEN = ''; renderQ(); }
     var t = e.target.closest('button,[data-open],[data-pday]'); if (!t || !D) return;
     if (t.dataset.view) { VIEW = t.dataset.view; SEL = ''; render(); window.scrollTo(0, 0); }
-    else if (t.dataset.jump) { KIND = KIND === t.dataset.jump ? '' : t.dataset.jump; FLASH = !!KIND; SEL = ''; renderQ(); }
+    else if (t.dataset.jump) { KIND = t.dataset.jump; FLASH = true; SEL = ''; renderQ(); }
     else if (t.dataset.ulta) { ls('cp_ulta', ls('cp_ulta') === '1' ? '0' : '1'); renderQ(); }
     else if (t.dataset.all) { ALL = t.dataset.all === '1'; ls('cp_all', ALL ? '1' : '0'); renderQ(); }
     else if (t.dataset.bulkgo) bulkGo(t);
@@ -865,6 +934,7 @@ textarea{width:100%;margin-top:8px;border:1px solid var(--line);background:var(-
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); step(e.key === 'ArrowDown' ? 1 : -1); }
   });
   $('rf').onclick = function () { load(false); };
+  window.matchMedia('(min-width:901px)').addEventListener('change', function () { if (D) render(); });
   // each area scrolls on its own (user 2026-11-18): the mouse over the chat panel scrolls the chat, never the table behind;
   // anywhere on the panel (header, pinned bar, answer box) the wheel moves the chat; the message box scrolls itself first
   document.addEventListener('wheel', function (e) {
