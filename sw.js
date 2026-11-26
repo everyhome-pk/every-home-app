@@ -1,4 +1,4 @@
-const CACHE = 'eh-mww548it';
+const CACHE = 'eh-mwxcc21f';
 const SHELL = ['./', 'index.html', 'ordi.webmanifest', 'ordi-192.png', 'ordi-512.png', 'ordi-maskable-512.png', 'ordi-apple-180.png', 'ordi-badge-96.png'];
 // 'reload': a new version always takes the files from the server, never from the browser's own (older) copy.
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting())); });
@@ -22,7 +22,9 @@ self.addEventListener('notificationclick', e => {
   e.notification.close();
   const url = new URL((e.notification.data && e.notification.data.url) || './', self.registration.scope).href;
   e.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then(ws => {
-    const w = ws.find(x => 'focus' in x);
+    // a courier page alert opens the courier page (never the ORDI app's window), an app alert the app
+    const cp = /courier\.html/.test(url);
+    const w = ws.find(x => 'focus' in x && /courier\.html/.test(x.url) === cp);
     return w ? w.navigate(url).then(x => (x || w).focus()) : clients.openWindow(url);
   }));
 });
